@@ -11,6 +11,7 @@ linkml-runtime = "^1.2.16"
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
 linkml = "^1.2.15"
+mkdocs-mermaid2-plugin = "^0.6.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
