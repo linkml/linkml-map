@@ -1,0 +1,89 @@
+id: my-mappings
+title: my mappings
+prefixes:
+  foo: foo
+source_schema: s1
+target_schema: s1
+class_derivations:
+  Person:
+    populated_from: Agent
+    slot_derivations:
+      
+      ## implicitly same name in Agent
+      id:
+
+      ## expressions
+      full_name:
+        expr: "{first} {last}"
+
+      ## unit conversion
+      age_in_years:
+        expr: "units.convert(age.value, age.unit, units.YEARS)"
+        
+      ## nested to flat
+      friends:
+        expr: "[x.id for x in {friends}]"
+
+      ## copy recursively, flat to nested
+      jobs:
+        populated_from: jobs
+        
+      ## copy recursively
+      diagnoses:
+        populated_from: diagnoses
+  Job:
+    #primitive: uriorcurie
+    slot_derivations:
+      type:
+      #  this: true   ## use input primitive
+      current:
+        expr: "True"
+
+  Address:
+    slot_derivations:
+      person_id:
+        inverse_of:
+          class_name: Agent
+          slot_name: home_addresses
+      street:
+      city:
+
+  FamilialRelationship:
+    slot_derivations:
+      type:
+      related_to:
+      person_id:
+        # inverse of has_familial_relationships
+        inverse_of:
+          slot_name: has_familial_relationships
+          class_name: Person
+
+  SequenceFeature:
+    slot_derivations:
+      type:
+        type_designator: true
+        hide: true
+        populated_from: feature_type
+        
+  DenormMapping:
+    populated_from: Mapping
+    joins:
+      subject: Entity
+      object: Entity
+    slot_derivations:
+      id:         ## implicitly mapping.id
+      creator:
+      license:
+      subject_id:
+        expr: subject.id
+      subject_name:
+        expr: subject.name
+      object_id:
+        expr: object.id
+      object_name:
+        expr: object.name
+      predicate_id:
+        populated_from: predicate   ## implicitly: mapping.predicate
+      predicate_label:
+        expr: "lookup(predicate)"
+

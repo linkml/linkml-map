@@ -1,0 +1,78 @@
+id: https://w3id.org/linkml/transformer
+name: transformer
+title: LinkML Data Transformer Model
+description: >-
+  Datamodel for LinkML schema transformations
+prefixes:
+  linkml: https://w3id.org/linkml/
+  tr: https://w3id.org/linkml/transformer/
+default_prefix: tr
+
+imports:
+  - linkml:types
+
+classes:
+
+  TransformationSpecification:
+    description: A collection of mappings between source and target classes
+    tree_root: true
+    attributes:
+      id:
+      title:
+      prefixes:
+      source_schema:
+      target_schema:
+      class_derivations:
+        description: Instructions on how to derive a set of class in the target schema
+        range: ClassDerivation
+        multivalued: true
+        inlined: true
+
+  ClassDerivation:
+    attributes:
+      name:
+        key: true
+        description: Name of the class in the target schema
+      populated_from:
+        range: string
+        description: Name of the class in the source schema
+      joins:
+        range: AliasedClass
+        multivalued: true
+        inlined: true
+        description: Additional classes to be joined to derive instances of the target class
+      slot_derivations:
+        range: SlotDerivation
+        multivalued: true
+        inlined: true
+
+  AliasedClass:
+    description: alias-class key value pairs for classes
+    attributes:
+      alias:
+        key: true
+      class_named:
+        description: local alias for the class
+
+  SlotDerivation:
+    attributes:
+      name:
+        key: true
+      populated_from:
+        range: string
+      expr:
+        range: string
+      inverse_of:
+        range: Inverse
+      hide:
+        range: boolean
+      type_designator:
+        range: boolean
+
+  Inverse:
+    aliases:
+      - backref
+      - back references
+    attributes:
+      slot_name:
+      class_name:
