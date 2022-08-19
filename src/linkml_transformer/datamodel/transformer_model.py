@@ -1,5 +1,5 @@
 # Auto generated from transformer_model.yaml by pythongen.py version: 0.9.0
-# Generation date: 2022-07-07T23:08:06
+# Generation date: 2022-08-19T08:56:11
 # Schema: transformer
 #
 # id: https://w3id.org/linkml/transformer

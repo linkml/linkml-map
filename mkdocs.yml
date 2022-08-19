@@ -8,22 +8,10 @@ theme:
 plugins:
   - search
   - mermaid2
-markdown_extensions:
-  - pymdownx.highlight:
-      anchor_linenums: true
-  - pymdownx.inlinehilite
-  - pymdownx.snippets
-  - pymdownx.superfences
-  - pymdownx.tabbed:
-      alternate_style: true
-  - pymdownx.critic
-  - pymdownx.caret
-  - pymdownx.keys
-  - pymdownx.mark
-  - pymdownx.tilde
 nav:
 #  - Home: home.md
   - Index: index.md
   - About: about.md
-site_url: https://my-org.github.io/my-datamodel/
-repo_url: https://github.com/my-org/my-datamodel/
+  - Overview: overview.md
+site_url: https://cmungall.github.io/linkml-transformer/
+repo_url: https://github.com/cmungall/linkml-transformer/
