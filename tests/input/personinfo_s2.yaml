@@ -243,11 +243,11 @@ slots:
 enums:
   FamilialRelationshipType:
     permissible_values:
-      SIBLING_OF:
+      sibling of:
         meaning: famrel:01
-      PARENT_OF:
+      parent of:
         meaning: famrel:02
-      CHILD_OF:
+      child of:
         meaning: famrel:01
   GenderType:
     permissible_values:

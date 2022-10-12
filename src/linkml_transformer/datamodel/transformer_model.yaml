@@ -5,8 +5,8 @@ description: >-
   Datamodel for LinkML schema transformations
 prefixes:
   linkml: https://w3id.org/linkml/
-  tr: https://w3id.org/linkml/transformer/
-default_prefix: tr
+  linkmltr: https://w3id.org/linkml/transformer/
+default_prefix:   linkmltr
 
 imports:
   - linkml:types
@@ -18,17 +18,20 @@ classes:
     tree_root: true
     attributes:
       id:
+        identifier: true
       title:
+        description: human readable title
       prefixes:
       source_schema:
       target_schema:
       class_derivations:
-        description: Instructions on how to derive a set of class in the target schema
+        description: Instructions on how to derive a set of classes in the target schema
         range: ClassDerivation
         multivalued: true
         inlined: true
 
   ClassDerivation:
+    description: A specification of how to derive a target class from a source class
     attributes:
       name:
         key: true
@@ -55,6 +58,7 @@ classes:
         description: local alias for the class
 
   SlotDerivation:
+    description: A specification of how to derive the value of a target slot from a source slot
     attributes:
       name:
         key: true

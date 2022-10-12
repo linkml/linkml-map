@@ -14,7 +14,10 @@ import tests.model.personinfo_s2 as tgt_dm
 from tests import INPUT_DIR, SCHEMA1, SCHEMA2, SPECIFICATION
 
 
-class TransformerTestCase(unittest.TestCase):
+class ObjectTransformerTestCase(unittest.TestCase):
+    """
+    Tests ObjectTransformer
+    """
 
     def setUp(self) -> None:
         tr = ObjectTransformer()
@@ -24,13 +27,31 @@ class TransformerTestCase(unittest.TestCase):
         tr.specification = yaml_loader.load(SPECIFICATION, target_class=TransformationSpecification)
         self.tr = tr
 
-    def test_transform(self):
+    def test_transform_single_object(self):
         """ tr """
         tr = self.tr
+        obj: src_dm.Person
         obj = yaml_loader.load(str(INPUT_DIR / 'personinfo-s1-example-data-01.yaml'), target_class=src_dm.Person)
         target_obj = tr.transform(obj, target_class=tgt_dm.Agent)
         print(yaml_dumper.dumps(target_obj))
+        self.assertIsInstance(target_obj, tgt_dm.Agent)
+        self.assertEqual(obj.name, target_obj.label)
+        self.assertEqual("33 years", target_obj.age)
         #self.assertEqual(obj.name, target_obj.label)
+
+    def test_transform_container(self):
+        """ tests recursive """
+        tr = self.tr
+        person = yaml_loader.load(str(INPUT_DIR / 'personinfo-s1-example-data-01.yaml'), target_class=src_dm.Person)
+        obj = src_dm.Container(persons=[person])
+        target_obj: tgt_dm.Container = tr.transform(obj, target_class=tgt_dm.Container)
+        print(yaml_dumper.dumps(target_obj))
+        self.assertIsInstance(target_obj, tgt_dm.Container)
+        agents = target_obj.agents
+        agent = agents[0]
+        self.assertEqual(person.name, agent.label)
+        self.assertEqual("33 years", agent.age)
+
 
 
 if __name__ == '__main__':

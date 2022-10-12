@@ -10,6 +10,11 @@ from linkml_transformer.transformer.transformer import Transformer
 
 @dataclass
 class RdflibTransformer(Transformer):
+    """
+    A transformer that works on in-memory rdflib Graphs.
+
+    NOT IMPLEMENTED
+    """
 
     def transform(self, obj: YAMLRoot, target_class: Type[YAMLRoot]) -> YAMLRoot:
         g = rdflib_dumper.as_rdf_graph(obj, self.source_schemaview)

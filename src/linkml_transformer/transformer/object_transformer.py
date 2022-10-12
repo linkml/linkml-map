@@ -14,7 +14,9 @@ from linkml_transformer.transformer.transformer import Transformer
 @dataclass
 class ObjectTransformer(Transformer):
     """
-    A Transformer that works on in-memory objects
+    A Transformer that works on in-memory objects.
+
+    This works by recursively
     """
 
     def _transform_any(self, obj: Any, target_class: Type[YAMLRoot], parent_slot: SlotDefinition) -> YAMLRoot:
@@ -24,31 +26,43 @@ class ObjectTransformer(Transformer):
         else:
             return obj
 
-    def transform(self, obj: YAMLRoot, target_class: Type[YAMLRoot]) -> YAMLRoot:
+    def transform(self, source_obj: YAMLRoot, target_class: Type[YAMLRoot] = None) -> YAMLRoot:
         tgt_mod = self.target_module
         spec = self.specification
-        typ = type(obj)
+        typ = type(source_obj)
         cls_name = typ.class_name
-        print(cls_name)
-        [class_deriv] = [deriv for deriv in spec.class_derivations.values() if deriv.populated_from == cls_name]
-        print(class_deriv)
+        print(f"\nSource object type={cls_name}")
+        # use populated-from to pick the class derivation
+        matching_tgt_class_derivs = [deriv for deriv in spec.class_derivations.values() if deriv.populated_from == cls_name]
+        print(f"Target class derivs={matching_tgt_class_derivs}")
+        if len(matching_tgt_class_derivs) != 1:
+            raise ValueError(f"Could not find what to derive from a source {cls_name}")
+        [class_deriv] = matching_tgt_class_derivs
         tgt_class_name = class_deriv.name
         tgt_class = getattr(tgt_mod, tgt_class_name)
-        attrs = {}
+        tgt_attrs = {}
         for sd in class_deriv.slot_derivations.values():
             v = None
             if sd.populated_from:
-                v = getattr(obj, sd.populated_from, None)
+                v = getattr(source_obj, sd.populated_from, None)
+                print(f"Pop slot {sd.name} => {v} using {sd.populated_from} // {source_obj}")
             elif sd.expr:
-                eval_expr(sd.expr,  **obj_as_dict_nonrecursive(obj))
+                ctxt_dict = obj_as_dict_nonrecursive(source_obj)
+                print(f"SSS={source_obj}")
+                print(f"DDD={ctxt_dict}")
+                v = eval_expr(sd.expr, **ctxt_dict)
+                print(f"VVVV={v}")
             else:
-                v = getattr(obj, sd.name)
+                v = getattr(source_obj, sd.name)
             if v is not None:
-                v = self._transform_any(v, None, None)
-                attrs[sd.name] = v
+                if isinstance(v, list):
+                    v = [self.transform(v1) for v1 in v]
+                else:
+                    v = self._transform_any(v, None, None)
+                tgt_attrs[sd.name] = v
         print(tgt_class)
-        print(attrs)
-        return tgt_class(**attrs)
+        print(tgt_attrs)
+        return tgt_class(**tgt_attrs)
 
     def derive(
             self,

@@ -8,8 +8,8 @@ class_derivations:
   Container:
     populated_from: Container
     slot_derivations:
-      persons:
-        populated_from: agents
+      agents:
+        populated_from: persons
   Agent:
     populated_from: Person
     slot_derivations:
@@ -21,7 +21,7 @@ class_derivations:
         populated_from: name
 
       age:
-        expr: "{age_in_years}"
+        expr: "str({age_in_years})+' years'"
 
       primary_email:
 
@@ -46,6 +46,9 @@ class_derivations:
       ## copy recursively
       #diagnoses:
       #  populated_from: diagnoses
+
+      has_familial_relationships:
+        populated_from: has_familial_relationships
   Job:
     #primitive: uriorcurie
     slot_derivations:
@@ -64,14 +67,15 @@ class_derivations:
       city:
 
   FamilialRelationship:
+    populated_from: FamilialRelationship
     slot_derivations:
       type:
       related_to:
-      person_id:
-        # inverse of has_familial_relationships
-        inverse_of:
-          slot_name: has_familial_relationships
-          class_name: Person
+      #person_id:
+      #  # inverse of has_familial_relationships
+      #  inverse_of:
+      #    slot_name: has_familial_relationships
+      #    class_name: Person
 
   SequenceFeature:
     slot_derivations:

@@ -250,6 +250,8 @@ enums:
         meaning: famrel:02
       CHILD_OF:
         meaning: famrel:01
+      FATHER_OF:
+        meaning: famrel:11
   GenderType:
     permissible_values:
       nonbinary man:

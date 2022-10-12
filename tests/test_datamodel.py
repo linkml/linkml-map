@@ -9,14 +9,17 @@ from linkml_transformer.datamodel.transformer_model import *
 from tests import INPUT_DIR
 
 
-class TransformerTestCase(unittest.TestCase):
+class DatamodelTestCase(unittest.TestCase):
+    """
+    tests the data model
+    """
 
     def setUp(self) -> None:
         self.tr_spec = yaml_loader.load(str(INPUT_DIR / 'multi-example.yaml'),
                                         target_class=TransformationSpecification)
 
-    def test_transform(self):
-        """ solr """
+    def test_datamodel(self):
+        """ checks loading/retrieval """
         tr_spec = self.tr_spec
         print(yaml_dumper.dumps(tr_spec))
         self.assertEqual(1, 1)
