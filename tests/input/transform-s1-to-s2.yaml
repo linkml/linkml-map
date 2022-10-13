@@ -3,7 +3,7 @@ title: my mappings
 prefixes:
   foo: foo
 source_schema: s1
-target_schema: s1
+target_schema: s2
 class_derivations:
   Container:
     populated_from: Container
@@ -106,3 +106,9 @@ class_derivations:
       predicate_label:
         expr: "lookup(predicate)"
 
+enum_derivations:
+  FamilialRelationshipType:
+    populated_from: FamilialRelationshipType
+    permissible_value_derivations:
+      sibling of:
+        populated_from: SIBLING_OF

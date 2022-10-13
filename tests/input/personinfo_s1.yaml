@@ -125,15 +125,16 @@ classes:
       - started_at_time
       - ended_at_time
       - related_to
-      - type
 
   FamilialRelationship:
     is_a: Relationship
+    slots:
+      - type
     slot_usage:
       type:
         range: FamilialRelationshipType
         required: true
-      related to:
+      related_to:
         range: Person
         required: true
 
@@ -141,6 +142,7 @@ classes:
     is_a: Event
     slots:
       - employed_at
+      - type
 
   MedicalEvent:
     is_a: Event
@@ -148,6 +150,7 @@ classes:
       - in_location
       - diagnosis
       - procedure
+      - type
 
   WithLocation:
     mixin: true
@@ -206,6 +209,7 @@ slots:
     maximum_value: 999
   related_to:
   type:
+    range: RelationshipType
   street:
   city:
   mission_statement:
@@ -242,7 +246,9 @@ slots:
     multivalued: true
 
 enums:
+  RelationshipType:
   FamilialRelationshipType:
+    is_a: RelationshipType
     permissible_values:
       SIBLING_OF:
         meaning: famrel:01

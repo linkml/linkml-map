@@ -1,0 +1,9 @@
+mappings:
+  - subject: X:1
+    object: Y:1
+    predicate: P:1
+entities:
+  "X:1":
+    name: x1
+  "Y:1":
+    name: y1

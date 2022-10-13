@@ -1,8 +1,20 @@
 id: https://w3id.org/linkml/transformer
 name: transformer
 title: LinkML Data Transformer Model
-description: >-
-  Datamodel for LinkML schema transformations
+description: |-
+  Datamodel for LinkML schema transformations.
+  
+  A transformer generates instances of a *target* data model from
+  instances of a *source* data model. This transformation process
+  is guided by a *TransformationSpecification*.
+  
+  The specification is independent of any one method for transforming
+  data. It allows different approaches, including:
+  
+  - direct implementation, transforming python or json objects
+  - translation of the specification into SQL commands, to operate on relations
+  - translation of the specification into SPARQL CONSTRUCTs, to operate on triples
+  - translation into another specification language, such as R2RML
 prefixes:
   linkml: https://w3id.org/linkml/
   linkmltr: https://w3id.org/linkml/transformer/
@@ -19,19 +31,32 @@ classes:
     attributes:
       id:
         identifier: true
+        description: Unique identifier for this transformation specification
       title:
-        description: human readable title
+        description: human readable title for this transformation specification
       prefixes:
+        description: prefix map
       source_schema:
+        description: name of the schema that describes the source (input) objects
       target_schema:
+        description: name of the schema that describes the target (output) objects
       class_derivations:
-        description: Instructions on how to derive a set of classes in the target schema
+        description: >-
+          Instructions on how to derive a set of classes in the target schema
+          from classes in the source schema.
         range: ClassDerivation
+        multivalued: true
+        inlined: true
+      enum_derivations:
+        description: >-
+          Instructions on how to derive a set of enums in the target schema
+        range: EnumDerivation
         multivalued: true
         inlined: true
 
   ClassDerivation:
-    description: A specification of how to derive a target class from a source class
+    description: >-
+      A specification of how to derive a target class from a source class.
     attributes:
       name:
         key: true
@@ -44,6 +69,8 @@ classes:
         multivalued: true
         inlined: true
         description: Additional classes to be joined to derive instances of the target class
+        comments:
+          - not yet implemented
       slot_derivations:
         range: SlotDerivation
         multivalued: true
@@ -54,6 +81,7 @@ classes:
     attributes:
       alias:
         key: true
+        description: name of the class to be aliased
       class_named:
         description: local alias for the class
 
@@ -62,21 +90,70 @@ classes:
     attributes:
       name:
         key: true
+        description: Target slot name
       populated_from:
         range: string
+        description: Source slot name
       expr:
         range: string
+        description: >-
+          An expression to be evaluated on the source object to derive the target slot.
+          Should be specified using the LinkML expression language.
       inverse_of:
         range: Inverse
+        description: >-
+          Used to specify a class-slot tuple that is the inverse of the derived/target slot.
+          This is used primarily for mapping to relational databases or formalisms that do
+          not allow multiple values. The class representing the repeated element has a foreign
+          key slot inserted in that 'back references' the original multivalued slot.
       hide:
         range: boolean
+        description: True if this is suppressed
       type_designator:
         range: boolean
 
+  EnumDerivation:
+    description: A specification of how to derive the value of a target enum from a source enum
+    attributes:
+      name:
+        key: true
+        description: Target enum name
+      populated_from:
+        range: string
+        description: Source enum name
+      expr:
+        range: string
+        description: >-
+          An expression to be evaluated on the source object to derive the target slot.
+          Should be specified using the LinkML expression language.
+      hide:
+        range: boolean
+        description: True if this is suppressed
+      permissible_value_derivations:
+        description: Instructions on how to derive a set of PVs in the target schema
+        range: PermissibleValueDerivation
+        multivalued: true
+        inlined: true
+
+  PermissibleValueDerivation:
+    description: A specification of how to derive the value of a PV from a source enum
+    todos:
+      - this is currently under-specified. We will need boolean combinators to express if-then-else
+    attributes:
+      name:
+        key: true
+        description: Target permissible value text
+      expr:
+        range: string
+      hide:
+        range: boolean
+
   Inverse:
+    description: >-
+      Used for back references
     aliases:
       - backref
-      - back references
+      - back_references
     attributes:
       slot_name:
       class_name:

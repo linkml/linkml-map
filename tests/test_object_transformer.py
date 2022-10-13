@@ -11,7 +11,7 @@ from linkml_transformer.transformer.object_transformer import ObjectTransformer
 import tests.model.personinfo_s1 as src_dm
 import tests.model.personinfo_s2 as tgt_dm
 
-from tests import INPUT_DIR, SCHEMA1, SCHEMA2, SPECIFICATION
+from tests import INPUT_DIR, SCHEMA1, SCHEMA2, SPECIFICATION, DENORM_SPECIFICATION
 
 
 class ObjectTransformerTestCase(unittest.TestCase):
@@ -51,6 +51,9 @@ class ObjectTransformerTestCase(unittest.TestCase):
         agent = agents[0]
         self.assertEqual(person.name, agent.label)
         self.assertEqual("33 years", agent.age)
+        person_fr1 = person.has_familial_relationships[0]
+        agent_fr1 = agent.has_familial_relationships[0]
+        self.assertEqual(person_fr1.related_to, agent_fr1.related_to)
 
 
 

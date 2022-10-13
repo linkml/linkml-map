@@ -9,6 +9,7 @@ from linkml_runtime.utils.yamlutils import YAMLRoot
 from linkml_runtime.utils.inference_utils import infer_slot_value, obj_as_dict_nonrecursive
 from linkml_transformer.datamodel.transformer_model import TransformationSpecification
 from linkml_transformer.transformer.transformer import Transformer
+from linkml_transformer.utils.object_indexer import ObjectIndex
 
 
 @dataclass
@@ -18,6 +19,16 @@ class ObjectTransformer(Transformer):
 
     This works by recursively
     """
+    object_index: ObjectIndex = None
+
+    def index(self, source_obj: YAMLRoot):
+        """
+        Create an index over a container object.
+
+        :param source_obj:
+        :return:
+        """
+        self.object_index = ObjectIndex(source_obj, schemaview=self.source_schemaview)
 
     def _transform_any(self, obj: Any, target_class: Type[YAMLRoot], parent_slot: SlotDefinition) -> YAMLRoot:
         print(f"T={type(obj)} // {obj}")
@@ -47,11 +58,12 @@ class ObjectTransformer(Transformer):
                 v = getattr(source_obj, sd.populated_from, None)
                 print(f"Pop slot {sd.name} => {v} using {sd.populated_from} // {source_obj}")
             elif sd.expr:
-                ctxt_dict = obj_as_dict_nonrecursive(source_obj)
-                print(f"SSS={source_obj}")
-                print(f"DDD={ctxt_dict}")
+                ctxt_obj = self.object_index.bless(source_obj)
+                print(ctxt_obj)
+                ctxt_dict = {k: getattr(ctxt_obj, k) for k in ctxt_obj._attributes()}
+                print(ctxt_dict)
+                #ctxt_dict = obj_as_dict_nonrecursive(ctxt_obj)
                 v = eval_expr(sd.expr, **ctxt_dict)
-                print(f"VVVV={v}")
             else:
                 v = getattr(source_obj, sd.name)
             if v is not None:

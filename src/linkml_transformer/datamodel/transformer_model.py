@@ -1,5 +1,5 @@
 # Auto generated from transformer_model.yaml by pythongen.py version: 0.9.0
-# Generation date: 2022-08-19T08:56:11
+# Generation date: 2022-10-11T21:43:16
 # Schema: transformer
 #
 # id: https://w3id.org/linkml/transformer
@@ -33,13 +33,17 @@ dataclasses._init_fn = dataclasses_init_fn_with_kwargs
 
 # Namespaces
 LINKML = CurieNamespace('linkml', 'https://w3id.org/linkml/')
-TR = CurieNamespace('tr', 'https://w3id.org/linkml/transformer/')
-DEFAULT_ = TR
+LINKMLTR = CurieNamespace('linkmltr', 'https://w3id.org/linkml/transformer/')
+DEFAULT_ = LINKMLTR
 
 
 # Types
 
 # Class references
+class TransformationSpecificationId(extended_str):
+    pass
+
+
 class ClassDerivationName(extended_str):
     pass
 
@@ -52,6 +56,14 @@ class SlotDerivationName(extended_str):
     pass
 
 
+class EnumDerivationName(extended_str):
+    pass
+
+
+class PermissibleValueDerivationName(extended_str):
+    pass
+
+
 @dataclass
 class TransformationSpecification(YAMLRoot):
     """
@@ -59,21 +71,24 @@ class TransformationSpecification(YAMLRoot):
     """
     _inherited_slots: ClassVar[List[str]] = []
 
-    class_class_uri: ClassVar[URIRef] = TR.TransformationSpecification
-    class_class_curie: ClassVar[str] = "tr:TransformationSpecification"
+    class_class_uri: ClassVar[URIRef] = LINKMLTR.TransformationSpecification
+    class_class_curie: ClassVar[str] = "linkmltr:TransformationSpecification"
     class_name: ClassVar[str] = "TransformationSpecification"
-    class_model_uri: ClassVar[URIRef] = TR.TransformationSpecification
+    class_model_uri: ClassVar[URIRef] = LINKMLTR.TransformationSpecification
 
-    id: Optional[str] = None
+    id: Union[str, TransformationSpecificationId] = None
     title: Optional[str] = None
     prefixes: Optional[str] = None
     source_schema: Optional[str] = None
     target_schema: Optional[str] = None
     class_derivations: Optional[Union[Dict[Union[str, ClassDerivationName], Union[dict, "ClassDerivation"]], List[Union[dict, "ClassDerivation"]]]] = empty_dict()
+    enum_derivations: Optional[Union[Dict[Union[str, EnumDerivationName], Union[dict, "EnumDerivation"]], List[Union[dict, "EnumDerivation"]]]] = empty_dict()
 
     def __post_init__(self, *_: List[str], **kwargs: Dict[str, Any]):
-        if self.id is not None and not isinstance(self.id, str):
-            self.id = str(self.id)
+        if self._is_empty(self.id):
+            self.MissingRequiredField("id")
+        if not isinstance(self.id, TransformationSpecificationId):
+            self.id = TransformationSpecificationId(self.id)
 
         if self.title is not None and not isinstance(self.title, str):
             self.title = str(self.title)
@@ -89,17 +104,22 @@ class TransformationSpecification(YAMLRoot):
 
         self._normalize_inlined_as_dict(slot_name="class_derivations", slot_type=ClassDerivation, key_name="name", keyed=True)
 
+        self._normalize_inlined_as_dict(slot_name="enum_derivations", slot_type=EnumDerivation, key_name="name", keyed=True)
+
         super().__post_init__(**kwargs)
 
 
 @dataclass
 class ClassDerivation(YAMLRoot):
+    """
+    A specification of how to derive a target class from a source class
+    """
     _inherited_slots: ClassVar[List[str]] = []
 
-    class_class_uri: ClassVar[URIRef] = TR.ClassDerivation
-    class_class_curie: ClassVar[str] = "tr:ClassDerivation"
+    class_class_uri: ClassVar[URIRef] = LINKMLTR.ClassDerivation
+    class_class_curie: ClassVar[str] = "linkmltr:ClassDerivation"
     class_name: ClassVar[str] = "ClassDerivation"
-    class_model_uri: ClassVar[URIRef] = TR.ClassDerivation
+    class_model_uri: ClassVar[URIRef] = LINKMLTR.ClassDerivation
 
     name: Union[str, ClassDerivationName] = None
     populated_from: Optional[str] = None
@@ -129,10 +149,10 @@ class AliasedClass(YAMLRoot):
     """
     _inherited_slots: ClassVar[List[str]] = []
 
-    class_class_uri: ClassVar[URIRef] = TR.AliasedClass
-    class_class_curie: ClassVar[str] = "tr:AliasedClass"
+    class_class_uri: ClassVar[URIRef] = LINKMLTR.AliasedClass
+    class_class_curie: ClassVar[str] = "linkmltr:AliasedClass"
     class_name: ClassVar[str] = "AliasedClass"
-    class_model_uri: ClassVar[URIRef] = TR.AliasedClass
+    class_model_uri: ClassVar[URIRef] = LINKMLTR.AliasedClass
 
     alias: Union[str, AliasedClassAlias] = None
     class_named: Optional[str] = None
@@ -151,12 +171,15 @@ class AliasedClass(YAMLRoot):
 
 @dataclass
 class SlotDerivation(YAMLRoot):
+    """
+    A specification of how to derive the value of a target slot from a source slot
+    """
     _inherited_slots: ClassVar[List[str]] = []
 
-    class_class_uri: ClassVar[URIRef] = TR.SlotDerivation
-    class_class_curie: ClassVar[str] = "tr:SlotDerivation"
+    class_class_uri: ClassVar[URIRef] = LINKMLTR.SlotDerivation
+    class_class_curie: ClassVar[str] = "linkmltr:SlotDerivation"
     class_name: ClassVar[str] = "SlotDerivation"
-    class_model_uri: ClassVar[URIRef] = TR.SlotDerivation
+    class_model_uri: ClassVar[URIRef] = LINKMLTR.SlotDerivation
 
     name: Union[str, SlotDerivationName] = None
     populated_from: Optional[str] = None
@@ -190,13 +213,86 @@ class SlotDerivation(YAMLRoot):
 
 
 @dataclass
+class EnumDerivation(YAMLRoot):
+    """
+    A specification of how to derive the value of a target enum from a source enum
+    """
+    _inherited_slots: ClassVar[List[str]] = []
+
+    class_class_uri: ClassVar[URIRef] = LINKMLTR.EnumDerivation
+    class_class_curie: ClassVar[str] = "linkmltr:EnumDerivation"
+    class_name: ClassVar[str] = "EnumDerivation"
+    class_model_uri: ClassVar[URIRef] = LINKMLTR.EnumDerivation
+
+    name: Union[str, EnumDerivationName] = None
+    populated_from: Optional[str] = None
+    expr: Optional[str] = None
+    hide: Optional[Union[bool, Bool]] = None
+    permissible_value_derivations: Optional[Union[Dict[Union[str, PermissibleValueDerivationName], Union[dict, "PermissibleValueDerivation"]], List[Union[dict, "PermissibleValueDerivation"]]]] = empty_dict()
+
+    def __post_init__(self, *_: List[str], **kwargs: Dict[str, Any]):
+        if self._is_empty(self.name):
+            self.MissingRequiredField("name")
+        if not isinstance(self.name, EnumDerivationName):
+            self.name = EnumDerivationName(self.name)
+
+        if self.populated_from is not None and not isinstance(self.populated_from, str):
+            self.populated_from = str(self.populated_from)
+
+        if self.expr is not None and not isinstance(self.expr, str):
+            self.expr = str(self.expr)
+
+        if self.hide is not None and not isinstance(self.hide, Bool):
+            self.hide = Bool(self.hide)
+
+        self._normalize_inlined_as_dict(slot_name="permissible_value_derivations", slot_type=PermissibleValueDerivation, key_name="name", keyed=True)
+
+        super().__post_init__(**kwargs)
+
+
+@dataclass
+class PermissibleValueDerivation(YAMLRoot):
+    """
+    A specification of how to derive the value of a PV from a source enum
+    """
+    _inherited_slots: ClassVar[List[str]] = []
+
+    class_class_uri: ClassVar[URIRef] = LINKMLTR.PermissibleValueDerivation
+    class_class_curie: ClassVar[str] = "linkmltr:PermissibleValueDerivation"
+    class_name: ClassVar[str] = "PermissibleValueDerivation"
+    class_model_uri: ClassVar[URIRef] = LINKMLTR.PermissibleValueDerivation
+
+    name: Union[str, PermissibleValueDerivationName] = None
+    expr: Optional[str] = None
+    hide: Optional[Union[bool, Bool]] = None
+    populated_from: Optional[str] = None
+
+    def __post_init__(self, *_: List[str], **kwargs: Dict[str, Any]):
+        if self._is_empty(self.name):
+            self.MissingRequiredField("name")
+        if not isinstance(self.name, PermissibleValueDerivationName):
+            self.name = PermissibleValueDerivationName(self.name)
+
+        if self.expr is not None and not isinstance(self.expr, str):
+            self.expr = str(self.expr)
+
+        if self.hide is not None and not isinstance(self.hide, Bool):
+            self.hide = Bool(self.hide)
+
+        if self.populated_from is not None and not isinstance(self.populated_from, str):
+            self.populated_from = str(self.populated_from)
+
+        super().__post_init__(**kwargs)
+
+
+@dataclass
 class Inverse(YAMLRoot):
     _inherited_slots: ClassVar[List[str]] = []
 
-    class_class_uri: ClassVar[URIRef] = TR.Inverse
-    class_class_curie: ClassVar[str] = "tr:Inverse"
+    class_class_uri: ClassVar[URIRef] = LINKMLTR.Inverse
+    class_class_curie: ClassVar[str] = "linkmltr:Inverse"
     class_name: ClassVar[str] = "Inverse"
-    class_model_uri: ClassVar[URIRef] = TR.Inverse
+    class_model_uri: ClassVar[URIRef] = LINKMLTR.Inverse
 
     slot_name: Optional[str] = None
     class_name: Optional[str] = None
@@ -218,62 +314,92 @@ class Inverse(YAMLRoot):
 class slots:
     pass
 
-slots.transformationSpecification__id = Slot(uri=TR.id, name="transformationSpecification__id", curie=TR.curie('id'),
-                   model_uri=TR.transformationSpecification__id, domain=None, range=Optional[str])
+slots.transformationSpecification__id = Slot(uri=LINKMLTR.id, name="transformationSpecification__id", curie=LINKMLTR.curie('id'),
+                   model_uri=LINKMLTR.transformationSpecification__id, domain=None, range=URIRef)
 
-slots.transformationSpecification__title = Slot(uri=TR.title, name="transformationSpecification__title", curie=TR.curie('title'),
-                   model_uri=TR.transformationSpecification__title, domain=None, range=Optional[str])
+slots.transformationSpecification__title = Slot(uri=LINKMLTR.title, name="transformationSpecification__title", curie=LINKMLTR.curie('title'),
+                   model_uri=LINKMLTR.transformationSpecification__title, domain=None, range=Optional[str])
 
-slots.transformationSpecification__prefixes = Slot(uri=TR.prefixes, name="transformationSpecification__prefixes", curie=TR.curie('prefixes'),
-                   model_uri=TR.transformationSpecification__prefixes, domain=None, range=Optional[str])
+slots.transformationSpecification__prefixes = Slot(uri=LINKMLTR.prefixes, name="transformationSpecification__prefixes", curie=LINKMLTR.curie('prefixes'),
+                   model_uri=LINKMLTR.transformationSpecification__prefixes, domain=None, range=Optional[str])
 
-slots.transformationSpecification__source_schema = Slot(uri=TR.source_schema, name="transformationSpecification__source_schema", curie=TR.curie('source_schema'),
-                   model_uri=TR.transformationSpecification__source_schema, domain=None, range=Optional[str])
+slots.transformationSpecification__source_schema = Slot(uri=LINKMLTR.source_schema, name="transformationSpecification__source_schema", curie=LINKMLTR.curie('source_schema'),
+                   model_uri=LINKMLTR.transformationSpecification__source_schema, domain=None, range=Optional[str])
 
-slots.transformationSpecification__target_schema = Slot(uri=TR.target_schema, name="transformationSpecification__target_schema", curie=TR.curie('target_schema'),
-                   model_uri=TR.transformationSpecification__target_schema, domain=None, range=Optional[str])
+slots.transformationSpecification__target_schema = Slot(uri=LINKMLTR.target_schema, name="transformationSpecification__target_schema", curie=LINKMLTR.curie('target_schema'),
+                   model_uri=LINKMLTR.transformationSpecification__target_schema, domain=None, range=Optional[str])
 
-slots.transformationSpecification__class_derivations = Slot(uri=TR.class_derivations, name="transformationSpecification__class_derivations", curie=TR.curie('class_derivations'),
-                   model_uri=TR.transformationSpecification__class_derivations, domain=None, range=Optional[Union[Dict[Union[str, ClassDerivationName], Union[dict, ClassDerivation]], List[Union[dict, ClassDerivation]]]])
+slots.transformationSpecification__class_derivations = Slot(uri=LINKMLTR.class_derivations, name="transformationSpecification__class_derivations", curie=LINKMLTR.curie('class_derivations'),
+                   model_uri=LINKMLTR.transformationSpecification__class_derivations, domain=None, range=Optional[Union[Dict[Union[str, ClassDerivationName], Union[dict, ClassDerivation]], List[Union[dict, ClassDerivation]]]])
 
-slots.classDerivation__name = Slot(uri=TR.name, name="classDerivation__name", curie=TR.curie('name'),
-                   model_uri=TR.classDerivation__name, domain=None, range=URIRef)
+slots.transformationSpecification__enum_derivations = Slot(uri=LINKMLTR.enum_derivations, name="transformationSpecification__enum_derivations", curie=LINKMLTR.curie('enum_derivations'),
+                   model_uri=LINKMLTR.transformationSpecification__enum_derivations, domain=None, range=Optional[Union[Dict[Union[str, EnumDerivationName], Union[dict, EnumDerivation]], List[Union[dict, EnumDerivation]]]])
 
-slots.classDerivation__populated_from = Slot(uri=TR.populated_from, name="classDerivation__populated_from", curie=TR.curie('populated_from'),
-                   model_uri=TR.classDerivation__populated_from, domain=None, range=Optional[str])
+slots.classDerivation__name = Slot(uri=LINKMLTR.name, name="classDerivation__name", curie=LINKMLTR.curie('name'),
+                   model_uri=LINKMLTR.classDerivation__name, domain=None, range=URIRef)
 
-slots.classDerivation__joins = Slot(uri=TR.joins, name="classDerivation__joins", curie=TR.curie('joins'),
-                   model_uri=TR.classDerivation__joins, domain=None, range=Optional[Union[Dict[Union[str, AliasedClassAlias], Union[dict, AliasedClass]], List[Union[dict, AliasedClass]]]])
+slots.classDerivation__populated_from = Slot(uri=LINKMLTR.populated_from, name="classDerivation__populated_from", curie=LINKMLTR.curie('populated_from'),
+                   model_uri=LINKMLTR.classDerivation__populated_from, domain=None, range=Optional[str])
 
-slots.classDerivation__slot_derivations = Slot(uri=TR.slot_derivations, name="classDerivation__slot_derivations", curie=TR.curie('slot_derivations'),
-                   model_uri=TR.classDerivation__slot_derivations, domain=None, range=Optional[Union[Dict[Union[str, SlotDerivationName], Union[dict, SlotDerivation]], List[Union[dict, SlotDerivation]]]])
+slots.classDerivation__joins = Slot(uri=LINKMLTR.joins, name="classDerivation__joins", curie=LINKMLTR.curie('joins'),
+                   model_uri=LINKMLTR.classDerivation__joins, domain=None, range=Optional[Union[Dict[Union[str, AliasedClassAlias], Union[dict, AliasedClass]], List[Union[dict, AliasedClass]]]])
 
-slots.aliasedClass__alias = Slot(uri=TR.alias, name="aliasedClass__alias", curie=TR.curie('alias'),
-                   model_uri=TR.aliasedClass__alias, domain=None, range=URIRef)
+slots.classDerivation__slot_derivations = Slot(uri=LINKMLTR.slot_derivations, name="classDerivation__slot_derivations", curie=LINKMLTR.curie('slot_derivations'),
+                   model_uri=LINKMLTR.classDerivation__slot_derivations, domain=None, range=Optional[Union[Dict[Union[str, SlotDerivationName], Union[dict, SlotDerivation]], List[Union[dict, SlotDerivation]]]])
 
-slots.aliasedClass__class_named = Slot(uri=TR.class_named, name="aliasedClass__class_named", curie=TR.curie('class_named'),
-                   model_uri=TR.aliasedClass__class_named, domain=None, range=Optional[str])
+slots.aliasedClass__alias = Slot(uri=LINKMLTR.alias, name="aliasedClass__alias", curie=LINKMLTR.curie('alias'),
+                   model_uri=LINKMLTR.aliasedClass__alias, domain=None, range=URIRef)
 
-slots.slotDerivation__name = Slot(uri=TR.name, name="slotDerivation__name", curie=TR.curie('name'),
-                   model_uri=TR.slotDerivation__name, domain=None, range=URIRef)
+slots.aliasedClass__class_named = Slot(uri=LINKMLTR.class_named, name="aliasedClass__class_named", curie=LINKMLTR.curie('class_named'),
+                   model_uri=LINKMLTR.aliasedClass__class_named, domain=None, range=Optional[str])
 
-slots.slotDerivation__populated_from = Slot(uri=TR.populated_from, name="slotDerivation__populated_from", curie=TR.curie('populated_from'),
-                   model_uri=TR.slotDerivation__populated_from, domain=None, range=Optional[str])
+slots.slotDerivation__name = Slot(uri=LINKMLTR.name, name="slotDerivation__name", curie=LINKMLTR.curie('name'),
+                   model_uri=LINKMLTR.slotDerivation__name, domain=None, range=URIRef)
 
-slots.slotDerivation__expr = Slot(uri=TR.expr, name="slotDerivation__expr", curie=TR.curie('expr'),
-                   model_uri=TR.slotDerivation__expr, domain=None, range=Optional[str])
+slots.slotDerivation__populated_from = Slot(uri=LINKMLTR.populated_from, name="slotDerivation__populated_from", curie=LINKMLTR.curie('populated_from'),
+                   model_uri=LINKMLTR.slotDerivation__populated_from, domain=None, range=Optional[str])
 
-slots.slotDerivation__inverse_of = Slot(uri=TR.inverse_of, name="slotDerivation__inverse_of", curie=TR.curie('inverse_of'),
-                   model_uri=TR.slotDerivation__inverse_of, domain=None, range=Optional[Union[dict, Inverse]])
+slots.slotDerivation__expr = Slot(uri=LINKMLTR.expr, name="slotDerivation__expr", curie=LINKMLTR.curie('expr'),
+                   model_uri=LINKMLTR.slotDerivation__expr, domain=None, range=Optional[str])
 
-slots.slotDerivation__hide = Slot(uri=TR.hide, name="slotDerivation__hide", curie=TR.curie('hide'),
-                   model_uri=TR.slotDerivation__hide, domain=None, range=Optional[Union[bool, Bool]])
+slots.slotDerivation__inverse_of = Slot(uri=LINKMLTR.inverse_of, name="slotDerivation__inverse_of", curie=LINKMLTR.curie('inverse_of'),
+                   model_uri=LINKMLTR.slotDerivation__inverse_of, domain=None, range=Optional[Union[dict, Inverse]])
 
-slots.slotDerivation__type_designator = Slot(uri=TR.type_designator, name="slotDerivation__type_designator", curie=TR.curie('type_designator'),
-                   model_uri=TR.slotDerivation__type_designator, domain=None, range=Optional[Union[bool, Bool]])
+slots.slotDerivation__hide = Slot(uri=LINKMLTR.hide, name="slotDerivation__hide", curie=LINKMLTR.curie('hide'),
+                   model_uri=LINKMLTR.slotDerivation__hide, domain=None, range=Optional[Union[bool, Bool]])
 
-slots.inverse__slot_name = Slot(uri=TR.slot_name, name="inverse__slot_name", curie=TR.curie('slot_name'),
-                   model_uri=TR.inverse__slot_name, domain=None, range=Optional[str])
+slots.slotDerivation__type_designator = Slot(uri=LINKMLTR.type_designator, name="slotDerivation__type_designator", curie=LINKMLTR.curie('type_designator'),
+                   model_uri=LINKMLTR.slotDerivation__type_designator, domain=None, range=Optional[Union[bool, Bool]])
 
-slots.inverse__class_name = Slot(uri=TR.class_name, name="inverse__class_name", curie=TR.curie('class_name'),
-                   model_uri=TR.inverse__class_name, domain=None, range=Optional[str])
+slots.enumDerivation__name = Slot(uri=LINKMLTR.name, name="enumDerivation__name", curie=LINKMLTR.curie('name'),
+                   model_uri=LINKMLTR.enumDerivation__name, domain=None, range=URIRef)
+
+slots.enumDerivation__populated_from = Slot(uri=LINKMLTR.populated_from, name="enumDerivation__populated_from", curie=LINKMLTR.curie('populated_from'),
+                   model_uri=LINKMLTR.enumDerivation__populated_from, domain=None, range=Optional[str])
+
+slots.enumDerivation__expr = Slot(uri=LINKMLTR.expr, name="enumDerivation__expr", curie=LINKMLTR.curie('expr'),
+                   model_uri=LINKMLTR.enumDerivation__expr, domain=None, range=Optional[str])
+
+slots.enumDerivation__hide = Slot(uri=LINKMLTR.hide, name="enumDerivation__hide", curie=LINKMLTR.curie('hide'),
+                   model_uri=LINKMLTR.enumDerivation__hide, domain=None, range=Optional[Union[bool, Bool]])
+
+slots.enumDerivation__permissible_value_derivations = Slot(uri=LINKMLTR.permissible_value_derivations, name="enumDerivation__permissible_value_derivations", curie=LINKMLTR.curie('permissible_value_derivations'),
+                   model_uri=LINKMLTR.enumDerivation__permissible_value_derivations, domain=None, range=Optional[Union[Dict[Union[str, PermissibleValueDerivationName], Union[dict, PermissibleValueDerivation]], List[Union[dict, PermissibleValueDerivation]]]])
+
+slots.permissibleValueDerivation__name = Slot(uri=LINKMLTR.name, name="permissibleValueDerivation__name", curie=LINKMLTR.curie('name'),
+                   model_uri=LINKMLTR.permissibleValueDerivation__name, domain=None, range=URIRef)
+
+slots.permissibleValueDerivation__expr = Slot(uri=LINKMLTR.expr, name="permissibleValueDerivation__expr", curie=LINKMLTR.curie('expr'),
+                   model_uri=LINKMLTR.permissibleValueDerivation__expr, domain=None, range=Optional[str])
+
+slots.permissibleValueDerivation__hide = Slot(uri=LINKMLTR.hide, name="permissibleValueDerivation__hide", curie=LINKMLTR.curie('hide'),
+                   model_uri=LINKMLTR.permissibleValueDerivation__hide, domain=None, range=Optional[Union[bool, Bool]])
+
+slots.permissibleValueDerivation__populated_from = Slot(uri=LINKMLTR.populated_from, name="permissibleValueDerivation__populated_from", curie=LINKMLTR.curie('populated_from'),
+                   model_uri=LINKMLTR.permissibleValueDerivation__populated_from, domain=None, range=Optional[str])
+
+slots.inverse__slot_name = Slot(uri=LINKMLTR.slot_name, name="inverse__slot_name", curie=LINKMLTR.curie('slot_name'),
+                   model_uri=LINKMLTR.inverse__slot_name, domain=None, range=Optional[str])
+
+slots.inverse__class_name = Slot(uri=LINKMLTR.class_name, name="inverse__class_name", curie=LINKMLTR.curie('class_name'),
+                   model_uri=LINKMLTR.inverse__class_name, domain=None, range=Optional[str])

@@ -1,5 +1,5 @@
-# Auto generated from personinfo.yaml by pythongen.py version: 0.9.0
-# Generation date: 2022-06-27T22:31:45
+# Auto generated from personinfo_s1.yaml by pythongen.py version: 0.9.0
+# Generation date: 2022-10-12T13:22:57
 # Schema: personinfo
 #
 # id: https://w3id.org/linkml/examples/personinfo
@@ -397,7 +397,6 @@ class Relationship(YAMLRoot):
     started_at_time: Optional[Union[str, XSDDate]] = None
     ended_at_time: Optional[Union[str, XSDDate]] = None
     related_to: Optional[str] = None
-    type: Optional[str] = None
 
     def __post_init__(self, *_: List[str], **kwargs: Dict[str, Any]):
         if self.started_at_time is not None and not isinstance(self.started_at_time, XSDDate):
@@ -408,9 +407,6 @@ class Relationship(YAMLRoot):
 
         if self.related_to is not None and not isinstance(self.related_to, str):
             self.related_to = str(self.related_to)
-
-        if self.type is not None and not isinstance(self.type, str):
-            self.type = str(self.type)
 
         super().__post_init__(**kwargs)
 
@@ -451,10 +447,14 @@ class EmploymentEvent(Event):
     class_model_uri: ClassVar[URIRef] = PERSONINFO.EmploymentEvent
 
     employed_at: Optional[Union[str, OrganizationId]] = None
+    type: Optional[Union[str, "RelationshipType"]] = None
 
     def __post_init__(self, *_: List[str], **kwargs: Dict[str, Any]):
         if self.employed_at is not None and not isinstance(self.employed_at, OrganizationId):
             self.employed_at = OrganizationId(self.employed_at)
+
+        if self.type is not None and not isinstance(self.type, RelationshipType):
+            self.type = RelationshipType(self.type)
 
         super().__post_init__(**kwargs)
 
@@ -471,6 +471,7 @@ class MedicalEvent(Event):
     in_location: Optional[Union[str, PlaceId]] = None
     diagnosis: Optional[Union[dict, DiagnosisConcept]] = None
     procedure: Optional[Union[dict, ProcedureConcept]] = None
+    type: Optional[Union[str, "RelationshipType"]] = None
 
     def __post_init__(self, *_: List[str], **kwargs: Dict[str, Any]):
         if self.in_location is not None and not isinstance(self.in_location, PlaceId):
@@ -481,6 +482,9 @@ class MedicalEvent(Event):
 
         if self.procedure is not None and not isinstance(self.procedure, ProcedureConcept):
             self.procedure = ProcedureConcept(**as_dict(self.procedure))
+
+        if self.type is not None and not isinstance(self.type, RelationshipType):
+            self.type = RelationshipType(self.type)
 
         super().__post_init__(**kwargs)
 
@@ -524,6 +528,12 @@ class Container(YAMLRoot):
 
 
 # Enumerations
+class RelationshipType(EnumDefinitionImpl):
+
+    _defn = EnumDefinition(
+        name="RelationshipType",
+    )
+
 class FamilialRelationshipType(EnumDefinitionImpl):
 
     SIBLING_OF = PermissibleValue(text="SIBLING_OF",
@@ -532,6 +542,8 @@ class FamilialRelationshipType(EnumDefinitionImpl):
                                          meaning=FAMREL["02"])
     CHILD_OF = PermissibleValue(text="CHILD_OF",
                                        meaning=FAMREL["01"])
+    FATHER_OF = PermissibleValue(text="FATHER_OF",
+                                         meaning=FAMREL["11"])
 
     _defn = EnumDefinition(
         name="FamilialRelationshipType",
@@ -623,7 +635,7 @@ slots.related_to = Slot(uri=PERSONINFO.related_to, name="related_to", curie=PERS
                    model_uri=PERSONINFO.related_to, domain=None, range=Optional[str])
 
 slots.type = Slot(uri=PERSONINFO.type, name="type", curie=PERSONINFO.curie('type'),
-                   model_uri=PERSONINFO.type, domain=None, range=Optional[str])
+                   model_uri=PERSONINFO.type, domain=None, range=Optional[Union[str, "RelationshipType"]])
 
 slots.street = Slot(uri=PERSONINFO.street, name="street", curie=PERSONINFO.curie('street'),
                    model_uri=PERSONINFO.street, domain=None, range=Optional[str])
@@ -667,9 +679,6 @@ slots.organizations = Slot(uri=PERSONINFO.organizations, name="organizations", c
 slots.hasAliases__aliases = Slot(uri=PERSONINFO.aliases, name="hasAliases__aliases", curie=PERSONINFO.curie('aliases'),
                    model_uri=PERSONINFO.hasAliases__aliases, domain=None, range=Optional[Union[str, List[str]]])
 
-slots.related_to = Slot(uri=PERSONINFO.related_to, name="related to", curie=PERSONINFO.curie('related_to'),
-                   model_uri=PERSONINFO.related_to, domain=None, range=Union[str, PersonId])
-
 slots.Person_primary_email = Slot(uri=SCHEMA.email, name="Person_primary_email", curie=SCHEMA.curie('email'),
                    model_uri=PERSONINFO.Person_primary_email, domain=Person, range=Optional[str],
                    pattern=re.compile(r'^\S+@[\S+\.]+\S+'))
@@ -677,5 +686,5 @@ slots.Person_primary_email = Slot(uri=SCHEMA.email, name="Person_primary_email",
 slots.FamilialRelationship_type = Slot(uri=PERSONINFO.type, name="FamilialRelationship_type", curie=PERSONINFO.curie('type'),
                    model_uri=PERSONINFO.FamilialRelationship_type, domain=FamilialRelationship, range=Union[str, "FamilialRelationshipType"])
 
-slots.FamilialRelationship_related_to = Slot(uri=PERSONINFO.related_to, name="FamilialRelationship_related to", curie=PERSONINFO.curie('related_to'),
+slots.FamilialRelationship_related_to = Slot(uri=PERSONINFO.related_to, name="FamilialRelationship_related_to", curie=PERSONINFO.curie('related_to'),
                    model_uri=PERSONINFO.FamilialRelationship_related_to, domain=FamilialRelationship, range=Union[str, PersonId])
