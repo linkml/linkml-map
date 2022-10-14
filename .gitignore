@@ -2,3 +2,6 @@
 project/
 docs/
 tmp/
+site/
+__pycache__
+
