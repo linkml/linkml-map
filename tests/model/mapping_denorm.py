@@ -1,5 +1,5 @@
 # Auto generated from mapping_denorm.yaml by pythongen.py version: 0.9.0
-# Generation date: 2022-10-11T21:53:50
+# Generation date: 2023-02-04T18:18:56
 # Schema: mappings_norm
 #
 # id: https://w3id.org/linkml/examples/mappings-norm
@@ -35,7 +35,7 @@ LINKML = CurieNamespace('linkml', 'https://w3id.org/linkml/')
 MAPPINGS = CurieNamespace('mappings', 'https://w3id.org/linkml/examples/mappings-norm/')
 RDF = CurieNamespace('rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#')
 RDFS = CurieNamespace('rdfs', 'http://www.w3.org/2000/01/rdf-schema#')
-SCHEMA = CurieNamespace('schema', 'http://example.org/UNKNOWN/schema/')
+SCHEMA = CurieNamespace('schema', 'http://schema.org/')
 SKOS = CurieNamespace('skos', 'http://example.org/UNKNOWN/skos/')
 XSD = CurieNamespace('xsd', 'http://www.w3.org/2001/XMLSchema#')
 DEFAULT_ = MAPPINGS
@@ -79,7 +79,8 @@ class Mapping(YAMLRoot):
     subject_name: Optional[str] = None
     object_id: Optional[str] = None
     object_name: Optional[str] = None
-    predicate: Optional[str] = None
+    predicate_id: Optional[str] = None
+    predicate_name: Optional[str] = None
 
     def __post_init__(self, *_: List[str], **kwargs: Dict[str, Any]):
         if self.subject_id is not None and not isinstance(self.subject_id, str):
@@ -94,8 +95,11 @@ class Mapping(YAMLRoot):
         if self.object_name is not None and not isinstance(self.object_name, str):
             self.object_name = str(self.object_name)
 
-        if self.predicate is not None and not isinstance(self.predicate, str):
-            self.predicate = str(self.predicate)
+        if self.predicate_id is not None and not isinstance(self.predicate_id, str):
+            self.predicate_id = str(self.predicate_id)
+
+        if self.predicate_name is not None and not isinstance(self.predicate_name, str):
+            self.predicate_name = str(self.predicate_name)
 
         super().__post_init__(**kwargs)
 
@@ -127,6 +131,12 @@ slots.object_id = Slot(uri=MAPPINGS.object_id, name="object_id", curie=MAPPINGS.
 
 slots.object_name = Slot(uri=MAPPINGS.object_name, name="object_name", curie=MAPPINGS.curie('object_name'),
                    model_uri=MAPPINGS.object_name, domain=None, range=Optional[str])
+
+slots.predicate_id = Slot(uri=MAPPINGS.predicate_id, name="predicate_id", curie=MAPPINGS.curie('predicate_id'),
+                   model_uri=MAPPINGS.predicate_id, domain=None, range=Optional[str])
+
+slots.predicate_name = Slot(uri=MAPPINGS.predicate_name, name="predicate_name", curie=MAPPINGS.curie('predicate_name'),
+                   model_uri=MAPPINGS.predicate_name, domain=None, range=Optional[str])
 
 slots.mappingSet__mappings = Slot(uri=MAPPINGS.mappings, name="mappingSet__mappings", curie=MAPPINGS.curie('mappings'),
                    model_uri=MAPPINGS.mappingSet__mappings, domain=None, range=Optional[Union[Union[dict, Mapping], List[Union[dict, Mapping]]]])

@@ -1,5 +1,5 @@
 # Auto generated from personinfo_s2.yaml by pythongen.py version: 0.9.0
-# Generation date: 2022-07-07T23:15:29
+# Generation date: 2023-02-04T18:11:52
 # Schema: personinfo
 #
 # id: https://w3id.org/linkml/examples/personinfo
@@ -281,6 +281,7 @@ class Address(YAMLRoot):
     street: Optional[str] = None
     city: Optional[str] = None
     postal_code: Optional[str] = None
+    address_of: Optional[Union[str, AgentId]] = None
 
     def __post_init__(self, *_: List[str], **kwargs: Dict[str, Any]):
         if self.street is not None and not isinstance(self.street, str):
@@ -291,6 +292,9 @@ class Address(YAMLRoot):
 
         if self.postal_code is not None and not isinstance(self.postal_code, str):
             self.postal_code = str(self.postal_code)
+
+        if self.address_of is not None and not isinstance(self.address_of, AgentId):
+            self.address_of = AgentId(self.address_of)
 
         super().__post_init__(**kwargs)
 
@@ -528,14 +532,19 @@ class FamilialRelationshipType(EnumDefinitionImpl):
 
     SIBLING_OF = PermissibleValue(text="SIBLING_OF",
                                            meaning=FAMREL["01"])
-    PARENT_OF = PermissibleValue(text="PARENT_OF",
-                                         meaning=FAMREL["02"])
-    CHILD_OF = PermissibleValue(text="CHILD_OF",
-                                       meaning=FAMREL["01"])
 
     _defn = EnumDefinition(
         name="FamilialRelationshipType",
     )
+
+    @classmethod
+    def _addvals(cls):
+        setattr(cls, "parent of",
+                PermissibleValue(text="parent of",
+                                 meaning=FAMREL["02"]) )
+        setattr(cls, "child of",
+                PermissibleValue(text="child of",
+                                 meaning=FAMREL["01"]) )
 
 class GenderType(EnumDefinitionImpl):
 
@@ -643,6 +652,9 @@ slots.founding_location = Slot(uri=PERSONINFO.founding_location, name="founding_
 
 slots.postal_code = Slot(uri=PERSONINFO.postal_code, name="postal_code", curie=PERSONINFO.curie('postal_code'),
                    model_uri=PERSONINFO.postal_code, domain=None, range=Optional[str])
+
+slots.address_of = Slot(uri=PERSONINFO.address_of, name="address_of", curie=PERSONINFO.curie('address_of'),
+                   model_uri=PERSONINFO.address_of, domain=None, range=Optional[Union[str, AgentId]])
 
 slots.started_at_time = Slot(uri=PROV.startedAtTime, name="started_at_time", curie=PROV.curie('startedAtTime'),
                    model_uri=PERSONINFO.started_at_time, domain=None, range=Optional[Union[str, XSDDate]])

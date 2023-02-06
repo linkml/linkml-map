@@ -13,12 +13,13 @@ class_derivations:
     slot_derivations:
       id:
       name:
+        overrides:
       category:
   Gene:
     slot_derivations:
       symbol:
     overrides:
-      is_a: NamedThing # would be autopopulated
+      #is_a: NamedThing # would be autopopulated
   Disease:
     overrides:
       id_prefixes:

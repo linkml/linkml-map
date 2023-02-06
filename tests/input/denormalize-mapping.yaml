@@ -13,9 +13,9 @@ class_derivations:
         
   Mapping:
     populated_from: Mapping
-    joins:
-      subject: Entity
-      object: Entity
+    #joins:
+    #  subject: Entity
+    #  object: Entity
     slot_derivations:
 #      id:         ## implicitly mapping.id
 #      creator:
@@ -28,8 +28,9 @@ class_derivations:
         expr: object.id
       object_name:
         expr: object.name
-#      predicate_id:
-#        populated_from: predicate   ## implicitly: mapping.predicate
-#      predicate_label:
-#        expr: "lookup(predicate)"
+      predicate_id:
+        ## implicitly: mapping.predicate
+        populated_from: predicate
+      #predicate_name:
+      #  expr: "predicate.name"
 

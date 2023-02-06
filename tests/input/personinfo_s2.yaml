@@ -100,6 +100,7 @@ classes:
       - street
       - city
       - postal_code
+      - address_of
 
   Event:
     slots:
@@ -213,6 +214,8 @@ slots:
     range: Place
   postal_code:
     range: string
+  address_of:
+    range: Agent
   started_at_time:
     slot_uri: prov:startedAtTime
     range: date
@@ -243,7 +246,7 @@ slots:
 enums:
   FamilialRelationshipType:
     permissible_values:
-      sibling of:
+      SIBLING_OF:
         meaning: famrel:01
       parent of:
         meaning: famrel:02

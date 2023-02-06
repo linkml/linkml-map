@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from typing import Type, Any, Union, List, Iterator
 
@@ -9,8 +10,10 @@ from linkml_runtime.utils.yamlutils import YAMLRoot
 from linkml_runtime.utils.inference_utils import infer_slot_value, obj_as_dict_nonrecursive
 from linkml_transformer.datamodel.transformer_model import TransformationSpecification
 from linkml_transformer.transformer.transformer import Transformer
-from linkml_transformer.utils.object_indexer import ObjectIndex
+from linkml_runtime.index.object_index import ObjectIndex
 
+
+logger = logging.getLogger(__name__)
 
 @dataclass
 class ObjectTransformer(Transformer):
@@ -31,49 +34,62 @@ class ObjectTransformer(Transformer):
         self.object_index = ObjectIndex(source_obj, schemaview=self.source_schemaview)
 
     def _transform_any(self, obj: Any, target_class: Type[YAMLRoot], parent_slot: SlotDefinition) -> YAMLRoot:
-        print(f"T={type(obj)} // {obj}")
+        logger.debug(f"T={type(obj)} // {obj}")
         if isinstance(obj, EnumDefinitionImpl):
             return str(obj)
         else:
             return obj
 
     def transform(self, source_obj: YAMLRoot, target_class: Type[YAMLRoot] = None) -> YAMLRoot:
+        """
+        Transform a source object into a target object.
+        :param source_obj:
+        :param target_class:
+        :return:
+        """
         tgt_mod = self.target_module
         spec = self.specification
         typ = type(source_obj)
-        cls_name = typ.class_name
-        print(f"\nSource object type={cls_name}")
+        try:
+            cls_name = typ.class_name
+        except AttributeError:
+            # primitive
+            if isinstance(source_obj, EnumDefinitionImpl):
+                return str(source_obj)
+            return source_obj
+        logger.debug(f"\nSource object type={cls_name}")
         # use populated-from to pick the class derivation
         matching_tgt_class_derivs = [deriv for deriv in spec.class_derivations.values() if deriv.populated_from == cls_name]
-        print(f"Target class derivs={matching_tgt_class_derivs}")
+        logger.debug(f"Target class derivs={matching_tgt_class_derivs}")
         if len(matching_tgt_class_derivs) != 1:
             raise ValueError(f"Could not find what to derive from a source {cls_name}")
         [class_deriv] = matching_tgt_class_derivs
         tgt_class_name = class_deriv.name
         tgt_class = getattr(tgt_mod, tgt_class_name)
         tgt_attrs = {}
-        for sd in class_deriv.slot_derivations.values():
+        for slot_derivation in class_deriv.slot_derivations.values():
             v = None
-            if sd.populated_from:
-                v = getattr(source_obj, sd.populated_from, None)
-                print(f"Pop slot {sd.name} => {v} using {sd.populated_from} // {source_obj}")
-            elif sd.expr:
-                ctxt_obj = self.object_index.bless(source_obj)
-                print(ctxt_obj)
-                ctxt_dict = {k: getattr(ctxt_obj, k) for k in ctxt_obj._attributes()}
-                print(ctxt_dict)
-                #ctxt_dict = obj_as_dict_nonrecursive(ctxt_obj)
-                v = eval_expr(sd.expr, **ctxt_dict)
+            if slot_derivation.populated_from:
+                v = getattr(source_obj, slot_derivation.populated_from, None)
+                logger.debug(f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {source_obj}")
+            elif slot_derivation.expr:
+                if self.object_index:
+                    ctxt_obj = self.object_index.bless(source_obj)
+                    ctxt_dict = {k: getattr(ctxt_obj, k) for k in ctxt_obj._attributes()}
+                else:
+                    ctxt_dict = obj_as_dict_nonrecursive(source_obj)
+                v = eval_expr(slot_derivation.expr, **ctxt_dict)
             else:
-                v = getattr(source_obj, sd.name)
+                v = getattr(source_obj, slot_derivation.name)
             if v is not None:
                 if isinstance(v, list):
                     v = [self.transform(v1) for v1 in v]
                 else:
-                    v = self._transform_any(v, None, None)
-                tgt_attrs[sd.name] = v
-        print(tgt_class)
-        print(tgt_attrs)
+                    v = self.transform(v)
+                    #v = self._transform_any(v, None, None)
+                tgt_attrs[slot_derivation.name] = v
+        logger.debug(tgt_class)
+        logger.debug(tgt_attrs)
         return tgt_class(**tgt_attrs)
 
     def derive(
@@ -109,7 +125,8 @@ class ObjectTransformer(Transformer):
             else:
                 v = getattr(obj, sd.name)
             if v is not None:
-                v = self._transform_any(v, None, None)
+                v = self.transform(v)
+                #v = self._transform_any(v, None, None)
                 target_attrs[sd.name] = v
         return target_class_type(**target_attrs)
 

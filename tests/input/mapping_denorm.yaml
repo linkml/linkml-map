@@ -35,7 +35,8 @@ classes:
       - subject_name
       - object_id
       - object_name
-      - predicate
+      - predicate_id
+      - predicate_name
 
 slots:
   id:
@@ -48,3 +49,5 @@ slots:
   subject_name:
   object_id:
   object_name:
+  predicate_id:
+  predicate_name:

@@ -25,6 +25,9 @@ imports:
 
 classes:
 
+  Any:
+    class_uri: linkml:Any
+
   TransformationSpecification:
     description: A collection of mappings between source and target classes
     tree_root: true
@@ -53,8 +56,34 @@ classes:
         range: EnumDerivation
         multivalued: true
         inlined: true
+      slot_derivations:
+        description: >-
+          Instructions on how to derive a set of top level slots in the target schema
+        range: SlotDerivation
+        multivalued: true
+        inlined: true
+
+  ElementDerivation:
+    abstract: true
+    description: >-
+      A specification of how to derive a target element from a source element.
+    attributes:
+      name:
+        key: true
+        description: Name of the element in the target schema
+      copy_directives:
+        range: CopyDirective
+        multivalued: true
+        inlined: true
+      is_a:
+        range: ElementDerivation
+      mixins:
+        range: ElementDerivation
+        multivalued: true
+        inlined: true
 
   ClassDerivation:
+    is_a: ElementDerivation
     description: >-
       A specification of how to derive a target class from a source class.
     attributes:
@@ -86,6 +115,7 @@ classes:
         description: local alias for the class
 
   SlotDerivation:
+    is_a: ElementDerivation
     description: A specification of how to derive the value of a target slot from a source slot
     attributes:
       name:
@@ -113,6 +143,7 @@ classes:
         range: boolean
 
   EnumDerivation:
+    is_a: ElementDerivation
     description: A specification of how to derive the value of a target enum from a source enum
     attributes:
       name:
@@ -136,6 +167,7 @@ classes:
         inlined: true
 
   PermissibleValueDerivation:
+    is_a: ElementDerivation
     description: A specification of how to derive the value of a PV from a source enum
     todos:
       - this is currently under-specified. We will need boolean combinators to express if-then-else
@@ -148,6 +180,9 @@ classes:
       hide:
         range: boolean
 
+  PrefixDerivation:
+    is_a: ElementDerivation
+
   Inverse:
     description: >-
       Used for back references
@@ -157,3 +192,25 @@ classes:
     attributes:
       slot_name:
       class_name:
+
+  KeyVal:
+    attributes:
+      key:
+        key: true
+      value:
+        range: Any
+
+  CopyDirective:
+    attributes:
+      element_name:
+        key: true
+      copy_all:
+        range: boolean
+      exclude_all:
+        range: boolean
+      exclude:
+        range: Any
+      include:
+        range: Any
+      add:
+        range: Any

@@ -48,7 +48,10 @@ deploy: all mkd-gh-deploy
 gen-project: $(PYMODEL)
 	$(RUN) gen-project -d $(DEST) $(SOURCE_SCHEMA_PATH) && mv $(DEST)/*.py $(PYMODEL)
 
-test:
+test: test-python
+test-python:
+	$(RUN) python -m unittest
+test-project:
 	$(RUN) gen-project -d tmp $(SOURCE_SCHEMA_PATH) 
 
 check-config:

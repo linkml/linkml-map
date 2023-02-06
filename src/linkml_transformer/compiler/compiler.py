@@ -1,6 +1,7 @@
 from abc import ABC
 from dataclasses import dataclass
 
+from linkml_runtime import SchemaView
 from linkml_runtime.utils.yamlutils import YAMLRoot
 from linkml_transformer.datamodel.transformer_model import TransformationSpecification
 
@@ -15,6 +16,9 @@ class Compiler(ABC):
 
     An example compiler would be a R2RML compiler.
     """
+
+    source_schemaview: SchemaView = None
+    """A view over the schema describing the source."""
 
     @abstractmethod
     def compile(self, specification: TransformationSpecification) -> YAMLRoot:

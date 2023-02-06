@@ -10,7 +10,12 @@ class_derivations:
     slot_derivations:
       agents:
         populated_from: persons
+    copy_directives:
+      "*":
+        copy_all: true
+  Entity:
   Agent:
+    is_a: Entity
     populated_from: Person
     slot_derivations:
       
@@ -26,6 +31,9 @@ class_derivations:
       primary_email:
 
       gender:
+        expr: "None"
+
+      current_address:
 
       ## expressions
       #full_name:
@@ -58,13 +66,16 @@ class_derivations:
         expr: "True"
 
   Address:
+    populated_from: Address
     slot_derivations:
-      person_id:
+      address_of:
+        expr: "'foo'"
         inverse_of:
           class_name: Agent
-          slot_name: home_addresses
+          slot_name: current_address
       street:
       city:
+        expr: "'foo'"
 
   FamilialRelationship:
     populated_from: FamilialRelationship
@@ -86,9 +97,9 @@ class_derivations:
         
   DenormMapping:
     populated_from: Mapping
-    joins:
-      subject: Entity
-      object: Entity
+    #joins:
+    #  subject: Entity
+    #  object: Entity
     slot_derivations:
       id:         ## implicitly mapping.id
       creator:
@@ -102,7 +113,8 @@ class_derivations:
       object_name:
         expr: object.name
       predicate_id:
-        populated_from: predicate   ## implicitly: mapping.predicate
+        ## implicitly: mapping.predicate
+        populated_from: predicate
       predicate_label:
         expr: "lookup(predicate)"
 
@@ -110,5 +122,5 @@ enum_derivations:
   FamilialRelationshipType:
     populated_from: FamilialRelationshipType
     permissible_value_derivations:
-      sibling of:
-        populated_from: SIBLING_OF
+      #sibling of:
+      #  populated_from: SIBLING_OF
