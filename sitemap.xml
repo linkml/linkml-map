@@ -2,142 +2,322 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/AliasedClass/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/Any/</loc>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/Boolean/</loc>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/ClassDerivation/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/CopyDirective/</loc>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/Curie/</loc>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/Date/</loc>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/DateOrDatetime/</loc>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/Datetime/</loc>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/Decimal/</loc>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/Double/</loc>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/ElementDerivation/</loc>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/EnumDerivation/</loc>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/Float/</loc>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/Integer/</loc>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/Inverse/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/KeyVal/</loc>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/Ncname/</loc>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/Nodeidentifier/</loc>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/Objectidentifier/</loc>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/PermissibleValueDerivation/</loc>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/PrefixDerivation/</loc>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/SlotDerivation/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/String/</loc>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/Time/</loc>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/TransformationSpecification/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/Uri/</loc>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/Uriorcurie/</loc>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/add/</loc>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/alias/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/class_derivations/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/class_name/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/class_named/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/copy_all/</loc>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/copy_directives/</loc>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/element_name/</loc>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/enum_derivations/</loc>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/exclude/</loc>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/exclude_all/</loc>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/expr/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/hide/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/id/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/include/</loc>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/inverse_of/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/is_a/</loc>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/joins/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/key/</loc>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/mixins/</loc>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/name/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/overview/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/permissible_value_derivations/</loc>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/populated_from/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/prefixes/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/same_as/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/slot_derivations/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/slot_name/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/source_schema/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/target_schema/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/title/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/transformer/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/type_designator/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cmungall.github.io/linkml-transformer/types/</loc>
-         <lastmod>2022-08-19</lastmod>
+         <lastmod>2023-03-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://cmungall.github.io/linkml-transformer/value/</loc>
+         <lastmod>2023-03-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
