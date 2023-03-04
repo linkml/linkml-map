@@ -24,7 +24,7 @@ Use cases include:
 
 ## Data Model
 
-See [generated docs](https://cmungall.github.io/linkml-transformer/)
+See [generated docs](https://linkml.github.io/linkml-transformer/)
 
 ## Running the code
 
@@ -81,7 +81,7 @@ of mapping to a largely isomorphic schema, with some minor differences:
 - age is represented as a string, e.g. "33 years"
 - some fields are denormalized
 
-This may look like:
+The mapping may look like:
 
 ```yaml
 id: my-mappings
@@ -123,7 +123,20 @@ class_derivations:
       related_to:
 ```
 
-### Measurements
+### Deriving Schemas
+
+Formally a mapping consists of a source schema S, a target schema T, and a mapping M.
+
+In practice, any of these can be *partially* specified and derived from the others.
+
+For example:
+
+- given S, and T, derive isomorphic mappings based on shared URIs
+- given S and M, derive T by applying M to the schema
+
+See [tests/test_mapper/test_schema_mapper.py](tests/test_mapper/test_schema_mapper.py) for examples
+
+### Measurements TODO
 
 ```yaml
 - id: P:001
