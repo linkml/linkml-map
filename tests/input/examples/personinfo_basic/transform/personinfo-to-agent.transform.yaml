@@ -1,0 +1,126 @@
+id: my-mappings
+title: my mappings
+prefixes:
+  foo: foo
+source_schema: s1
+target_schema: s2
+class_derivations:
+  Container:
+    populated_from: Container
+    slot_derivations:
+      agents:
+        populated_from: persons
+    copy_directives:
+      "*":
+        copy_all: true
+  Entity:
+  Agent:
+    is_a: Entity
+    populated_from: Person
+    slot_derivations:
+      
+      ## implicitly same name in Agent
+      id:
+
+      label:
+        populated_from: name
+
+      age:
+        expr: "str({age_in_years})+' years'"
+
+      primary_email:
+
+      gender:
+        expr: "None"
+
+      current_address:
+
+      ## expressions
+      #full_name:
+      #  expr: "{first} {last}"
+
+      ## unit conversion
+      #age_in_years:
+      #  expr: "units.convert(age.value, age.unit, units.YEARS)"
+        
+      ## nested to flat
+      #friends:
+      #  expr: "[x.id for x in {friends}]"
+
+      ## copy recursively, flat to nested
+      #jobs:
+      #  populated_from: jobs
+        
+      ## copy recursively
+      #diagnoses:
+      #  populated_from: diagnoses
+
+      has_familial_relationships:
+        populated_from: has_familial_relationships
+  Job:
+    #primitive: uriorcurie
+    slot_derivations:
+      type:
+      #  this: true   ## use input primitive
+      current:
+        expr: "True"
+
+  Address:
+    populated_from: Address
+    slot_derivations:
+      address_of:
+        expr: "'foo'"
+        inverse_of:
+          class_name: Agent
+          slot_name: current_address
+      street:
+      city:
+        expr: "'foo'"
+
+  FamilialRelationship:
+    populated_from: FamilialRelationship
+    slot_derivations:
+      type:
+      related_to:
+      #person_id:
+      #  # inverse of has_familial_relationships
+      #  inverse_of:
+      #    slot_name: has_familial_relationships
+      #    class_name: Person
+
+  SequenceFeature:
+    slot_derivations:
+      type:
+        type_designator: true
+        hide: true
+        populated_from: feature_type
+        
+  DenormMapping:
+    populated_from: Mapping
+    #joins:
+    #  subject: Entity
+    #  object: Entity
+    slot_derivations:
+      id:         ## implicitly mapping.id
+      creator:
+      license:
+      subject_id:
+        expr: subject.id
+      subject_name:
+        expr: subject.name
+      object_id:
+        expr: object.id
+      object_name:
+        expr: object.name
+      predicate_id:
+        ## implicitly: mapping.predicate
+        populated_from: predicate
+      predicate_label:
+        expr: "lookup(predicate)"
+
+enum_derivations:
+  MyFamilialRelationshipType:
+    populated_from: FamilialRelationshipType
+    permissible_value_derivations:
+      sibling of:
+        populated_from: SIBLING_OF

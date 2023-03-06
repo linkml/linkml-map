@@ -1,0 +1,11 @@
+id: qv-to-scalar
+class_derivations:
+  Person:
+    populated_from: Person
+    slot_derivations:
+      height_in_cm:
+        #expr: "{height}.value if {height}.unit == 'cm' else ''"
+        expr: "case( ({height}.unit == 'cm', {height}.value), (True, NULL) )"
+    copy_directives:
+      "*":
+        copy_all: true

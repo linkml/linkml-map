@@ -1,5 +1,5 @@
 # Auto generated from transformer_model.yaml by pythongen.py version: 0.9.0
-# Generation date: 2023-02-05T00:22:22
+# Generation date: 2023-03-05T13:57:57
 # Schema: transformer
 #
 # id: https://w3id.org/linkml/transformer
@@ -139,7 +139,8 @@ class TransformationSpecification(YAMLRoot):
 @dataclass
 class ElementDerivation(YAMLRoot):
     """
-    A specification of how to derive a target element from a source element.
+    An abstract grouping for classes that provide a specification of how to derive a target element from a source
+    element.
     """
     _inherited_slots: ClassVar[List[str]] = []
 
@@ -152,6 +153,9 @@ class ElementDerivation(YAMLRoot):
     copy_directives: Optional[Union[Dict[Union[str, CopyDirectiveElementName], Union[dict, "CopyDirective"]], List[Union[dict, "CopyDirective"]]]] = empty_dict()
     is_a: Optional[Union[str, ElementDerivationName]] = None
     mixins: Optional[Union[Dict[Union[str, ElementDerivationName], Union[dict, "ElementDerivation"]], List[Union[dict, "ElementDerivation"]]]] = empty_dict()
+    value_mappings: Optional[Union[Dict[Union[str, KeyValKey], Union[dict, "KeyVal"]], List[Union[dict, "KeyVal"]]]] = empty_dict()
+    expression_to_value_mappings: Optional[Union[Dict[Union[str, KeyValKey], Union[dict, "KeyVal"]], List[Union[dict, "KeyVal"]]]] = empty_dict()
+    expression_to_expression_mappings: Optional[Union[Dict[Union[str, KeyValKey], Union[dict, "KeyVal"]], List[Union[dict, "KeyVal"]]]] = empty_dict()
 
     def __post_init__(self, *_: List[str], **kwargs: Dict[str, Any]):
         if self._is_empty(self.name):
@@ -165,6 +169,12 @@ class ElementDerivation(YAMLRoot):
             self.is_a = ElementDerivationName(self.is_a)
 
         self._normalize_inlined_as_dict(slot_name="mixins", slot_type=ElementDerivation, key_name="name", keyed=True)
+
+        self._normalize_inlined_as_dict(slot_name="value_mappings", slot_type=KeyVal, key_name="key", keyed=True)
+
+        self._normalize_inlined_as_dict(slot_name="expression_to_value_mappings", slot_type=KeyVal, key_name="key", keyed=True)
+
+        self._normalize_inlined_as_dict(slot_name="expression_to_expression_mappings", slot_type=KeyVal, key_name="key", keyed=True)
 
         super().__post_init__(**kwargs)
 
@@ -324,6 +334,7 @@ class PermissibleValueDerivation(ElementDerivation):
 
     name: Union[str, PermissibleValueDerivationName] = None
     expr: Optional[str] = None
+    populated_from: Optional[str] = None
     hide: Optional[Union[bool, Bool]] = None
 
     def __post_init__(self, *_: List[str], **kwargs: Dict[str, Any]):
@@ -334,6 +345,9 @@ class PermissibleValueDerivation(ElementDerivation):
 
         if self.expr is not None and not isinstance(self.expr, str):
             self.expr = str(self.expr)
+
+        if self.populated_from is not None and not isinstance(self.populated_from, str):
+            self.populated_from = str(self.populated_from)
 
         if self.hide is not None and not isinstance(self.hide, Bool):
             self.hide = Bool(self.hide)
@@ -481,6 +495,15 @@ slots.elementDerivation__is_a = Slot(uri=LINKMLTR.is_a, name="elementDerivation_
 slots.elementDerivation__mixins = Slot(uri=LINKMLTR.mixins, name="elementDerivation__mixins", curie=LINKMLTR.curie('mixins'),
                    model_uri=LINKMLTR.elementDerivation__mixins, domain=None, range=Optional[Union[Dict[Union[str, ElementDerivationName], Union[dict, ElementDerivation]], List[Union[dict, ElementDerivation]]]])
 
+slots.elementDerivation__value_mappings = Slot(uri=LINKMLTR.value_mappings, name="elementDerivation__value_mappings", curie=LINKMLTR.curie('value_mappings'),
+                   model_uri=LINKMLTR.elementDerivation__value_mappings, domain=None, range=Optional[Union[Dict[Union[str, KeyValKey], Union[dict, KeyVal]], List[Union[dict, KeyVal]]]])
+
+slots.elementDerivation__expression_to_value_mappings = Slot(uri=LINKMLTR.expression_to_value_mappings, name="elementDerivation__expression_to_value_mappings", curie=LINKMLTR.curie('expression_to_value_mappings'),
+                   model_uri=LINKMLTR.elementDerivation__expression_to_value_mappings, domain=None, range=Optional[Union[Dict[Union[str, KeyValKey], Union[dict, KeyVal]], List[Union[dict, KeyVal]]]])
+
+slots.elementDerivation__expression_to_expression_mappings = Slot(uri=LINKMLTR.expression_to_expression_mappings, name="elementDerivation__expression_to_expression_mappings", curie=LINKMLTR.curie('expression_to_expression_mappings'),
+                   model_uri=LINKMLTR.elementDerivation__expression_to_expression_mappings, domain=None, range=Optional[Union[Dict[Union[str, KeyValKey], Union[dict, KeyVal]], List[Union[dict, KeyVal]]]])
+
 slots.classDerivation__name = Slot(uri=LINKMLTR.name, name="classDerivation__name", curie=LINKMLTR.curie('name'),
                    model_uri=LINKMLTR.classDerivation__name, domain=None, range=URIRef)
 
@@ -537,6 +560,9 @@ slots.permissibleValueDerivation__name = Slot(uri=LINKMLTR.name, name="permissib
 
 slots.permissibleValueDerivation__expr = Slot(uri=LINKMLTR.expr, name="permissibleValueDerivation__expr", curie=LINKMLTR.curie('expr'),
                    model_uri=LINKMLTR.permissibleValueDerivation__expr, domain=None, range=Optional[str])
+
+slots.permissibleValueDerivation__populated_from = Slot(uri=LINKMLTR.populated_from, name="permissibleValueDerivation__populated_from", curie=LINKMLTR.curie('populated_from'),
+                   model_uri=LINKMLTR.permissibleValueDerivation__populated_from, domain=None, range=Optional[str])
 
 slots.permissibleValueDerivation__hide = Slot(uri=LINKMLTR.hide, name="permissibleValueDerivation__hide", curie=LINKMLTR.curie('hide'),
                    model_uri=LINKMLTR.permissibleValueDerivation__hide, domain=None, range=Optional[Union[bool, Bool]])

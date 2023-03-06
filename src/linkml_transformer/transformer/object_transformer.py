@@ -1,197 +1,150 @@
 import logging
 from dataclasses import dataclass
-from typing import Type, Any, Union, List, Iterator
+from typing import Any, Dict, Optional, Type, Union
 
-from linkml.utils.datautils import infer_root_class
-from linkml_runtime.linkml_model import SlotDefinition, EnumDefinition, ClassDefinitionName
-from linkml_runtime.utils.enumerations import EnumDefinitionImpl
+from linkml_runtime.index.object_index import ObjectIndex
 from linkml_runtime.utils.eval_utils import eval_expr
 from linkml_runtime.utils.yamlutils import YAMLRoot
-from linkml_runtime.utils.inference_utils import infer_slot_value, obj_as_dict_nonrecursive
-from linkml_transformer.datamodel.transformer_model import TransformationSpecification
-from linkml_transformer.transformer.transformer import Transformer
-from linkml_runtime.index.object_index import ObjectIndex
+from pydantic import BaseModel
+
+from linkml_transformer.transformer.transformer import OBJECT_TYPE, Transformer
+from linkml_transformer.utils.dynamic_object import DynObj, dynamic_object
+
+DICT_OBJ = Dict[str, Any]
 
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class ObjectTransformer(Transformer):
     """
-    A Transformer that works on in-memory objects.
+    A Transformer that works on in-memory dict objects.
 
     This works by recursively
     """
+
     object_index: ObjectIndex = None
 
-    def index(self, source_obj: YAMLRoot):
+    def index(self, source_obj: Any, target: str = None):
         """
         Create an index over a container object.
 
         :param source_obj:
         :return:
         """
-        self.object_index = ObjectIndex(source_obj, schemaview=self.source_schemaview)
-
-    def _transform_any(self, obj: Any, target_class: Type[YAMLRoot], parent_slot: SlotDefinition) -> YAMLRoot:
-        logger.debug(f"T={type(obj)} // {obj}")
-        if isinstance(obj, EnumDefinitionImpl):
-            return str(obj)
+        if isinstance(source_obj, dict):
+            if target is None:
+                [target] = [
+                    c.name
+                    for c in self.source_schemaview.all_classes().values()
+                    if c.tree_root
+                ]
+            if target is None:
+                raise ValueError(
+                    f"target must be passed if source_obj is dict: {source_obj}"
+                )
+            source_obj_typed = dynamic_object(
+                source_obj, self.source_schemaview, target
+            )
+            self.object_index = ObjectIndex(
+                source_obj_typed, schemaview=self.source_schemaview
+            )
         else:
-            return obj
+            self.object_index = ObjectIndex(
+                source_obj, schemaview=self.source_schemaview
+            )
 
-    def transform(self, source_obj: YAMLRoot, target_class: Type[YAMLRoot] = None) -> YAMLRoot:
+    def transform(
+        self,
+        source_obj: OBJECT_TYPE,
+        source_type: str = None,
+    ) -> DICT_OBJ:
         """
         Transform a source object into a target object.
+
         :param source_obj:
-        :param target_class:
+        :param source_type:
         :return:
         """
-        tgt_mod = self.target_module
-        spec = self.specification
-        typ = type(source_obj)
-        try:
-            cls_name = typ.class_name
-        except AttributeError:
-            # primitive
-            if isinstance(source_obj, EnumDefinitionImpl):
-                return str(source_obj)
+        sv = self.source_schemaview
+        if source_type is None:
+            [source_type] = [c.name for c in sv.all_classes().values() if c.tree_root]
+        if source_type in sv.all_types():
+            # TODO: type derivations
             return source_obj
-        logger.debug(f"\nSource object type={cls_name}")
-        # use populated-from to pick the class derivation
-        matching_tgt_class_derivs = [deriv for deriv in spec.class_derivations.values() if deriv.populated_from == cls_name]
-        logger.debug(f"Target class derivs={matching_tgt_class_derivs}")
-        if len(matching_tgt_class_derivs) != 1:
-            raise ValueError(f"Could not find what to derive from a source {cls_name}")
-        [class_deriv] = matching_tgt_class_derivs
-        tgt_class_name = class_deriv.name
-        tgt_class = getattr(tgt_mod, tgt_class_name)
+        if source_type in sv.all_enums():
+            # TODO: enum derivations
+            return str(source_obj)
+        if isinstance(source_obj, (BaseModel, YAMLRoot)):
+            source_obj_typed = source_obj
+            source_obj = vars(source_obj)
+        else:
+            source_obj_typed = None
+        if not isinstance(source_obj, dict):
+            logger.warning(f"Unexpected: {source_obj} for type {source_type}")
+            return source_obj
+        source_type_class = sv.get_class(source_type)
+        class_deriv = self._get_class_derivation(source_type)
         tgt_attrs = {}
         for slot_derivation in class_deriv.slot_derivations.values():
             v = None
+            source_class_slot = None
+            target_class_slot = None
             if slot_derivation.populated_from:
-                v = getattr(source_obj, slot_derivation.populated_from, None)
-                logger.debug(f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {source_obj}")
+                v = source_obj.get(slot_derivation.populated_from, None)
+                source_class_slot = sv.induced_slot(
+                    slot_derivation.populated_from, source_type
+                )
+                logger.debug(
+                    f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {source_obj}"
+                )
             elif slot_derivation.expr:
                 if self.object_index:
-                    ctxt_obj = self.object_index.bless(source_obj)
-                    ctxt_dict = {k: getattr(ctxt_obj, k) for k in ctxt_obj._attributes()}
+                    if not source_obj_typed:
+                        source_obj_dyn = dynamic_object(source_obj, sv, source_type)
+                    else:
+                        source_obj_dyn = source_obj_typed
+                    ctxt_obj = self.object_index.bless(source_obj_dyn)
+                    ctxt_dict = {
+                        k: getattr(ctxt_obj, k)
+                        for k in ctxt_obj._attributes()
+                        if not k.startswith("_")
+                    }
                 else:
-                    ctxt_dict = obj_as_dict_nonrecursive(source_obj)
-                v = eval_expr(slot_derivation.expr, **ctxt_dict)
+                    # ctxt_dict = source_obj
+                    do = dynamic_object(source_obj, sv, source_type)
+                    ctxt_dict = vars(do)
+                v = eval_expr(slot_derivation.expr, **ctxt_dict, NULL=None)
             else:
-                v = getattr(source_obj, slot_derivation.name)
-            if v is not None:
-                if isinstance(v, list):
-                    v = [self.transform(v1) for v1 in v]
+                source_class_slot = sv.induced_slot(slot_derivation.name, source_type)
+                v = source_obj.get(slot_derivation.name, None)
+            if source_class_slot and v is not None:
+                source_class_slot_range = source_class_slot.range
+                if source_class_slot.multivalued:
+                    if isinstance(v, list):
+                        v = [self.transform(v1, source_class_slot_range) for v1 in v]
+                    elif isinstance(v, dict):
+                        v = [self.transform(v1, source_class_slot_range) for v1 in v]
+                    else:
+                        v = [v]
                 else:
-                    v = self.transform(v)
-                    #v = self._transform_any(v, None, None)
-                tgt_attrs[slot_derivation.name] = v
-        logger.debug(tgt_class)
-        logger.debug(tgt_attrs)
-        return tgt_class(**tgt_attrs)
+                    v = self.transform(v, source_class_slot_range)
+            tgt_attrs[str(slot_derivation.name)] = v
+        return tgt_attrs
 
-    def derive(
-            self,
-            source_root_object: YAMLRoot,
-            target_class: Union[ClassDefinitionName, Type[YAMLRoot]] = None,
-            source_object: YAMLRoot = None
-    ) -> YAMLRoot:
-        """
-        Derives an instance of target_class
-
-        :param target_class:
-        :param source_object:
-        :return:
-        """
-        spec = self.specification
-        if target_class is None:
-            target_class = infer_root_class(self.target_schemaview)
-        if target_class is None:
-            raise ValueError(f"Cannot infer tree root")
-        target_class_name = self.ensure_class_name(target_class)
-        target_class_type = self.ensure_type(target_class)
-        if target_class_name not in spec.class_derivations:
-            yield ValueError(f"{target_class_name} has no derivation rules")
-        class_derivation = spec.class_derivations[target_class_name]
-        target_attrs = {}
-        for sd in class_derivation.slot_derivations.values():
-            v = None
-            if sd.populated_from:
-                v = getattr(source_object, sd.populated_from, None)
-            elif sd.expr:
-                eval_expr(sd.expr,  **obj_as_dict_nonrecursive(source_object))
-            else:
-                v = getattr(obj, sd.name)
-            if v is not None:
-                v = self.transform(v)
-                #v = self._transform_any(v, None, None)
-                target_attrs[sd.name] = v
-        return target_class_type(**target_attrs)
-
-    def derive_multi(
-            self,
-            source_root_object: YAMLRoot,
-            target_class: Union[ClassDefinitionName, Type[YAMLRoot]] = None,
-            source_object: YAMLRoot = None
-    ) -> Iterator[YAMLRoot]:
-        """
-        Derives all instances of TargetClass
-
-        :param target_class:
-        :param source_object:
-        :return:
-        """
-        spec = self.specification
-        if target_class is None:
-            target_class = infer_root_class(self.target_schemaview)
-        if target_class is None:
-            raise ValueError(f"Cannot infer tree root")
-        target_class_name = self.ensure_class_name(target_class)
-        target_class_type = self.ensure_type(target_class)
-        if target_class_name not in spec.class_derivations:
-            yield ValueError(f"{target_class_name} has no derivation rules")
-        class_derivation = spec.class_derivations[target_class_name]
-        target_attrs = {}
-        if class_derivation.joins:
-            raise NotImplementedError
-        for sd in class_derivation.slot_derivations.values():
-            v = None
-            if sd.populated_from:
-                v = getattr(source_object, sd.populated_from, None)
-            elif sd.expr:
-                eval_expr(sd.expr,  **obj_as_dict_nonrecursive(source_object))
-            else:
-                v = getattr(obj, sd.name)
-            if v is not None:
-                v = self._transform_any(v, None, None)
-                target_attrs[sd.name] = v
-        return target_class_type(**target_attrs)
-
-
-    def ensure_class_name(self, cls:  Union[str, ClassDefinitionName, Type[YAMLRoot]]) -> str:
-        """
-        For an object that is either a class name or a python type, ensure return value is the class name
-
-        :param cls:
-        :return:
-        """
-        if isinstance(cls, str):
-            return cls
-        else:
-            return cls.class_name
-
-    def ensure_type(self, cls:  Union[str, ClassDefinitionName, Type[YAMLRoot]]) -> Type[YAMLRoot]:
-        """
-        For an object that is either a class name or a python type, ensure return value is the type
-
-        :param cls:
-        :return:
-        """
-        if isinstance(cls, str):
-            return getattr(self.target_module, cls)
-        else:
-            return cls
-
-
+    def transform_object(
+        self,
+        source_obj: Union[YAMLRoot, BaseModel],
+        target_class: Optional[Union[Type[YAMLRoot], Type[BaseModel]]] = None,
+    ) -> Union[YAMLRoot, BaseModel]:
+        typ = type(source_obj)
+        typ_name = typ.__name__
+        # if isinstance(source_obj, YAMLRoot):
+        #    source_obj_dict = json_dumper.to_dict(source_obj)
+        # elif isinstance(source_obj, BaseModel):
+        #    source_obj_dict = source_obj.dict()
+        # else:
+        #    raise ValueError(f"Do not know how to handle type: {typ}")
+        tr_obj_dict = self.transform(source_obj, typ_name)
+        return target_class(**tr_obj_dict)

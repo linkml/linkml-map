@@ -28,9 +28,21 @@ See [generated docs](https://linkml.github.io/linkml-transformer/)
 
 ## Running the code
 
-There is no CLI yet
+```bash
+linkml-tr --help
+Usage: linkml-tr [OPTIONS] COMMAND [ARGS]...
 
-See the tests folder for examples of how to run a transformation.
+  CLI for linkml-transformer.
+
+Options:
+  -v, --verbose
+  -q, --quiet TEXT
+  --help            Show this message and exit.
+
+Commands:
+  derive-schema  Derive a schema from a source schema and a mapping.
+  map-data       Map data in a source schema using a transformation.
+```
 
 ## Examples
 

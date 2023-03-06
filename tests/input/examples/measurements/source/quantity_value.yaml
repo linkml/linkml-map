@@ -1,0 +1,26 @@
+id: https://w3id.org/linkml/examples/quantity_value
+name: quantity_value
+imports:
+  - linkml:types
+prefixes:
+  personinfo: https://w3id.org/linkml/examples/personinfo/
+  linkml: https://w3id.org/linkml/
+default_prefix: personinfo
+default_range: string
+
+classes:
+
+  Person:
+    tree_root: true
+    attributes:
+      id:
+        identifier: true
+      height:
+        range: QuantityValue
+
+  QuantityValue:
+    attributes:
+      value:
+        range: float
+      unit:
+        range: cm

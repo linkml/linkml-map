@@ -73,6 +73,8 @@ upgrade:
 # Test documentation locally
 serve: mkd-serve
 
+deploy: mkd-deploy
+
 # Python datamodel
 $(PYMODEL):
 	mkdir -p $@

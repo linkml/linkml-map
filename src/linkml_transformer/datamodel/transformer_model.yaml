@@ -29,7 +29,8 @@ classes:
     class_uri: linkml:Any
 
   TransformationSpecification:
-    description: A collection of mappings between source and target classes
+    description: >-
+      A collection of mappings between source and target classes
     tree_root: true
     attributes:
       id:
@@ -38,7 +39,7 @@ classes:
       title:
         description: human readable title for this transformation specification
       prefixes:
-        description: prefix map
+        description: maps prefixes to URL expansions
       source_schema:
         description: name of the schema that describes the source (input) objects
       target_schema:
@@ -66,7 +67,8 @@ classes:
   ElementDerivation:
     abstract: true
     description: >-
-      A specification of how to derive a target element from a source element.
+      An abstract grouping for classes that provide a specification of how to 
+      derive a target element from a source element.
     attributes:
       name:
         key: true
@@ -81,6 +83,25 @@ classes:
         range: ElementDerivation
         multivalued: true
         inlined: true
+      value_mappings:
+        range: KeyVal
+        multivalued: true
+        inlined: true
+        description: >-
+          A mapping table that is applied directly to mappings, in order of precedence
+      expression_to_value_mappings:
+        range: KeyVal
+        multivalued: true
+        inlined: true
+        description: >-
+          A mapping table in which the keys are expressions
+      expression_to_expression_mappings:
+        range: KeyVal
+        multivalued: true
+        inlined: true
+        description: >-
+          A mapping table in which the keys and values are expressions
+
 
   ClassDerivation:
     is_a: ElementDerivation
@@ -177,6 +198,9 @@ classes:
         description: Target permissible value text
       expr:
         range: string
+      populated_from:
+        range: string
+        description: Source permissible value
       hide:
         range: boolean
 

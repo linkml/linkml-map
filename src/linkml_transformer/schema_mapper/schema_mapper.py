@@ -2,19 +2,24 @@ from copy import copy
 from dataclasses import dataclass
 
 from linkml_runtime import SchemaView
-from linkml_runtime.linkml_model import SchemaDefinition, ClassDefinition, SlotDefinition, Element
+from linkml_runtime.linkml_model import (ClassDefinition, Element,
+                                         SchemaDefinition, SlotDefinition)
 
-from linkml_transformer.datamodel.transformer_model import TransformationSpecification, ClassDerivation, CopyDirective
+from linkml_transformer.datamodel.transformer_model import (
+    ClassDerivation, CopyDirective, TransformationSpecification)
 
 
 @dataclass
 class SchemaMapper:
     """
-    Compiles a transformation specification into a schema.
+    Translates a source schema and transformation specification into a target schema.
     """
+
     source_schemaview: SchemaView = None
 
-    def derive_schema(self, specification: TransformationSpecification) -> SchemaDefinition:
+    def derive_schema(
+        self, specification: TransformationSpecification
+    ) -> SchemaDefinition:
         """
         Compile a transformation specification into a schema.
 
@@ -23,8 +28,7 @@ class SchemaMapper:
         """
         source_schemaview = self.source_schemaview
         source_schema = source_schemaview.schema
-        target_schema = SchemaDefinition(id=source_schema.id,
-                                         name=source_schema.name)
+        target_schema = SchemaDefinition(id=source_schema.id, name=source_schema.name)
         for class_derivation in specification.class_derivations.values():
             class_definition = self._derive_class(class_derivation)
             target_schema.classes[class_definition.name] = class_definition
@@ -66,7 +70,12 @@ class SchemaMapper:
             target_slot.name = slot_derivation.name
         return target_slot
 
-    def copy_attributes(self, target_element: Element, source_element: Element, copy_directive: CopyDirective) -> None:
+    def copy_attributes(
+        self,
+        target_element: Element,
+        source_element: Element,
+        copy_directive: CopyDirective,
+    ) -> None:
         """
         Copy attributes from source to target according to a directive.
 
@@ -85,5 +94,3 @@ class SchemaMapper:
                 included = False
             if included:
                 setattr(target_element, k, v)
-
-

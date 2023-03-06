@@ -1,0 +1,56 @@
+id: https://w3id.org/linkml/examples/mappings-norm
+name: mappings_norm
+description: |-
+  Normalized Mappings
+license: https://creativecommons.org/publicdomain/zero/1.0/
+default_curi_maps:
+  - semweb_context
+imports:
+  - linkml:types
+prefixes:
+  mappings: https://w3id.org/linkml/examples/mappings-norm/
+  linkml: https://w3id.org/linkml/
+default_prefix: mappings
+default_range: string
+
+emit_prefixes:
+  - rdf
+  - rdfs
+  - xsd
+  - skos
+
+classes:
+
+  MappingSet:
+    tree_root: true
+    attributes:
+      mappings:
+        range: Mapping
+        multivalued: true
+        inlined: true
+      entities:
+        range: Entity
+        multivalued: true
+        inlined: true
+
+  Mapping:
+    slots:
+      - subject
+      - object
+      - predicate
+  Entity:
+    slots:
+      - id
+      - name
+
+slots:
+  id:
+    identifier: true
+    slot_uri: schema:identifier
+  name:
+    slot_uri: rdfs:label
+  predicate:
+  subject:
+    range: Entity
+  object:
+    range: Entity
