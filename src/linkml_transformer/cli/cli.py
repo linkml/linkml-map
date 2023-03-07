@@ -60,27 +60,6 @@ def main(verbose: int, quiet: bool):
 @main.command()
 @output_option
 @transformer_specification_option
-@output_format_options
-@click.argument("schema")
-def derive_schema(schema, transformer_specification, output, output_format, **kwargs):
-    """Derive a schema from a source schema and a mapping."""
-    logging.info(f"Transforming {schema} using {transformer_specification}")
-    tr = SchemaMapper()
-    tr.source_schemaview = SchemaView(schema)
-    specification = yaml_loader.load(
-        transformer_specification, target_class=TransformationSpecification
-    )
-    target_schema = tr.derive_schema(specification)
-    if output:
-        file = open(output, "w", encoding="utf-8")
-    else:
-        file = sys.stdout
-    file.write(yaml_dumper.dumps(target_schema))
-
-
-@main.command()
-@output_option
-@transformer_specification_option
 @schema_option
 @output_format_options
 @click.option("--source-type")
@@ -106,12 +85,46 @@ def map_data(
     with open(input) as file:
         input_obj = yaml.safe_load(file)
     tr.index(input_obj, source_type)
-    tr_obj = tr.transform(input_obj)
+    tr_obj = tr.transform(input_obj, source_type)
     if output:
         file = open(output, "w", encoding="utf-8")
     else:
         file = sys.stdout
     file.write(yaml_dumper.dumps(tr_obj))
+
+
+@main.command()
+@output_option
+@transformer_specification_option
+@output_format_options
+@click.argument("schema")
+def derive_schema(schema, transformer_specification, output, output_format, **kwargs):
+    """Derive a schema from a source schema and a transformation specification.
+
+    This can be thought of as "copying" the source to a target, using the transformation
+    specification as a "patch"
+
+    Notes:
+
+        the implementation is currently incomplete; the derived schema may not be valid
+        linkml, e.g. there may be "dangling" references.
+
+    Example:
+
+        linkml-tr derive-schema -T transform/personinfo-to-agent.transform.yaml source/personinfo.yaml
+    """
+    logging.info(f"Transforming {schema} using {transformer_specification}")
+    tr = SchemaMapper()
+    tr.source_schemaview = SchemaView(schema)
+    specification = yaml_loader.load(
+        transformer_specification, target_class=TransformationSpecification
+    )
+    target_schema = tr.derive_schema(specification)
+    if output:
+        file = open(output, "w", encoding="utf-8")
+    else:
+        file = sys.stdout
+    file.write(yaml_dumper.dumps(target_schema))
 
 
 if __name__ == "__main__":

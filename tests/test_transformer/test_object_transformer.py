@@ -1,8 +1,10 @@
+import itertools
 import unittest
 
 import yaml
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper
+from linkml_runtime.linkml_model import ClassDefinition, SlotDefinition, SchemaDefinition
 from linkml_runtime.loaders import yaml_loader
 
 import tests.input.examples.flattening.model.denormalized_model as sssom_tgt_dm
@@ -223,6 +225,35 @@ class ObjectTransformerTestCase(unittest.TestCase):
         self.assertIsNone(mapping.subject_name)
         self.assertEqual(mapping.object_id, "Y:1")
         self.assertEqual(mapping.object_name, "y1")
+
+    @unittest.skip("TODO")
+    def test_cardinalities(self):
+        tf = [True, False]
+        class_name = "MyClass"
+        att_name = "my_att"
+        val = "v1"
+        for source_multivalued, target_multivalued in itertools.product(tf, tf):
+            def mk(mv: bool):
+                cls = ClassDefinition(class_name)
+                att = SlotDefinition(att_name, multivalued=mv)
+                cls.attributes[att.name] = att
+                schema = SchemaDefinition(name="test", id="test", classes=[cls])
+                return schema
+            source_schema = mk(source_multivalued)
+            target_schema = mk(target_multivalued)
+            specification = TransformationSpecification("test")
+            cd = ClassDerivation(class_name, populated_from=class_name)
+            specification.class_derivations[class_name] = cd
+            cd.slot_derivations[att_name] = SlotDerivation(att_name, populated_from=class_name)
+            source_instance = {att_name: [val] if source_multivalued else val}
+            tr = ObjectTransformer(specification=specification,
+                                   source_schemaview=SchemaView(source_schema))
+            target_instance = tr.transform(source_instance, class_name)
+            print(target_instance)
+
+
+
+
 
 
 if __name__ == "__main__":

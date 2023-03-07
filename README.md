@@ -44,6 +44,21 @@ Commands:
   map-data       Map data in a source schema using a transformation.
 ```
 
+### map-data
+
+```
+cd tests/input/examples/personinfo_basic
+linkml-tr map-data -T transform/personinfo-to-agent.transform.yaml -s source/personinfo.yaml  data/Container-001.yaml
+```
+
+### derive-schema
+
+```
+cd tests/input/examples/personinfo_basic
+linkml-tr derive-schema -T transform/personinfo-to-agent.transform.yaml source/personinfo.yaml
+```
+
+
 ## Examples
 
 See the tests folder for most up to date examples
