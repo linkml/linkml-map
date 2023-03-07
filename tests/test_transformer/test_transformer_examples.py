@@ -1,6 +1,7 @@
 import unittest
 
 import yaml
+
 from linkml_transformer.transformer.object_transformer import ObjectTransformer
 from linkml_transformer.utils.dynamic_object import dynamic_object
 from tests import EXAMPLE_DIR
@@ -8,6 +9,7 @@ from tests import EXAMPLE_DIR
 EXAMPLES = [
     ("measurements", "quantity_value", "qv-to-scalar", "PersonQuantityValue-001", None),
 ]
+
 
 class TransformerExamplesTestCase(unittest.TestCase):
     """
@@ -24,7 +26,9 @@ class TransformerExamplesTestCase(unittest.TestCase):
             path = EXAMPLE_DIR / folder
             tr = ObjectTransformer()
             tr.load_source_schema(path / "source" / f"{src}.yaml")
-            tr.load_transformer_specification(path / "transform" / f"{spec}.transform.yaml")
+            tr.load_transformer_specification(
+                path / "transform" / f"{spec}.transform.yaml"
+            )
             input_obj = yaml.safe_load(open(str(path / "data" / f"{data}.yaml")))
             print(input_obj)
             target_obj = tr.transform(input_obj)

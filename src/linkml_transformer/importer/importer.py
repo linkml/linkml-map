@@ -19,7 +19,6 @@ class Importer(ABC):
     An example importer would be sssom.
     """
 
-
     @abstractmethod
     def import_specification(self, input: Any) -> TransformationSpecification:
         """
