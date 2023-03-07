@@ -3,6 +3,7 @@ name = "linkml-transformer"
 version = "0.1.0"
 description = ""
 authors = ["cmungall <cjm@berkeleybop.org>"]
+long_description = README.md
 
 [tool.poetry.dependencies]
 python = "^3.8"
