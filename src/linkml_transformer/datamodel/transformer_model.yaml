@@ -162,6 +162,8 @@ classes:
         description: True if this is suppressed
       type_designator:
         range: boolean
+      cast_collection_as:
+        range: CollectionType
 
   EnumDerivation:
     is_a: ElementDerivation
@@ -238,3 +240,11 @@ classes:
         range: Any
       add:
         range: Any
+
+enums:
+  CollectionType:
+    permissible_values:
+      SingleValued:
+      MultiValued:
+      MultiValuedList:
+      MultiValuedDict:

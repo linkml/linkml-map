@@ -11,7 +11,7 @@ from linkml_runtime.utils.yamlutils import YAMLRoot
 from pydantic import BaseModel
 
 from linkml_transformer.datamodel.transformer_model import (
-    ClassDerivation, TransformationSpecification)
+    ClassDerivation, TransformationSpecification, SlotDerivation, CollectionType)
 
 logger = logging.getLogger(__name__)
 
@@ -84,3 +84,25 @@ class Transformer(ABC):
                 f"Could not find what to derive from a source {target_class_name}"
             )
         return matching_tgt_class_derivs[0]
+
+    def _coerce_to_multivalued(self, slot_derivation: SlotDerivation, class_derivation: ClassDerivation):
+        cast_as = slot_derivation.cast_collection_as
+        if cast_as and cast_as == CollectionType.MultiValued:
+            return True
+        sv = self.target_schemaview
+        if sv:
+            slot = sv.induced_slot(slot_derivation.name, class_derivation.name)
+            if slot.multivalued:
+                return True
+        return False
+
+    def _coerce_to_singlevalued(self, slot_derivation: SlotDerivation, class_derivation: ClassDerivation):
+        cast_as = slot_derivation.cast_collection_as
+        if cast_as and cast_as == CollectionType(CollectionType.SingleValued):
+            return True
+        sv = self.target_schemaview
+        if sv:
+            slot = sv.induced_slot(slot_derivation.name, class_derivation.name)
+            if not slot.multivalued:
+                return True
+        return False

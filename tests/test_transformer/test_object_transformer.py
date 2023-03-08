@@ -226,30 +226,38 @@ class ObjectTransformerTestCase(unittest.TestCase):
         self.assertEqual(mapping.object_id, "Y:1")
         self.assertEqual(mapping.object_name, "y1")
 
-    @unittest.skip("TODO")
     def test_cardinalities(self):
+        """
+        Tests enforcing cardinality
+        """
         tf = [True, False]
         class_name = "MyClass"
         att_name = "my_att"
         val = "v1"
-        for source_multivalued, target_multivalued in itertools.product(tf, tf):
-            def mk(mv: bool):
+        for source_multivalued, target_multivalued, explicit in itertools.product(tf, tf, tf):
+            def mk(mv: bool, explicit: bool = False):
                 cls = ClassDefinition(class_name)
+                # TODO: it should not be necessary to set this if present in Transformation
+                # att = SlotDefinition(att_name, multivalued=mv and not explicit)
                 att = SlotDefinition(att_name, multivalued=mv)
                 cls.attributes[att.name] = att
-                schema = SchemaDefinition(name="test", id="test", classes=[cls])
+                schema = SchemaDefinition(name="test", id="test", classes=[cls], default_range="string")
                 return schema
             source_schema = mk(source_multivalued)
-            target_schema = mk(target_multivalued)
+            target_schema = mk(target_multivalued, explicit)
             specification = TransformationSpecification("test")
             cd = ClassDerivation(class_name, populated_from=class_name)
             specification.class_derivations[class_name] = cd
-            cd.slot_derivations[att_name] = SlotDerivation(att_name, populated_from=class_name)
+            sd = SlotDerivation(att_name, populated_from=att_name)
+            if explicit:
+                sd.cast_collection_as = CollectionType.MultiValued if target_multivalued else CollectionType.SingleValued
+            cd.slot_derivations[att_name] = sd
             source_instance = {att_name: [val] if source_multivalued else val}
             tr = ObjectTransformer(specification=specification,
-                                   source_schemaview=SchemaView(source_schema))
+                                   source_schemaview=SchemaView(source_schema),
+                                   target_schemaview=SchemaView(target_schema))
             target_instance = tr.transform(source_instance, class_name)
-            print(target_instance)
+            self.assertEqual([val] if target_multivalued else val, target_instance[att_name])
 
 
 

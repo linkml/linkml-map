@@ -130,6 +130,15 @@ class ObjectTransformer(Transformer):
                         v = [v]
                 else:
                     v = self.transform(v, source_class_slot_range)
+                if self._coerce_to_multivalued(slot_derivation, class_deriv) and v is not None and not isinstance(v, list):
+                    v = [v]
+                if self._coerce_to_singlevalued(slot_derivation, class_deriv) and isinstance(v, list):
+                    if len(v) > 1:
+                        raise ValueError(f"Cannot coerce multiple values {v}")
+                    if len(v) == 0:
+                        v = None
+                    else:
+                        v = v[0]
             tgt_attrs[str(slot_derivation.name)] = v
         return tgt_attrs
 
@@ -148,3 +157,4 @@ class ObjectTransformer(Transformer):
         #    raise ValueError(f"Do not know how to handle type: {typ}")
         tr_obj_dict = self.transform(source_obj, typ_name)
         return target_class(**tr_obj_dict)
+
