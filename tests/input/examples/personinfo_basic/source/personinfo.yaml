@@ -119,7 +119,6 @@ classes:
   ProcedureConcept:
     is_a: Concept
 
-
   Relationship:
     slots:
       - started_at_time
@@ -254,7 +253,7 @@ enums:
       PARENT_OF:
         meaning: famrel:02
       CHILD_OF:
-        meaning: famrel:01
+        meaning: famrel:05
       FATHER_OF:
         meaning: famrel:11
   GenderType:

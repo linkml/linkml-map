@@ -18,7 +18,6 @@ class_derivations:
     is_a: Entity
     populated_from: Person
     slot_derivations:
-      
       ## implicitly same name in Agent
       id:
 
@@ -42,7 +41,7 @@ class_derivations:
       ## unit conversion
       #age_in_years:
       #  expr: "units.convert(age.value, age.unit, units.YEARS)"
-        
+
       ## nested to flat
       #friends:
       #  expr: "[x.id for x in {friends}]"
@@ -50,13 +49,14 @@ class_derivations:
       ## copy recursively, flat to nested
       #jobs:
       #  populated_from: jobs
-        
+
       ## copy recursively
       #diagnoses:
       #  populated_from: diagnoses
 
       has_familial_relationships:
         populated_from: has_familial_relationships
+
   Job:
     #primitive: uriorcurie
     slot_derivations:
@@ -94,7 +94,7 @@ class_derivations:
         type_designator: true
         hide: true
         populated_from: feature_type
-        
+
   DenormMapping:
     populated_from: Mapping
     #joins:
@@ -124,3 +124,5 @@ enum_derivations:
     permissible_value_derivations:
       sibling of:
         populated_from: SIBLING_OF
+      CHILD_OF:
+        populated_from: CHILD_OF

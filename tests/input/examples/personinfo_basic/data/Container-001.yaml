@@ -7,6 +7,8 @@ persons:
     has_familial_relationships:
       - type: SIBLING_OF
         related_to: P:002
+      - type: CHILD_OF
+        related_to: P:003
     current_address:
       street: 1 oak street
     aliases:
@@ -23,10 +25,19 @@ persons:
     has_familial_relationships:
       - type: SIBLING_OF
         related_to: P:001
+      - type: CHILD_OF
+        related_to: P:003
     has_medical_history:
       - diagnosis:
           id: C:001
           name: c1 (renamed)
+  - id: P:003
+    name: Mr. Blobby
+    has_familial_relationships:
+      - type: PARENT_OF
+        related_to: P:001
+      - type: PARENT_OF
+        related_to: P:002
 organizations:
   - id: ROR:1
     name: Acme

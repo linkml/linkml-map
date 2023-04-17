@@ -6,6 +6,8 @@ gender: nonbinary man
 has_familial_relationships:
   - type: SIBLING_OF
     related_to: P:002
+  - type: CHILD_OF
+    related_to: P:003
 current_address:
   street: 1 oak street
   city: oaktown

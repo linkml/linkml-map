@@ -58,6 +58,7 @@ classes:
       - has_employment_history
       - has_familial_relationships
       - has_medical_history
+      - parents
     slot_usage:
       primary_email:
         pattern: "^\\S+@[\\S+\\.]+\\S+"
@@ -120,7 +121,6 @@ classes:
   ProcedureConcept:
     is_a: Concept
 
-
   Relationship:
     slots:
       - started_at_time
@@ -134,7 +134,7 @@ classes:
       type:
         range: FamilialRelationshipType
         required: true
-      related to:
+      related_to:
         range: Agent
         required: true
 
@@ -195,6 +195,10 @@ slots:
     range: FamilialRelationship
     multivalued: true
     inlined_as_list: true
+  parents:
+    range: string
+    multivalued: true
+    inlined_as_list: true
   in_location:
     range: Place
   current_address:
@@ -250,8 +254,8 @@ enums:
         meaning: famrel:01
       parent of:
         meaning: famrel:02
-      child of:
-        meaning: famrel:01
+      CHILD_OF:
+        meaning: famrel:05
   GenderType:
     permissible_values:
       nonbinary man:

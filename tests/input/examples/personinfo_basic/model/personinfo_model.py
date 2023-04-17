@@ -613,7 +613,7 @@ class RelationshipType(EnumDefinitionImpl):
 class FamilialRelationshipType(EnumDefinitionImpl):
     SIBLING_OF = PermissibleValue(text="SIBLING_OF", meaning=FAMREL["01"])
     PARENT_OF = PermissibleValue(text="PARENT_OF", meaning=FAMREL["02"])
-    CHILD_OF = PermissibleValue(text="CHILD_OF", meaning=FAMREL["01"])
+    CHILD_OF = PermissibleValue(text="CHILD_OF", meaning=FAMREL["05"])
     FATHER_OF = PermissibleValue(text="FATHER_OF", meaning=FAMREL["11"])
 
     _defn = EnumDefinition(
