@@ -1,5 +1,5 @@
-# Auto generated from personinfo_s2.yaml by pythongen.py version: 0.9.0
-# Generation date: 2023-02-04T18:11:52
+# Auto generated from agent.yaml by pythongen.py version: 0.9.0
+# Generation date: 2023-04-14T14:30:22
 # Schema: personinfo
 #
 # id: https://w3id.org/linkml/examples/personinfo
@@ -7,26 +7,34 @@
 # license: https://creativecommons.org/publicdomain/zero/1.0/
 
 import dataclasses
-import re
 import sys
-from dataclasses import dataclass
-from typing import Any, ClassVar, Dict, List, Optional, Union
-
+import re
 from jsonasobj2 import JsonObj, as_dict
-from linkml_runtime.linkml_model.meta import (EnumDefinition, PermissibleValue,
-                                              PvFormulaOptions)
-from linkml_runtime.linkml_model.types import Boolean, Date, Float, String
-from linkml_runtime.utils.curienamespace import CurieNamespace
-from linkml_runtime.utils.dataclass_extensions_376 import \
-    dataclasses_init_fn_with_kwargs
-from linkml_runtime.utils.enumerations import EnumDefinitionImpl
-from linkml_runtime.utils.formatutils import camelcase, sfx, underscore
-from linkml_runtime.utils.metamodelcore import (Bool, XSDDate, bnode,
-                                                empty_dict, empty_list)
+from typing import Optional, List, Union, Dict, ClassVar, Any
+from dataclasses import dataclass
+from linkml_runtime.linkml_model.meta import (
+    EnumDefinition,
+    PermissibleValue,
+    PvFormulaOptions,
+)
+
 from linkml_runtime.utils.slot import Slot
-from linkml_runtime.utils.yamlutils import (YAMLRoot, extended_float,
-                                            extended_int, extended_str)
+from linkml_runtime.utils.metamodelcore import empty_list, empty_dict, bnode
+from linkml_runtime.utils.yamlutils import (
+    YAMLRoot,
+    extended_str,
+    extended_float,
+    extended_int,
+)
+from linkml_runtime.utils.dataclass_extensions_376 import (
+    dataclasses_init_fn_with_kwargs,
+)
+from linkml_runtime.utils.formatutils import camelcase, underscore, sfx
+from linkml_runtime.utils.enumerations import EnumDefinitionImpl
 from rdflib import Namespace, URIRef
+from linkml_runtime.utils.curienamespace import CurieNamespace
+from linkml_runtime.linkml_model.types import Boolean, Date, Float, String
+from linkml_runtime.utils.metamodelcore import Bool, XSDDate
 
 metamodel_version = "1.7.0"
 version = None
@@ -153,6 +161,7 @@ class Agent(NamedThing):
     has_medical_history: Optional[
         Union[Union[dict, "MedicalEvent"], List[Union[dict, "MedicalEvent"]]]
     ] = empty_list()
+    parents: Optional[Union[str, List[str]]] = empty_list()
     aliases: Optional[Union[str, List[str]]] = empty_list()
 
     def __post_init__(self, *_: List[str], **kwargs: Dict[str, Any]):
@@ -212,6 +221,10 @@ class Agent(NamedThing):
             v if isinstance(v, MedicalEvent) else MedicalEvent(**as_dict(v))
             for v in self.has_medical_history
         ]
+
+        if not isinstance(self.parents, list):
+            self.parents = [self.parents] if self.parents is not None else []
+        self.parents = [v if isinstance(v, str) else str(v) for v in self.parents]
 
         if not isinstance(self.aliases, list):
             self.aliases = [self.aliases] if self.aliases is not None else []
@@ -603,6 +616,7 @@ class Container(YAMLRoot):
 # Enumerations
 class FamilialRelationshipType(EnumDefinitionImpl):
     SIBLING_OF = PermissibleValue(text="SIBLING_OF", meaning=FAMREL["01"])
+    CHILD_OF = PermissibleValue(text="CHILD_OF", meaning=FAMREL["05"])
 
     _defn = EnumDefinition(
         name="FamilialRelationshipType",
@@ -612,9 +626,6 @@ class FamilialRelationshipType(EnumDefinitionImpl):
     def _addvals(cls):
         setattr(
             cls, "parent of", PermissibleValue(text="parent of", meaning=FAMREL["02"])
-        )
-        setattr(
-            cls, "child of", PermissibleValue(text="child of", meaning=FAMREL["01"])
         )
 
 
@@ -780,6 +791,15 @@ slots.has_familial_relationships = Slot(
             Union[dict, FamilialRelationship], List[Union[dict, FamilialRelationship]]
         ]
     ],
+)
+
+slots.parents = Slot(
+    uri=PERSONINFO.parents,
+    name="parents",
+    curie=PERSONINFO.curie("parents"),
+    model_uri=PERSONINFO.parents,
+    domain=None,
+    range=Optional[Union[str, List[str]]],
 )
 
 slots.in_location = Slot(
@@ -970,15 +990,6 @@ slots.hasAliases__aliases = Slot(
     range=Optional[Union[str, List[str]]],
 )
 
-slots.related_to = Slot(
-    uri=PERSONINFO.related_to,
-    name="related to",
-    curie=PERSONINFO.curie("related_to"),
-    model_uri=PERSONINFO.related_to,
-    domain=None,
-    range=Union[str, AgentId],
-)
-
 slots.Agent_primary_email = Slot(
     uri=SCHEMA.email,
     name="Agent_primary_email",
@@ -1000,7 +1011,7 @@ slots.FamilialRelationship_type = Slot(
 
 slots.FamilialRelationship_related_to = Slot(
     uri=PERSONINFO.related_to,
-    name="FamilialRelationship_related to",
+    name="FamilialRelationship_related_to",
     curie=PERSONINFO.curie("related_to"),
     model_uri=PERSONINFO.FamilialRelationship_related_to,
     domain=FamilialRelationship,
