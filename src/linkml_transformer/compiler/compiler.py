@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
 from linkml_runtime import SchemaView
@@ -11,7 +11,7 @@ from linkml_transformer.datamodel.transformer_model import \
 @dataclass
 class Compiler(ABC):
     """
-    Base class for all compiler.
+    Base class for all compilers.
 
     A compiler will compile a transformation specification into
     an alternative representation.

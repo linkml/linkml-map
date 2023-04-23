@@ -1,5 +1,6 @@
 import logging
 from abc import ABC
+from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
@@ -12,11 +13,13 @@ from pydantic import BaseModel
 
 from linkml_transformer.datamodel.transformer_model import (
     ClassDerivation, TransformationSpecification, SlotDerivation, CollectionType)
+from linkml_transformer.transformer.inference import induce_missing_values
 
 logger = logging.getLogger(__name__)
 
 
 OBJECT_TYPE = Union[Dict[str, Any], BaseModel, YAMLRoot]
+"""An object can be a plain python dict, a pydantic object, or a linkml YAMLRoot"""
 
 
 @dataclass
@@ -36,6 +39,9 @@ class Transformer(ABC):
 
     specification: TransformationSpecification = None
     """A specification of how to generate target objects from source objects."""
+
+    _derived_specification: TransformationSpecification = None
+    """A specification with inferred missing values."""
 
     target_schemaview: Optional[SchemaView] = None
     """A view over the schema describing the output/target object."""
@@ -71,8 +77,18 @@ class Transformer(ABC):
         """
         self.specification = yaml_loader.load(str(path), TransformationSpecification)
 
+    @property
+    def derived_specification(self) -> Optional[TransformationSpecification]:
+        if self._derived_specification is None:
+            if self.specification is None:
+                return None
+            self._derived_specification = deepcopy(self.specification)
+            induce_missing_values(self._derived_specification, self.source_schemaview)
+        return self._derived_specification
+
+
     def _get_class_derivation(self, target_class_name) -> ClassDerivation:
-        spec = self.specification
+        spec = self.derived_specification
         matching_tgt_class_derivs = [
             deriv
             for deriv in spec.class_derivations.values()
