@@ -1,9 +1,13 @@
+import logging
+from collections import defaultdict
 from copy import copy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional
 
 from linkml_runtime import SchemaView
-from linkml_runtime.linkml_model import (ClassDefinition, Element,
-                                         SchemaDefinition, SlotDefinition)
+from linkml_runtime.linkml_model import (ClassDefinition, ClassDefinitionName,
+                                         Element, SchemaDefinition,
+                                         SlotDefinition)
 
 from linkml_transformer.datamodel.transformer_model import (
     ClassDerivation, CopyDirective, TransformationSpecification)
@@ -17,11 +21,15 @@ class SchemaMapper:
 
     source_schemaview: SchemaView = None
 
+    source_to_target_class_mappings: Dict[str, List[str]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
+
     def derive_schema(
         self, specification: TransformationSpecification
     ) -> SchemaDefinition:
         """
-        Compile a transformation specification into a schema.
+        Use a transformation specification to generate a target/profile schema from a source schema.
 
         :param specification:
         :return:
@@ -32,6 +40,8 @@ class SchemaMapper:
         for class_derivation in specification.class_derivations.values():
             class_definition = self._derive_class(class_derivation)
             target_schema.classes[class_definition.name] = class_definition
+        for cd in target_schema.classes.values():
+            self._rewire_class(cd)
         return target_schema
 
     def _derive_class(self, class_derivation: ClassDerivation) -> ClassDefinition:
@@ -43,6 +53,7 @@ class SchemaMapper:
             populated_from = class_derivation.name
         source_class = self.source_schemaview.get_class(populated_from)
         if source_class is None:
+            logging.warning(f"No such class {populated_from}")
             target_class = ClassDefinition(name=class_derivation.name)
         else:
             target_class = copy(source_class)
@@ -53,6 +64,7 @@ class SchemaMapper:
         for slot_derivation in class_derivation.slot_derivations.values():
             slot_definition = self._derive_slot(slot_derivation)
             target_class.attributes[slot_definition.name] = slot_definition
+        self.source_to_target_class_mappings[populated_from].append(target_class.name)
         return target_class
 
     def _derive_slot(self, slot_derivation) -> SlotDefinition:
@@ -69,6 +81,32 @@ class SchemaMapper:
             target_slot = copy(source_slot)
             target_slot.name = slot_derivation.name
         return target_slot
+
+    def _rewire_class(self, class_definition: ClassDefinition):
+        if class_definition.is_a:
+            class_definition.is_a = self._rewire_parent(
+                class_definition, class_definition.is_a
+            )
+        mixins = [
+            self._rewire_parent(class_definition, m) for m in class_definition.mixins
+        ]
+        class_definition.mixins = [m for m in mixins if m is not None]
+
+    def _rewire_parent(
+        self, class_definition: ClassDefinition, parent: ClassDefinitionName
+    ) -> Optional[str]:
+        if parent in self.source_to_target_class_mappings:
+            new_parents = self.source_to_target_class_mappings[parent]
+            if len(new_parents) > 1:
+                raise ValueError(
+                    f"Cannot rewire to non-isomorphic mappings {parent} => {new_parents}"
+                )
+            if len(new_parents) == 1:
+                return new_parents[0]
+        parent_cls = self.source_schemaview.get_class(parent)
+        if parent_cls.is_a:
+            return self._rewire_parent(class_definition, parent_cls.is_a)
+        return None
 
     def copy_attributes(
         self,

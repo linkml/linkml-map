@@ -40,6 +40,9 @@ classes:
         description: human readable title for this transformation specification
       prefixes:
         description: maps prefixes to URL expansions
+        range: KeyVal
+        multivalued: true
+        inlined: true
       source_schema:
         description: name of the schema that describes the source (input) objects
       target_schema:
@@ -77,6 +80,11 @@ classes:
         range: CopyDirective
         multivalued: true
         inlined: true
+      overrides:
+        description: overrides source schema slots
+        range: Any
+        #multivalued: true
+        #inlined: true
       is_a:
         range: ElementDerivation
       mixins:
@@ -108,9 +116,9 @@ classes:
     description: >-
       A specification of how to derive a target class from a source class.
     attributes:
-      name:
-        key: true
-        description: Name of the class in the target schema
+      #name:
+      #  key: true
+      #  description: Name of the class in the target schema
       populated_from:
         range: string
         description: Name of the class in the source schema
@@ -150,6 +158,9 @@ classes:
         description: >-
           An expression to be evaluated on the source object to derive the target slot.
           Should be specified using the LinkML expression language.
+      range:
+        slot_uri: linkml:range
+        range: string
       inverse_of:
         range: Inverse
         description: >-
@@ -164,6 +175,8 @@ classes:
         range: boolean
       cast_collection_as:
         range: CollectionType
+      #range:
+      #  slot_uri: linkml:range
 
   EnumDerivation:
     is_a: ElementDerivation
@@ -227,6 +240,8 @@ classes:
         range: Any
 
   CopyDirective:
+    description: >-
+      Instructs a Schema Mapper in how to map to a target schema. Not used for data transformation.
     attributes:
       element_name:
         key: true

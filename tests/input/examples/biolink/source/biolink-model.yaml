@@ -5476,7 +5476,6 @@ classes:
     abstract: true
     slots:
       - predicate mappings
-    tree_root: true
 
   predicate mapping:
     description: >-

@@ -2,10 +2,13 @@ import re
 
 from linkml_runtime import SchemaView
 
-from linkml_transformer.datamodel.transformer_model import TransformationSpecification, SlotDerivation
+from linkml_transformer.datamodel.transformer_model import (
+    SlotDerivation, TransformationSpecification)
 
 
-def induce_missing_values(specification: TransformationSpecification, source_schemaview: SchemaView):
+def induce_missing_values(
+    specification: TransformationSpecification, source_schemaview: SchemaView
+):
     """
     Infer missing values in a specification.
 
@@ -22,7 +25,7 @@ def induce_missing_values(specification: TransformationSpecification, source_sch
             for sn in source_schemaview.class_slots(src_cls.name):
                 if sn in cd.slot_derivations:
                     continue
-                #if slot_match == "*" or re.match(slot_match, sn):
+                # if slot_match == "*" or re.match(slot_match, sn):
                 #    sd = SlotDerivation(name=sn, populated_from=sn)
                 #    print(f"Adding {src_cls_name} . {sd}")
                 #    cd.slot_derivations[sd.name] = sd

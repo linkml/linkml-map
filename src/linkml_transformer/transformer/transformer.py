@@ -7,16 +7,17 @@ from types import ModuleType
 from typing import Any, Dict, Optional, Type, Union
 
 import yaml
+from curies import Converter
 from linkml_runtime import SchemaView
 from linkml_runtime.loaders import yaml_loader
 from linkml_runtime.processing.referencevalidator import ReferenceValidator
 from linkml_runtime.utils.introspection import package_schemaview
 from linkml_runtime.utils.yamlutils import YAMLRoot
 from pydantic import BaseModel
-from curies import Converter
 
 from linkml_transformer.datamodel.transformer_model import (
-    ClassDerivation, TransformationSpecification, SlotDerivation, CollectionType)
+    ClassDerivation, CollectionType, SlotDerivation,
+    TransformationSpecification)
 from linkml_transformer.transformer.inference import induce_missing_values
 
 logger = logging.getLogger(__name__)
@@ -87,7 +88,9 @@ class Transformer(ABC):
         # self.specification = yaml_loader.load(str(path), TransformationSpecification)
         with open(path) as f:
             obj = yaml.safe_load(f)
-            normalizer = ReferenceValidator(package_schemaview("linkml_transformer.datamodel.transformer_model"))
+            normalizer = ReferenceValidator(
+                package_schemaview("linkml_transformer.datamodel.transformer_model")
+            )
             normalizer.expand_all = True
             obj = normalizer.normalize(obj)
             self.specification = TransformationSpecification(**obj)
@@ -100,7 +103,6 @@ class Transformer(ABC):
             self._derived_specification = deepcopy(self.specification)
             induce_missing_values(self._derived_specification, self.source_schemaview)
         return self._derived_specification
-
 
     def _get_class_derivation(self, target_class_name) -> ClassDerivation:
         spec = self.derived_specification
@@ -116,7 +118,9 @@ class Transformer(ABC):
             )
         return matching_tgt_class_derivs[0]
 
-    def _coerce_to_multivalued(self, slot_derivation: SlotDerivation, class_derivation: ClassDerivation):
+    def _coerce_to_multivalued(
+        self, slot_derivation: SlotDerivation, class_derivation: ClassDerivation
+    ):
         cast_as = slot_derivation.cast_collection_as
         if cast_as and cast_as == CollectionType.MultiValued:
             return True
@@ -127,7 +131,9 @@ class Transformer(ABC):
                 return True
         return False
 
-    def _coerce_to_singlevalued(self, slot_derivation: SlotDerivation, class_derivation: ClassDerivation):
+    def _coerce_to_singlevalued(
+        self, slot_derivation: SlotDerivation, class_derivation: ClassDerivation
+    ):
         cast_as = slot_derivation.cast_collection_as
         if cast_as and cast_as == CollectionType(CollectionType.SingleValued):
             return True
@@ -143,7 +149,9 @@ class Transformer(ABC):
         if not self._curie_converter:
             self._curie_converter = Converter([])
             for prefix in self.source_schemaview.schema.prefixes.values():
-                self._curie_converter.add_prefix(prefix.prefix_prefix, prefix.prefix_reference)
+                self._curie_converter.add_prefix(
+                    prefix.prefix_prefix, prefix.prefix_reference
+                )
             for prefix in self.specification.prefixes.values():
                 self._curie_converter.add_prefix(prefix.key, prefix.value)
         return self._curie_converter
@@ -153,5 +161,3 @@ class Transformer(ABC):
 
     def compress_uri(self, uri: str) -> str:
         return self.curie_converter.compress(uri)
-
-

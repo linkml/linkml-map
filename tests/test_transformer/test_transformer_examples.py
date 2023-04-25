@@ -4,11 +4,18 @@ import yaml
 
 from linkml_transformer.transformer.object_transformer import ObjectTransformer
 from linkml_transformer.utils.dynamic_object import dynamic_object
-from linkml_transformer.utils.multi_file_transformer import MultiFileTransformer
+from linkml_transformer.utils.multi_file_transformer import \
+    MultiFileTransformer
 from tests import EXAMPLE_DIR
 
 EXAMPLES = [
-    ("measurements", "quantity_value", "qv-to-scalar", "PersonQuantityValue-001", 172.0),
+    (
+        "measurements",
+        "quantity_value",
+        "qv-to-scalar",
+        "PersonQuantityValue-001",
+        172.0,
+    ),
     ("measurements", "quantity_value", "qv-to-scalar", "PersonQuantityValue-002", None),
 ]
 
@@ -50,11 +57,27 @@ class TransformerExamplesTestCase(unittest.TestCase):
         :return:
         """
         mft = MultiFileTransformer()
-        dirs = ["measurements"]
+        dirs = [
+            "measurements",
+            "flattening",
+            "personinfo_basic",
+            "type_coercion",
+            "biolink",
+        ]
         for dir in dirs:
             full_dir = EXAMPLE_DIR / dir
             instructions = mft.infer_instructions(full_dir)
-            print(instructions)
-            obj = mft.process_instructions(instructions, full_dir)
-            print(obj)
+            # print(yaml.dump(instructions.dict()))
+            obj = mft.process_instructions(instructions, full_dir, test_mode=True)
 
+    def test_regenerate(self):
+        """
+        Use this to regenerate test examples
+        """
+        mft = MultiFileTransformer()
+        dirs = ["biolink"]
+        for dir in dirs:
+            full_dir = EXAMPLE_DIR / dir
+            instructions = mft.infer_instructions(full_dir)
+            # print(yaml.dump(instructions.dict()))
+            obj = mft.process_instructions(instructions, full_dir, test_mode=False)

@@ -3,12 +3,8 @@ import unittest
 
 import yaml
 from linkml_runtime import SchemaView
-from linkml_runtime.dumpers import yaml_dumper
-from linkml_runtime.linkml_model import (
-    ClassDefinition,
-    SlotDefinition,
-    SchemaDefinition,
-)
+from linkml_runtime.linkml_model import (ClassDefinition, SchemaDefinition,
+                                         SlotDefinition)
 from linkml_runtime.loaders import yaml_loader
 
 import tests.input.examples.flattening.model.denormalized_model as sssom_tgt_dm
@@ -18,16 +14,9 @@ import tests.input.examples.personinfo_basic.model.personinfo_model as src_dm
 from linkml_transformer.datamodel.transformer_model import *
 from linkml_transformer.transformer.object_transformer import ObjectTransformer
 from linkml_transformer.utils.dynamic_object import dynamic_object
-from tests import (
-    DENORM_SCHEMA,
-    DENORM_SPECIFICATION,
-    FLATTENING_DATA,
-    NORM_SCHEMA,
-    PERSONINFO_DATA,
-    PERSONINFO_SRC_SCHEMA,
-    PERSONINFO_TGT_SCHEMA,
-    PERSONINFO_TR,
-)
+from tests import (DENORM_SCHEMA, DENORM_SPECIFICATION, FLATTENING_DATA,
+                   NORM_SCHEMA, PERSONINFO_DATA, PERSONINFO_SRC_SCHEMA,
+                   PERSONINFO_TGT_SCHEMA, PERSONINFO_TR)
 
 AGE_STRING = "33 years"
 
