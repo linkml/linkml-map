@@ -59,7 +59,8 @@ class ObjectTransformer(Transformer):
         self,
         source_obj: OBJECT_TYPE,
         source_type: str = None,
-    ) -> DICT_OBJ:
+        target_type: str = None,
+    ) -> Union[DICT_OBJ, Any]:
         """
         Transform a source object into a target object.
 
@@ -71,7 +72,17 @@ class ObjectTransformer(Transformer):
         if source_type is None:
             [source_type] = [c.name for c in sv.all_classes().values() if c.tree_root]
         if source_type in sv.all_types():
-            # TODO: type derivations
+            if target_type:
+                if target_type == "string":
+                    return str(source_obj)
+                elif target_type == "integer":
+                    return int(source_obj)
+                elif target_type == "float" or target_type == "double":
+                    return float(source_obj)
+                elif target_type == "uri":
+                    return self.expand_curie(source_obj)
+                elif target_type == "curie":
+                    return self.compress_uri(source_obj)
             return source_obj
         if source_type in sv.all_enums():
             # TODO: enum derivations
@@ -120,16 +131,17 @@ class ObjectTransformer(Transformer):
                 source_class_slot = sv.induced_slot(slot_derivation.name, source_type)
                 v = source_obj.get(slot_derivation.name, None)
             if source_class_slot and v is not None:
+                target_range = slot_derivation.range
                 source_class_slot_range = source_class_slot.range
                 if source_class_slot.multivalued:
                     if isinstance(v, list):
-                        v = [self.transform(v1, source_class_slot_range) for v1 in v]
+                        v = [self.transform(v1, source_class_slot_range, target_range) for v1 in v]
                     elif isinstance(v, dict):
-                        v = [self.transform(v1, source_class_slot_range) for v1 in v]
+                        v = [self.transform(v1, source_class_slot_range, target_range) for v1 in v]
                     else:
                         v = [v]
                 else:
-                    v = self.transform(v, source_class_slot_range)
+                    v = self.transform(v, source_class_slot_range, target_range)
                 if self._coerce_to_multivalued(slot_derivation, class_deriv) and v is not None and not isinstance(v, list):
                     v = [v]
                 if self._coerce_to_singlevalued(slot_derivation, class_deriv) and isinstance(v, list):
