@@ -79,9 +79,7 @@ def map_data(
     )
     tr = ObjectTransformer()
     tr.source_schemaview = SchemaView(schema)
-    tr.specification = yaml_loader.load(
-        transformer_specification, target_class=TransformationSpecification
-    )
+    tr.load_transformer_specification(transformer_specification)
     with open(input) as file:
         input_obj = yaml.safe_load(file)
     tr.index(input_obj, source_type)
@@ -114,12 +112,11 @@ def derive_schema(schema, transformer_specification, output, output_format, **kw
         linkml-tr derive-schema -T transform/personinfo-to-agent.transform.yaml source/personinfo.yaml
     """
     logging.info(f"Transforming {schema} using {transformer_specification}")
-    tr = SchemaMapper()
-    tr.source_schemaview = SchemaView(schema)
-    specification = yaml_loader.load(
-        transformer_specification, target_class=TransformationSpecification
-    )
-    target_schema = tr.derive_schema(specification)
+    tr = ObjectTransformer()
+    tr.load_transformer_specification(transformer_specification)
+    mapper = SchemaMapper(transformer=tr)
+    mapper.source_schemaview = SchemaView(schema)
+    target_schema = mapper.derive_schema()
     if output:
         file = open(output, "w", encoding="utf-8")
     else:

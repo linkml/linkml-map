@@ -175,8 +175,6 @@ classes:
         range: boolean
       cast_collection_as:
         range: CollectionType
-      #range:
-      #  slot_uri: linkml:range
 
   EnumDerivation:
     is_a: ElementDerivation

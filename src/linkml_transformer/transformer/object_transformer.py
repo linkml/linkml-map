@@ -8,7 +8,7 @@ from linkml_runtime.utils.yamlutils import YAMLRoot
 from pydantic import BaseModel
 
 from linkml_transformer.transformer.transformer import OBJECT_TYPE, Transformer
-from linkml_transformer.utils.dynamic_object import DynObj, dynamic_object
+from linkml_transformer.utils.dynamic_object import dynamic_object
 
 DICT_OBJ = Dict[str, Any]
 
@@ -95,13 +95,13 @@ class ObjectTransformer(Transformer):
         if not isinstance(source_obj, dict):
             logger.warning(f"Unexpected: {source_obj} for type {source_type}")
             return source_obj
-        source_type_class = sv.get_class(source_type)
+        # source_type_class = sv.get_class(source_type)
         class_deriv = self._get_class_derivation(source_type)
         tgt_attrs = {}
         for slot_derivation in class_deriv.slot_derivations.values():
             v = None
             source_class_slot = None
-            target_class_slot = None
+            # target_class_slot = None
             if slot_derivation.populated_from:
                 v = source_obj.get(slot_derivation.populated_from, None)
                 source_class_slot = sv.induced_slot(

@@ -1,9 +1,7 @@
-import re
-
 from linkml_runtime import SchemaView
 
-from linkml_transformer.datamodel.transformer_model import (
-    SlotDerivation, TransformationSpecification)
+from linkml_transformer.datamodel.transformer_model import \
+    TransformationSpecification
 
 
 def induce_missing_values(
@@ -19,6 +17,8 @@ def induce_missing_values(
     :return:
     """
     for cd in specification.class_derivations.values():
+        if not cd.populated_from:
+            cd.populated_from = cd.name
         src_cls_name = cd.populated_from
         src_cls = source_schemaview.get_class(src_cls_name)
         for slot_match, directive in cd.copy_directives.items():
@@ -29,3 +29,16 @@ def induce_missing_values(
                 #    sd = SlotDerivation(name=sn, populated_from=sn)
                 #    print(f"Adding {src_cls_name} . {sd}")
                 #    cd.slot_derivations[sd.name] = sd
+    for cd in specification.class_derivations.values():
+        for sd in cd.slot_derivations.values():
+            if sd.populated_from is None and sd.expr is None:
+                sd.populated_from = sd.name
+            if not sd.range:
+                if sd.populated_from:
+                    if cd.populated_from not in source_schemaview.all_classes():
+                        continue
+                    source_induced_slot = source_schemaview.induced_slot(sd.populated_from, cd.populated_from)
+                    source_induced_slot_range = source_induced_slot.range
+                    for range_cd in specification.class_derivations.values():
+                        if range_cd.populated_from == source_induced_slot_range:
+                            sd.range = range_cd.name

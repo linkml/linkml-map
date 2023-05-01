@@ -11,6 +11,7 @@ from linkml_runtime.linkml_model import (ClassDefinition, ClassDefinitionName,
 
 from linkml_transformer.datamodel.transformer_model import (
     ClassDerivation, CopyDirective, TransformationSpecification)
+from linkml_transformer.transformer.transformer import Transformer
 
 
 @dataclass
@@ -21,12 +22,14 @@ class SchemaMapper:
 
     source_schemaview: SchemaView = None
 
+    transformer: Transformer = None
+
     source_to_target_class_mappings: Dict[str, List[str]] = field(
         default_factory=lambda: defaultdict(list)
     )
 
     def derive_schema(
-        self, specification: TransformationSpecification
+        self, specification: Optional[TransformationSpecification] = None
     ) -> SchemaDefinition:
         """
         Use a transformation specification to generate a target/profile schema from a source schema.
@@ -34,6 +37,8 @@ class SchemaMapper:
         :param specification:
         :return:
         """
+        if specification is None:
+            specification = self.transformer.specification
         source_schemaview = self.source_schemaview
         source_schema = source_schemaview.schema
         target_schema = SchemaDefinition(id=source_schema.id, name=source_schema.name)

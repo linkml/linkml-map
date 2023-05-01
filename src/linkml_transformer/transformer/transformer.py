@@ -4,12 +4,11 @@ from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Dict, Optional, Type, Union
+from typing import Any, Dict, Optional, Union
 
 import yaml
 from curies import Converter
 from linkml_runtime import SchemaView
-from linkml_runtime.loaders import yaml_loader
 from linkml_runtime.processing.referencevalidator import ReferenceValidator
 from linkml_runtime.utils.introspection import package_schemaview
 from linkml_runtime.utils.yamlutils import YAMLRoot
@@ -88,6 +87,7 @@ class Transformer(ABC):
         # self.specification = yaml_loader.load(str(path), TransformationSpecification)
         with open(path) as f:
             obj = yaml.safe_load(f)
+            # necessary to expand first
             normalizer = ReferenceValidator(
                 package_schemaview("linkml_transformer.datamodel.transformer_model")
             )
