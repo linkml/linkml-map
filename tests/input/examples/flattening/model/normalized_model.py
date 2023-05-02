@@ -13,18 +13,26 @@ from dataclasses import dataclass
 from typing import Any, ClassVar, Dict, List, Optional, Union
 
 from jsonasobj2 import JsonObj, as_dict
-from linkml_runtime.linkml_model.meta import (EnumDefinition, PermissibleValue,
-                                              PvFormulaOptions)
+from linkml_runtime.linkml_model.meta import (
+    EnumDefinition,
+    PermissibleValue,
+    PvFormulaOptions,
+)
 from linkml_runtime.linkml_model.types import String
 from linkml_runtime.utils.curienamespace import CurieNamespace
-from linkml_runtime.utils.dataclass_extensions_376 import \
-    dataclasses_init_fn_with_kwargs
+from linkml_runtime.utils.dataclass_extensions_376 import (
+    dataclasses_init_fn_with_kwargs,
+)
 from linkml_runtime.utils.enumerations import EnumDefinitionImpl
 from linkml_runtime.utils.formatutils import camelcase, sfx, underscore
 from linkml_runtime.utils.metamodelcore import bnode, empty_dict, empty_list
 from linkml_runtime.utils.slot import Slot
-from linkml_runtime.utils.yamlutils import (YAMLRoot, extended_float,
-                                            extended_int, extended_str)
+from linkml_runtime.utils.yamlutils import (
+    YAMLRoot,
+    extended_float,
+    extended_int,
+    extended_str,
+)
 from rdflib import Namespace, URIRef
 
 metamodel_version = "1.7.0"
@@ -61,9 +69,7 @@ class MappingSet(YAMLRoot):
     class_name: ClassVar[str] = "MappingSet"
     class_model_uri: ClassVar[URIRef] = MAPPINGS.MappingSet
 
-    mappings: Optional[
-        Union[Union[dict, "Mapping"], List[Union[dict, "Mapping"]]]
-    ] = empty_list()
+    mappings: Optional[Union[Union[dict, "Mapping"], List[Union[dict, "Mapping"]]]] = empty_list()
     entities: Optional[
         Union[
             Dict[Union[str, EntityId], Union[dict, "Entity"]],
@@ -75,8 +81,7 @@ class MappingSet(YAMLRoot):
         if not isinstance(self.mappings, list):
             self.mappings = [self.mappings] if self.mappings is not None else []
         self.mappings = [
-            v if isinstance(v, Mapping) else Mapping(**as_dict(v))
-            for v in self.mappings
+            v if isinstance(v, Mapping) else Mapping(**as_dict(v)) for v in self.mappings
         ]
 
         self._normalize_inlined_as_dict(
@@ -205,8 +210,6 @@ slots.mappingSet__entities = Slot(
     model_uri=MAPPINGS.mappingSet__entities,
     domain=None,
     range=Optional[
-        Union[
-            Dict[Union[str, EntityId], Union[dict, Entity]], List[Union[dict, Entity]]
-        ]
+        Union[Dict[Union[str, EntityId], Union[dict, Entity]], List[Union[dict, Entity]]]
     ],
 )

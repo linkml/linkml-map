@@ -78,9 +78,7 @@ class ElementDerivation(ConfiguredBaseModel):
 
     name: str = Field(None, description="""Name of the element in the target schema""")
     copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict)
-    overrides: Optional[Any] = Field(
-        None, description="""overrides source schema slots"""
-    )
+    overrides: Optional[Any] = Field(None, description="""overrides source schema slots""")
     is_a: Optional[str] = Field(None)
     mixins: Optional[Dict[str, ElementDerivation]] = Field(default_factory=dict)
     value_mappings: Optional[Dict[str, KeyVal]] = Field(
@@ -112,9 +110,7 @@ class ClassDerivation(ElementDerivation):
     slot_derivations: Optional[Dict[str, SlotDerivation]] = Field(default_factory=dict)
     name: str = Field(None, description="""Name of the element in the target schema""")
     copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict)
-    overrides: Optional[Any] = Field(
-        None, description="""overrides source schema slots"""
-    )
+    overrides: Optional[Any] = Field(None, description="""overrides source schema slots""")
     is_a: Optional[str] = Field(None)
     mixins: Optional[Dict[str, ElementDerivation]] = Field(default_factory=dict)
     value_mappings: Optional[Dict[str, KeyVal]] = Field(
@@ -137,9 +133,7 @@ class AliasedClass(ConfiguredBaseModel):
     """
 
     alias: str = Field(None, description="""name of the class to be aliased""")
-    class_named: Optional[str] = Field(
-        None, description="""local alias for the class"""
-    )
+    class_named: Optional[str] = Field(None, description="""local alias for the class""")
 
 
 class SlotDerivation(ElementDerivation):
@@ -162,9 +156,7 @@ class SlotDerivation(ElementDerivation):
     type_designator: Optional[bool] = Field(None)
     cast_collection_as: Optional[CollectionType] = Field(None)
     copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict)
-    overrides: Optional[Any] = Field(
-        None, description="""overrides source schema slots"""
-    )
+    overrides: Optional[Any] = Field(None, description="""overrides source schema slots""")
     is_a: Optional[str] = Field(None)
     mixins: Optional[Dict[str, ElementDerivation]] = Field(default_factory=dict)
     value_mappings: Optional[Dict[str, KeyVal]] = Field(
@@ -193,16 +185,12 @@ class EnumDerivation(ElementDerivation):
         description="""An expression to be evaluated on the source object to derive the target slot. Should be specified using the LinkML expression language.""",
     )
     hide: Optional[bool] = Field(None, description="""True if this is suppressed""")
-    permissible_value_derivations: Optional[
-        Dict[str, PermissibleValueDerivation]
-    ] = Field(
+    permissible_value_derivations: Optional[Dict[str, PermissibleValueDerivation]] = Field(
         default_factory=dict,
         description="""Instructions on how to derive a set of PVs in the target schema""",
     )
     copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict)
-    overrides: Optional[Any] = Field(
-        None, description="""overrides source schema slots"""
-    )
+    overrides: Optional[Any] = Field(None, description="""overrides source schema slots""")
     is_a: Optional[str] = Field(None)
     mixins: Optional[Dict[str, ElementDerivation]] = Field(default_factory=dict)
     value_mappings: Optional[Dict[str, KeyVal]] = Field(
@@ -226,14 +214,10 @@ class PermissibleValueDerivation(ElementDerivation):
 
     name: str = Field(None, description="""Target permissible value text""")
     expr: Optional[str] = Field(None)
-    populated_from: Optional[str] = Field(
-        None, description="""Source permissible value"""
-    )
+    populated_from: Optional[str] = Field(None, description="""Source permissible value""")
     hide: Optional[bool] = Field(None)
     copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict)
-    overrides: Optional[Any] = Field(
-        None, description="""overrides source schema slots"""
-    )
+    overrides: Optional[Any] = Field(None, description="""overrides source schema slots""")
     is_a: Optional[str] = Field(None)
     mixins: Optional[Dict[str, ElementDerivation]] = Field(default_factory=dict)
     value_mappings: Optional[Dict[str, KeyVal]] = Field(
@@ -253,9 +237,7 @@ class PermissibleValueDerivation(ElementDerivation):
 class PrefixDerivation(ElementDerivation):
     name: str = Field(None, description="""Name of the element in the target schema""")
     copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict)
-    overrides: Optional[Any] = Field(
-        None, description="""overrides source schema slots"""
-    )
+    overrides: Optional[Any] = Field(None, description="""overrides source schema slots""")
     is_a: Optional[str] = Field(None)
     mixins: Optional[Dict[str, ElementDerivation]] = Field(default_factory=dict)
     value_mappings: Optional[Dict[str, KeyVal]] = Field(

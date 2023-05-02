@@ -60,9 +60,7 @@ class MultiFileTransformer:
     """
 
     source_schema_directory_base: str = field(default_factory=lambda: "source")
-    transform_specification_directory_base: str = field(
-        default_factory=lambda: "transform"
-    )
+    transform_specification_directory_base: str = field(default_factory=lambda: "transform")
     source_data_directory_base: str = field(default_factory=lambda: "data")
     target_schema_directory_base: str = field(default_factory=lambda: "target")
     target_data_directory_base: str = field(default_factory=lambda: "output")
@@ -131,27 +129,19 @@ class MultiFileTransformer:
                         continue
                 instructions.transformations.append(tr)
                 data_files = glob.glob(
-                    os.path.join(
-                        str(root_directory / self.source_data_directory_base), "*.yaml"
-                    )
+                    os.path.join(str(root_directory / self.source_data_directory_base), "*.yaml")
                 )
                 for data_file in data_files:
                     if target_schema_base and target_schema_base not in data_file:
                         continue
-                    target_data = str(
-                        Path(self.target_data_directory_base) / Path(data_file).name
-                    )
+                    target_data = str(Path(self.target_data_directory_base) / Path(data_file).name)
                     target_data = target_data.replace(".yaml", ".transformed.yaml")
                     step = Step(source_data=data_file, target_data=target_data)
                     step.source_class = Path(data_file).stem.split("-")[-2]
                     tr.steps.append(step)
-                target_schemas = glob.glob(
-                    os.path.join(str(target_schema_directory), "*.yaml")
-                )
+                target_schemas = glob.glob(os.path.join(str(target_schema_directory), "*.yaml"))
                 if len(target_schemas) > 1:
-                    target_schemas = [
-                        s for s in target_schemas if target_schema_base in s
-                    ]
+                    target_schemas = [s for s in target_schemas if target_schema_base in s]
                     if len(target_schemas) != 1:
                         raise ValueError(
                             f"Could not determine target schema from: {target_schemas}"
@@ -159,9 +149,7 @@ class MultiFileTransformer:
                 if target_schemas:
                     tr.target_schema = target_schemas[0]
                 else:
-                    tr.target_schema = str(
-                        Path(target_schema_directory) / "target.yaml"
-                    )
+                    tr.target_schema = str(Path(target_schema_directory) / "target.yaml")
                 if not tr.steps:
                     raise ValueError(f"Could not infer steps from {data_files}")
                 if not tr.transformation_specification:
@@ -209,9 +197,7 @@ class MultiFileTransformer:
             for step in tr.steps:
                 input_obj = yaml.safe_load(open(str(root_directory / step.source_data)))
                 transformer.index(input_obj, step.source_class)
-                target_obj = transformer.transform(
-                    input_obj, source_type=step.source_class
-                )
+                target_obj = transformer.transform(input_obj, source_type=step.source_class)
                 if step.target_data:
                     out_path = output_directory / step.target_data
                     out_path.parent.mkdir(parents=True, exist_ok=True)

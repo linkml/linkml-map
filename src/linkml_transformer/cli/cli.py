@@ -13,8 +13,7 @@ from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper
 from linkml_runtime.loaders import yaml_loader
 
-from linkml_transformer.datamodel.transformer_model import \
-    TransformationSpecification
+from linkml_transformer.datamodel.transformer_model import TransformationSpecification
 from linkml_transformer.schema_mapper.schema_mapper import SchemaMapper
 from linkml_transformer.transformer.object_transformer import ObjectTransformer
 
@@ -74,9 +73,7 @@ def map_data(
     **kwargs,
 ):
     """Map data in a source schema using a transformation."""
-    logging.info(
-        f"Transforming {input} conforming to {schema} using {transformer_specification}"
-    )
+    logging.info(f"Transforming {input} conforming to {schema} using {transformer_specification}")
     tr = ObjectTransformer()
     tr.source_schemaview = SchemaView(schema)
     tr.load_transformer_specification(transformer_specification)

@@ -15,8 +15,11 @@ from linkml_runtime.utils.yamlutils import YAMLRoot
 from pydantic import BaseModel
 
 from linkml_transformer.datamodel.transformer_model import (
-    ClassDerivation, CollectionType, SlotDerivation,
-    TransformationSpecification)
+    ClassDerivation,
+    CollectionType,
+    SlotDerivation,
+    TransformationSpecification,
+)
 from linkml_transformer.transformer.inference import induce_missing_values
 
 logger = logging.getLogger(__name__)
@@ -113,9 +116,7 @@ class Transformer(ABC):
         ]
         logger.debug(f"Target class derivs={matching_tgt_class_derivs}")
         if len(matching_tgt_class_derivs) != 1:
-            raise ValueError(
-                f"Could not find what to derive from a source {target_class_name}"
-            )
+            raise ValueError(f"Could not find what to derive from a source {target_class_name}")
         return matching_tgt_class_derivs[0]
 
     def _coerce_to_multivalued(
@@ -149,9 +150,7 @@ class Transformer(ABC):
         if not self._curie_converter:
             self._curie_converter = Converter([])
             for prefix in self.source_schemaview.schema.prefixes.values():
-                self._curie_converter.add_prefix(
-                    prefix.prefix_prefix, prefix.prefix_reference
-                )
+                self._curie_converter.add_prefix(prefix.prefix_prefix, prefix.prefix_reference)
             for prefix in self.specification.prefixes.values():
                 self._curie_converter.add_prefix(prefix.key, prefix.value)
         return self._curie_converter

@@ -7,9 +7,15 @@ from linkml_runtime.linkml_model import SchemaDefinition
 from linkml_runtime.loaders import yaml_loader
 
 from linkml_transformer.cli.cli import main
-from tests import (DENORM_SPECIFICATION, FLATTENING_DATA, NORM_SCHEMA,
-                   PERSONINFO_CONTAINER_DATA, PERSONINFO_SRC_SCHEMA,
-                   PERSONINFO_TGT_SCHEMA, PERSONINFO_TR)
+from tests import (
+    DENORM_SPECIFICATION,
+    FLATTENING_DATA,
+    NORM_SCHEMA,
+    PERSONINFO_CONTAINER_DATA,
+    PERSONINFO_SRC_SCHEMA,
+    PERSONINFO_TGT_SCHEMA,
+    PERSONINFO_TR,
+)
 
 
 class TestCommandLineInterface(unittest.TestCase):

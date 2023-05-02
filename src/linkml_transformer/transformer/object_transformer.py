@@ -36,24 +36,14 @@ class ObjectTransformer(Transformer):
         if isinstance(source_obj, dict):
             if target is None:
                 [target] = [
-                    c.name
-                    for c in self.source_schemaview.all_classes().values()
-                    if c.tree_root
+                    c.name for c in self.source_schemaview.all_classes().values() if c.tree_root
                 ]
             if target is None:
-                raise ValueError(
-                    f"target must be passed if source_obj is dict: {source_obj}"
-                )
-            source_obj_typed = dynamic_object(
-                source_obj, self.source_schemaview, target
-            )
-            self.object_index = ObjectIndex(
-                source_obj_typed, schemaview=self.source_schemaview
-            )
+                raise ValueError(f"target must be passed if source_obj is dict: {source_obj}")
+            source_obj_typed = dynamic_object(source_obj, self.source_schemaview, target)
+            self.object_index = ObjectIndex(source_obj_typed, schemaview=self.source_schemaview)
         else:
-            self.object_index = ObjectIndex(
-                source_obj, schemaview=self.source_schemaview
-            )
+            self.object_index = ObjectIndex(source_obj, schemaview=self.source_schemaview)
 
     def transform(
         self,
@@ -104,9 +94,7 @@ class ObjectTransformer(Transformer):
             # target_class_slot = None
             if slot_derivation.populated_from:
                 v = source_obj.get(slot_derivation.populated_from, None)
-                source_class_slot = sv.induced_slot(
-                    slot_derivation.populated_from, source_type
-                )
+                source_class_slot = sv.induced_slot(slot_derivation.populated_from, source_type)
                 logger.debug(
                     f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {source_obj}"
                 )
@@ -135,15 +123,9 @@ class ObjectTransformer(Transformer):
                 source_class_slot_range = source_class_slot.range
                 if source_class_slot.multivalued:
                     if isinstance(v, list):
-                        v = [
-                            self.transform(v1, source_class_slot_range, target_range)
-                            for v1 in v
-                        ]
+                        v = [self.transform(v1, source_class_slot_range, target_range) for v1 in v]
                     elif isinstance(v, dict):
-                        v = [
-                            self.transform(v1, source_class_slot_range, target_range)
-                            for v1 in v
-                        ]
+                        v = [self.transform(v1, source_class_slot_range, target_range) for v1 in v]
                     else:
                         v = [v]
                 else:
@@ -154,9 +136,9 @@ class ObjectTransformer(Transformer):
                     and not isinstance(v, list)
                 ):
                     v = [v]
-                if self._coerce_to_singlevalued(
-                    slot_derivation, class_deriv
-                ) and isinstance(v, list):
+                if self._coerce_to_singlevalued(slot_derivation, class_deriv) and isinstance(
+                    v, list
+                ):
                     if len(v) > 1:
                         raise ValueError(f"Cannot coerce multiple values {v}")
                     if len(v) == 0:

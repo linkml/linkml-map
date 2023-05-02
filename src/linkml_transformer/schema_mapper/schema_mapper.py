@@ -5,12 +5,19 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
 from linkml_runtime import SchemaView
-from linkml_runtime.linkml_model import (ClassDefinition, ClassDefinitionName,
-                                         Element, SchemaDefinition,
-                                         SlotDefinition)
+from linkml_runtime.linkml_model import (
+    ClassDefinition,
+    ClassDefinitionName,
+    Element,
+    SchemaDefinition,
+    SlotDefinition,
+)
 
 from linkml_transformer.datamodel.transformer_model import (
-    ClassDerivation, CopyDirective, TransformationSpecification)
+    ClassDerivation,
+    CopyDirective,
+    TransformationSpecification,
+)
 from linkml_transformer.transformer.transformer import Transformer
 
 
@@ -89,12 +96,8 @@ class SchemaMapper:
 
     def _rewire_class(self, class_definition: ClassDefinition):
         if class_definition.is_a:
-            class_definition.is_a = self._rewire_parent(
-                class_definition, class_definition.is_a
-            )
-        mixins = [
-            self._rewire_parent(class_definition, m) for m in class_definition.mixins
-        ]
+            class_definition.is_a = self._rewire_parent(class_definition, class_definition.is_a)
+        mixins = [self._rewire_parent(class_definition, m) for m in class_definition.mixins]
         class_definition.mixins = [m for m in mixins if m is not None]
 
     def _rewire_parent(

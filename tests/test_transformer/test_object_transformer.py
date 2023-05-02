@@ -3,8 +3,11 @@ import unittest
 
 import yaml
 from linkml_runtime import SchemaView
-from linkml_runtime.linkml_model import (ClassDefinition, SchemaDefinition,
-                                         SlotDefinition)
+from linkml_runtime.linkml_model import (
+    ClassDefinition,
+    SchemaDefinition,
+    SlotDefinition,
+)
 from linkml_runtime.loaders import yaml_loader
 
 import tests.input.examples.flattening.model.denormalized_model as sssom_tgt_dm
@@ -14,9 +17,16 @@ import tests.input.examples.personinfo_basic.model.personinfo_model as src_dm
 from linkml_transformer.datamodel.transformer_model import *
 from linkml_transformer.transformer.object_transformer import ObjectTransformer
 from linkml_transformer.utils.dynamic_object import dynamic_object
-from tests import (DENORM_SCHEMA, DENORM_SPECIFICATION, FLATTENING_DATA,
-                   NORM_SCHEMA, PERSONINFO_DATA, PERSONINFO_SRC_SCHEMA,
-                   PERSONINFO_TGT_SCHEMA, PERSONINFO_TR)
+from tests import (
+    DENORM_SCHEMA,
+    DENORM_SPECIFICATION,
+    FLATTENING_DATA,
+    NORM_SCHEMA,
+    PERSONINFO_DATA,
+    PERSONINFO_SRC_SCHEMA,
+    PERSONINFO_TGT_SCHEMA,
+    PERSONINFO_TR,
+)
 
 AGE_STRING = "33 years"
 
@@ -78,9 +88,7 @@ class ObjectTransformerTestCase(unittest.TestCase):
         # enum derivations are implemented
         for n in range(len(expected)):
             fr = obj.has_familial_relationships[n]
-            self.assertEqual(
-                src_dm.FamilialRelationshipType(expected[n]["enum"]), fr.type
-            )
+            self.assertEqual(src_dm.FamilialRelationshipType(expected[n]["enum"]), fr.type)
 
         target_obj = tr.transform_object(obj, target_class=tgt_dm.Agent)
         self.assertIsInstance(target_obj, tgt_dm.Agent)
@@ -117,9 +125,7 @@ class ObjectTransformerTestCase(unittest.TestCase):
         tr = self.tr
         person = yaml_loader.load(str(PERSONINFO_DATA), target_class=src_dm.Person)
         obj = src_dm.Container(persons=[person])
-        target_obj: tgt_dm.Container = tr.transform_object(
-            obj, target_class=tgt_dm.Container
-        )
+        target_obj: tgt_dm.Container = tr.transform_object(obj, target_class=tgt_dm.Container)
         self.assertIsInstance(target_obj, tgt_dm.Container)
         agents = target_obj.agents
         agent = agents[0]
@@ -209,9 +215,7 @@ class ObjectTransformerTestCase(unittest.TestCase):
         self.assertEqual(
             mset["mappings"], [{"subject": "X:1", "object": "Y:1", "predicate": "P:1"}]
         )
-        self.assertEqual(
-            mset["entities"], {"X:1": {"name": "x1"}, "Y:1": {"name": "y1"}}
-        )
+        self.assertEqual(mset["entities"], {"X:1": {"name": "x1"}, "Y:1": {"name": "y1"}})
         tr.index(mset, "MappingSet")
         target_obj = tr.transform(mset, source_type="MappingSet")
         assert type(target_obj) == dict
@@ -281,9 +285,7 @@ class ObjectTransformerTestCase(unittest.TestCase):
         class_name = "MyClass"
         att_name = "my_att"
         val = "v1"
-        for source_multivalued, target_multivalued, explicit in itertools.product(
-            tf, tf, tf
-        ):
+        for source_multivalued, target_multivalued, explicit in itertools.product(tf, tf, tf):
 
             def mk(mv: bool, explicit: bool = False):
                 cls = ClassDefinition(class_name)
@@ -316,9 +318,7 @@ class ObjectTransformerTestCase(unittest.TestCase):
                 target_schemaview=SchemaView(target_schema),
             )
             target_instance = tr.transform(source_instance, class_name)
-            self.assertEqual(
-                [val] if target_multivalued else val, target_instance[att_name]
-            )
+            self.assertEqual([val] if target_multivalued else val, target_instance[att_name])
 
 
 if __name__ == "__main__":

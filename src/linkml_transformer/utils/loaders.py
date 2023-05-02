@@ -5,8 +5,7 @@ import yaml
 from linkml_runtime.processing.referencevalidator import ReferenceValidator
 from linkml_runtime.utils.introspection import package_schemaview
 
-from linkml_transformer.datamodel.transformer_model import \
-    TransformationSpecification
+from linkml_transformer.datamodel.transformer_model import TransformationSpecification
 
 
 def load_specification(path: Union[Path, str]) -> TransformationSpecification:
