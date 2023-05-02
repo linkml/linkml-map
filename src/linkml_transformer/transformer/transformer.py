@@ -3,7 +3,7 @@ from abc import ABC
 from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Dict, Optional, Type, Union
+from typing import Any, Dict, Optional, Union
 
 from linkml_runtime import SchemaView
 from linkml_runtime.loaders import yaml_loader
@@ -11,7 +11,11 @@ from linkml_runtime.utils.yamlutils import YAMLRoot
 from pydantic import BaseModel
 
 from linkml_transformer.datamodel.transformer_model import (
-    ClassDerivation, TransformationSpecification, SlotDerivation, CollectionType)
+    ClassDerivation,
+    CollectionType,
+    SlotDerivation,
+    TransformationSpecification,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -80,12 +84,12 @@ class Transformer(ABC):
         ]
         logger.debug(f"Target class derivs={matching_tgt_class_derivs}")
         if len(matching_tgt_class_derivs) != 1:
-            raise ValueError(
-                f"Could not find what to derive from a source {target_class_name}"
-            )
+            raise ValueError(f"Could not find what to derive from a source {target_class_name}")
         return matching_tgt_class_derivs[0]
 
-    def _coerce_to_multivalued(self, slot_derivation: SlotDerivation, class_derivation: ClassDerivation):
+    def _coerce_to_multivalued(
+        self, slot_derivation: SlotDerivation, class_derivation: ClassDerivation
+    ):
         cast_as = slot_derivation.cast_collection_as
         if cast_as and cast_as == CollectionType.MultiValued:
             return True
@@ -96,7 +100,9 @@ class Transformer(ABC):
                 return True
         return False
 
-    def _coerce_to_singlevalued(self, slot_derivation: SlotDerivation, class_derivation: ClassDerivation):
+    def _coerce_to_singlevalued(
+        self, slot_derivation: SlotDerivation, class_derivation: ClassDerivation
+    ):
         cast_as = slot_derivation.cast_collection_as
         if cast_as and cast_as == CollectionType(CollectionType.SingleValued):
             return True

@@ -1,7 +1,10 @@
+from dataclasses import dataclass
 from typing import List
 
 from linkml_transformer.datamodel.transformer_model import (
-    ElementDerivation, TransformationSpecification)
+    ElementDerivation,
+    TransformationSpecification,
+)
 
 
 @dataclass
