@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-linkml-runtime = "^1.4.5"
+linkml-runtime = "^1.5.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
