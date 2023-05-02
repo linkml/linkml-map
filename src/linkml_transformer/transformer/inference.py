@@ -33,7 +33,9 @@ def induce_missing_values(
                 if sd.populated_from:
                     if cd.populated_from not in source_schemaview.all_classes():
                         continue
-                    source_induced_slot = source_schemaview.induced_slot(sd.populated_from, cd.populated_from)
+                    source_induced_slot = source_schemaview.induced_slot(
+                        sd.populated_from, cd.populated_from
+                    )
                     source_induced_slot_range = source_induced_slot.range
                     for range_cd in specification.class_derivations.values():
                         if range_cd.populated_from == source_induced_slot_range:

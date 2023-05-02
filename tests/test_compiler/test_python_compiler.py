@@ -26,7 +26,5 @@ class PythonCompilerTestCase(unittest.TestCase):
         print(pycode.serialization)
 
 
-
-
 if __name__ == "__main__":
     unittest.main()
