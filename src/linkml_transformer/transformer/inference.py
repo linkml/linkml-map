@@ -25,10 +25,6 @@ def induce_missing_values(
             for sn in source_schemaview.class_slots(src_cls.name):
                 if sn in cd.slot_derivations:
                     continue
-                # if slot_match == "*" or re.match(slot_match, sn):
-                #    sd = SlotDerivation(name=sn, populated_from=sn)
-                #    print(f"Adding {src_cls_name} . {sd}")
-                #    cd.slot_derivations[sd.name] = sd
     for cd in specification.class_derivations.values():
         for sd in cd.slot_derivations.values():
             if sd.populated_from is None and sd.expr is None:
