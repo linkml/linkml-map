@@ -128,7 +128,6 @@ class MultiFileTransformer:
                         raise ValueError(f"Ambiguous: {transform_file}")
                     src, target_schema_base = matches.group(1, 2)
                     if src not in input_schema:
-                        print(f"SKIP {input_schema}")
                         continue
                 instructions.transformations.append(tr)
                 data_files = glob.glob(
