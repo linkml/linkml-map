@@ -19,12 +19,6 @@ def induce_missing_values(
     for cd in specification.class_derivations.values():
         if not cd.populated_from:
             cd.populated_from = cd.name
-        src_cls_name = cd.populated_from
-        src_cls = source_schemaview.get_class(src_cls_name)
-        for slot_match, directive in cd.copy_directives.items():
-            for sn in source_schemaview.class_slots(src_cls.name):
-                if sn in cd.slot_derivations:
-                    continue
     for cd in specification.class_derivations.values():
         for sd in cd.slot_derivations.values():
             if sd.populated_from is None and sd.expr is None:
