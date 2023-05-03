@@ -4,7 +4,6 @@ import yaml
 from click.testing import CliRunner
 from linkml_runtime import SchemaView
 from linkml_runtime.linkml_model import SchemaDefinition
-from linkml_runtime.loaders import yaml_loader
 
 from linkml_transformer.cli.cli import main
 from tests import (
