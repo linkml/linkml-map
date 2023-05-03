@@ -1,0 +1,16 @@
+name: quantity_value
+id: https://w3id.org/linkml/examples/quantity_value
+default_prefix: https://w3id.org/linkml/examples/quantity_value/
+classes:
+  Person:
+    name: Person
+    from_schema: https://w3id.org/linkml/examples/quantity_value
+    attributes:
+      id:
+        name: id
+        from_schema: https://w3id.org/linkml/examples/quantity_value
+        identifier: true
+        owner: Person
+      height_in_cm:
+        name: height_in_cm
+    tree_root: true

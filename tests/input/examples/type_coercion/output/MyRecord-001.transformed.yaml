@@ -1,0 +1,10 @@
+id: P:1
+id_as_string: P:1
+id_as_url: https://example.org/person/1
+url: https://example.org/foo
+url_as_string: https://example.org/foo
+url_as_curie: example:foo
+name: my name
+age_as_integer: 33
+age_as_float: 33.0
+age_as_string: '33'

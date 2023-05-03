@@ -1,0 +1,37 @@
+agents:
+- id: P:001
+  label: fred bloggs
+  age: 33 years
+  primary_email: fred.bloggs@example.com
+  gender: null
+  current_address:
+    address_of: foo
+    street: 1 oak street
+    city: foo
+  has_familial_relationships:
+  - type: SIBLING_OF
+    related_to: P:002
+  - type: CHILD_OF
+    related_to: P:003
+- id: P:002
+  label: Alison Wu
+  age: null
+  primary_email: null
+  gender: null
+  current_address: null
+  has_familial_relationships:
+  - type: SIBLING_OF
+    related_to: P:001
+  - type: CHILD_OF
+    related_to: P:003
+- id: P:003
+  label: Mr. Blobby
+  age: null
+  primary_email: null
+  gender: null
+  current_address: null
+  has_familial_relationships:
+  - type: PARENT_OF
+    related_to: P:001
+  - type: PARENT_OF
+    related_to: P:002

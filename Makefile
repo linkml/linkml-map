@@ -44,6 +44,9 @@ all: gen-project gendoc
 %.yaml: gen-project
 deploy: all mkd-gh-deploy
 
+src/linkml_transformer/datamodel/transformer_model.py: src/linkml_transformer/datamodel/transformer_model.yaml
+	$(RUN) gen-pydantic $< > $@.tmp && mv $@.tmp $@
+
 # generates all project files
 gen-project: $(PYMODEL)
 	$(RUN) gen-project -d $(DEST) $(SOURCE_SCHEMA_PATH) && mv $(DEST)/*.py $(PYMODEL)

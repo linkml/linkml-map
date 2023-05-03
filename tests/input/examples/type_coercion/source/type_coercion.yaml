@@ -1,0 +1,36 @@
+id: https://w3id.org/linkml/examples/type_coercion
+name: quantity_value
+imports:
+  - linkml:types
+prefixes:
+  tc: https://w3id.org/linkml/examples/type_coercion/
+  linkml: https://w3id.org/linkml/
+  example: https://example.org/
+  P: https://example.org/person/
+default_prefix: tc
+default_range: string
+
+classes:
+
+  MyRecord:
+    tree_root: true
+    attributes:
+      id:
+        identifier: true
+        range: uriorcurie
+      id_as_string:
+        range: string
+      url:
+        range: uri
+      url_as_string:
+        range: string
+      name:
+        range: string
+      age_as_integer:
+        range: integer
+      age_as_float:
+        range: float
+      age_as_string:
+        range: string
+
+

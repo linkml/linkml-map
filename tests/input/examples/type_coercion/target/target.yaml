@@ -1,0 +1,51 @@
+name: quantity_value
+id: https://w3id.org/linkml/examples/type_coercion
+default_prefix: https://w3id.org/linkml/examples/type_coercion/
+classes:
+  MyRecord:
+    name: MyRecord
+    from_schema: https://w3id.org/linkml/examples/type_coercion
+    attributes:
+      id:
+        name: id
+        from_schema: https://w3id.org/linkml/examples/type_coercion
+        identifier: true
+        owner: MyRecord
+        range: uriorcurie
+      id_as_string:
+        name: id_as_string
+        from_schema: https://w3id.org/linkml/examples/type_coercion
+        identifier: true
+        owner: MyRecord
+        range: uriorcurie
+      url:
+        name: url
+        from_schema: https://w3id.org/linkml/examples/type_coercion
+        owner: MyRecord
+        range: uri
+      url_as_string:
+        name: url_as_string
+        from_schema: https://w3id.org/linkml/examples/type_coercion
+        owner: MyRecord
+        range: uri
+      name:
+        name: name
+        from_schema: https://w3id.org/linkml/examples/type_coercion
+        owner: MyRecord
+        range: string
+      age_as_integer:
+        name: age_as_integer
+        from_schema: https://w3id.org/linkml/examples/type_coercion
+        owner: MyRecord
+        range: integer
+      age_as_float:
+        name: age_as_float
+        from_schema: https://w3id.org/linkml/examples/type_coercion
+        owner: MyRecord
+        range: integer
+      age_as_string:
+        name: age_as_string
+        from_schema: https://w3id.org/linkml/examples/type_coercion
+        owner: MyRecord
+        range: integer
+    tree_root: true

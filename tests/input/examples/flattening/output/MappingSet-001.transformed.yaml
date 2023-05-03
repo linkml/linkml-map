@@ -1,0 +1,6 @@
+mappings:
+- subject_id: X:1
+  subject_name: x1
+  object_id: Y:1
+  object_name: y1
+  predicate_id: P:1

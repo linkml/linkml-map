@@ -45,9 +45,7 @@ class ObjectTransformerTestCase(unittest.TestCase):
         tr = ObjectTransformer()
         tr.source_schemaview = SchemaView(str(PERSONINFO_SRC_SCHEMA))
         tr.target_schemaview = SchemaView(str(PERSONINFO_TGT_SCHEMA))
-        tr.specification = yaml_loader.load(
-            str(PERSONINFO_TR), target_class=TransformationSpecification
-        )
+        tr.load_transformer_specification(PERSONINFO_TR)
         self.tr = tr
 
     def test_transform_simple_dict(self):
@@ -229,9 +227,7 @@ class ObjectTransformerTestCase(unittest.TestCase):
         tr = ObjectTransformer()
         tr.source_schemaview = SchemaView(NORM_SCHEMA)
         tr.target_schemaview = SchemaView(DENORM_SCHEMA)
-        tr.specification = yaml_loader.load(
-            DENORM_SPECIFICATION, target_class=TransformationSpecification
-        )
+        tr.load_transformer_specification(DENORM_SPECIFICATION)
         mset = yaml.safe_load(open(str(FLATTENING_DATA)))
         self.assertEqual(
             mset["mappings"], [{"subject": "X:1", "object": "Y:1", "predicate": "P:1"}]
@@ -264,9 +260,7 @@ class ObjectTransformerTestCase(unittest.TestCase):
         tr.source_schemaview = SchemaView(NORM_SCHEMA)
         tr.target_schemaview = SchemaView(DENORM_SCHEMA)
         tr.target_module = sssom_tgt_dm
-        tr.specification = yaml_loader.load(
-            DENORM_SPECIFICATION, target_class=TransformationSpecification
-        )
+        tr.load_transformer_specification(DENORM_SPECIFICATION)
         mset: sssom_src_dm.MappingSet = yaml_loader.load(
             str(FLATTENING_DATA), target_class=sssom_src_dm.MappingSet
         )
@@ -323,10 +317,10 @@ class ObjectTransformerTestCase(unittest.TestCase):
 
             source_schema = mk(source_multivalued)
             target_schema = mk(target_multivalued, explicit)
-            specification = TransformationSpecification("test")
-            cd = ClassDerivation(class_name, populated_from=class_name)
+            specification = TransformationSpecification(id="test")
+            cd = ClassDerivation(name=class_name, populated_from=class_name)
             specification.class_derivations[class_name] = cd
-            sd = SlotDerivation(att_name, populated_from=att_name)
+            sd = SlotDerivation(name=att_name, populated_from=att_name)
             if explicit:
                 sd.cast_collection_as = (
                     CollectionType.MultiValued

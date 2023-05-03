@@ -5,32 +5,38 @@ prefixes:
 source_schema: biolink
 target_schema: monarch
 
-slot_names_match: true    # autopopulates slot.populated_from
-class_names_match: true   # autopopulates class.populated_from
+#slot_names_match: true    # autopopulates slot.populated_from
+#class_names_match: true   # autopopulates class.populated_from
 
 class_derivations:
   NamedThing:
+    populated_from: named thing
     slot_derivations:
       id:
       name:
         overrides:
       category:
   Gene:
+    populated_from: gene
     slot_derivations:
       symbol:
     overrides:
       #is_a: NamedThing # would be autopopulated
   Disease:
+    populated_from: disease
     overrides:
       id_prefixes:
         - MONDO
   PhenotypicFeature:
+    populated_from: phenotypic feature
   Association:
+    populated_from: association
     slot_derivations:
       subject:
       predicate:
       object:
   GeneToPhenotypicFeatureAssociation:
+    populated_from: gene to phenotypic feature associations
     overrides:
       slot_usage:
         predicate:

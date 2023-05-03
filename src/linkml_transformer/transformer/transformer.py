@@ -1,12 +1,16 @@
 import logging
 from abc import ABC
+from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
 from typing import Any, Dict, Optional, Union
 
+import yaml
+from curies import Converter
 from linkml_runtime import SchemaView
-from linkml_runtime.loaders import yaml_loader
+from linkml_runtime.processing.referencevalidator import ReferenceValidator
+from linkml_runtime.utils.introspection import package_schemaview
 from linkml_runtime.utils.yamlutils import YAMLRoot
 from pydantic import BaseModel
 
@@ -16,11 +20,13 @@ from linkml_transformer.datamodel.transformer_model import (
     SlotDerivation,
     TransformationSpecification,
 )
+from linkml_transformer.transformer.inference import induce_missing_values
 
 logger = logging.getLogger(__name__)
 
 
 OBJECT_TYPE = Union[Dict[str, Any], BaseModel, YAMLRoot]
+"""An object can be a plain python dict, a pydantic object, or a linkml YAMLRoot"""
 
 
 @dataclass
@@ -41,11 +47,19 @@ class Transformer(ABC):
     specification: TransformationSpecification = None
     """A specification of how to generate target objects from source objects."""
 
+    _derived_specification: TransformationSpecification = None
+    """A specification with inferred missing values."""
+
     target_schemaview: Optional[SchemaView] = None
     """A view over the schema describing the output/target object."""
 
     target_module: Optional[ModuleType] = None
     """The python module which the target object should conform to."""
+
+    prefix_map: Optional[Dict[str, str]] = None
+    """Additional prefixes"""
+
+    _curie_converter: Converter = None
 
     def transform(self, obj: OBJECT_TYPE, source_type: str = None) -> OBJECT_TYPE:
         """
@@ -73,10 +87,28 @@ class Transformer(ABC):
         :param path:
         :return:
         """
-        self.specification = yaml_loader.load(str(path), TransformationSpecification)
+        # self.specification = yaml_loader.load(str(path), TransformationSpecification)
+        with open(path) as f:
+            obj = yaml.safe_load(f)
+            # necessary to expand first
+            normalizer = ReferenceValidator(
+                package_schemaview("linkml_transformer.datamodel.transformer_model")
+            )
+            normalizer.expand_all = True
+            obj = normalizer.normalize(obj)
+            self.specification = TransformationSpecification(**obj)
+
+    @property
+    def derived_specification(self) -> Optional[TransformationSpecification]:
+        if self._derived_specification is None:
+            if self.specification is None:
+                return None
+            self._derived_specification = deepcopy(self.specification)
+            induce_missing_values(self._derived_specification, self.source_schemaview)
+        return self._derived_specification
 
     def _get_class_derivation(self, target_class_name) -> ClassDerivation:
-        spec = self.specification
+        spec = self.derived_specification
         matching_tgt_class_derivs = [
             deriv
             for deriv in spec.class_derivations.values()
@@ -112,3 +144,19 @@ class Transformer(ABC):
             if not slot.multivalued:
                 return True
         return False
+
+    @property
+    def curie_converter(self) -> Converter:
+        if not self._curie_converter:
+            self._curie_converter = Converter([])
+            for prefix in self.source_schemaview.schema.prefixes.values():
+                self._curie_converter.add_prefix(prefix.prefix_prefix, prefix.prefix_reference)
+            for prefix in self.specification.prefixes.values():
+                self._curie_converter.add_prefix(prefix.key, prefix.value)
+        return self._curie_converter
+
+    def expand_curie(self, curie: str) -> str:
+        return self.curie_converter.expand(curie)
+
+    def compress_uri(self, uri: str) -> str:
+        return self.curie_converter.compress(uri)

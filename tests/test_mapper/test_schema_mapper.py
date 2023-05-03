@@ -2,13 +2,13 @@ import unittest
 
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper
-from linkml_runtime.loaders import yaml_loader
 
 from linkml_transformer.datamodel.transformer_model import (
     ClassDerivation,
     TransformationSpecification,
 )
 from linkml_transformer.schema_mapper.schema_mapper import SchemaMapper
+from linkml_transformer.transformer.object_transformer import ObjectTransformer
 from tests import SCHEMA1, SPECIFICATION
 
 
@@ -18,17 +18,20 @@ class SchemaMapperTestCase(unittest.TestCase):
     """
 
     def setUp(self) -> None:
-        tr = SchemaMapper()
-        tr.source_schemaview = SchemaView(SCHEMA1)
-        self.specification = yaml_loader.load(
-            SPECIFICATION, target_class=TransformationSpecification
-        )
-        self.tr = tr
+        mapper = SchemaMapper()
+        tr = ObjectTransformer()
+        self.source_schemaview = SchemaView(SCHEMA1)
+        mapper.source_schemaview = self.source_schemaview
+        tr.source_schemaview = self.source_schemaview
+        tr.load_transformer_specification(SPECIFICATION)
+        self.transformer = tr
+        self.specification = tr.specification
+        self.mapper = mapper
 
     def test_derive_schema(self):
         """tests deriving a schema from a specification and a source"""
-        tr = self.tr
-        target_schema = tr.derive_schema(self.specification)
+        mapper = self.mapper
+        target_schema = mapper.derive_schema(self.specification)
         cases = [
             (
                 "Agent",
@@ -54,15 +57,15 @@ class SchemaMapperTestCase(unittest.TestCase):
 
     def test_derive_null(self):
         """tests empty spec limit case"""
-        tr = self.tr
-        specification = TransformationSpecification("test")
+        tr = self.mapper
+        specification = TransformationSpecification(id="test")
         target_schema = tr.derive_schema(specification)
         self.assertEqual([], list(target_schema.classes.values()))
 
     def test_derive_partial(self):
         """tests empty spec limit case"""
-        tr = self.tr
-        specification = TransformationSpecification("test")
+        tr = self.mapper
+        specification = TransformationSpecification(id="test")
         derivations = [
             ClassDerivation(name="Agent", populated_from="Person"),
         ]

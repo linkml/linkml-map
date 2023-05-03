@@ -1,0 +1,32 @@
+id: qv-to-scalar
+class_derivations:
+  MyRecord:
+    populated_from: MyRecord
+    slot_derivations:
+      id:
+      id_as_string:
+        range: string
+        populated_from: id
+      id_as_url:
+        range: uri
+        populated_from: id
+      url:
+      url_as_string:
+        range: string
+        populated_from: url
+      url_as_curie:
+        range: curie
+        populated_from: url
+      name:
+        range: string
+      age_as_integer:
+        range: integer
+      age_as_float:
+        range: float
+        populated_from: age_as_integer
+      age_as_string:
+        range: string
+        populated_from: age_as_integer
+    copy_directives:
+      "*":
+        copy_all: true

@@ -1,0 +1,10 @@
+description: Examples of transforming measurements
+transformations:
+  - source_schema: source/quantity_value.yaml
+    target_schema: target/quantity_value_flat.yaml
+    transformation_specification: transform/qv-to-scalar.transform.yaml
+    steps:
+      - source_data: data/PersonQuantityValue-001.yaml
+        target_data: output/PersonQuantityValue-001.transformed.yaml
+      - source_data: data/PersonQuantityValue-002.yaml
+        target_data: output/PersonQuantityValue-002.transformed.yaml
