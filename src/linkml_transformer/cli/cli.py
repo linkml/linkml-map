@@ -11,9 +11,7 @@ __all__ = [
 import yaml
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper
-from linkml_runtime.loaders import yaml_loader
 
-from linkml_transformer.datamodel.transformer_model import TransformationSpecification
 from linkml_transformer.schema_mapper.schema_mapper import SchemaMapper
 from linkml_transformer.transformer.object_transformer import ObjectTransformer
 

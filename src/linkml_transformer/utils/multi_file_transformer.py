@@ -2,23 +2,16 @@
 
 """
 import glob
-import json
 import logging
 import os
 import re
-import sys
 from dataclasses import dataclass, field
-from io import StringIO
 from pathlib import Path
-from types import ModuleType
-from typing import Any, List, Mapping, Optional, TextIO, Union
+from typing import List, Mapping, Optional, Union
 
-import click
 import yaml
 from linkml_runtime import SchemaView
-from linkml_runtime.dumpers import json_dumper, rdflib_dumper, yaml_dumper
-from linkml_runtime.linkml_model import ElementName
-from linkml_runtime.utils.formatutils import camelcase
+from linkml_runtime.dumpers import yaml_dumper
 from pydantic import BaseModel
 
 from linkml_transformer.schema_mapper.schema_mapper import SchemaMapper

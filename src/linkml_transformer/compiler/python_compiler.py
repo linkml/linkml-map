@@ -2,9 +2,8 @@ from copy import deepcopy
 from typing import Iterator
 
 from jinja2 import Template
-from linkml_runtime.utils.yamlutils import YAMLRoot
 
-from linkml_transformer.compiler.compiler import CompiledSpecification, Compiler
+from linkml_transformer.compiler.compiler import Compiler
 from linkml_transformer.datamodel.transformer_model import (
     ClassDerivation,
     TransformationSpecification,
@@ -30,14 +29,14 @@ derive_{{ sd.range }}({{ var }})
  {%- else -%}
   None
  {%- endif -%}
-{%- endif -%}    
+{%- endif -%}
 {%- endmacro %}
 def derive_{{ cd.name }}(
         source_object: {{ source_module }}.{{ cd.populated_from }}
     ) -> {{ target_module }}.{{ cd.name }}:
     return {{ cd.populated_from }}(
        {%- for sd in cd.slot_derivations.values() %}
-       {{ sd.name }}={{ gen_slot_derivation(sd) }}, 
+       {{ sd.name }}={{ gen_slot_derivation(sd) }},
        {%- endfor %}
     )
 

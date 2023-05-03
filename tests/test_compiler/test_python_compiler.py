@@ -1,13 +1,8 @@
 import unittest
 
 from linkml_runtime import SchemaView
-from linkml_runtime.dumpers import yaml_dumper
-from linkml_runtime.loaders import yaml_loader
 
 from linkml_transformer.compiler.python_compiler import PythonCompiler
-from linkml_transformer.datamodel.transformer_model import *
-from linkml_transformer.schema_mapper.schema_mapper import SchemaMapper
-from linkml_transformer.transformer.object_transformer import ObjectTransformer
 from linkml_transformer.utils.loaders import load_specification
 from tests import SCHEMA1, SPECIFICATION
 

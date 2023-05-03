@@ -1,8 +1,5 @@
 import unittest
 
-import yaml
-
-from linkml_transformer.transformer.object_transformer import ObjectTransformer
 from linkml_transformer.utils.multi_file_transformer import MultiFileTransformer
 from tests import EXAMPLE_DIR
 

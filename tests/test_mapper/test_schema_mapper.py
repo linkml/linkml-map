@@ -2,7 +2,6 @@ import unittest
 
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper
-from linkml_runtime.loaders import yaml_loader
 
 from linkml_transformer.datamodel.transformer_model import (
     ClassDerivation,
