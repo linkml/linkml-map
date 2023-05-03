@@ -14,7 +14,12 @@ import tests.input.examples.flattening.model.denormalized_model as sssom_tgt_dm
 import tests.input.examples.flattening.model.normalized_model as sssom_src_dm
 import tests.input.examples.personinfo_basic.model.agent_model as tgt_dm
 import tests.input.examples.personinfo_basic.model.personinfo_model as src_dm
-from linkml_transformer.datamodel.transformer_model import *
+from linkml_transformer.datamodel.transformer_model import (
+    ClassDerivation,
+    CollectionType,
+    SlotDerivation,
+    TransformationSpecification,
+)
 from linkml_transformer.transformer.object_transformer import ObjectTransformer
 from linkml_transformer.utils.dynamic_object import dynamic_object
 from tests import (
@@ -139,13 +144,7 @@ class ObjectTransformerTestCase(unittest.TestCase):
     def check_subject_object_predicate(
         self,
         obj,
-        expected={
-            "subject_id": "X:1",
-            "subject_name": "x1",
-            "object_id": "Y:1",
-            "object_name": "y1",
-            "predicate": "P:1",
-        },
+        expected,
     ):
         self.assertEqual(expected["subject_id"], obj.subject.id)
         self.assertEqual(expected["subject_name"], obj.subject.name)
@@ -163,7 +162,16 @@ class ObjectTransformerTestCase(unittest.TestCase):
         tr.index(container, "MappingSet")
         ix = tr.object_index
         mp = ix.bless(m)
-        self.check_subject_object_predicate(mp)
+        self.check_subject_object_predicate(
+            mp,
+            {
+                "subject_id": "X:1",
+                "subject_name": "x1",
+                "object_id": "Y:1",
+                "object_name": "y1",
+                "predicate": "P:1",
+            },
+        )
         container["mappings"][0]["subject"] = "U:1"
         tr.index(container, "MappingSet")
         dynobj = dynamic_object(container, sv, "MappingSet")
@@ -184,7 +192,16 @@ class ObjectTransformerTestCase(unittest.TestCase):
         tr.index(mset, "MappingSet")
         ix = tr.object_index
         mp = ix.bless(m)
-        self.check_subject_object_predicate(mp)
+        self.check_subject_object_predicate(
+            mp,
+            {
+                "subject_id": "X:1",
+                "subject_name": "x1",
+                "object_id": "Y:1",
+                "object_name": "y1",
+                "predicate": "P:1",
+            },
+        )
 
         mset.mappings[0].subject = "U:1"
         tr.index(mset, "MappingSet")

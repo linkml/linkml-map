@@ -1,8 +1,6 @@
 import os
 from pathlib import Path
 
-from linkml_runtime.linkml_model import SchemaDefinition
-
 SRC = "source"
 TGT = "target"
 TR = "transform"

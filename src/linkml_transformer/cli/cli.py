@@ -82,10 +82,10 @@ def map_data(
     tr.index(input_obj, source_type)
     tr_obj = tr.transform(input_obj, source_type)
     if output:
-        file = open(output, "w", encoding="utf-8")
+        outfile = open(output, "w", encoding="utf-8")
     else:
-        file = sys.stdout
-    file.write(yaml_dumper.dumps(tr_obj))
+        outfile = sys.stdout
+    outfile.write(yaml_dumper.dumps(tr_obj))
 
 
 @main.command()
@@ -115,10 +115,10 @@ def derive_schema(schema, transformer_specification, output, output_format, **kw
     mapper.source_schemaview = SchemaView(schema)
     target_schema = mapper.derive_schema()
     if output:
-        file = open(output, "w", encoding="utf-8")
+        outfile = open(output, "w", encoding="utf-8")
     else:
-        file = sys.stdout
-    file.write(yaml_dumper.dumps(target_schema))
+        outfile = sys.stdout
+    outfile.write(yaml_dumper.dumps(target_schema))
 
 
 if __name__ == "__main__":

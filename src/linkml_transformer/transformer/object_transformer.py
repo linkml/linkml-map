@@ -21,7 +21,7 @@ class ObjectTransformer(Transformer):
     """
     A Transformer that works on in-memory dict objects.
 
-    This works by recursively
+    This works recursively
     """
 
     object_index: ObjectIndex = None
@@ -30,8 +30,8 @@ class ObjectTransformer(Transformer):
         """
         Create an index over a container object.
 
-        :param source_obj:
-        :return:
+        :param source_obj: source data structure to be indexed
+        :param target: class to convert source object into
         """
         if isinstance(source_obj, dict):
             if target is None:
@@ -85,13 +85,11 @@ class ObjectTransformer(Transformer):
         if not isinstance(source_obj, dict):
             logger.warning(f"Unexpected: {source_obj} for type {source_type}")
             return source_obj
-        # source_type_class = sv.get_class(source_type)
         class_deriv = self._get_class_derivation(source_type)
         tgt_attrs = {}
         for slot_derivation in class_deriv.slot_derivations.values():
             v = None
             source_class_slot = None
-            # target_class_slot = None
             if slot_derivation.populated_from:
                 v = source_obj.get(slot_derivation.populated_from, None)
                 source_class_slot = sv.induced_slot(slot_derivation.populated_from, source_type)
@@ -111,7 +109,6 @@ class ObjectTransformer(Transformer):
                         if not k.startswith("_")
                     }
                 else:
-                    # ctxt_dict = source_obj
                     do = dynamic_object(source_obj, sv, source_type)
                     ctxt_dict = vars(do)
                 v = eval_expr(slot_derivation.expr, **ctxt_dict, NULL=None)

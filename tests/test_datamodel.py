@@ -3,8 +3,9 @@ import unittest
 from linkml_runtime.dumpers import yaml_dumper
 from linkml_runtime.loaders import yaml_loader
 
-from linkml_transformer.datamodel.transformer_model import *
 from linkml_transformer.transformer.object_transformer import ObjectTransformer
+from linkml_transformer.datamodel.transformer_model import TransformationSpecification
+
 from tests import PERSONINFO_TR
 
 
