@@ -4,12 +4,16 @@ import yaml
 from click.testing import CliRunner
 from linkml_runtime import SchemaView
 from linkml_runtime.linkml_model import SchemaDefinition
-from linkml_runtime.loaders import yaml_loader
 
 from linkml_transformer.cli.cli import main
-from tests import (DENORM_SCHEMA, DENORM_SPECIFICATION, FLATTENING_DATA,
-                   NORM_SCHEMA, PERSONINFO_CONTAINER_DATA, PERSONINFO_DATA,
-                   PERSONINFO_SRC_SCHEMA, PERSONINFO_TGT_SCHEMA, PERSONINFO_TR)
+from tests import (
+    DENORM_SPECIFICATION,
+    FLATTENING_DATA,
+    NORM_SCHEMA,
+    PERSONINFO_CONTAINER_DATA,
+    PERSONINFO_SRC_SCHEMA,
+    PERSONINFO_TR,
+)
 
 
 class TestCommandLineInterface(unittest.TestCase):
@@ -33,8 +37,8 @@ class TestCommandLineInterface(unittest.TestCase):
         result = self.runner.invoke(main, cmd)
         self.assertEqual(0, result.exit_code)
         out = result.stdout
-        schema = yaml_loader.loads(str(out), SchemaDefinition)
-        expected = yaml_loader.load(str(PERSONINFO_TGT_SCHEMA), SchemaDefinition)
+        # schema = yaml_loader.loads(str(out), SchemaDefinition)
+        # expected = yaml_loader.load(str(PERSONINFO_TGT_SCHEMA), SchemaDefinition)
         # self.ensure_schemas_equivalent(schema, expected)
         sv = SchemaView(out)
         self.assertIn("Agent", sv.all_classes().keys())

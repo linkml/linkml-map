@@ -8,7 +8,7 @@ from linkml_runtime.utils.yamlutils import YAMLRoot
 from pydantic import BaseModel
 
 from linkml_transformer.transformer.transformer import OBJECT_TYPE, Transformer
-from linkml_transformer.utils.dynamic_object import DynObj, dynamic_object
+from linkml_transformer.utils.dynamic_object import dynamic_object
 
 DICT_OBJ = Dict[str, Any]
 
@@ -21,7 +21,7 @@ class ObjectTransformer(Transformer):
     """
     A Transformer that works on in-memory dict objects.
 
-    This works by recursively
+    This works recursively
     """
 
     object_index: ObjectIndex = None
@@ -30,30 +30,20 @@ class ObjectTransformer(Transformer):
         """
         Create an index over a container object.
 
-        :param source_obj:
-        :return:
+        :param source_obj: source data structure to be indexed
+        :param target: class to convert source object into
         """
         if isinstance(source_obj, dict):
             if target is None:
                 [target] = [
-                    c.name
-                    for c in self.source_schemaview.all_classes().values()
-                    if c.tree_root
+                    c.name for c in self.source_schemaview.all_classes().values() if c.tree_root
                 ]
             if target is None:
-                raise ValueError(
-                    f"target must be passed if source_obj is dict: {source_obj}"
-                )
-            source_obj_typed = dynamic_object(
-                source_obj, self.source_schemaview, target
-            )
-            self.object_index = ObjectIndex(
-                source_obj_typed, schemaview=self.source_schemaview
-            )
+                raise ValueError(f"target must be passed if source_obj is dict: {source_obj}")
+            source_obj_typed = dynamic_object(source_obj, self.source_schemaview, target)
+            self.object_index = ObjectIndex(source_obj_typed, schemaview=self.source_schemaview)
         else:
-            self.object_index = ObjectIndex(
-                source_obj, schemaview=self.source_schemaview
-            )
+            self.object_index = ObjectIndex(source_obj, schemaview=self.source_schemaview)
 
     def transform(
         self,
@@ -84,18 +74,14 @@ class ObjectTransformer(Transformer):
         if not isinstance(source_obj, dict):
             logger.warning(f"Unexpected: {source_obj} for type {source_type}")
             return source_obj
-        source_type_class = sv.get_class(source_type)
         class_deriv = self._get_class_derivation(source_type)
         tgt_attrs = {}
         for slot_derivation in class_deriv.slot_derivations.values():
             v = None
             source_class_slot = None
-            target_class_slot = None
             if slot_derivation.populated_from:
                 v = source_obj.get(slot_derivation.populated_from, None)
-                source_class_slot = sv.induced_slot(
-                    slot_derivation.populated_from, source_type
-                )
+                source_class_slot = sv.induced_slot(slot_derivation.populated_from, source_type)
                 logger.debug(
                     f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {source_obj}"
                 )
@@ -112,7 +98,6 @@ class ObjectTransformer(Transformer):
                         if not k.startswith("_")
                     }
                 else:
-                    # ctxt_dict = source_obj
                     do = dynamic_object(source_obj, sv, source_type)
                     ctxt_dict = vars(do)
                 v = eval_expr(slot_derivation.expr, **ctxt_dict, NULL=None)
@@ -130,9 +115,15 @@ class ObjectTransformer(Transformer):
                         v = [v]
                 else:
                     v = self.transform(v, source_class_slot_range)
-                if self._coerce_to_multivalued(slot_derivation, class_deriv) and v is not None and not isinstance(v, list):
+                if (
+                    self._coerce_to_multivalued(slot_derivation, class_deriv)
+                    and v is not None
+                    and not isinstance(v, list)
+                ):
                     v = [v]
-                if self._coerce_to_singlevalued(slot_derivation, class_deriv) and isinstance(v, list):
+                if self._coerce_to_singlevalued(slot_derivation, class_deriv) and isinstance(
+                    v, list
+                ):
                     if len(v) > 1:
                         raise ValueError(f"Cannot coerce multiple values {v}")
                     if len(v) == 0:
@@ -157,4 +148,3 @@ class ObjectTransformer(Transformer):
         #    raise ValueError(f"Do not know how to handle type: {typ}")
         tr_obj_dict = self.transform(source_obj, typ_name)
         return target_class(**tr_obj_dict)
-

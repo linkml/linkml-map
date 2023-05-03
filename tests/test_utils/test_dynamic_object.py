@@ -2,14 +2,9 @@ import unittest
 
 import yaml
 from linkml_runtime import SchemaView
-from linkml_runtime.loaders import yaml_loader
 
-from linkml_transformer.datamodel.transformer_model import *
-from linkml_transformer.transformer.object_transformer import ObjectTransformer
 from linkml_transformer.utils.dynamic_object import dynamic_object
-from tests import (DENORM_SCHEMA, DENORM_SPECIFICATION, FLATTENING_DATA,
-                   NORM_SCHEMA, PERSONINFO_DATA, PERSONINFO_SRC_SCHEMA,
-                   PERSONINFO_TGT_SCHEMA, PERSONINFO_TR)
+from tests import FLATTENING_DATA, NORM_SCHEMA
 
 
 class DynamicObjectTestCase(unittest.TestCase):

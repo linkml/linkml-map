@@ -1,11 +1,10 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
 from linkml_runtime import SchemaView
 from linkml_runtime.utils.yamlutils import YAMLRoot
 
-from linkml_transformer.datamodel.transformer_model import \
-    TransformationSpecification
+from linkml_transformer.datamodel.transformer_model import TransformationSpecification
 
 
 @dataclass

@@ -1,11 +1,9 @@
-import logging
-import os
 import unittest
 
 from linkml_runtime.dumpers import yaml_dumper
 from linkml_runtime.loaders import yaml_loader
 
-from linkml_transformer.datamodel.transformer_model import *
+from linkml_transformer.datamodel.transformer_model import TransformationSpecification
 from tests import PERSONINFO_TR
 
 
@@ -23,6 +21,7 @@ class DatamodelTestCase(unittest.TestCase):
         """checks loading/retrieval"""
         tr_spec = self.tr_spec
         print(yaml_dumper.dumps(tr_spec))
+        # TODO: add tests
         self.assertEqual(1, 1)
 
 

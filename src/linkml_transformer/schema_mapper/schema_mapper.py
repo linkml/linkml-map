@@ -2,11 +2,18 @@ from copy import copy
 from dataclasses import dataclass
 
 from linkml_runtime import SchemaView
-from linkml_runtime.linkml_model import (ClassDefinition, Element,
-                                         SchemaDefinition, SlotDefinition)
+from linkml_runtime.linkml_model import (
+    ClassDefinition,
+    Element,
+    SchemaDefinition,
+    SlotDefinition,
+)
 
 from linkml_transformer.datamodel.transformer_model import (
-    ClassDerivation, CopyDirective, TransformationSpecification)
+    ClassDerivation,
+    CopyDirective,
+    TransformationSpecification,
+)
 
 
 @dataclass
@@ -17,9 +24,7 @@ class SchemaMapper:
 
     source_schemaview: SchemaView = None
 
-    def derive_schema(
-        self, specification: TransformationSpecification
-    ) -> SchemaDefinition:
+    def derive_schema(self, specification: TransformationSpecification) -> SchemaDefinition:
         """
         Compile a transformation specification into a schema.
 
