@@ -130,6 +130,24 @@ files = [
 python-dateutil = ">=2.7.0"
 
 [[package]]
+name = "asteval"
+version = "0.9.29"
+description = "Safe, minimalistic evaluator of python expression using ast module"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "asteval-0.9.29-py3-none-any.whl", hash = "sha256:134e42fc4790582f2f926999e59abb444fb491046ba396836962268aad8a68a5"},
+    {file = "asteval-0.9.29.tar.gz", hash = "sha256:ab98c61ba9394149c774ae7861497e9c32580301aa693ca19746997216c31fab"},
+]
+
+[package.extras]
+all = ["Sphinx", "build", "coverage", "pytest", "pytest-cov", "twine"]
+dev = ["build", "twine"]
+doc = ["Sphinx"]
+test = ["coverage", "pytest", "pytest-cov"]
+
+[[package]]
 name = "asttokens"
 version = "2.2.1"
 description = "Annotate AST trees with source code positions"
@@ -3965,4 +3983,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "b35ac0bdf7cdbb9385b599cd65a32b275ce66c39f4a1fd2c2a1295c7debdf058"
+content-hash = "91c1e3ff4fd1c0c60b508d35ed051b3c0b50f61042a2a44a359d2d93bf60d56f"
