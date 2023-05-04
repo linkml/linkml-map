@@ -1,0 +1,17 @@
+id: P:001
+label: fred bloggs
+primary_email: fred.bloggs@example.com
+age: 33 years
+gender: null
+has_familial_relationships:
+  - type: SIBLING_OF
+    related_to: P:002
+  - type: CHILD_OF
+    related_to: P:003
+current_address:
+  address_of: foo
+  street: 1 oak street
+  city: foo
+driving_since: 2014-03-31
+first_known_event: 1990-01-01
+death_date: null

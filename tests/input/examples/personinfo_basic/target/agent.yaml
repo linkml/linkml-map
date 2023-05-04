@@ -52,6 +52,7 @@ classes:
     slots:
       - primary_email
       - birth_date
+      - death_date
       - age
       - gender
       - current_address
@@ -59,6 +60,8 @@ classes:
       - has_familial_relationships
       - has_medical_history
       - parents
+      - driving_since
+      - first_known_event
     slot_usage:
       primary_email:
         pattern: "^\\S+@[\\S+\\.]+\\S+"
@@ -179,6 +182,9 @@ slots:
     slot_uri: schema:email
   birth_date:
     slot_uri: schema:birthDate
+    range: date
+  death_date:
+    range: date
   employed_at:
     range: Organization
   is_current:
@@ -195,6 +201,10 @@ slots:
     range: FamilialRelationship
     multivalued: true
     inlined_as_list: true
+  driving_since:
+    range: date
+  first_known_event:
+    range: date
   parents:
     range: string
     multivalued: true

@@ -29,6 +29,7 @@ from tests import (
     NORM_SCHEMA,
     PERSONINFO_DATA,
     PERSONINFO_SRC_SCHEMA,
+    PERSONINFO_TGT_DATA,
     PERSONINFO_TGT_SCHEMA,
     PERSONINFO_TR,
 )
@@ -45,18 +46,39 @@ class ObjectTransformerTestCase(unittest.TestCase):
         tr = ObjectTransformer()
         tr.source_schemaview = SchemaView(str(PERSONINFO_SRC_SCHEMA))
         tr.target_schemaview = SchemaView(str(PERSONINFO_TGT_SCHEMA))
-        tr.load_transformer_specification(PERSONINFO_TR)
-        self.tr = tr
+        tr.specification = yaml_loader.load(
+            str(PERSONINFO_TR), target_class=TransformationSpecification
+        )
+        self.spec = yaml.safe_load(open(str(PERSONINFO_TR)))
+        self.target_data = yaml.safe_load(open(str(PERSONINFO_TGT_DATA)))
+        self.target_object = yaml_loader.load(str(PERSONINFO_TGT_DATA), target_class=tgt_dm.Agent)
+        self.tr: ObjectTransformer = tr
 
     def test_transform_simple_dict(self):
         """
-        Tests transforming a Person object from s1 to an Agent object in s2
+        Tests transforming data cast into a Person object from s1 to an Agent object in s2
         """
         tr = self.tr
         obj = yaml.safe_load(open(str(PERSONINFO_DATA)))
         self.assertEqual(33, obj["age_in_years"])
         target_obj = tr.transform(obj, source_type="Person")
+        assert isinstance(target_obj, type(self.target_data))
+        assert target_obj == self.target_data
         self.assertEqual(AGE_STRING, target_obj["age"])
+
+    def check_object_attributes(self, got, expected) -> None:
+        """
+        check that two objects have the same attributes with the same type
+
+        :param got: the object to test
+        :param expected: the expected structure of the object
+        """
+        assert type(got) == type(expected)
+        for attribute, value in vars(got).items():
+            expected_value = getattr(expected, attribute)
+            print(f"{attribute}: got={value}, exp={expected_value}")
+            assert value == expected_value
+            assert issubclass(type(expected_value), type(value))
 
     def check_familial_relationships(self, obj, data_model, expected):
         self.assertEqual(len(expected), len(obj.has_familial_relationships))
@@ -70,9 +92,8 @@ class ObjectTransformerTestCase(unittest.TestCase):
         """
         Tests transforming a Person object from s1 to an Agent object in s2
         """
-        tr = self.tr
-        obj: src_dm.Person
-        obj = yaml_loader.load(str(PERSONINFO_DATA), target_class=src_dm.Person)
+        tr: ObjectTransformer = self.tr
+        obj: src_dm.Person = yaml_loader.load(str(PERSONINFO_DATA), target_class=src_dm.Person)
         self.assertIsInstance(obj, src_dm.Person)
         self.assertEqual(33, obj.age_in_years)
 
@@ -100,6 +121,7 @@ class ObjectTransformerTestCase(unittest.TestCase):
         self.assertEqual(obj.name, target_obj.label, "name becomes label")
         self.assertEqual(AGE_STRING, target_obj.age, "age stringified")
         self.assertIsNone(target_obj.gender, "gender is set to None")
+
         expected = [
             {
                 "related_to": "P:002",
@@ -115,6 +137,8 @@ class ObjectTransformerTestCase(unittest.TestCase):
             },
         ]
         self.check_familial_relationships(target_obj, tgt_dm, expected)
+        assert target_obj == self.target_object
+        self.check_object_attributes(target_obj, self.target_object)
 
     def test_transform_container_dict(self):
         """tests recursive"""
@@ -124,6 +148,7 @@ class ObjectTransformerTestCase(unittest.TestCase):
         target_obj = tr.transform(container, source_type="Container")
         self.assertEqual(list(target_obj.keys()), ["agents"])
         self.assertEqual(target_obj["agents"][0]["age"], AGE_STRING)
+        assert target_obj == {"agents": [self.target_data]}
 
     def test_transform_container_object(self):
         """tests recursive"""
@@ -136,6 +161,7 @@ class ObjectTransformerTestCase(unittest.TestCase):
         agent = agents[0]
         self.assertEqual(person.name, agent.label)
         self.assertEqual(AGE_STRING, agent.age)
+        assert agent == self.target_object
         for rel in [0, 1]:
             person_fr1 = person.has_familial_relationships[rel]
             agent_fr1 = agent.has_familial_relationships[rel]

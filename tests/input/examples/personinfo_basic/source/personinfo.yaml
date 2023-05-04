@@ -58,6 +58,7 @@ classes:
       - has_employment_history
       - has_familial_relationships
       - has_medical_history
+      - has_important_life_events
     slot_usage:
       primary_email:
         pattern: "^\\S+@[\\S+\\.]+\\S+"
@@ -73,7 +74,6 @@ classes:
         multivalued: true
         exact_mappings:
           - schema:alternateName
-
 
   Organization:
     description: >-
@@ -151,6 +151,12 @@ classes:
       - procedure
       - type
 
+  ImportantLifeEvent:
+    is_a: Event
+    slots:
+      - important_event_date
+      - event_name
+
   WithLocation:
     mixin: true
     slots:
@@ -195,6 +201,17 @@ slots:
     range: FamilialRelationship
     multivalued: true
     inlined_as_list: true
+  has_important_life_events:
+    range: ImportantLifeEvent
+    multivalued: true
+    inlined_as_list: true
+  important_event_date:
+    range: date
+    required: true
+  event_name:
+    range: ImportantLifeEventType
+    required: true
+
   in_location:
     range: Place
   current_address:
@@ -271,6 +288,14 @@ enums:
       cisgender woman:
         meaning: GSSO:000385
   DiagnosisType:
+  ImportantLifeEventType:
+    permissible_values:
+      BIRTH:
+      DEATH:
+      PASSED_DRIVING_TEST:
+      FIRST_CAR_ACCIDENT:
+      MARRIAGE:
+      DIVORCE:
 
 subsets:
   basic_subset:

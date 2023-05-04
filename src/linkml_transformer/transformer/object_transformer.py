@@ -2,11 +2,12 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, Optional, Type, Union
 
+from asteval import Interpreter
 from linkml_runtime.index.object_index import ObjectIndex
-from linkml_runtime.utils.eval_utils import eval_expr
 from linkml_runtime.utils.yamlutils import YAMLRoot
 from pydantic import BaseModel
 
+from linkml_transformer.transformer.eval_utils import eval_expr
 from linkml_transformer.transformer.transformer import OBJECT_TYPE, Transformer
 from linkml_transformer.utils.dynamic_object import dynamic_object
 
@@ -55,8 +56,8 @@ class ObjectTransformer(Transformer):
         Transform a source object into a target object.
 
         :param source_obj:
-        :param source_type:
-        :return:
+        :param source_type: name of the object type to cast the source object as
+        :return: dictionary of transformed data
         """
         sv = self.source_schemaview
         if source_type is None:
@@ -110,8 +111,16 @@ class ObjectTransformer(Transformer):
                     }
                 else:
                     do = dynamic_object(source_obj, sv, source_type)
+                    ctxt_obj = do
                     ctxt_dict = vars(do)
-                v = eval_expr(slot_derivation.expr, **ctxt_dict, NULL=None)
+
+                try:
+                    v = eval_expr(slot_derivation.expr, **ctxt_dict, NULL=None)
+                except Exception:
+                    aeval = Interpreter(usersyms={"src": ctxt_obj, "target": None})
+                    aeval(slot_derivation.expr)
+                    v = aeval.symtable["target"]
+
             else:
                 source_class_slot = sv.induced_slot(slot_derivation.name, source_type)
                 v = source_obj.get(slot_derivation.name, None)
