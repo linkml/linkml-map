@@ -34,8 +34,8 @@ class TransformerExamplesTestCase(unittest.TestCase):
         then the test will fail
         """
         mft = MultiFileTransformer()
-        for dir in EXAMPLE_PROJECTS:
-            full_dir = EXAMPLE_DIR / dir
+        for directory in EXAMPLE_PROJECTS:
+            full_dir = EXAMPLE_DIR / directory
             instructions = mft.infer_instructions(full_dir)
             mft.process_instructions(instructions, full_dir, test_mode=True)
 
@@ -46,8 +46,8 @@ class TransformerExamplesTestCase(unittest.TestCase):
         """
         mft = MultiFileTransformer()
         dirs = EXAMPLE_PROJECTS
-        for dir in dirs:
-            full_dir = EXAMPLE_DIR / dir
+        for directory in dirs:
+            full_dir = EXAMPLE_DIR / directory
             instructions = mft.infer_instructions(full_dir)
             # print(yaml.dump(instructions.dict()))
             mft.process_instructions(instructions, full_dir, test_mode=False)

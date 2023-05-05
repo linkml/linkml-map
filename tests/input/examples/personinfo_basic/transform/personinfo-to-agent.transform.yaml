@@ -29,23 +29,20 @@ class_derivations:
 
       driving_since:
         expr: |
-            d_test = [x.important_event_date for x in src.has_important_life_events if str(x.event_name) == "PASSED_DRIVING_TEST"]
-            target = d_test[0] if d_test else None
+          d_test = [x.important_event_date for x in src.has_important_life_events if str(x.event_name) == "PASSED_DRIVING_TEST"]
+          if d_test is not None:
+              target = d_test[0]
 
       first_known_event:
         expr: |
             if src.has_important_life_events:
               target = src.has_important_life_events[0].important_event_date
-            else:
-              target = None
 
       death_date:
         expr: |
             death_dates = [x.important_event_date for x in src.has_important_life_events if str(x.event_name) == "DEATH"]
             if death_dates:
               target = death_dates[0]
-            else:
-              target = None
 
       primary_email:
 
