@@ -603,6 +603,7 @@ class Container(YAMLRoot):
 class FamilialRelationshipType(EnumDefinitionImpl):
     SIBLING_OF = PermissibleValue(text="SIBLING_OF", meaning=FAMREL["01"])
     CHILD_OF = PermissibleValue(text="CHILD_OF", meaning=FAMREL["05"])
+    PARENT_OF = PermissibleValue(text="PARENT_OF", meaning=FAMREL["02"])
 
     _defn = EnumDefinition(
         name="FamilialRelationshipType",

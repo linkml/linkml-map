@@ -262,7 +262,7 @@ enums:
     permissible_values:
       SIBLING_OF:
         meaning: famrel:01
-      parent of:
+      PARENT_OF:
         meaning: famrel:02
       CHILD_OF:
         meaning: famrel:05

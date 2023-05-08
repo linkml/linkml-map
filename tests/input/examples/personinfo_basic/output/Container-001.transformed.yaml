@@ -2,12 +2,15 @@ agents:
 - id: P:001
   label: fred bloggs
   age: 33 years
+  driving_since: 2014-03-31
+  first_known_event: 1990-01-01
+  death_date: null
   primary_email: fred.bloggs@example.com
   gender: null
   current_address:
     address_of: foo
     street: 1 oak street
-    city: foo
+    city: oaktown
   has_familial_relationships:
   - type: SIBLING_OF
     related_to: P:002

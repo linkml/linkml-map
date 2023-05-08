@@ -30,7 +30,7 @@ class_derivations:
       driving_since:
         expr: |
           d_test = [x.important_event_date for x in src.has_important_life_events if str(x.event_name) == "PASSED_DRIVING_TEST"]
-          if d_test is not None:
+          if len(d_test):
               target = d_test[0]
 
       first_known_event:
@@ -41,7 +41,7 @@ class_derivations:
       death_date:
         expr: |
             death_dates = [x.important_event_date for x in src.has_important_life_events if str(x.event_name) == "DEATH"]
-            if death_dates:
+            if len(death_dates):
               target = death_dates[0]
 
       primary_email:
@@ -92,7 +92,7 @@ class_derivations:
           slot_name: current_address
       street:
       city:
-        expr: "'foo'"
+        # expr: "'foo'"
 
   FamilialRelationship:
     populated_from: FamilialRelationship

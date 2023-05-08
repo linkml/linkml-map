@@ -11,6 +11,14 @@ persons:
         related_to: P:003
     current_address:
       street: 1 oak street
+      city: oaktown
+    has_important_life_events:
+      - event_name: BIRTH
+        important_event_date: 1990-01-01
+      - event_name: PASSED_DRIVING_TEST
+        important_event_date: 2014-03-31
+      - event_name: FIRST_CAR_ACCIDENT
+        important_event_date: 2015-01-25
     aliases:
       - a
       - b

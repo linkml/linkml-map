@@ -9,7 +9,7 @@ gender: null
 current_address:
   address_of: foo
   street: 1 oak street
-  city: foo
+  city: oaktown
 has_familial_relationships:
 - type: SIBLING_OF
   related_to: P:002
