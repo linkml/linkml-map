@@ -99,7 +99,7 @@ def eval_expr(expr: str, **kwargs) -> Any:
         return None
 
 
-def eval_(node, bindings={}):
+def eval_(node, bindings=None):
     if isinstance(node, ast.Num):
         return node.n
     elif isinstance(node, ast.Str):
@@ -113,6 +113,8 @@ def eval_(node, bindings={}):
         # can be removed when python 3.7 is no longer supported
         return node.value
     elif isinstance(node, ast.Name):
+        if not bindings:
+            bindings = {}
         return bindings.get(node.id)
     elif isinstance(node, ast.Subscript):
         if isinstance(node.slice, ast.Index):
@@ -148,10 +150,10 @@ def eval_(node, bindings={}):
     elif isinstance(node, ast.Set):
         # sets are not part of the language; we use {x} as notation for x
         if len(node.elts) != 1:
-            raise ValueError(f"The {{}} must enclose a single variable")
+            raise ValueError("The {} must enclose a single variable")
         e = node.elts[0]
         if not isinstance(e, ast.Name):
-            raise ValueError(f"The {{}} must enclose a variable")
+            raise ValueError("The {} must enclose a variable")
         v = eval_(e, bindings)
         if v is None:
             raise UnsetValueException(f"{e} is not set")

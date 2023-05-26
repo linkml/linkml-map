@@ -1,8 +1,7 @@
 import itertools
-from subprocess import check_output
 import unittest
-
 from typing import Any
+
 import yaml
 from linkml_runtime import SchemaView
 from linkml_runtime.linkml_model import (

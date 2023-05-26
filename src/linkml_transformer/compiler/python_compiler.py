@@ -63,7 +63,6 @@ def derive_{{ cd.name }}(
 """
 
 
-
 class PythonCompiler(Compiler):
     """
     Compiles a Transformation Specification to Python code.
