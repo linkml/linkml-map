@@ -148,6 +148,7 @@ class Agent(NamedThing):
 
     id: Union[str, AgentId] = None
     primary_email: Optional[str] = None
+    secondary_email: Optional[str] = None
     birth_date: Optional[Union[str, XSDDate]] = None
     death_date: Optional[Union[str, XSDDate]] = None
     age: Optional[str] = None
@@ -175,6 +176,9 @@ class Agent(NamedThing):
 
         if self.primary_email is not None and not isinstance(self.primary_email, str):
             self.primary_email = str(self.primary_email)
+
+        if self.secondary_email is not None and not isinstance(self.secondary_email, str):
+            self.secondary_email = str(self.secondary_email)
 
         if self.birth_date is not None and not isinstance(self.birth_date, XSDDate):
             self.birth_date = XSDDate(self.birth_date)
@@ -641,6 +645,7 @@ class GenderType(EnumDefinitionImpl):
         setattr(
             cls, "cisgender woman", PermissibleValue(text="cisgender woman", meaning=GSSO["000385"])
         )
+        setattr(cls, "None", PermissibleValue(text="None", meaning=GSSO["000283"]))
 
 
 class DiagnosisType(EnumDefinitionImpl):
@@ -704,6 +709,15 @@ slots.primary_email = Slot(
     name="primary_email",
     curie=SCHEMA.curie("email"),
     model_uri=PERSONINFO.primary_email,
+    domain=None,
+    range=Optional[str],
+)
+
+slots.secondary_email = Slot(
+    uri=SCHEMA.email,
+    name="secondary_email",
+    curie=SCHEMA.curie("email"),
+    model_uri=PERSONINFO.secondary_email,
     domain=None,
     range=Optional[str],
 )
@@ -991,6 +1005,16 @@ slots.Agent_primary_email = Slot(
     name="Agent_primary_email",
     curie=SCHEMA.curie("email"),
     model_uri=PERSONINFO.Agent_primary_email,
+    domain=Agent,
+    range=Optional[str],
+    pattern=re.compile(r"^\S+@[\S+\.]+\S+"),
+)
+
+slots.Agent_secondary_email = Slot(
+    uri=SCHEMA.email,
+    name="Agent_secondary_email",
+    curie=SCHEMA.curie("email"),
+    model_uri=PERSONINFO.Agent_secondary_email,
     domain=Agent,
     range=Optional[str],
     pattern=re.compile(r"^\S+@[\S+\.]+\S+"),

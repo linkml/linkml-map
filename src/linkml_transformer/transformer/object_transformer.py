@@ -55,9 +55,10 @@ class ObjectTransformer(Transformer):
         """
         Transform a source object into a target object.
 
-        :param source_obj:
+        :param source_obj: source data structure
         :param source_type: name of the object type to cast the source object as
-        :return: dictionary of transformed data
+        :param target_type: type to return the transformed object as
+        :return: transformed data, either as type target_type or a dictionary
         """
         sv = self.source_schemaview
         if source_type is None:
@@ -78,11 +79,10 @@ class ObjectTransformer(Transformer):
         if source_type in sv.all_enums():
             # TODO: enum derivations
             return str(source_obj)
+        source_obj_typed = None
         if isinstance(source_obj, (BaseModel, YAMLRoot)):
             source_obj_typed = source_obj
             source_obj = vars(source_obj)
-        else:
-            source_obj_typed = None
         if not isinstance(source_obj, dict):
             logger.warning(f"Unexpected: {source_obj} for type {source_type}")
             return source_obj
@@ -159,13 +159,26 @@ class ObjectTransformer(Transformer):
         source_obj: Union[YAMLRoot, BaseModel],
         target_class: Optional[Union[Type[YAMLRoot], Type[BaseModel]]] = None,
     ) -> Union[YAMLRoot, BaseModel]:
-        typ = type(source_obj)
-        typ_name = typ.__name__
+        """
+        Transform an object into an object of class target_class.
+
+        :param source_obj: source object
+        :type source_obj: Union[YAMLRoot, BaseModel]
+        :param target_class: class to transform the object into, defaults to None
+        :type target_class: Optional[Union[Type[YAMLRoot], Type[BaseModel]]], optional
+        :return: transformed object of class target_class
+        :rtype: Union[YAMLRoot, BaseModel]
+        """
+        if not target_class:
+            raise ValueError("No target_class specified for transform_object")
+
+        source_type = type(source_obj)
+        source_type_name = source_type.__name__
         # if isinstance(source_obj, YAMLRoot):
         #    source_obj_dict = json_dumper.to_dict(source_obj)
         # elif isinstance(source_obj, BaseModel):
         #    source_obj_dict = source_obj.dict()
         # else:
         #    raise ValueError(f"Do not know how to handle type: {typ}")
-        tr_obj_dict = self.transform(source_obj, typ_name)
+        tr_obj_dict = self.transform(source_obj, source_type_name)
         return target_class(**tr_obj_dict)

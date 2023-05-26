@@ -148,6 +148,7 @@ class Person(NamedThing):
 
     id: Union[str, PersonId] = None
     primary_email: Optional[str] = None
+    secondary_email: Optional[str] = None
     birth_date: Optional[str] = None
     age_in_years: Optional[int] = None
     gender: Optional[Union[str, "GenderType"]] = None
@@ -174,6 +175,9 @@ class Person(NamedThing):
 
         if self.primary_email is not None and not isinstance(self.primary_email, str):
             self.primary_email = str(self.primary_email)
+
+        if self.secondary_email is not None and not isinstance(self.secondary_email, str):
+            self.secondary_email = str(self.secondary_email)
 
         if self.birth_date is not None and not isinstance(self.birth_date, str):
             self.birth_date = str(self.birth_date)
@@ -667,6 +671,7 @@ class GenderType(EnumDefinitionImpl):
         setattr(
             cls, "cisgender woman", PermissibleValue(text="cisgender woman", meaning=GSSO["000385"])
         )
+        setattr(cls, "None", PermissibleValue(text="None", meaning=GSSO["000283"]))
 
 
 class DiagnosisType(EnumDefinitionImpl):
@@ -743,6 +748,15 @@ slots.primary_email = Slot(
     name="primary_email",
     curie=SCHEMA.curie("email"),
     model_uri=PERSONINFO.primary_email,
+    domain=None,
+    range=Optional[str],
+)
+
+slots.secondary_email = Slot(
+    uri=SCHEMA.email,
+    name="secondary_email",
+    curie=SCHEMA.curie("email"),
+    model_uri=PERSONINFO.secondary_email,
     domain=None,
     range=Optional[str],
 )
@@ -1013,6 +1027,16 @@ slots.Person_primary_email = Slot(
     name="Person_primary_email",
     curie=SCHEMA.curie("email"),
     model_uri=PERSONINFO.Person_primary_email,
+    domain=Person,
+    range=Optional[str],
+    pattern=re.compile(r"^\S+@[\S+\.]+\S+"),
+)
+
+slots.Person_secondary_email = Slot(
+    uri=SCHEMA.email,
+    name="Person_secondary_email",
+    curie=SCHEMA.curie("email"),
+    model_uri=PERSONINFO.Person_secondary_email,
     domain=Person,
     range=Optional[str],
     pattern=re.compile(r"^\S+@[\S+\.]+\S+"),

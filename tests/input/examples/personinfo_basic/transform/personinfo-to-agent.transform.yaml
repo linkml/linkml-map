@@ -27,6 +27,19 @@ class_derivations:
       age:
         expr: "str({age_in_years}) + ' years'"
 
+      # YAML interprets this as expr = None
+      # no transformation is performed
+      primary_email:
+        expr: NULL
+
+      # this is the string "NULL", which will set this field to null
+      secondary_email:
+        expr: "NULL"
+
+      # FIXME: this should return the type "None", rather than null
+      gender:
+        expr: "None"
+
       driving_since:
         expr: |
           d_test = [x.important_event_date for x in src.has_important_life_events if str(x.event_name) == "PASSED_DRIVING_TEST"]
@@ -44,10 +57,6 @@ class_derivations:
             if len(death_dates):
               target = death_dates[0]
 
-      primary_email:
-
-      gender:
-        expr: "None"
 
       current_address:
 

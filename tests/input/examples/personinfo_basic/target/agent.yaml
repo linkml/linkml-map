@@ -51,6 +51,7 @@ classes:
       - HasAliases
     slots:
       - primary_email
+      - secondary_email
       - birth_date
       - death_date
       - age
@@ -64,6 +65,8 @@ classes:
       - first_known_event
     slot_usage:
       primary_email:
+        pattern: "^\\S+@[\\S+\\.]+\\S+"
+      secondary_email:
         pattern: "^\\S+@[\\S+\\.]+\\S+"
     in_subset:
       - basic_subset
@@ -180,6 +183,8 @@ slots:
     range: GenderType
   primary_email:
     slot_uri: schema:email
+  secondary_email:
+    slot_uri: schema:email
   birth_date:
     slot_uri: schema:birthDate
     range: date
@@ -280,6 +285,8 @@ enums:
         meaning: GSSO:000371
       cisgender woman:
         meaning: GSSO:000385
+      None:
+        meaning: GSSO:000283
   DiagnosisType:
 
 subsets:
