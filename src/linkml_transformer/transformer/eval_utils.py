@@ -43,7 +43,7 @@ funcs = {
 }
 
 
-class UnsetValueException(Exception):
+class UnsetValueError(Exception):
     pass
 
 
@@ -95,7 +95,7 @@ def eval_expr(expr: str, **kwargs) -> Any:
         return None
     try:
         return eval_(ast.parse(expr, mode="eval").body, kwargs)
-    except UnsetValueException:
+    except UnsetValueError:
         return None
 
 
@@ -156,7 +156,7 @@ def eval_(node, bindings=None):
             raise ValueError("The {} must enclose a variable")
         v = eval_(e, bindings)
         if v is None:
-            raise UnsetValueException(f"{e} is not set")
+            raise UnsetValueError(f"{e} is not set")
         else:
             return v
     elif isinstance(node, ast.Tuple):
