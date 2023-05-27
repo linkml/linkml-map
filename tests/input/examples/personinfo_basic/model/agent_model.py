@@ -1,5 +1,5 @@
 # Auto generated from agent.yaml by pythongen.py version: 0.9.0
-# Generation date: 2023-04-14T14:30:22
+# Generation date: 2023-05-03T07:06:53
 # Schema: personinfo
 #
 # id: https://w3id.org/linkml/examples/personinfo
@@ -148,7 +148,9 @@ class Agent(NamedThing):
 
     id: Union[str, AgentId] = None
     primary_email: Optional[str] = None
-    birth_date: Optional[str] = None
+    secondary_email: Optional[str] = None
+    birth_date: Optional[Union[str, XSDDate]] = None
+    death_date: Optional[Union[str, XSDDate]] = None
     age: Optional[str] = None
     gender: Optional[Union[str, "GenderType"]] = None
     current_address: Optional[Union[dict, "Address"]] = None
@@ -156,15 +158,14 @@ class Agent(NamedThing):
         Union[Union[dict, "EmploymentEvent"], List[Union[dict, "EmploymentEvent"]]]
     ] = empty_list()
     has_familial_relationships: Optional[
-        Union[
-            Union[dict, "FamilialRelationship"],
-            List[Union[dict, "FamilialRelationship"]],
-        ]
+        Union[Union[dict, "FamilialRelationship"], List[Union[dict, "FamilialRelationship"]]]
     ] = empty_list()
     has_medical_history: Optional[
         Union[Union[dict, "MedicalEvent"], List[Union[dict, "MedicalEvent"]]]
     ] = empty_list()
     parents: Optional[Union[str, List[str]]] = empty_list()
+    driving_since: Optional[Union[str, XSDDate]] = None
+    first_known_event: Optional[Union[str, XSDDate]] = None
     aliases: Optional[Union[str, List[str]]] = empty_list()
 
     def __post_init__(self, *_: List[str], **kwargs: Dict[str, Any]):
@@ -176,8 +177,14 @@ class Agent(NamedThing):
         if self.primary_email is not None and not isinstance(self.primary_email, str):
             self.primary_email = str(self.primary_email)
 
-        if self.birth_date is not None and not isinstance(self.birth_date, str):
-            self.birth_date = str(self.birth_date)
+        if self.secondary_email is not None and not isinstance(self.secondary_email, str):
+            self.secondary_email = str(self.secondary_email)
+
+        if self.birth_date is not None and not isinstance(self.birth_date, XSDDate):
+            self.birth_date = XSDDate(self.birth_date)
+
+        if self.death_date is not None and not isinstance(self.death_date, XSDDate):
+            self.death_date = XSDDate(self.death_date)
 
         if self.age is not None and not isinstance(self.age, str):
             self.age = str(self.age)
@@ -220,6 +227,12 @@ class Agent(NamedThing):
         if not isinstance(self.parents, list):
             self.parents = [self.parents] if self.parents is not None else []
         self.parents = [v if isinstance(v, str) else str(v) for v in self.parents]
+
+        if self.driving_since is not None and not isinstance(self.driving_since, XSDDate):
+            self.driving_since = XSDDate(self.driving_since)
+
+        if self.first_known_event is not None and not isinstance(self.first_known_event, XSDDate):
+            self.first_known_event = XSDDate(self.first_known_event)
 
         if not isinstance(self.aliases, list):
             self.aliases = [self.aliases] if self.aliases is not None else []
@@ -594,6 +607,7 @@ class Container(YAMLRoot):
 class FamilialRelationshipType(EnumDefinitionImpl):
     SIBLING_OF = PermissibleValue(text="SIBLING_OF", meaning=FAMREL["01"])
     CHILD_OF = PermissibleValue(text="CHILD_OF", meaning=FAMREL["05"])
+    PARENT_OF = PermissibleValue(text="PARENT_OF", meaning=FAMREL["02"])
 
     _defn = EnumDefinition(
         name="FamilialRelationshipType",
@@ -612,14 +626,10 @@ class GenderType(EnumDefinitionImpl):
     @classmethod
     def _addvals(cls):
         setattr(
-            cls,
-            "nonbinary man",
-            PermissibleValue(text="nonbinary man", meaning=GSSO["009254"]),
+            cls, "nonbinary man", PermissibleValue(text="nonbinary man", meaning=GSSO["009254"])
         )
         setattr(
-            cls,
-            "nonbinary woman",
-            PermissibleValue(text="nonbinary woman", meaning=GSSO["009253"]),
+            cls, "nonbinary woman", PermissibleValue(text="nonbinary woman", meaning=GSSO["009253"])
         )
         setattr(
             cls,
@@ -627,20 +637,15 @@ class GenderType(EnumDefinitionImpl):
             PermissibleValue(text="transgender woman", meaning=GSSO["000384"]),
         )
         setattr(
-            cls,
-            "transgender man",
-            PermissibleValue(text="transgender man", meaning=GSSO["000372"]),
+            cls, "transgender man", PermissibleValue(text="transgender man", meaning=GSSO["000372"])
         )
         setattr(
-            cls,
-            "cisgender man",
-            PermissibleValue(text="cisgender man", meaning=GSSO["000371"]),
+            cls, "cisgender man", PermissibleValue(text="cisgender man", meaning=GSSO["000371"])
         )
         setattr(
-            cls,
-            "cisgender woman",
-            PermissibleValue(text="cisgender woman", meaning=GSSO["000385"]),
+            cls, "cisgender woman", PermissibleValue(text="cisgender woman", meaning=GSSO["000385"])
         )
+        setattr(cls, "None", PermissibleValue(text="None", meaning=GSSO["000283"]))
 
 
 class DiagnosisType(EnumDefinitionImpl):
@@ -708,13 +713,31 @@ slots.primary_email = Slot(
     range=Optional[str],
 )
 
+slots.secondary_email = Slot(
+    uri=SCHEMA.email,
+    name="secondary_email",
+    curie=SCHEMA.curie("email"),
+    model_uri=PERSONINFO.secondary_email,
+    domain=None,
+    range=Optional[str],
+)
+
 slots.birth_date = Slot(
     uri=SCHEMA.birthDate,
     name="birth_date",
     curie=SCHEMA.curie("birthDate"),
     model_uri=PERSONINFO.birth_date,
     domain=None,
-    range=Optional[str],
+    range=Optional[Union[str, XSDDate]],
+)
+
+slots.death_date = Slot(
+    uri=PERSONINFO.death_date,
+    name="death_date",
+    curie=PERSONINFO.curie("death_date"),
+    model_uri=PERSONINFO.death_date,
+    domain=None,
+    range=Optional[Union[str, XSDDate]],
 )
 
 slots.employed_at = Slot(
@@ -762,6 +785,24 @@ slots.has_familial_relationships = Slot(
     range=Optional[
         Union[Union[dict, FamilialRelationship], List[Union[dict, FamilialRelationship]]]
     ],
+)
+
+slots.driving_since = Slot(
+    uri=PERSONINFO.driving_since,
+    name="driving_since",
+    curie=PERSONINFO.curie("driving_since"),
+    model_uri=PERSONINFO.driving_since,
+    domain=None,
+    range=Optional[Union[str, XSDDate]],
+)
+
+slots.first_known_event = Slot(
+    uri=PERSONINFO.first_known_event,
+    name="first_known_event",
+    curie=PERSONINFO.curie("first_known_event"),
+    model_uri=PERSONINFO.first_known_event,
+    domain=None,
+    range=Optional[Union[str, XSDDate]],
 )
 
 slots.parents = Slot(
@@ -964,6 +1005,16 @@ slots.Agent_primary_email = Slot(
     name="Agent_primary_email",
     curie=SCHEMA.curie("email"),
     model_uri=PERSONINFO.Agent_primary_email,
+    domain=Agent,
+    range=Optional[str],
+    pattern=re.compile(r"^\S+@[\S+\.]+\S+"),
+)
+
+slots.Agent_secondary_email = Slot(
+    uri=SCHEMA.email,
+    name="Agent_secondary_email",
+    curie=SCHEMA.curie("email"),
+    model_uri=PERSONINFO.Agent_secondary_email,
     domain=Agent,
     range=Optional[str],
     pattern=re.compile(r"^\S+@[\S+\.]+\S+"),

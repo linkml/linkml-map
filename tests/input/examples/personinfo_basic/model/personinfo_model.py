@@ -1,5 +1,5 @@
-# Auto generated from personinfo_s1.yaml by pythongen.py version: 0.9.0
-# Generation date: 2022-10-12T13:22:57
+# Auto generated from personinfo.yaml by pythongen.py version: 0.9.0
+# Generation date: 2023-05-03T07:06:21
 # Schema: personinfo
 #
 # id: https://w3id.org/linkml/examples/personinfo
@@ -148,6 +148,7 @@ class Person(NamedThing):
 
     id: Union[str, PersonId] = None
     primary_email: Optional[str] = None
+    secondary_email: Optional[str] = None
     birth_date: Optional[str] = None
     age_in_years: Optional[int] = None
     gender: Optional[Union[str, "GenderType"]] = None
@@ -156,13 +157,13 @@ class Person(NamedThing):
         Union[Union[dict, "EmploymentEvent"], List[Union[dict, "EmploymentEvent"]]]
     ] = empty_list()
     has_familial_relationships: Optional[
-        Union[
-            Union[dict, "FamilialRelationship"],
-            List[Union[dict, "FamilialRelationship"]],
-        ]
+        Union[Union[dict, "FamilialRelationship"], List[Union[dict, "FamilialRelationship"]]]
     ] = empty_list()
     has_medical_history: Optional[
         Union[Union[dict, "MedicalEvent"], List[Union[dict, "MedicalEvent"]]]
+    ] = empty_list()
+    has_important_life_events: Optional[
+        Union[Union[dict, "ImportantLifeEvent"], List[Union[dict, "ImportantLifeEvent"]]]
     ] = empty_list()
     aliases: Optional[Union[str, List[str]]] = empty_list()
 
@@ -174,6 +175,9 @@ class Person(NamedThing):
 
         if self.primary_email is not None and not isinstance(self.primary_email, str):
             self.primary_email = str(self.primary_email)
+
+        if self.secondary_email is not None and not isinstance(self.secondary_email, str):
+            self.secondary_email = str(self.secondary_email)
 
         if self.birth_date is not None and not isinstance(self.birth_date, str):
             self.birth_date = str(self.birth_date)
@@ -214,6 +218,17 @@ class Person(NamedThing):
         self.has_medical_history = [
             v if isinstance(v, MedicalEvent) else MedicalEvent(**as_dict(v))
             for v in self.has_medical_history
+        ]
+
+        if not isinstance(self.has_important_life_events, list):
+            self.has_important_life_events = (
+                [self.has_important_life_events]
+                if self.has_important_life_events is not None
+                else []
+            )
+        self.has_important_life_events = [
+            v if isinstance(v, ImportantLifeEvent) else ImportantLifeEvent(**as_dict(v))
+            for v in self.has_important_life_events
         ]
 
         if not isinstance(self.aliases, list):
@@ -537,6 +552,32 @@ class MedicalEvent(Event):
 
 
 @dataclass
+class ImportantLifeEvent(Event):
+    _inherited_slots: ClassVar[List[str]] = []
+
+    class_class_uri: ClassVar[URIRef] = PERSONINFO.ImportantLifeEvent
+    class_class_curie: ClassVar[str] = "personinfo:ImportantLifeEvent"
+    class_name: ClassVar[str] = "ImportantLifeEvent"
+    class_model_uri: ClassVar[URIRef] = PERSONINFO.ImportantLifeEvent
+
+    important_event_date: Union[str, XSDDate] = None
+    event_name: Union[str, "ImportantLifeEventType"] = None
+
+    def __post_init__(self, *_: List[str], **kwargs: Dict[str, Any]):
+        if self._is_empty(self.important_event_date):
+            self.MissingRequiredField("important_event_date")
+        if not isinstance(self.important_event_date, XSDDate):
+            self.important_event_date = XSDDate(self.important_event_date)
+
+        if self._is_empty(self.event_name):
+            self.MissingRequiredField("event_name")
+        if not isinstance(self.event_name, ImportantLifeEventType):
+            self.event_name = ImportantLifeEventType(self.event_name)
+
+        super().__post_init__(**kwargs)
+
+
+@dataclass
 class WithLocation(YAMLRoot):
     _inherited_slots: ClassVar[List[str]] = []
 
@@ -611,14 +652,10 @@ class GenderType(EnumDefinitionImpl):
     @classmethod
     def _addvals(cls):
         setattr(
-            cls,
-            "nonbinary man",
-            PermissibleValue(text="nonbinary man", meaning=GSSO["009254"]),
+            cls, "nonbinary man", PermissibleValue(text="nonbinary man", meaning=GSSO["009254"])
         )
         setattr(
-            cls,
-            "nonbinary woman",
-            PermissibleValue(text="nonbinary woman", meaning=GSSO["009253"]),
+            cls, "nonbinary woman", PermissibleValue(text="nonbinary woman", meaning=GSSO["009253"])
         )
         setattr(
             cls,
@@ -626,25 +663,33 @@ class GenderType(EnumDefinitionImpl):
             PermissibleValue(text="transgender woman", meaning=GSSO["000384"]),
         )
         setattr(
-            cls,
-            "transgender man",
-            PermissibleValue(text="transgender man", meaning=GSSO["000372"]),
+            cls, "transgender man", PermissibleValue(text="transgender man", meaning=GSSO["000372"])
         )
         setattr(
-            cls,
-            "cisgender man",
-            PermissibleValue(text="cisgender man", meaning=GSSO["000371"]),
+            cls, "cisgender man", PermissibleValue(text="cisgender man", meaning=GSSO["000371"])
         )
         setattr(
-            cls,
-            "cisgender woman",
-            PermissibleValue(text="cisgender woman", meaning=GSSO["000385"]),
+            cls, "cisgender woman", PermissibleValue(text="cisgender woman", meaning=GSSO["000385"])
         )
+        setattr(cls, "None", PermissibleValue(text="None", meaning=GSSO["000283"]))
 
 
 class DiagnosisType(EnumDefinitionImpl):
     _defn = EnumDefinition(
         name="DiagnosisType",
+    )
+
+
+class ImportantLifeEventType(EnumDefinitionImpl):
+    BIRTH = PermissibleValue(text="BIRTH")
+    DEATH = PermissibleValue(text="DEATH")
+    PASSED_DRIVING_TEST = PermissibleValue(text="PASSED_DRIVING_TEST")
+    FIRST_CAR_ACCIDENT = PermissibleValue(text="FIRST_CAR_ACCIDENT")
+    MARRIAGE = PermissibleValue(text="MARRIAGE")
+    DIVORCE = PermissibleValue(text="DIVORCE")
+
+    _defn = EnumDefinition(
+        name="ImportantLifeEventType",
     )
 
 
@@ -707,6 +752,15 @@ slots.primary_email = Slot(
     range=Optional[str],
 )
 
+slots.secondary_email = Slot(
+    uri=SCHEMA.email,
+    name="secondary_email",
+    curie=SCHEMA.curie("email"),
+    model_uri=PERSONINFO.secondary_email,
+    domain=None,
+    range=Optional[str],
+)
+
 slots.birth_date = Slot(
     uri=SCHEMA.birthDate,
     name="birth_date",
@@ -761,6 +815,33 @@ slots.has_familial_relationships = Slot(
     range=Optional[
         Union[Union[dict, FamilialRelationship], List[Union[dict, FamilialRelationship]]]
     ],
+)
+
+slots.has_important_life_events = Slot(
+    uri=PERSONINFO.has_important_life_events,
+    name="has_important_life_events",
+    curie=PERSONINFO.curie("has_important_life_events"),
+    model_uri=PERSONINFO.has_important_life_events,
+    domain=None,
+    range=Optional[Union[Union[dict, ImportantLifeEvent], List[Union[dict, ImportantLifeEvent]]]],
+)
+
+slots.important_event_date = Slot(
+    uri=PERSONINFO.important_event_date,
+    name="important_event_date",
+    curie=PERSONINFO.curie("important_event_date"),
+    model_uri=PERSONINFO.important_event_date,
+    domain=None,
+    range=Union[str, XSDDate],
+)
+
+slots.event_name = Slot(
+    uri=PERSONINFO.event_name,
+    name="event_name",
+    curie=PERSONINFO.curie("event_name"),
+    model_uri=PERSONINFO.event_name,
+    domain=None,
+    range=Union[str, "ImportantLifeEventType"],
 )
 
 slots.in_location = Slot(
@@ -946,6 +1027,16 @@ slots.Person_primary_email = Slot(
     name="Person_primary_email",
     curie=SCHEMA.curie("email"),
     model_uri=PERSONINFO.Person_primary_email,
+    domain=Person,
+    range=Optional[str],
+    pattern=re.compile(r"^\S+@[\S+\.]+\S+"),
+)
+
+slots.Person_secondary_email = Slot(
+    uri=SCHEMA.email,
+    name="Person_secondary_email",
+    curie=SCHEMA.curie("email"),
+    model_uri=PERSONINFO.Person_secondary_email,
     domain=Person,
     range=Optional[str],
     pattern=re.compile(r"^\S+@[\S+\.]+\S+"),

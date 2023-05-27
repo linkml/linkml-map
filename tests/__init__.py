@@ -5,10 +5,12 @@ SRC = "source"
 TGT = "target"
 TR = "transform"
 DATA = "data"
+INPUT = "input"
+OUTPUT = "output"
 
 ROOT = os.path.abspath(os.path.dirname(__file__))
-INPUT_DIR = Path(ROOT) / "input"
-OUTPUT_DIR = Path(ROOT) / "output"
+INPUT_DIR = Path(ROOT) / INPUT
+OUTPUT_DIR = Path(ROOT) / OUTPUT
 EXAMPLE_DIR = Path(INPUT_DIR) / "examples"
 
 PERSONINFO_BASIC_EXAMPLE_DIR = Path(EXAMPLE_DIR) / "personinfo_basic"
@@ -17,6 +19,10 @@ PERSONINFO_TGT_SCHEMA = PERSONINFO_BASIC_EXAMPLE_DIR / TGT / "agent.yaml"
 PERSONINFO_TR = PERSONINFO_BASIC_EXAMPLE_DIR / TR / "personinfo-to-agent.transform.yaml"
 PERSONINFO_DATA = PERSONINFO_BASIC_EXAMPLE_DIR / DATA / "Person-001.yaml"
 PERSONINFO_CONTAINER_DATA = PERSONINFO_BASIC_EXAMPLE_DIR / DATA / "Container-001.yaml"
+PERSONINFO_TGT_DATA = PERSONINFO_BASIC_EXAMPLE_DIR / OUTPUT / "Person-001.transformed.yaml"
+PERSONINFO_CONTAINER_TGT_DATA = (
+    PERSONINFO_BASIC_EXAMPLE_DIR / OUTPUT / "Container-001.transformed.yaml"
+)
 
 FLATTENING_BASIC_EXAMPLE_DIR = Path(EXAMPLE_DIR) / "flattening"
 FLATTENING_SRC_SCHEMA = FLATTENING_BASIC_EXAMPLE_DIR / SRC / "normalized.yaml"

@@ -25,21 +25,41 @@ derive_{{ sd.range }}({{ var }})
  {%- if sd.populated_from -%}
   source_object.{{ sd.populated_from }}
  {%- elif sd.expr -%}
+  {%- if '\n' in sd.expr -%}
+ gen_{{ sd.name }}(source_object)
+  {%- elif '{' in sd.expr and '}' in sd.expr -%}
+  {{ sd.expr|replace('{', '')|replace('}', '') }}
+  {%- else -%}
   {{ sd.expr }}
+  {%- endif -%}
  {%- else -%}
   None
  {%- endif -%}
 {%- endif -%}
 {%- endmacro %}
+{% macro gen_slot_derivation_defs(sd) -%}
+{% if sd.expr and '\n' in sd.expr %}
+
+    def gen_{{ sd.name }}(src):
+        target = None
+   {%- for line in sd.expr.split('\n') %}
+        {{ line }}
+   {%- endfor -%}
+        return target
+{% endif %}
+{%- endmacro %}
 def derive_{{ cd.name }}(
         source_object: {{ source_module }}.{{ cd.populated_from }}
     ) -> {{ target_module }}.{{ cd.name }}:
-    return {{ cd.populated_from }}(
-       {%- for sd in cd.slot_derivations.values() %}
-       {{ sd.name }}={{ gen_slot_derivation(sd) }},
-       {%- endfor %}
-    )
+{%-  for sd in cd.slot_derivations.values() -%}
+    {{  gen_slot_derivation_defs(sd) }}
+{%-  endfor %}
 
+    return {{ cd.populated_from }}(
+        {%- for sd in cd.slot_derivations.values() %}
+        {{ sd.name }}={{ gen_slot_derivation(sd) }},
+        {%- endfor %}
+    )
 """
 
 

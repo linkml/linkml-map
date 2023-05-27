@@ -51,6 +51,7 @@ classes:
       - HasAliases
     slots:
       - primary_email
+      - secondary_email
       - birth_date
       - age_in_years
       - gender
@@ -58,8 +59,11 @@ classes:
       - has_employment_history
       - has_familial_relationships
       - has_medical_history
+      - has_important_life_events
     slot_usage:
       primary_email:
+        pattern: "^\\S+@[\\S+\\.]+\\S+"
+      secondary_email:
         pattern: "^\\S+@[\\S+\\.]+\\S+"
     in_subset:
       - basic_subset
@@ -73,7 +77,6 @@ classes:
         multivalued: true
         exact_mappings:
           - schema:alternateName
-
 
   Organization:
     description: >-
@@ -151,6 +154,12 @@ classes:
       - procedure
       - type
 
+  ImportantLifeEvent:
+    is_a: Event
+    slots:
+      - important_event_date
+      - event_name
+
   WithLocation:
     mixin: true
     slots:
@@ -177,6 +186,7 @@ slots:
     range: GenderType
   primary_email:
     slot_uri: schema:email
+  secondary_email:
   birth_date:
     slot_uri: schema:birthDate
   employed_at:
@@ -195,6 +205,17 @@ slots:
     range: FamilialRelationship
     multivalued: true
     inlined_as_list: true
+  has_important_life_events:
+    range: ImportantLifeEvent
+    multivalued: true
+    inlined_as_list: true
+  important_event_date:
+    range: date
+    required: true
+  event_name:
+    range: ImportantLifeEventType
+    required: true
+
   in_location:
     range: Place
   current_address:
@@ -270,7 +291,17 @@ enums:
         meaning: GSSO:000371
       cisgender woman:
         meaning: GSSO:000385
+      None:
+        meaning: GSSO:000283
   DiagnosisType:
+  ImportantLifeEventType:
+    permissible_values:
+      BIRTH:
+      DEATH:
+      PASSED_DRIVING_TEST:
+      FIRST_CAR_ACCIDENT:
+      MARRIAGE:
+      DIVORCE:
 
 subsets:
   basic_subset:

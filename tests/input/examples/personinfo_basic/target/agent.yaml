@@ -51,7 +51,9 @@ classes:
       - HasAliases
     slots:
       - primary_email
+      - secondary_email
       - birth_date
+      - death_date
       - age
       - gender
       - current_address
@@ -59,8 +61,12 @@ classes:
       - has_familial_relationships
       - has_medical_history
       - parents
+      - driving_since
+      - first_known_event
     slot_usage:
       primary_email:
+        pattern: "^\\S+@[\\S+\\.]+\\S+"
+      secondary_email:
         pattern: "^\\S+@[\\S+\\.]+\\S+"
     in_subset:
       - basic_subset
@@ -177,8 +183,13 @@ slots:
     range: GenderType
   primary_email:
     slot_uri: schema:email
+  secondary_email:
+    slot_uri: schema:email
   birth_date:
     slot_uri: schema:birthDate
+    range: date
+  death_date:
+    range: date
   employed_at:
     range: Organization
   is_current:
@@ -195,6 +206,10 @@ slots:
     range: FamilialRelationship
     multivalued: true
     inlined_as_list: true
+  driving_since:
+    range: date
+  first_known_event:
+    range: date
   parents:
     range: string
     multivalued: true
@@ -252,7 +267,7 @@ enums:
     permissible_values:
       SIBLING_OF:
         meaning: famrel:01
-      parent of:
+      PARENT_OF:
         meaning: famrel:02
       CHILD_OF:
         meaning: famrel:05
@@ -270,6 +285,8 @@ enums:
         meaning: GSSO:000371
       cisgender woman:
         meaning: GSSO:000385
+      None:
+        meaning: GSSO:000283
   DiagnosisType:
 
 subsets:

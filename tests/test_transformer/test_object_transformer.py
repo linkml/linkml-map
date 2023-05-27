@@ -1,5 +1,6 @@
 import itertools
 import unittest
+from typing import Any
 
 import yaml
 from linkml_runtime import SchemaView
@@ -27,13 +28,25 @@ from tests import (
     DENORM_SPECIFICATION,
     FLATTENING_DATA,
     NORM_SCHEMA,
+    PERSONINFO_CONTAINER_DATA,
+    PERSONINFO_CONTAINER_TGT_DATA,
     PERSONINFO_DATA,
     PERSONINFO_SRC_SCHEMA,
+    PERSONINFO_TGT_DATA,
     PERSONINFO_TGT_SCHEMA,
     PERSONINFO_TR,
 )
 
 AGE_STRING = "33 years"
+AGE_INT = 33
+
+TARGET_DATA = yaml.safe_load(open(str(PERSONINFO_TGT_DATA)))
+TARGET_OBJECT = yaml_loader.load(str(PERSONINFO_TGT_DATA), target_class=tgt_dm.Agent)
+
+CONTAINER_DATA = yaml.safe_load(open(str(PERSONINFO_CONTAINER_TGT_DATA)))
+CONTAINER_OBJECT = yaml_loader.load(
+    str(PERSONINFO_CONTAINER_TGT_DATA), target_class=tgt_dm.Container
+)
 
 
 class ObjectTransformerTestCase(unittest.TestCase):
@@ -46,35 +59,61 @@ class ObjectTransformerTestCase(unittest.TestCase):
         tr.source_schemaview = SchemaView(str(PERSONINFO_SRC_SCHEMA))
         tr.target_schemaview = SchemaView(str(PERSONINFO_TGT_SCHEMA))
         tr.load_transformer_specification(PERSONINFO_TR)
-        self.tr = tr
+        self.tr: ObjectTransformer = tr
 
-    def test_transform_simple_dict(self):
+    def test_transform_dict(self) -> None:
         """
-        Tests transforming a Person object from s1 to an Agent object in s2
+        Tests transforming a dictionary of Person data
+        into a dictionary of Agent data
         """
         tr = self.tr
-        obj = yaml.safe_load(open(str(PERSONINFO_DATA)))
-        self.assertEqual(33, obj["age_in_years"])
-        target_obj = tr.transform(obj, source_type="Person")
-        self.assertEqual(AGE_STRING, target_obj["age"])
+        person_dict: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_DATA)))
+        assert person_dict["age_in_years"] == AGE_INT
+        target_dict: dict[str, Any] = tr.transform(person_dict, source_type="Person")
+        assert isinstance(target_dict, type(TARGET_DATA))
+        assert target_dict["age"] == AGE_STRING
+        assert target_dict == TARGET_DATA
+
+    def test_transform_dict_in_container(self):
+        """
+        Tests transforming a Person data dict in a Container
+        into an Agent data dict in a Container dict
+        """
+        tr = self.tr
+        person_dict: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_DATA)))
+        container_dict = {"persons": [person_dict]}
+        target_dict = tr.transform(container_dict, source_type="Container")
+        assert target_dict == {"agents": [TARGET_DATA]}
+
+    def test_transform_multiple_dicts_in_container(self) -> None:
+        """
+        Tests transforming several Person data dicts in a Container
+        into Agent data dicts in a Container dicts
+        """
+        tr = self.tr
+        container_dict: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_CONTAINER_DATA)))
+        target_dict: dict[str, Any] = tr.transform(container_dict, source_type="Container")
+        assert target_dict == CONTAINER_DATA
 
     def check_familial_relationships(self, obj, data_model, expected):
-        self.assertEqual(len(expected), len(obj.has_familial_relationships))
+        assert len(expected) == len(obj.has_familial_relationships)
         for n in range(len(expected)):
             fr = obj.has_familial_relationships[n]
-            self.assertIsInstance(fr, data_model.FamilialRelationship)
-            self.assertEqual(expected[n]["related_to"], fr.related_to)
-            self.assertEqual(expected[n]["type"], str(fr.type))
+            assert isinstance(fr, data_model.FamilialRelationship)
+            assert expected[n]["related_to"] == fr.related_to
+            assert expected[n]["type"] == str(fr.type)
 
     def test_transform_simple_object(self):
         """
-        Tests transforming a Person object from s1 to an Agent object in s2
+        Tests transforming a Person object
+        into an Agent object
         """
-        tr = self.tr
-        obj: src_dm.Person
-        obj = yaml_loader.load(str(PERSONINFO_DATA), target_class=src_dm.Person)
-        self.assertIsInstance(obj, src_dm.Person)
-        self.assertEqual(33, obj.age_in_years)
+        tr: ObjectTransformer = self.tr
+        person_obj: src_dm.Person = yaml_loader.load(
+            str(PERSONINFO_DATA), target_class=src_dm.Person
+        )
+        assert isinstance(person_obj, src_dm.Person)
+        assert person_obj.age_in_years == AGE_INT
 
         expected = [
             {
@@ -88,18 +127,19 @@ class ObjectTransformerTestCase(unittest.TestCase):
                 "enum": src_dm.FamilialRelationshipType.CHILD_OF,
             },
         ]
-        self.check_familial_relationships(obj, src_dm, expected)
+        self.check_familial_relationships(person_obj, src_dm, expected)
         # TODO: move these tests to `check_familial_relationships` once
         # enum derivations are implemented
         for n in range(len(expected)):
-            fr = obj.has_familial_relationships[n]
-            self.assertEqual(src_dm.FamilialRelationshipType(expected[n]["enum"]), fr.type)
+            fr = person_obj.has_familial_relationships[n]
+            assert src_dm.FamilialRelationshipType(expected[n]["enum"]) == fr.type
 
-        target_obj = tr.transform_object(obj, target_class=tgt_dm.Agent)
-        self.assertIsInstance(target_obj, tgt_dm.Agent)
-        self.assertEqual(obj.name, target_obj.label, "name becomes label")
-        self.assertEqual(AGE_STRING, target_obj.age, "age stringified")
-        self.assertIsNone(target_obj.gender, "gender is set to None")
+        target_obj = tr.transform_object(person_obj, target_class=tgt_dm.Agent)
+        assert isinstance(target_obj, tgt_dm.Agent)
+        assert person_obj.name == target_obj.label
+        assert AGE_STRING == target_obj.age
+        assert target_obj.gender is None
+
         expected = [
             {
                 "related_to": "P:002",
@@ -115,42 +155,51 @@ class ObjectTransformerTestCase(unittest.TestCase):
             },
         ]
         self.check_familial_relationships(target_obj, tgt_dm, expected)
-
-    def test_transform_container_dict(self):
-        """tests recursive"""
-        tr = self.tr
-        person = yaml.safe_load(open(str(PERSONINFO_DATA)))
-        container = {"persons": [person]}
-        target_obj = tr.transform(container, source_type="Container")
-        self.assertEqual(list(target_obj.keys()), ["agents"])
-        self.assertEqual(target_obj["agents"][0]["age"], AGE_STRING)
+        assert target_obj == TARGET_OBJECT
 
     def test_transform_container_object(self):
-        """tests recursive"""
+        """
+        Tests transforming a Container object holding a Person object
+        into Container object holding an Agent object
+        """
         tr = self.tr
         person = yaml_loader.load(str(PERSONINFO_DATA), target_class=src_dm.Person)
-        obj = src_dm.Container(persons=[person])
-        target_obj: tgt_dm.Container = tr.transform_object(obj, target_class=tgt_dm.Container)
-        self.assertIsInstance(target_obj, tgt_dm.Container)
-        agents = target_obj.agents
+        container_obj = src_dm.Container(persons=[person])
+        result: tgt_dm.Container = tr.transform_object(container_obj, target_class=tgt_dm.Container)
+        assert isinstance(result, tgt_dm.Container)
+        agents = result.agents
         agent = agents[0]
-        self.assertEqual(person.name, agent.label)
-        self.assertEqual(AGE_STRING, agent.age)
+        assert agent.label == person.name
+        assert agent.age == AGE_STRING
+        assert agent == TARGET_OBJECT
         for rel in [0, 1]:
             person_fr1 = person.has_familial_relationships[rel]
             agent_fr1 = agent.has_familial_relationships[rel]
-            self.assertEqual(person_fr1.related_to, agent_fr1.related_to)
+            assert person_fr1.related_to == agent_fr1.related_to
+
+    def test_transform_object_container(self):
+        """
+        Tests transforming a Container object holding several Person objects
+        into Container object holding several Agent objects
+        """
+        tr = self.tr
+        container_obj = yaml_loader.load(
+            str(PERSONINFO_CONTAINER_DATA), target_class=src_dm.Container
+        )
+        target_obj = tr.transform_object(container_obj, target_class=tgt_dm.Container)
+        assert target_obj.agents[0] == TARGET_OBJECT
+        assert target_obj == CONTAINER_OBJECT
 
     def check_subject_object_predicate(
         self,
         obj,
         expected,
     ):
-        self.assertEqual(expected["subject_id"], obj.subject.id)
-        self.assertEqual(expected["subject_name"], obj.subject.name)
-        self.assertEqual(expected["object_id"], obj.object.id)
-        self.assertEqual(expected["object_name"], obj.object.name)
-        self.assertEqual(expected["predicate"], obj.predicate)
+        assert expected["subject_id"] == obj.subject.id
+        assert expected["subject_name"] == obj.subject.name
+        assert expected["object_id"] == obj.object.id
+        assert expected["object_name"] == obj.object.name
+        assert expected["predicate"] == obj.predicate
 
     def test_index_dict(self):
         sv = SchemaView(NORM_SCHEMA)
@@ -176,10 +225,10 @@ class ObjectTransformerTestCase(unittest.TestCase):
         tr.index(container, "MappingSet")
         dynobj = dynamic_object(container, sv, "MappingSet")
         mset = ix.bless(dynobj)
-        self.assertEqual("U:1", mset.mappings[0].subject)
-        self.assertEqual("Y:1", mset.mappings[0].object.id)
-        self.assertEqual("y1", mset.mappings[0].object.name)
-        self.assertEqual("P:1", mset.mappings[0].predicate)
+        assert "U:1" == mset.mappings[0].subject
+        assert "Y:1" == mset.mappings[0].object.id
+        assert "y1" == mset.mappings[0].object.name
+        assert "P:1" == mset.mappings[0].predicate
 
     def test_index_obj(self):
         sv = SchemaView(NORM_SCHEMA)
@@ -229,23 +278,18 @@ class ObjectTransformerTestCase(unittest.TestCase):
         tr.target_schemaview = SchemaView(DENORM_SCHEMA)
         tr.load_transformer_specification(DENORM_SPECIFICATION)
         mset = yaml.safe_load(open(str(FLATTENING_DATA)))
-        self.assertEqual(
-            mset["mappings"], [{"subject": "X:1", "object": "Y:1", "predicate": "P:1"}]
-        )
-        self.assertEqual(mset["entities"], {"X:1": {"name": "x1"}, "Y:1": {"name": "y1"}})
+        assert mset["mappings"] == [{"subject": "X:1", "object": "Y:1", "predicate": "P:1"}]
+        assert mset["entities"] == {"X:1": {"name": "x1"}, "Y:1": {"name": "y1"}}
         tr.index(mset, "MappingSet")
         target_obj = tr.transform(mset, source_type="MappingSet")
         assert type(target_obj) == dict
-        self.assertEqual(
-            target_obj["mappings"][0],
-            {
-                "subject_id": "X:1",
-                "subject_name": "x1",
-                "object_id": "Y:1",
-                "object_name": "y1",
-                "predicate_id": "P:1",
-            },
-        )
+        assert target_obj["mappings"][0] == {
+            "subject_id": "X:1",
+            "subject_name": "x1",
+            "object_id": "Y:1",
+            "object_name": "y1",
+            "predicate_id": "P:1",
+        }
 
     def test_denormalized_object_transform(self):
         """
@@ -265,34 +309,34 @@ class ObjectTransformerTestCase(unittest.TestCase):
             str(FLATTENING_DATA), target_class=sssom_src_dm.MappingSet
         )
         mapping = mset.mappings[0]
-        self.assertEqual(mapping.subject, "X:1")
-        self.assertEqual(mapping.object, "Y:1")
-        self.assertEqual(mset.entities["X:1"].name, "x1")
-        self.assertEqual(mset.entities["Y:1"].name, "y1")
+        assert mapping.subject == "X:1"
+        assert mapping.object == "Y:1"
+        assert mset.entities["X:1"].name == "x1"
+        assert mset.entities["Y:1"].name == "y1"
         tr.index(mset)
         mset_proxy = tr.object_index.bless(mset)
-        self.assertEqual(mset_proxy.mappings[0].subject.id, "X:1")
-        self.assertEqual(mset_proxy.mappings[0].subject.name, "x1")
+        assert mset_proxy.mappings[0].subject.id == "X:1"
+        assert mset_proxy.mappings[0].subject.name == "x1"
         target_obj: sssom_tgt_dm.MappingSet = tr.transform_object(
             mset, target_class=sssom_tgt_dm.MappingSet
         )
         mapping = target_obj.mappings[0]
-        self.assertEqual(mapping.subject_id, "X:1")
-        self.assertEqual(mapping.subject_name, "x1")
-        self.assertEqual(mapping.object_id, "Y:1")
-        self.assertEqual(mapping.object_name, "y1")
+        assert mapping.subject_id == "X:1"
+        assert mapping.subject_name == "x1"
+        assert mapping.object_id == "Y:1"
+        assert mapping.object_name == "y1"
         # dangling reference
         mset.mappings[0].subject = "U:1"
         tr.index(mset)
         mset_proxy = tr.object_index.bless(mset)
-        self.assertEqual(mset_proxy.mappings[0].subject.id, "U:1")
+        assert mset_proxy.mappings[0].subject.id == "U:1"
         self.assertIsNone(mset_proxy.mappings[0].subject.name)
         target_obj = tr.transform_object(mset, target_class=sssom_tgt_dm.MappingSet)
         mapping = target_obj.mappings[0]
-        self.assertEqual(mapping.subject_id, "U:1")
+        assert mapping.subject_id == "U:1"
         self.assertIsNone(mapping.subject_name)
-        self.assertEqual(mapping.object_id, "Y:1")
-        self.assertEqual(mapping.object_name, "y1")
+        assert mapping.object_id == "Y:1"
+        assert mapping.object_name == "y1"
 
     def test_cardinalities(self):
         """
@@ -335,7 +379,7 @@ class ObjectTransformerTestCase(unittest.TestCase):
                 target_schemaview=SchemaView(target_schema),
             )
             target_instance = tr.transform(source_instance, class_name)
-            self.assertEqual([val] if target_multivalued else val, target_instance[att_name])
+            assert [val] if target_multivalued else val == target_instance[att_name]
 
 
 if __name__ == "__main__":

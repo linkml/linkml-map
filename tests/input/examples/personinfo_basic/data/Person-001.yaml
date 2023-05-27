@@ -1,6 +1,7 @@
 id: P:001
 name: fred bloggs
 primary_email: fred.bloggs@example.com
+secondary_email: frederick.b.loggs@home.com
 age_in_years: 33
 gender: nonbinary man
 has_familial_relationships:
@@ -11,3 +12,10 @@ has_familial_relationships:
 current_address:
   street: 1 oak street
   city: oaktown
+has_important_life_events:
+  - event_name: BIRTH
+    important_event_date: 1990-01-01
+  - event_name: PASSED_DRIVING_TEST
+    important_event_date: 2014-03-31
+  - event_name: FIRST_CAR_ACCIDENT
+    important_event_date: 2015-01-25

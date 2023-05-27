@@ -3,11 +3,15 @@ agents:
   label: fred bloggs
   age: 33 years
   primary_email: fred.bloggs@example.com
+  secondary_email: null
   gender: null
+  driving_since: 2014-03-31
+  first_known_event: 1990-01-01
+  death_date: null
   current_address:
     address_of: foo
     street: 1 oak street
-    city: foo
+    city: oaktown
   has_familial_relationships:
   - type: SIBLING_OF
     related_to: P:002
@@ -17,7 +21,11 @@ agents:
   label: Alison Wu
   age: null
   primary_email: null
+  secondary_email: null
   gender: null
+  driving_since: null
+  first_known_event: null
+  death_date: null
   current_address: null
   has_familial_relationships:
   - type: SIBLING_OF
@@ -28,7 +36,11 @@ agents:
   label: Mr. Blobby
   age: null
   primary_email: null
+  secondary_email: null
   gender: null
+  driving_since: null
+  first_known_event: null
+  death_date: null
   current_address: null
   has_familial_relationships:
   - type: PARENT_OF
