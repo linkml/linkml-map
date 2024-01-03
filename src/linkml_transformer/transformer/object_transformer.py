@@ -1,13 +1,18 @@
+import json
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Type, Union
+from typing import Any, Dict, Optional, Type, Union, List
 
+import yaml
 from asteval import Interpreter
+from linkml_runtime import SchemaView
 from linkml_runtime.index.object_index import ObjectIndex
 from linkml_runtime.utils.yamlutils import YAMLRoot
 from pydantic import BaseModel
 
-from linkml_transformer.transformer.eval_utils import eval_expr
+from linkml_transformer.datamodel.transformer_model import SlotDerivation, SerializationSyntaxType
+from linkml_transformer.functions.unit_conversion import convert_units, UnitSystem
+from linkml_transformer.utils.eval_utils import eval_expr
 from linkml_transformer.transformer.transformer import OBJECT_TYPE, Transformer
 from linkml_transformer.utils.dynamic_object import dynamic_object
 
@@ -56,13 +61,23 @@ class ObjectTransformer(Transformer):
         Transform a source object into a target object.
 
         :param source_obj: source data structure
-        :param source_type: name of the object type to cast the source object as
-        :param target_type: type to return the transformed object as
+        :param source_type: source_obj instantiates this (may be class, type, or enum)
+        :param target_type: target_obj instantiates this (may be class, type, or enum)
         :return: transformed data, either as type target_type or a dictionary
         """
         sv = self.source_schemaview
         if source_type is None:
-            [source_type] = [c.name for c in sv.all_classes().values() if c.tree_root]
+            source_types = [c.name for c in sv.all_classes().values() if c.tree_root]
+            if len(source_types) == 1:
+                source_type = source_types[0]
+            elif len(source_types) > 1:
+                raise ValueError("No source type specified and multiple root classes found")
+            elif len(source_types) == 0:
+                if len(sv.all_classes()) == 1:
+                    source_type = list(sv.all_classes().keys())[0]
+                else:
+                    raise ValueError("No source type specified and no root classes found")
+
         if source_type in sv.all_types():
             if target_type:
                 if target_type == "string":
@@ -78,9 +93,11 @@ class ObjectTransformer(Transformer):
             return source_obj
         if source_type in sv.all_enums():
             # TODO: enum derivations
-            return str(source_obj)
+            return self.transform_enum(source_obj, source_type, source_obj)
+            # return str(source_obj)
         source_obj_typed = None
         if isinstance(source_obj, (BaseModel, YAMLRoot)):
+            # ensure dict
             source_obj_typed = source_obj
             source_obj = vars(source_obj)
         if not isinstance(source_obj, dict):
@@ -88,15 +105,12 @@ class ObjectTransformer(Transformer):
             return source_obj
         class_deriv = self._get_class_derivation(source_type)
         tgt_attrs = {}
+        # map each slot assignment in source_obj, if there is a slot_derivation
         for slot_derivation in class_deriv.slot_derivations.values():
             v = None
             source_class_slot = None
-            if slot_derivation.populated_from:
-                v = source_obj.get(slot_derivation.populated_from, None)
-                source_class_slot = sv.induced_slot(slot_derivation.populated_from, source_type)
-                logger.debug(
-                    f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {source_obj}"
-                )
+            if slot_derivation.unit_conversion:
+                v = self._perform_unit_conversion(slot_derivation, source_obj, sv, source_type)
             elif slot_derivation.expr:
                 if self.object_index:
                     if not source_obj_typed:
@@ -117,42 +131,144 @@ class ObjectTransformer(Transformer):
                 try:
                     v = eval_expr(slot_derivation.expr, **ctxt_dict, NULL=None)
                 except Exception:
+                    if not self.unrestricted_eval:
+                        raise RuntimeError(f"Expression not in safe subset: {slot_derivation.expr}")
                     aeval = Interpreter(usersyms={"src": ctxt_obj, "target": None})
                     aeval(slot_derivation.expr)
                     v = aeval.symtable["target"]
-
+            elif slot_derivation.populated_from:
+                v = source_obj.get(slot_derivation.populated_from, None)
+                source_class_slot = sv.induced_slot(slot_derivation.populated_from, source_type)
+                logger.debug(
+                    f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {source_obj}"
+                )
             else:
                 source_class_slot = sv.induced_slot(slot_derivation.name, source_type)
                 v = source_obj.get(slot_derivation.name, None)
             if source_class_slot and v is not None:
+                # slot is mapped and there is a value in the assignment
                 target_range = slot_derivation.range
                 source_class_slot_range = source_class_slot.range
                 if source_class_slot.multivalued:
                     if isinstance(v, list):
                         v = [self.transform(v1, source_class_slot_range, target_range) for v1 in v]
                     elif isinstance(v, dict):
-                        v = [self.transform(v1, source_class_slot_range, target_range) for v1 in v]
+                        v = {k1: self.transform(v1, source_class_slot_range, target_range) for k1, v1 in v.items()}
                     else:
                         v = [v]
                 else:
                     v = self.transform(v, source_class_slot_range, target_range)
                 if (
-                    self._coerce_to_multivalued(slot_derivation, class_deriv)
+                    self._is_coerce_to_multivalued(slot_derivation, class_deriv)
                     and v is not None
                     and not isinstance(v, list)
                 ):
-                    v = [v]
-                if self._coerce_to_singlevalued(slot_derivation, class_deriv) and isinstance(
+                    v = self._singlevalued_to_multivalued(v, slot_derivation)
+                if self._is_coerce_to_singlevalued(slot_derivation, class_deriv) and isinstance(
                     v, list
                 ):
-                    if len(v) > 1:
-                        raise ValueError(f"Cannot coerce multiple values {v}")
-                    if len(v) == 0:
-                        v = None
-                    else:
-                        v = v[0]
+                    v = self._multivalued_to_singlevalued(v, slot_derivation)
+                v = self._coerce_datatype(v, target_range)
             tgt_attrs[str(slot_derivation.name)] = v
         return tgt_attrs
+
+    def _perform_unit_conversion(self, slot_derivation: SlotDerivation, source_obj: Any, sv: SchemaView, source_type: str) -> Union[float, Dict]:
+        uc = slot_derivation.unit_conversion
+        curr_v = source_obj.get(slot_derivation.populated_from, None)
+        system = UnitSystem.UCUM
+        if curr_v is not None:
+            slot = sv.induced_slot(slot_derivation.populated_from, source_type)
+            to_unit = uc.target_unit
+            if uc.source_unit_slot:
+                from_unit = curr_v.get(uc.source_unit_slot, None)
+                if from_unit is None:
+                    raise ValueError(f"Could not determine unit from {curr_v}"
+                                     f" using {uc.source_unit_slot}")
+                magnitude = curr_v.get(uc.source_magnitude_slot, None)
+                if magnitude is None:
+                    raise ValueError(f"Could not determine magnitude from {curr_v}"
+                                     f" using {uc.source_magnitude_slot}")
+            else:
+                if slot.unit.ucum_code:
+                    from_unit = slot.unit.ucum_code
+                elif slot.unit.iec61360code:
+                    from_unit = slot.unit.iec61360code
+                    system = UnitSystem.IEC61360
+                else:
+                    system = None
+                    if slot.unit.symbol:
+                        from_unit = slot.unit.symbol
+                    elif slot.unit.abbreviation:
+                        from_unit = slot.unit.abbreviation
+                    elif slot.unit.descriptive_name:
+                        from_unit = slot.unit.descriptive_name
+                    else:
+                        raise NotImplementedError(f"Cannot determine unit system for {slot.unit}")
+                magnitude = curr_v
+            if not from_unit:
+                raise ValueError(f"Could not determine from_unit for {slot_derivation}")
+            if not to_unit:
+                to_unit = from_unit
+                #raise ValueError(f"Could not determine to_unit for {slot_derivation}")
+            if from_unit == to_unit:
+                v = magnitude
+            else:
+                v = convert_units(
+                    magnitude,
+                    from_unit=from_unit,
+                    to_unit=to_unit,
+                    system=system,
+                )
+            if uc.target_magnitude_slot:
+                v = {
+                    uc.target_magnitude_slot: v,
+                    uc.target_unit_slot: to_unit
+                }
+            return v
+
+
+    def _multivalued_to_singlevalued(self, vs: List[Any], slot_derivation: SlotDerivation) -> Any:
+        if slot_derivation.stringification:
+            stringification = slot_derivation.stringification
+            delimiter = stringification.delimiter
+            if delimiter:
+                return delimiter.join(vs)
+            elif stringification.syntax:
+                if stringification.syntax == SerializationSyntaxType.JSON:
+                    return json.dumps(vs)
+                elif stringification.syntax == SerializationSyntaxType.YAML:
+                    return yaml.dump(vs, default_flow_style=True).strip()
+                else:
+                    raise ValueError(f"Unknown syntax: {stringification.syntax}")
+            else:
+                raise ValueError(f"Cannot convert multivalued to single valued: {vs}; no delimiter")
+        if len(vs) > 1:
+            raise ValueError(f"Cannot coerce multiple values {vs}")
+        if len(vs) == 0:
+            return None
+        else:
+            return vs[0]
+
+    def _singlevalued_to_multivalued(self, v: Any, slot_derivation: SlotDerivation) -> List[Any]:
+        stringification = slot_derivation.stringification
+        if stringification:
+            delimiter = stringification.delimiter
+            if delimiter:
+                vs = v.split(slot_derivation.stringification.delimiter)
+                if vs == ['']:
+                    vs = []
+            elif stringification.syntax:
+                syntax = stringification.syntax
+                if syntax == SerializationSyntaxType.JSON:
+                    vs = json.loads(v)
+                elif syntax == SerializationSyntaxType.YAML:
+                    vs = yaml.safe_load(v)
+                else:
+                    raise ValueError(f"Unknown syntax: {syntax}")
+            else:
+                raise ValueError(f"Cannot convert single valued to multivalued: {v}; no delimiter")
+            return vs
+        return [v]
 
     def transform_object(
         self,
@@ -182,3 +298,21 @@ class ObjectTransformer(Transformer):
         #    raise ValueError(f"Do not know how to handle type: {typ}")
         tr_obj_dict = self.transform(source_obj, source_type_name)
         return target_class(**tr_obj_dict)
+
+    def transform_enum(self, source_value: str, enum_name: str, source_obj: Any) -> Optional[str]:
+        enum_deriv = self._get_enum_derivation(enum_name)
+        if enum_deriv.expr:
+            try:
+                if enum_deriv.expr:
+                    v = eval_expr(enum_deriv.expr, **source_obj, NULL=None)
+            except Exception:
+                aeval = Interpreter(usersyms={"src": source_obj, "target": None})
+                aeval(enum_deriv.expr)
+                v = aeval.symtable["target"]
+            if v is not None:
+                return v
+        for pv_deriv in enum_deriv.permissible_value_derivations.values():
+            if source_value == pv_deriv.populated_from:
+                return pv_deriv.name
+        return str(source_value)
+

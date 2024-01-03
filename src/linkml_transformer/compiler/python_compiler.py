@@ -1,4 +1,5 @@
 from copy import deepcopy
+from dataclasses import dataclass
 from typing import Iterator
 
 from jinja2 import Template
@@ -8,14 +9,18 @@ from linkml_transformer.datamodel.transformer_model import (
     ClassDerivation,
     TransformationSpecification,
 )
-from linkml_transformer.transformer.inference import induce_missing_values
+from linkml_transformer.inference.inference import induce_missing_values
 
 CD_TEMPLATE = """
 {% macro gen_slot_derivation_value(sd, var) -%}
 {%- if sd.range -%}
 derive_{{ sd.range }}({{ var }})
 {%- else -%}
+{%- if var is not none -%}
 {{ var }}
+{%- else -%}
+None
+{%- endif -%}
 {%- endif -%}
 {%- endmacro %}
 {% macro gen_slot_derivation(sd, force_singlevalued=False) -%}
@@ -51,11 +56,15 @@ derive_{{ sd.range }}({{ var }})
 def derive_{{ cd.name }}(
         source_object: {{ source_module }}.{{ cd.populated_from }}
     ) -> {{ target_module }}.{{ cd.name }}:
+    # assign slots
+{%- for slot in source_slots %}
+    {{ slot.name }} = source_object.{{ slot.name }}
+{%- endfor %}
 {%-  for sd in cd.slot_derivations.values() -%}
     {{  gen_slot_derivation_defs(sd) }}
 {%-  endfor %}
 
-    return {{ cd.populated_from }}(
+    return tgt.{{ cd.name }}(
         {%- for sd in cd.slot_derivations.values() %}
         {{ sd.name }}={{ gen_slot_derivation(sd) }},
         {%- endfor %}
@@ -63,18 +72,29 @@ def derive_{{ cd.name }}(
 """
 
 
+@dataclass
 class PythonCompiler(Compiler):
     """
     Compiles a Transformation Specification to Python code.
     """
 
+    def _compile_header(self, specification: TransformationSpecification) -> str:
+        s = ""
+        if self.source_python_module:
+            s += f"import {self.source_python_module} as src\n"
+        if self.target_python_module:
+            s += f"import {self.target_python_module} as tgt\n"
+        s += "\nNULL = None\n\n"
+        return s
+
+
     def _compile_iterator(self, specification: TransformationSpecification) -> Iterator[str]:
         specification = deepcopy(specification)
         induce_missing_values(specification, self.source_schemaview)
         for cd in specification.class_derivations.values():
-            yield from self._yield_compile_class_derivation(cd)
+            yield from self._compiled_class_derivations_iter(cd)
 
-    def _yield_compile_class_derivation(self, cd: ClassDerivation) -> Iterator[str]:
+    def _compiled_class_derivations_iter(self, cd: ClassDerivation) -> Iterator[str]:
         sv = self.source_schemaview
         if cd.populated_from:
             populated_from = cd.populated_from
@@ -90,4 +110,5 @@ class PythonCompiler(Compiler):
             target_module="tgt",
             induced_slots=induced_slots,
             schemaview=sv,
+            source_slots=sv.class_induced_slots(populated_from),
         )

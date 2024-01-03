@@ -1,17 +1,14 @@
 site_name: "LinkML-Transformer"
 theme:
   name: material
-  analytics:
-    gtag: G-2SYBSJVZ23
   features:
     - content.tabs.link
 plugins:
   - search
   - mermaid2
 nav:
-#  - Home: home.md
   - Index: index.md
-  - About: about.md
-  - Overview: overview.md
+  - Specification:
+      Compliance Suite: specification/compliance.md
 site_url: https://cmungall.github.io/linkml-transformer/
 repo_url: https://github.com/cmungall/linkml-transformer/

@@ -1,3 +1,8 @@
+"""
+A SchemaMapper translates a source schema and transformation specification into a target schema.
+
+AKA profiling
+"""
 import logging
 from collections import defaultdict
 from copy import copy
@@ -5,21 +10,24 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
 from linkml_runtime import SchemaView
+from linkml_runtime.dumpers import json_dumper
 from linkml_runtime.linkml_model import (
     ClassDefinition,
     ClassDefinitionName,
     Element,
     SchemaDefinition,
-    SlotDefinition,
+    SlotDefinition, PermissibleValue,
 )
+from linkml_runtime.linkml_model.units import UnitOfMeasure
 
 from linkml_transformer.datamodel.transformer_model import (
     ClassDerivation,
     CopyDirective,
-    TransformationSpecification,
+    TransformationSpecification, EnumDerivation,
 )
 from linkml_transformer.transformer.transformer import Transformer
 
+logger = logging.getLogger(__name__)
 
 @dataclass
 class SchemaMapper:
@@ -36,7 +44,11 @@ class SchemaMapper:
     )
 
     def derive_schema(
-        self, specification: Optional[TransformationSpecification] = None
+        self,
+            specification: Optional[TransformationSpecification] = None,
+            target_schema_id: Optional[str] = None,
+            target_schema_name: Optional[str] = None,
+            suffix="-derived",
     ) -> SchemaDefinition:
         """
         Use a transformation specification to generate a target/profile schema from a source schema.
@@ -48,10 +60,22 @@ class SchemaMapper:
             specification = self.transformer.specification
         source_schemaview = self.source_schemaview
         source_schema = source_schemaview.schema
-        target_schema = SchemaDefinition(id=source_schema.id, name=source_schema.name)
+        if target_schema_id is None:
+            target_schema_id = source_schema.id + suffix
+        if target_schema_name is None:
+            target_schema_name = source_schema.name + suffix
+        target_schema = SchemaDefinition(id=target_schema_id, name=target_schema_name)
+        for im in source_schema.imports:
+            target_schema.imports.append(im)
+        for prefix in source_schema.prefixes.values():
+            target_schema.prefixes[prefix.prefix_prefix] = prefix
         for class_derivation in specification.class_derivations.values():
             class_definition = self._derive_class(class_derivation)
             target_schema.classes[class_definition.name] = class_definition
+        for enum_derivation in specification.enum_derivations.values():
+            enum_definition = self._derive_enum(enum_derivation)
+            target_schema.enums[enum_definition.name] = enum_definition
+        target_schema.default_range = source_schema.default_range
         for cd in target_schema.classes.values():
             self._rewire_class(cd)
         return target_schema
@@ -63,12 +87,14 @@ class SchemaMapper:
         populated_from = class_derivation.populated_from
         if not populated_from:
             populated_from = class_derivation.name
+        logger.info(f"Populating {class_derivation.name} from {populated_from}")
         source_class = self.source_schemaview.get_class(populated_from)
         if source_class is None:
-            logging.warning(f"No such class {populated_from}")
+            logger.warning(f"No such class {populated_from}")
             target_class = ClassDefinition(name=class_derivation.name)
         else:
             target_class = copy(source_class)
+            target_class.from_schema = None
             target_class.name = class_derivation.name
             target_class.slots = []
             target_class.attributes = {}
@@ -77,7 +103,39 @@ class SchemaMapper:
             slot_definition = self._derive_slot(slot_derivation)
             target_class.attributes[slot_definition.name] = slot_definition
         self.source_to_target_class_mappings[populated_from].append(target_class.name)
+        if class_derivation.overrides:
+            curr = json_dumper.to_dict(target_class)
+            for k, v in class_derivation.overrides.items():
+                curr[k] = v
+            target_class = ClassDefinition(**curr)
         return target_class
+
+    def _derive_enum(self, enum_derivation: EnumDerivation) -> ClassDefinition:
+        """
+        Derive an enum from an enum derivation.
+
+        :param enum_derivation:
+        :return:
+        """
+        populated_from = enum_derivation.populated_from
+        if not populated_from:
+            populated_from = enum_derivation.name
+        source_enum = self.source_schemaview.get_enum(populated_from)
+        if source_enum is None:
+            logger.warning(f"No such enum {populated_from}")
+            target_enum = ClassDefinition(name=enum_derivation.name)
+        else:
+            target_enum = copy(source_enum)
+            target_enum.from_schema = None
+            target_enum.name = enum_derivation.name
+            target_enum.slots = []
+            target_enum.attributes = {}
+            target_enum.slot_usage = {}
+        for pv_derivation in enum_derivation.permissible_value_derivations.values():
+            pv = PermissibleValue(text=pv_derivation.populated_from)
+            target_enum.permissible_values[pv.text] = pv
+        self.source_to_target_class_mappings[populated_from].append(target_enum.name)
+        return target_enum
 
     def _derive_slot(self, slot_derivation) -> SlotDefinition:
         """
@@ -91,7 +149,18 @@ class SchemaMapper:
             target_slot = SlotDefinition(name=slot_derivation.name)
         else:
             target_slot = copy(source_slot)
+            target_slot.from_schema = None
+            target_slot.owner = None
             target_slot.name = slot_derivation.name
+        if slot_derivation.range:
+            target_slot.range = slot_derivation.range
+        if slot_derivation.unit_conversion:
+            target_slot.unit = UnitOfMeasure(ucum_code=slot_derivation.unit_conversion.target_unit)
+        if slot_derivation.stringification:
+            if slot_derivation.stringification.reversed:
+                target_slot.multivalued = True
+            else:
+                target_slot.multivalued = False
         return target_slot
 
     def _rewire_class(self, class_definition: ClassDefinition):

@@ -7,14 +7,14 @@ from linkml_transformer.datamodel.transformer_model import (
     ClassDerivation,
     TransformationSpecification,
 )
-from linkml_transformer.schema_mapper.schema_mapper import SchemaMapper
+from linkml_transformer.inference.schema_mapper import SchemaMapper
 from linkml_transformer.transformer.object_transformer import ObjectTransformer
 from tests import SCHEMA1, SPECIFICATION
 
 
 class SchemaMapperTestCase(unittest.TestCase):
     """
-    Tests engine for deriving schemas
+    Tests engine for deriving schemas (profiling) from a specification and a source
     """
 
     def setUp(self) -> None:

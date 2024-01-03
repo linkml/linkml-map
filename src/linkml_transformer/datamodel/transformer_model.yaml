@@ -18,31 +18,68 @@ description: |-
 prefixes:
   linkml: https://w3id.org/linkml/
   linkmltr: https://w3id.org/linkml/transformer/
-default_prefix:   linkmltr
+  dcterms: http://purl.org/dc/terms/
+  schema: http://schema.org/
+  rdfs: http://www.w3.org/2000/01/rdf-schema#
+  sh: http://www.w3.org/ns/shacl#
+default_prefix: linkmltr
 
 imports:
   - linkml:types
+
+types:
+
+  ClassReference:
+    typeof: string
+
+  SlotReference:
+    typeof: string
+
+  EnumReference:
+    typeof: string
 
 classes:
 
   Any:
     class_uri: linkml:Any
 
+  SpecificationComponent:
+    abstract: true
+    attributes:
+      description:
+        description: description of the specification component
+        slot_uri: dcterms:description
+      implements:
+        description: A reference to a specification that this component implements.
+        multivalued: true
+        range: uriorcurie
+      comments:
+        description: >-
+          A list of comments about this component. Comments are free text, and may be
+          used to provide additional information about the component, including
+          instructions for its use.
+        multivalued: true
+        range: string
+        slot_uri: rdfs:comment
+
   TransformationSpecification:
-    description: >-
-      A collection of mappings between source and target classes
+    is_a: SpecificationComponent
+    description: A collection of mappings between source and target classes
     tree_root: true
     attributes:
       id:
-        identifier: true
+        # identifier: true
         description: Unique identifier for this transformation specification
+        slot_uri: schema:identifier
       title:
         description: human readable title for this transformation specification
+        slot_uri: dcterms:title
       prefixes:
         description: maps prefixes to URL expansions
         range: KeyVal
         multivalued: true
         inlined: true
+        slot_uri: sh:declare
       source_schema:
         description: name of the schema that describes the source (input) objects
       target_schema:
@@ -68,6 +105,7 @@ classes:
         inlined: true
 
   ElementDerivation:
+    is_a: SpecificationComponent
     abstract: true
     description: >-
       An abstract grouping for classes that provide a specification of how to 
@@ -87,10 +125,12 @@ classes:
         #inlined: true
       is_a:
         range: ElementDerivation
+        slot_uri: linkml:is_a
       mixins:
         range: ElementDerivation
         multivalued: true
-        inlined: true
+        inlined: false
+        slot_uri: linkml:mixins
       value_mappings:
         range: KeyVal
         multivalued: true
@@ -120,7 +160,7 @@ classes:
       #  key: true
       #  description: Name of the class in the target schema
       populated_from:
-        range: string
+        range: ClassReference
         description: Name of the class in the source schema
       joins:
         range: AliasedClass
@@ -151,8 +191,13 @@ classes:
         key: true
         description: Target slot name
       populated_from:
-        range: string
+        range: SlotReference
         description: Source slot name
+      derived_from:
+        range: SlotReference
+        multivalued: true
+        description: Source slots that are used to derive this slot. This can be computed from the expr,
+          if the expr is declarative.
       expr:
         range: string
         description: >-
@@ -161,6 +206,8 @@ classes:
       range:
         slot_uri: linkml:range
         range: string
+      unit_conversion:
+        range: UnitConversionConfiguration
       inverse_of:
         range: Inverse
         description: >-
@@ -175,6 +222,8 @@ classes:
         range: boolean
       cast_collection_as:
         range: CollectionType
+      stringification:
+        range: StringificationConfiguration
 
   EnumDerivation:
     is_a: ElementDerivation
@@ -184,7 +233,7 @@ classes:
         key: true
         description: Target enum name
       populated_from:
-        range: string
+        range: EnumReference
         description: Source enum name
       expr:
         range: string
@@ -220,9 +269,41 @@ classes:
   PrefixDerivation:
     is_a: ElementDerivation
 
+  UnitConversionConfiguration:
+    attributes:
+      target_unit:
+      target_unit_scheme:
+        range: string
+        examples:
+          - value: ucum
+      source_unit:
+      source_unit_scheme:
+          range: string
+          examples:
+          - value: ucum
+      source_unit_slot:
+      source_magnitude_slot:
+      target_unit_slot:
+      target_magnitude_slot:
+
+  StringificationConfiguration:
+    attributes:
+      delimiter:
+        range: string
+        examples:
+          - value: ','
+          - value: '|'
+          - value: ';'
+      reversed:
+        range: boolean
+      syntax:
+        range: SerializationSyntaxType
+        examples:
+          - value: 'json'
+          - value: 'yaml'
+
   Inverse:
-    description: >-
-      Used for back references
+    description: Used for back references in mapping to relational model
     aliases:
       - backref
       - back_references
@@ -240,6 +321,7 @@ classes:
   CopyDirective:
     description: >-
       Instructs a Schema Mapper in how to map to a target schema. Not used for data transformation.
+    status: testing
     attributes:
       element_name:
         key: true
@@ -261,3 +343,8 @@ enums:
       MultiValued:
       MultiValuedList:
       MultiValuedDict:
+  SerializationSyntaxType:
+    permissible_values:
+      JSON:
+      YAML:
+      TURTLE:

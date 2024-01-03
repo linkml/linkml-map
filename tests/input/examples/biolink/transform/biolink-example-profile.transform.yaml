@@ -36,7 +36,7 @@ class_derivations:
       predicate:
       object:
   GeneToPhenotypicFeatureAssociation:
-    populated_from: gene to phenotypic feature associations
+    populated_from: gene to phenotypic feature association
     overrides:
       slot_usage:
         predicate:

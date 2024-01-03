@@ -2,6 +2,8 @@
 meta-circular interpreter for evaluating python expressions
 
  - See `<https://stackoverflow.com/questions/2371436/evaluating-a-mathematical-expression-in-a-string>`_
+
+TODO: move to core
 """
 
 import ast
@@ -24,7 +26,10 @@ compare_operators = {ast.Eq: op.eq, ast.Lt: op.lt, ast.LtE: op.le, ast.Gt: op.gt
 
 def eval_conditional(*conds: List[Tuple[bool, Any]]) -> Any:
     """
-    >>> cond(x < 25 : 'low', x > 25 : 'high', True: 'low')
+    >>> x = 10
+    >>> eval_conditional((x < 25, 'low'), (x > 25, 'high'), (True, 'low'))
+    'low'
+
     :param subj:
     :return:
     """
@@ -69,8 +74,9 @@ def eval_expr(expr: str, **kwargs) -> Any:
 
     - If a variable is enclosed in {}s then entire expression will eval to None if variable is unset
 
-    >>> eval_expr('{x} + {y}', x=None, y=2)
+    >>> print(eval_expr('{x} + {y}', x=None, y=2))
     None
+
 
     Functions:
 
