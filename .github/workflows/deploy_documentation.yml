@@ -7,8 +7,7 @@ on:
     branches: [ main ]
 
     paths:
-    - 'src/docs/*'
-    - 'src/my_datamodel/schema/my_datamodel.yaml'
+    - 'src/linkml_transformer/datamodel.yaml'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -52,5 +51,4 @@ jobs:
       run: |
         mkdir docs
         touch docs/.nojekyll
-        cp -r src/docs/* docs/
         make deploy-gh-doc
