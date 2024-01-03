@@ -4,7 +4,6 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from linkml_runtime import SchemaView
-from linkml_runtime.dumpers import yaml_dumper
 
 from linkml_transformer.datamodel.transformer_model import (
     ClassDerivation,

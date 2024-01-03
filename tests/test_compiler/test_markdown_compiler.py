@@ -4,7 +4,6 @@ Tests compilation of a specification to markdown
 import pytest
 from linkml_runtime import SchemaView
 
-import tests.input.examples.personinfo_basic.model.personinfo_model as src
 from linkml_transformer.compiler.markdown_compiler import MarkdownCompiler
 from linkml_transformer.utils.loaders import load_specification
 from tests import SCHEMA1, SPECIFICATION

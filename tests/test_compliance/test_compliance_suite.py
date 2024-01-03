@@ -16,7 +16,7 @@ it can be hard to reason through combinations, and some of the generative
 code can be abstract. You are encouraged to look at the markdown outputs
 to see what is being generated for each test.
 """
-
+import logging
 import re
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
@@ -40,6 +40,8 @@ from linkml_transformer.functions.unit_conversion import (
 from linkml_transformer.inference.inverter import TransformationSpecificationInverter
 from linkml_transformer.inference.schema_mapper import SchemaMapper
 from linkml_transformer.transformer.object_transformer import ObjectTransformer
+
+logger = logging.getLogger(__name__)
 
 print(
     """
@@ -123,6 +125,7 @@ def map_object(
     """
     pc = PythonCompiler(source_schemaview=source_sv)
     python_code = pc.compile(spec)
+    logger.debug(f"Python Code: {python_code}\n\n")
     # TODO: enable this
     # print("Python Code (Generated)\n\n")
     # print("```python")
@@ -137,7 +140,8 @@ def map_object(
         mapper.index(source_object, target=source_root)
     if raises_error:
         with pytest.raises(raises_error):
-            _target_object = mapper.transform(source_object)
+            target_object = mapper.transform(source_object)
+            logger.debug(f"Unexpected Target Object: {target_object}")
         target_object = None
     else:
         target_object = mapper.transform(source_object)

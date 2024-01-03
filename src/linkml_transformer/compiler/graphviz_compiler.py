@@ -38,9 +38,6 @@ class Record(BaseModel):
             + """
         </TABLE>>"""
         )
-        # TODO: use HTML-like labels for precise control;
-        # see https://graphviz.readthedocs.io/en/stable/examples.html#structs-py
-        # return f'<{self.id}> {self.name} ({self.source})|' + '|'.join([f'<{f[0]}> {f[0]} : {f[1]}' for f in self.fields])
 
 
 @dataclass
@@ -86,7 +83,7 @@ class GraphvizCompiler(Compiler):
                 continue
             source_record = Record(name=source_cn, source="source")
             target_record = Record(name=target_cn, source="target")
-            for slot_name, sd in cd.slot_derivations.items():
+            for sd in cd.slot_derivations.values():
                 target_slot = sd.name
                 target_id = f"{target_record.id}:{target_slot}"
                 source_slot = sd.populated_from
@@ -104,7 +101,7 @@ class GraphvizCompiler(Compiler):
 
     def add_records(self, schemaview: SchemaView, source: str) -> List[Record]:
         records = []
-        for cn, cls in schemaview.all_classes().items():
+        for cn in schemaview.all_classes():
             record = Record(name=cn, source=source)
             for induced_slot in schemaview.class_induced_slots(cn):
                 record.fields.append((induced_slot.name, induced_slot.range))

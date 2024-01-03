@@ -1,8 +1,6 @@
-from copy import deepcopy
 from dataclasses import dataclass
-from typing import Iterator
 
-from jinja2 import Environment, FileSystemLoader, Template
+from jinja2 import Environment, FileSystemLoader
 
 from linkml_transformer.compiler.compiler import CompiledSpecification, Compiler
 from linkml_transformer.compiler.templates import TEMPLATE_DIR
@@ -28,7 +26,7 @@ class J2BasedCompiler(Compiler):
         if not template_dir:
             raise ValueError("template_dir must be set")
         loader = FileSystemLoader(template_dir)
-        env = Environment(loader=loader)
+        env = Environment(loader=loader, autoescape=True)
         if not self.template_name:
             raise ValueError("template_name must be set")
         template = env.get_template(self.template_name)
