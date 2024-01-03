@@ -295,7 +295,7 @@ class ObjectTransformerTestCase(unittest.TestCase):
         assert mset["entities"] == {"X:1": {"name": "x1"}, "Y:1": {"name": "y1"}}
         tr.index(mset, "MappingSet")
         target_obj = tr.transform(mset, source_type="MappingSet")
-        assert type(target_obj) == dict
+        assert isinstance(target_obj, dict)
         assert target_obj["mappings"][0] == {
             "subject_id": "X:1",
             "subject_name": "x1",
