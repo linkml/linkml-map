@@ -10,11 +10,15 @@ from linkml_runtime.linkml_model import (
     SlotDefinition,
 )
 from linkml_runtime.loaders import yaml_loader
+from linkml_runtime.processing.referencevalidator import ReferenceValidator
+from linkml_runtime.utils.introspection import package_schemaview
 
 import tests.input.examples.flattening.model.denormalized_model as sssom_tgt_dm
 import tests.input.examples.flattening.model.normalized_model as sssom_src_dm
 import tests.input.examples.personinfo_basic.model.agent_model as tgt_dm
 import tests.input.examples.personinfo_basic.model.personinfo_model as src_dm
+from linkml_transformer.compiler.tr import TR_TO_MAPPING_TABLES
+from linkml_transformer.datamodel import TR_SCHEMA
 from linkml_transformer.datamodel.transformer_model import (
     ClassDerivation,
     CollectionType,
@@ -55,7 +59,7 @@ class ObjectTransformerTestCase(unittest.TestCase):
     """
 
     def setUp(self) -> None:
-        tr = ObjectTransformer()
+        tr = ObjectTransformer(unrestricted_eval=True)
         tr.source_schemaview = SchemaView(str(PERSONINFO_SRC_SCHEMA))
         tr.target_schemaview = SchemaView(str(PERSONINFO_TGT_SCHEMA))
         tr.load_transformer_specification(PERSONINFO_TR)
@@ -102,6 +106,15 @@ class ObjectTransformerTestCase(unittest.TestCase):
             assert isinstance(fr, data_model.FamilialRelationship)
             assert expected[n]["related_to"] == fr.related_to
             assert expected[n]["type"] == str(fr.type)
+
+    def test_coerce(self):
+        tr: ObjectTransformer = self.tr
+        x = tr._coerce_datatype("5", "integer")
+        self.assertEqual(5, x)
+        x = tr._coerce_datatype(5, "string")
+        self.assertEqual("5", x)
+        x = tr._coerce_datatype(5, "integer")
+        self.assertEqual(5, x)
 
     def test_transform_simple_object(self):
         """
@@ -282,7 +295,7 @@ class ObjectTransformerTestCase(unittest.TestCase):
         assert mset["entities"] == {"X:1": {"name": "x1"}, "Y:1": {"name": "y1"}}
         tr.index(mset, "MappingSet")
         target_obj = tr.transform(mset, source_type="MappingSet")
-        assert type(target_obj) == dict
+        assert isinstance(target_obj, dict)
         assert target_obj["mappings"][0] == {
             "subject_id": "X:1",
             "subject_name": "x1",
@@ -380,6 +393,20 @@ class ObjectTransformerTestCase(unittest.TestCase):
             )
             target_instance = tr.transform(source_instance, class_name)
             assert [val] if target_multivalued else val == target_instance[att_name]
+
+    def test_self_transform(self):
+        tr = ObjectTransformer()
+        tr.source_schemaview = SchemaView(str(TR_SCHEMA))
+        tr.load_transformer_specification(TR_TO_MAPPING_TABLES)
+        source_object = yaml.safe_load(open(str(PERSONINFO_TR)))
+        normalizer = ReferenceValidator(
+            package_schemaview("linkml_transformer.datamodel.transformer_model")
+        )
+        normalizer.expand_all = True
+        source_object = normalizer.normalize(source_object)
+        derived = tr.transform(source_object)
+        print(derived)
+        print(yaml.dump(derived))
 
 
 if __name__ == "__main__":

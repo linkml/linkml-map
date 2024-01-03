@@ -47,6 +47,7 @@ class TestCommandLineInterface(unittest.TestCase):
     def test_map_data(self):
         cmd = [
             "map-data",
+            "--unrestricted-eval",
             "-T",
             str(PERSONINFO_TR),
             "-s",

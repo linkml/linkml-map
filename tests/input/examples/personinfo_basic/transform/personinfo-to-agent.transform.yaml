@@ -10,9 +10,9 @@ class_derivations:
     slot_derivations:
       agents:
         populated_from: persons
-    copy_directives:
-      "*":
-        copy_all: true
+    #copy_directives:
+    #  "*":
+    #    copy_all: true
   Entity:
   Agent:
     is_a: Entity
@@ -34,6 +34,7 @@ class_derivations:
 
       # this is the string "NULL", which will set this field to null
       secondary_email:
+        #expr: "'NULL'"
         expr: "NULL"
 
       # FIXME: this should return the type "None", rather than null
@@ -148,7 +149,7 @@ enum_derivations:
   MyFamilialRelationshipType:
     populated_from: FamilialRelationshipType
     permissible_value_derivations:
-      sibling of:
+      SIBLING_OF:
         populated_from: SIBLING_OF
       CHILD_OF:
         populated_from: CHILD_OF

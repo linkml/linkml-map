@@ -1,0 +1,29 @@
+description: >-
+  Maps between the full transformation spec data model and simple tables. TODO
+
+class_derivations:
+  MappingSet:
+    populated_from: TransformationSpecification
+    slot_derivations:
+      id:
+        populated_from: id
+      title:
+        populated_from: title
+      class_mappings:
+        populated_from: class_derivations
+  ClassMapping:
+    populated_from: ClassDerivation
+    slot_derivations:
+      subject_id:
+        populated_from: populated_from
+      object_id:
+        populated_from: name
+      slot_mappings:
+        populated_from: slot_derivations
+  SlotMapping:
+    populated_from: SlotDerivation
+    slot_derivations:
+      subject_id:
+        populated_from: populated_from
+      object_id:
+        populated_from: name

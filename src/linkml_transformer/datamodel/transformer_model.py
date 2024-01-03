@@ -1,12 +1,19 @@
 from __future__ import annotations
 
+import re
+import sys
 from datetime import date, datetime
 from enum import Enum
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
-from linkml_runtime.linkml_model import Decimal
 from pydantic import BaseModel as BaseModel
-from pydantic import Field
+from pydantic import Field, validator
+
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
+
 
 metamodel_version = "None"
 version = "None"
@@ -23,18 +30,44 @@ class ConfiguredBaseModel(
     underscore_attrs_are_private=True,
     extra="forbid",
     arbitrary_types_allowed=True,
+    use_enum_values=True,
 ):
     pass
 
 
 class CollectionType(str, Enum):
     SingleValued = "SingleValued"
+
     MultiValued = "MultiValued"
+
     MultiValuedList = "MultiValuedList"
+
     MultiValuedDict = "MultiValuedDict"
 
 
-class TransformationSpecification(ConfiguredBaseModel):
+class SerializationSyntaxType(str, Enum):
+    JSON = "JSON"
+
+    YAML = "YAML"
+
+    TURTLE = "TURTLE"
+
+
+class SpecificationComponent(ConfiguredBaseModel):
+    description: Optional[str] = Field(
+        None, description="""description of the specification component"""
+    )
+    implements: Optional[List[str]] = Field(
+        default_factory=list,
+        description="""A reference to a specification that this component implements.""",
+    )
+    comments: Optional[List[str]] = Field(
+        default_factory=list,
+        description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""",
+    )
+
+
+class TransformationSpecification(SpecificationComponent):
     """
     A collection of mappings between source and target classes
     """
@@ -43,19 +76,16 @@ class TransformationSpecification(ConfiguredBaseModel):
         None, description="""Unique identifier for this transformation specification"""
     )
     title: Optional[str] = Field(
-        None,
-        description="""human readable title for this transformation specification""",
+        None, description="""human readable title for this transformation specification"""
     )
     prefixes: Optional[Dict[str, KeyVal]] = Field(
         default_factory=dict, description="""maps prefixes to URL expansions"""
     )
     source_schema: Optional[str] = Field(
-        None,
-        description="""name of the schema that describes the source (input) objects""",
+        None, description="""name of the schema that describes the source (input) objects"""
     )
     target_schema: Optional[str] = Field(
-        None,
-        description="""name of the schema that describes the target (output) objects""",
+        None, description="""name of the schema that describes the target (output) objects"""
     )
     class_derivations: Optional[Dict[str, ClassDerivation]] = Field(
         default_factory=dict,
@@ -69,29 +99,50 @@ class TransformationSpecification(ConfiguredBaseModel):
         default_factory=dict,
         description="""Instructions on how to derive a set of top level slots in the target schema""",
     )
+    description: Optional[str] = Field(
+        None, description="""description of the specification component"""
+    )
+    implements: Optional[List[str]] = Field(
+        default_factory=list,
+        description="""A reference to a specification that this component implements.""",
+    )
+    comments: Optional[List[str]] = Field(
+        default_factory=list,
+        description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""",
+    )
 
 
-class ElementDerivation(ConfiguredBaseModel):
+class ElementDerivation(SpecificationComponent):
     """
     An abstract grouping for classes that provide a specification of how to  derive a target element from a source element.
     """
 
-    name: str = Field(None, description="""Name of the element in the target schema""")
+    name: str = Field(..., description="""Name of the element in the target schema""")
     copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict)
     overrides: Optional[Any] = Field(None, description="""overrides source schema slots""")
     is_a: Optional[str] = Field(None)
-    mixins: Optional[Dict[str, ElementDerivation]] = Field(default_factory=dict)
+    mixins: Optional[List[str]] = Field(default_factory=list)
     value_mappings: Optional[Dict[str, KeyVal]] = Field(
         default_factory=dict,
         description="""A mapping table that is applied directly to mappings, in order of precedence""",
     )
     expression_to_value_mappings: Optional[Dict[str, KeyVal]] = Field(
-        default_factory=dict,
-        description="""A mapping table in which the keys are expressions""",
+        default_factory=dict, description="""A mapping table in which the keys are expressions"""
     )
     expression_to_expression_mappings: Optional[Dict[str, KeyVal]] = Field(
         default_factory=dict,
         description="""A mapping table in which the keys and values are expressions""",
+    )
+    description: Optional[str] = Field(
+        None, description="""description of the specification component"""
+    )
+    implements: Optional[List[str]] = Field(
+        default_factory=list,
+        description="""A reference to a specification that this component implements.""",
+    )
+    comments: Optional[List[str]] = Field(
+        default_factory=list,
+        description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""",
     )
 
 
@@ -108,22 +159,32 @@ class ClassDerivation(ElementDerivation):
         description="""Additional classes to be joined to derive instances of the target class""",
     )
     slot_derivations: Optional[Dict[str, SlotDerivation]] = Field(default_factory=dict)
-    name: str = Field(None, description="""Name of the element in the target schema""")
+    name: str = Field(..., description="""Name of the element in the target schema""")
     copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict)
     overrides: Optional[Any] = Field(None, description="""overrides source schema slots""")
     is_a: Optional[str] = Field(None)
-    mixins: Optional[Dict[str, ElementDerivation]] = Field(default_factory=dict)
+    mixins: Optional[List[str]] = Field(default_factory=list)
     value_mappings: Optional[Dict[str, KeyVal]] = Field(
         default_factory=dict,
         description="""A mapping table that is applied directly to mappings, in order of precedence""",
     )
     expression_to_value_mappings: Optional[Dict[str, KeyVal]] = Field(
-        default_factory=dict,
-        description="""A mapping table in which the keys are expressions""",
+        default_factory=dict, description="""A mapping table in which the keys are expressions"""
     )
     expression_to_expression_mappings: Optional[Dict[str, KeyVal]] = Field(
         default_factory=dict,
         description="""A mapping table in which the keys and values are expressions""",
+    )
+    description: Optional[str] = Field(
+        None, description="""description of the specification component"""
+    )
+    implements: Optional[List[str]] = Field(
+        default_factory=list,
+        description="""A reference to a specification that this component implements.""",
+    )
+    comments: Optional[List[str]] = Field(
+        default_factory=list,
+        description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""",
     )
 
 
@@ -132,7 +193,7 @@ class AliasedClass(ConfiguredBaseModel):
     alias-class key value pairs for classes
     """
 
-    alias: str = Field(None, description="""name of the class to be aliased""")
+    alias: str = Field(..., description="""name of the class to be aliased""")
     class_named: Optional[str] = Field(None, description="""local alias for the class""")
 
 
@@ -141,13 +202,14 @@ class SlotDerivation(ElementDerivation):
     A specification of how to derive the value of a target slot from a source slot
     """
 
-    name: str = Field(None, description="""Target slot name""")
+    name: str = Field(..., description="""Target slot name""")
     populated_from: Optional[str] = Field(None, description="""Source slot name""")
     expr: Optional[str] = Field(
         None,
         description="""An expression to be evaluated on the source object to derive the target slot. Should be specified using the LinkML expression language.""",
     )
     range: Optional[str] = Field(None)
+    unit_conversion: Optional[UnitConversionConfiguration] = Field(None)
     inverse_of: Optional[Inverse] = Field(
         None,
         description="""Used to specify a class-slot tuple that is the inverse of the derived/target slot. This is used primarily for mapping to relational databases or formalisms that do not allow multiple values. The class representing the repeated element has a foreign key slot inserted in that 'back references' the original multivalued slot.""",
@@ -155,21 +217,32 @@ class SlotDerivation(ElementDerivation):
     hide: Optional[bool] = Field(None, description="""True if this is suppressed""")
     type_designator: Optional[bool] = Field(None)
     cast_collection_as: Optional[CollectionType] = Field(None)
+    stringification: Optional[StringificationConfiguration] = Field(None)
     copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict)
     overrides: Optional[Any] = Field(None, description="""overrides source schema slots""")
     is_a: Optional[str] = Field(None)
-    mixins: Optional[Dict[str, ElementDerivation]] = Field(default_factory=dict)
+    mixins: Optional[List[str]] = Field(default_factory=list)
     value_mappings: Optional[Dict[str, KeyVal]] = Field(
         default_factory=dict,
         description="""A mapping table that is applied directly to mappings, in order of precedence""",
     )
     expression_to_value_mappings: Optional[Dict[str, KeyVal]] = Field(
-        default_factory=dict,
-        description="""A mapping table in which the keys are expressions""",
+        default_factory=dict, description="""A mapping table in which the keys are expressions"""
     )
     expression_to_expression_mappings: Optional[Dict[str, KeyVal]] = Field(
         default_factory=dict,
         description="""A mapping table in which the keys and values are expressions""",
+    )
+    description: Optional[str] = Field(
+        None, description="""description of the specification component"""
+    )
+    implements: Optional[List[str]] = Field(
+        default_factory=list,
+        description="""A reference to a specification that this component implements.""",
+    )
+    comments: Optional[List[str]] = Field(
+        default_factory=list,
+        description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""",
     )
 
 
@@ -178,7 +251,7 @@ class EnumDerivation(ElementDerivation):
     A specification of how to derive the value of a target enum from a source enum
     """
 
-    name: str = Field(None, description="""Target enum name""")
+    name: str = Field(..., description="""Target enum name""")
     populated_from: Optional[str] = Field(None, description="""Source enum name""")
     expr: Optional[str] = Field(
         None,
@@ -192,18 +265,28 @@ class EnumDerivation(ElementDerivation):
     copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict)
     overrides: Optional[Any] = Field(None, description="""overrides source schema slots""")
     is_a: Optional[str] = Field(None)
-    mixins: Optional[Dict[str, ElementDerivation]] = Field(default_factory=dict)
+    mixins: Optional[List[str]] = Field(default_factory=list)
     value_mappings: Optional[Dict[str, KeyVal]] = Field(
         default_factory=dict,
         description="""A mapping table that is applied directly to mappings, in order of precedence""",
     )
     expression_to_value_mappings: Optional[Dict[str, KeyVal]] = Field(
-        default_factory=dict,
-        description="""A mapping table in which the keys are expressions""",
+        default_factory=dict, description="""A mapping table in which the keys are expressions"""
     )
     expression_to_expression_mappings: Optional[Dict[str, KeyVal]] = Field(
         default_factory=dict,
         description="""A mapping table in which the keys and values are expressions""",
+    )
+    description: Optional[str] = Field(
+        None, description="""description of the specification component"""
+    )
+    implements: Optional[List[str]] = Field(
+        default_factory=list,
+        description="""A reference to a specification that this component implements.""",
+    )
+    comments: Optional[List[str]] = Field(
+        default_factory=list,
+        description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""",
     )
 
 
@@ -212,46 +295,83 @@ class PermissibleValueDerivation(ElementDerivation):
     A specification of how to derive the value of a PV from a source enum
     """
 
-    name: str = Field(None, description="""Target permissible value text""")
+    name: str = Field(..., description="""Target permissible value text""")
     expr: Optional[str] = Field(None)
     populated_from: Optional[str] = Field(None, description="""Source permissible value""")
     hide: Optional[bool] = Field(None)
     copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict)
     overrides: Optional[Any] = Field(None, description="""overrides source schema slots""")
     is_a: Optional[str] = Field(None)
-    mixins: Optional[Dict[str, ElementDerivation]] = Field(default_factory=dict)
+    mixins: Optional[List[str]] = Field(default_factory=list)
     value_mappings: Optional[Dict[str, KeyVal]] = Field(
         default_factory=dict,
         description="""A mapping table that is applied directly to mappings, in order of precedence""",
     )
     expression_to_value_mappings: Optional[Dict[str, KeyVal]] = Field(
-        default_factory=dict,
-        description="""A mapping table in which the keys are expressions""",
+        default_factory=dict, description="""A mapping table in which the keys are expressions"""
     )
     expression_to_expression_mappings: Optional[Dict[str, KeyVal]] = Field(
         default_factory=dict,
         description="""A mapping table in which the keys and values are expressions""",
+    )
+    description: Optional[str] = Field(
+        None, description="""description of the specification component"""
+    )
+    implements: Optional[List[str]] = Field(
+        default_factory=list,
+        description="""A reference to a specification that this component implements.""",
+    )
+    comments: Optional[List[str]] = Field(
+        default_factory=list,
+        description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""",
     )
 
 
 class PrefixDerivation(ElementDerivation):
-    name: str = Field(None, description="""Name of the element in the target schema""")
+    name: str = Field(..., description="""Name of the element in the target schema""")
     copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict)
     overrides: Optional[Any] = Field(None, description="""overrides source schema slots""")
     is_a: Optional[str] = Field(None)
-    mixins: Optional[Dict[str, ElementDerivation]] = Field(default_factory=dict)
+    mixins: Optional[List[str]] = Field(default_factory=list)
     value_mappings: Optional[Dict[str, KeyVal]] = Field(
         default_factory=dict,
         description="""A mapping table that is applied directly to mappings, in order of precedence""",
     )
     expression_to_value_mappings: Optional[Dict[str, KeyVal]] = Field(
-        default_factory=dict,
-        description="""A mapping table in which the keys are expressions""",
+        default_factory=dict, description="""A mapping table in which the keys are expressions"""
     )
     expression_to_expression_mappings: Optional[Dict[str, KeyVal]] = Field(
         default_factory=dict,
         description="""A mapping table in which the keys and values are expressions""",
     )
+    description: Optional[str] = Field(
+        None, description="""description of the specification component"""
+    )
+    implements: Optional[List[str]] = Field(
+        default_factory=list,
+        description="""A reference to a specification that this component implements.""",
+    )
+    comments: Optional[List[str]] = Field(
+        default_factory=list,
+        description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""",
+    )
+
+
+class UnitConversionConfiguration(ConfiguredBaseModel):
+    target_unit: Optional[str] = Field(None)
+    target_unit_scheme: Optional[str] = Field(None)
+    source_unit: Optional[str] = Field(None)
+    source_unit_scheme: Optional[str] = Field(None)
+    source_unit_slot: Optional[str] = Field(None)
+    source_magnitude_slot: Optional[str] = Field(None)
+    target_unit_slot: Optional[str] = Field(None)
+    target_magnitude_slot: Optional[str] = Field(None)
+
+
+class StringificationConfiguration(ConfiguredBaseModel):
+    delimiter: Optional[str] = Field(None)
+    reversed: Optional[bool] = Field(None)
+    syntax: Optional[SerializationSyntaxType] = Field(None)
 
 
 class Inverse(ConfiguredBaseModel):
@@ -264,7 +384,7 @@ class Inverse(ConfiguredBaseModel):
 
 
 class KeyVal(ConfiguredBaseModel):
-    key: str = Field(None)
+    key: str = Field(...)
     value: Optional[Any] = Field(None)
 
 
@@ -273,7 +393,7 @@ class CopyDirective(ConfiguredBaseModel):
     Instructs a Schema Mapper in how to map to a target schema. Not used for data transformation.
     """
 
-    element_name: str = Field(None)
+    element_name: str = Field(...)
     copy_all: Optional[bool] = Field(None)
     exclude_all: Optional[bool] = Field(None)
     exclude: Optional[Any] = Field(None)
@@ -283,6 +403,7 @@ class CopyDirective(ConfiguredBaseModel):
 
 # Update forward refs
 # see https://pydantic-docs.helpmanual.io/usage/postponed_annotations/
+SpecificationComponent.update_forward_refs()
 TransformationSpecification.update_forward_refs()
 ElementDerivation.update_forward_refs()
 ClassDerivation.update_forward_refs()
@@ -291,6 +412,8 @@ SlotDerivation.update_forward_refs()
 EnumDerivation.update_forward_refs()
 PermissibleValueDerivation.update_forward_refs()
 PrefixDerivation.update_forward_refs()
+UnitConversionConfiguration.update_forward_refs()
+StringificationConfiguration.update_forward_refs()
 Inverse.update_forward_refs()
 KeyVal.update_forward_refs()
 CopyDirective.update_forward_refs()

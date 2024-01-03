@@ -14,7 +14,7 @@ from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper
 from pydantic import BaseModel
 
-from linkml_transformer.schema_mapper.schema_mapper import SchemaMapper
+from linkml_transformer.inference.schema_mapper import SchemaMapper
 from linkml_transformer.transformer.object_transformer import ObjectTransformer
 
 
@@ -175,7 +175,7 @@ class MultiFileTransformer:
         for tr in instructions.transformations:
             source_schema_path = str(root_directory / tr.source_schema)
             sv = SchemaView(source_schema_path)
-            transformer = ObjectTransformer()
+            transformer = ObjectTransformer(unrestricted_eval=True)
             transformer.load_source_schema(source_schema_path)
             tr_path = str(root_directory / tr.transformation_specification)
             transformer.load_transformer_specification(tr_path)

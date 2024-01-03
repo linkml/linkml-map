@@ -20,9 +20,12 @@ def induce_missing_values(
             cd.populated_from = cd.name
     for cd in specification.class_derivations.values():
         for sd in cd.slot_derivations.values():
+            # for null mappings, assume that the slot is copied from the same slot in the source
+            # TODO: decide if this is the desired behavior
             if sd.populated_from is None and sd.expr is None:
                 sd.populated_from = sd.name
             if not sd.range:
+                # auto-populate range field
                 if sd.populated_from:
                     if cd.populated_from not in source_schemaview.all_classes():
                         continue

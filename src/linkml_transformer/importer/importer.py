@@ -1,3 +1,12 @@
+"""
+Importers are responsible for translating an external mapping specification into the LinkML transformation model.
+
+For example:
+
+ - SSSOM to LinkML-Transformer Specifications
+ - YARRRML to LinkML-Transformer Specifications
+"""
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any

@@ -1,0 +1,24 @@
+# {{ spec.name }}
+
+## Class Mappings
+{% for cd in spec.class_derivations.values() %}
+
+### {{ cd.name }} `<-` {{ cd.populated_from }}
+
+| Target | Target Range | Source | Source Range | Info |
+| ------ | ------ | ---- | ---- | ---- |
+    {%- for sd in cd.slot_derivations.values() %}
+| {{ sd.name }} | | {{ sd.range }} | {% if sd.expr is not none %} [expression] {% else %} {{ sd.populated_from }} {% endif %} | . | . |
+    {%- endfor -%}
+{% endfor %}
+
+## Enum Mappings
+
+{% for ed in spec.enum_derivations.values() %}
+### Target enum {{ ed.name }}
+
+| Target | Source | Info |
+    {% for pvd in ed.permissible_value_derivations.values() %}
+| {{ pvd.name }} | {{ pvd.populated_from }} | . |
+    {% endfor %}
+{%  endfor %}

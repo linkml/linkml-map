@@ -27,6 +27,6 @@ class_derivations:
       age_as_string:
         range: string
         populated_from: age_as_integer
-    copy_directives:
-      "*":
-        copy_all: true
+#    copy_directives:
+#      "*":
+#        copy_all: true
