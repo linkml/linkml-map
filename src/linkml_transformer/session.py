@@ -9,9 +9,9 @@ from linkml_runtime.dumpers import yaml_dumper
 from linkml_runtime.linkml_model import SchemaDefinition
 
 from linkml_transformer import ObjectTransformer
+from linkml_transformer.datamodel.transformer_model import TransformationSpecification
 from linkml_transformer.inference.inverter import TransformationSpecificationInverter
 from linkml_transformer.inference.schema_mapper import SchemaMapper
-from linkml_transformer.datamodel.transformer_model import TransformationSpecification
 
 logger = logging.getLogger(__name__)
 
