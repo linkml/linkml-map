@@ -149,6 +149,8 @@ classes:
         inlined: true
         description: >-
           A mapping table in which the keys and values are expressions
+      mirror_source:
+        range: boolean
 
 
   ClassDerivation:
@@ -162,6 +164,9 @@ classes:
       populated_from:
         range: ClassReference
         description: Name of the class in the source schema
+      sources:
+        range: ClassReference
+        multivalued: true
       joins:
         range: AliasedClass
         multivalued: true
@@ -193,6 +198,9 @@ classes:
       populated_from:
         range: SlotReference
         description: Source slot name
+      sources:
+        range: SlotReference
+        multivalued: true
       derived_from:
         range: SlotReference
         multivalued: true
@@ -235,6 +243,9 @@ classes:
       populated_from:
         range: EnumReference
         description: Source enum name
+      sources:
+        range: EnumReference
+        multivalued: true
       expr:
         range: string
         description: >-
@@ -263,6 +274,9 @@ classes:
       populated_from:
         range: string
         description: Source permissible value
+      sources:
+        range: string
+        multivalued: true
       hide:
         range: boolean
 

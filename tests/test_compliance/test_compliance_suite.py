@@ -159,6 +159,8 @@ def map_object(
     print("**Target Schema (Derived)**:\n\n")
     print_yaml(target_schema)
     if target_object is not None:
+        # remove `foo: None` entries
+        target_object = {k: v for k, v in target_object.items() if v is not None}
         ensure_validates(target_sv.schema, target_object)
     if invertible and target_object is not None:
         inverter = TransformationSpecificationInverter(
@@ -842,12 +844,16 @@ def test_join(invocation_tracker, source_object, target_object, inlined):
 
 
 @pytest.mark.parametrize(
-    "source_value,mapping,target_value",
+    "source_value,mapping,target_value,mirror_source",
     [
-        ("A", {"B": "A"}, "B"),
+        ("A", {"B": "A"}, "B", False),
+        ("Z", {"B": "A"}, None, False),
+        ("C", {"B": "A"}, "C", True),
+        ("A", {"B": ["A", "C"]}, "B", False),
+        ("C", {"B": ["A", "C"]}, "B", False),
     ],
 )
-def test_map_enum(invocation_tracker, source_value, mapping, target_value):
+def test_map_enum(invocation_tracker, source_value, mapping, target_value, mirror_source):
     """
     Test mapping between enum values.
 
@@ -872,7 +878,7 @@ def test_map_enum(invocation_tracker, source_value, mapping, target_value):
             }
         }
     }
-    enums = {"E": {"permissible_values": ["A", "B"]}}
+    enums = {"E": {"permissible_values": ["A", "B", "C"]}}
     schema = build_schema("enums", classes=classes, enums=enums)
     source_sv = SchemaView(schema)
     cds = {
@@ -884,20 +890,34 @@ def test_map_enum(invocation_tracker, source_value, mapping, target_value):
             }
         }
     }
+    pv_derivs = {}
+    invertible = True
+    for k, v in mapping.items():
+        if isinstance(v, list):
+            pv_derivs[k] = {"sources": v}
+            invertible = False
+        else:
+            pv_derivs[k] = {"populated_from": v}
+
     eds = {
         "E": {
             "populated_from": "E",
-            "permissible_value_derivations": {k: {"populated_from": v} for k, v in mapping.items()},
+            "mirror_source": mirror_source,
+            "permissible_value_derivations": pv_derivs,
         },
     }
     spec = build_transformer(class_derivations=cds, enum_derivations=eds)
     source_object = {"s1": source_value}
+    if target_value is None:
+        invertible = False
+    if mirror_source:
+        pytest.skip("TODO: mirror_source")
     map_object(
         spec=spec,
         source_object=source_object,
         expected_target_object={"s1": target_value},
         source_sv=source_sv,
-        invertible=True,
+        invertible=invertible,
     )
 
 
