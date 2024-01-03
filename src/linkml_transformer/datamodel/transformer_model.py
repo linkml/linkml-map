@@ -133,6 +133,7 @@ class ElementDerivation(SpecificationComponent):
         default_factory=dict,
         description="""A mapping table in which the keys and values are expressions""",
     )
+    mirror_source: Optional[bool] = Field(None)
     description: Optional[str] = Field(
         None, description="""description of the specification component"""
     )
@@ -154,6 +155,7 @@ class ClassDerivation(ElementDerivation):
     populated_from: Optional[str] = Field(
         None, description="""Name of the class in the source schema"""
     )
+    sources: Optional[List[str]] = Field(default_factory=list)
     joins: Optional[Dict[str, AliasedClass]] = Field(
         default_factory=dict,
         description="""Additional classes to be joined to derive instances of the target class""",
@@ -175,6 +177,7 @@ class ClassDerivation(ElementDerivation):
         default_factory=dict,
         description="""A mapping table in which the keys and values are expressions""",
     )
+    mirror_source: Optional[bool] = Field(None)
     description: Optional[str] = Field(
         None, description="""description of the specification component"""
     )
@@ -204,6 +207,11 @@ class SlotDerivation(ElementDerivation):
 
     name: str = Field(..., description="""Target slot name""")
     populated_from: Optional[str] = Field(None, description="""Source slot name""")
+    sources: Optional[List[str]] = Field(default_factory=list)
+    derived_from: Optional[List[str]] = Field(
+        default_factory=list,
+        description="""Source slots that are used to derive this slot. This can be computed from the expr, if the expr is declarative.""",
+    )
     expr: Optional[str] = Field(
         None,
         description="""An expression to be evaluated on the source object to derive the target slot. Should be specified using the LinkML expression language.""",
@@ -233,6 +241,7 @@ class SlotDerivation(ElementDerivation):
         default_factory=dict,
         description="""A mapping table in which the keys and values are expressions""",
     )
+    mirror_source: Optional[bool] = Field(None)
     description: Optional[str] = Field(
         None, description="""description of the specification component"""
     )
@@ -253,6 +262,7 @@ class EnumDerivation(ElementDerivation):
 
     name: str = Field(..., description="""Target enum name""")
     populated_from: Optional[str] = Field(None, description="""Source enum name""")
+    sources: Optional[List[str]] = Field(default_factory=list)
     expr: Optional[str] = Field(
         None,
         description="""An expression to be evaluated on the source object to derive the target slot. Should be specified using the LinkML expression language.""",
@@ -277,6 +287,7 @@ class EnumDerivation(ElementDerivation):
         default_factory=dict,
         description="""A mapping table in which the keys and values are expressions""",
     )
+    mirror_source: Optional[bool] = Field(None)
     description: Optional[str] = Field(
         None, description="""description of the specification component"""
     )
@@ -298,6 +309,7 @@ class PermissibleValueDerivation(ElementDerivation):
     name: str = Field(..., description="""Target permissible value text""")
     expr: Optional[str] = Field(None)
     populated_from: Optional[str] = Field(None, description="""Source permissible value""")
+    sources: Optional[List[str]] = Field(default_factory=list)
     hide: Optional[bool] = Field(None)
     copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict)
     overrides: Optional[Any] = Field(None, description="""overrides source schema slots""")
@@ -314,6 +326,7 @@ class PermissibleValueDerivation(ElementDerivation):
         default_factory=dict,
         description="""A mapping table in which the keys and values are expressions""",
     )
+    mirror_source: Optional[bool] = Field(None)
     description: Optional[str] = Field(
         None, description="""description of the specification component"""
     )
@@ -344,6 +357,7 @@ class PrefixDerivation(ElementDerivation):
         default_factory=dict,
         description="""A mapping table in which the keys and values are expressions""",
     )
+    mirror_source: Optional[bool] = Field(None)
     description: Optional[str] = Field(
         None, description="""description of the specification component"""
     )
@@ -376,7 +390,7 @@ class StringificationConfiguration(ConfiguredBaseModel):
 
 class Inverse(ConfiguredBaseModel):
     """
-    Used for back references
+    Used for back references in mapping to relational model
     """
 
     slot_name: Optional[str] = Field(None)

@@ -135,8 +135,19 @@ class SchemaMapper:
             target_enum.attributes = {}
             target_enum.slot_usage = {}
         for pv_derivation in enum_derivation.permissible_value_derivations.values():
-            pv = PermissibleValue(text=pv_derivation.populated_from)
-            target_enum.permissible_values[pv.text] = pv
+            if pv_derivation.populated_from:
+                pv = PermissibleValue(text=pv_derivation.populated_from)
+                target_enum.permissible_values[pv.text] = pv
+            elif pv_derivation.sources:
+                for source in pv_derivation.sources:
+                    pv = PermissibleValue(text=source)
+                    target_enum.permissible_values[pv.text] = pv
+            else:
+                raise ValueError(f"Missing populated_from or sources for {pv_derivation}")
+        if enum_derivation.mirror_source:
+            for pv in source_enum.permissible_values.values():
+                if pv.text not in target_enum.permissible_values:
+                    target_enum.permissible_values[pv.text] = copy(pv)
         self.source_to_target_class_mappings[populated_from].append(target_enum.name)
         return target_enum
 

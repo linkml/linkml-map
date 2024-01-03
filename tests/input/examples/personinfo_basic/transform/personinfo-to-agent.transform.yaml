@@ -148,6 +148,7 @@ class_derivations:
 enum_derivations:
   MyFamilialRelationshipType:
     populated_from: FamilialRelationshipType
+    mirror_source: true
     permissible_value_derivations:
       SIBLING_OF:
         populated_from: SIBLING_OF

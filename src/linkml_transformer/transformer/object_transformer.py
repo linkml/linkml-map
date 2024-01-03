@@ -145,6 +145,22 @@ class ObjectTransformer(Transformer):
                 logger.debug(
                     f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {source_obj}"
                 )
+            elif slot_derivation.sources:
+                vmap = {s: source_obj.get(s, None) for s in slot_derivation.sources}
+                vmap = {k: v for k, v in vmap.items() if v is not None}
+                if len(vmap.keys()) > 1:
+                    raise ValueError(f"Multiple sources for {slot_derivation.name}: {vmap}")
+                elif len(vmap.keys()) == 1:
+                    v = list(vmap.values())[0]
+                    source_class_slot_name = list(vmap.keys())[0]
+                    source_class_slot = sv.induced_slot(source_class_slot_name, source_type)
+                else:
+                    v = None
+                    source_class_slot = None
+
+                logger.debug(
+                    f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {source_obj}"
+                )
             else:
                 source_class_slot = sv.induced_slot(slot_derivation.name, source_type)
                 v = source_obj.get(slot_derivation.name, None)
@@ -321,4 +337,9 @@ class ObjectTransformer(Transformer):
         for pv_deriv in enum_deriv.permissible_value_derivations.values():
             if source_value == pv_deriv.populated_from:
                 return pv_deriv.name
-        return str(source_value)
+            if source_value in pv_deriv.sources:
+                return pv_deriv.name
+        if enum_deriv.mirror_source:
+            return str(source_value)
+        else:
+            return None
