@@ -80,6 +80,12 @@ serve: mkd-serve
 
 deploy: mkd-deploy
 
+# Deploy gh docs
+deploy-gh-doc: gendoc
+	$(RUN) mkdocs gh-deploy
+
+
+
 # Python datamodel
 $(PYMODEL):
 	mkdir -p $@
