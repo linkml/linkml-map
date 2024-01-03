@@ -1,7 +1,7 @@
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Union, Optional, Any
+from typing import Any, Optional, Union
 
 import yaml
 from linkml_runtime import SchemaView
@@ -14,6 +14,7 @@ from linkml_transformer.inference.schema_mapper import SchemaMapper
 from project.transformer_model import TransformationSpecification
 
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class Session:
@@ -51,7 +52,9 @@ class Session:
         self.source_schemaview = sv
         self._target_schema = None
 
-    def set_object_transformer(self, transformer: Optional[Union[ObjectTransformer, dict, str, Path]] = None):
+    def set_object_transformer(
+        self, transformer: Optional[Union[ObjectTransformer, dict, str, Path]] = None
+    ):
         if transformer is None:
             if self.object_transformer is not None:
                 logger.info("No change")
@@ -73,7 +76,9 @@ class Session:
         if self._target_schema is None:
             if not self.schema_mapper:
                 self.schema_mapper = SchemaMapper(source_schemaview=self.source_schemaview)
-            self._target_schema = self.schema_mapper.derive_schema(self.object_transformer.specification)
+            self._target_schema = self.schema_mapper.derive_schema(
+                self.object_transformer.specification
+            )
         return self._target_schema
 
     def transform(self, obj: dict, **kwargs) -> dict:
@@ -96,24 +101,19 @@ class Session:
         """
         inverter = TransformationSpecificationInverter(
             source_schemaview=self.source_schemaview,
-            target_schemaview=SchemaView(yaml_dumper.dumps(self.target_schema()))
+            target_schemaview=SchemaView(yaml_dumper.dumps(self.target_schema())),
         )
         inv_spec = inverter.invert(self.transformer_specification)
         if in_place:
             raise NotImplementedError
         return inv_spec
 
-
     def graphviz(self, **kwargs) -> Any:
         """
         Return a graphviz representation of the schema.
         """
         from linkml_transformer.compiler.graphviz_compiler import GraphvizCompiler
+
         gc = GraphvizCompiler(source_schemaview=self.source_schemaview)
         compiled = gc.compile(self.transformer_specification)
         return compiled.digraph
-
-
-
-
-

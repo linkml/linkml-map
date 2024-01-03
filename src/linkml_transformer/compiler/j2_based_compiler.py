@@ -2,13 +2,11 @@ from copy import deepcopy
 from dataclasses import dataclass
 from typing import Iterator
 
-from jinja2 import Template, FileSystemLoader, Environment
+from jinja2 import Environment, FileSystemLoader, Template
 
-from linkml_transformer.compiler.compiler import Compiler, CompiledSpecification
+from linkml_transformer.compiler.compiler import CompiledSpecification, Compiler
 from linkml_transformer.compiler.templates import TEMPLATE_DIR
-from linkml_transformer.datamodel.transformer_model import (
-    TransformationSpecification,
-)
+from linkml_transformer.datamodel.transformer_model import TransformationSpecification
 
 
 @dataclass
@@ -16,6 +14,7 @@ class J2BasedCompiler(Compiler):
     """
     Compiles a Transformation Specification using a Jinja2 template.
     """
+
     template_dir: str = None
     """The directory containing the Jinja2 template."""
 

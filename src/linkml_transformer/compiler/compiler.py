@@ -30,6 +30,7 @@ class CompiledSpecification:
     serialization: str
 
     _module: Optional[ModuleType] = None
+
     @property
     def module(self) -> ModuleType:
         if not self._module:

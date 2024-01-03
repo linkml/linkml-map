@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from typing import List, Tuple, Optional
+from typing import List, Optional, Tuple
 
 from graphviz import Digraph
 from linkml_runtime import SchemaView
@@ -14,30 +14,40 @@ class Record(BaseModel):
     """
     A simplified representation of a class, UML-style.
     """
+
     name: str
     source: str
     fields: List[Tuple[str, str]] = []
 
     @property
     def id(self):
-        return f'{self.source}{self.name}'
+        return f"{self.source}{self.name}"
 
     def __str__(self):
-        return f"""<
+        return (
+            f"""<
         <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
             <TR><TD><B>{self.name}</B></TD></TR>
-        """ + ''.join([f'<TR><TD SIDES="LRB" PORT="{f[0]}">{f[0]} : {f[1]}</TD></TR>' for f in self.fields]) + """
+        """
+            + "".join(
+                [
+                    f'<TR><TD SIDES="LRB" PORT="{f[0]}">{f[0]} : {f[1]}</TD></TR>'
+                    for f in self.fields
+                ]
+            )
+            + """
         </TABLE>>"""
+        )
         # TODO: use HTML-like labels for precise control;
         # see https://graphviz.readthedocs.io/en/stable/examples.html#structs-py
-        #return f'<{self.id}> {self.name} ({self.source})|' + '|'.join([f'<{f[0]}> {f[0]} : {f[1]}' for f in self.fields])
+        # return f'<{self.id}> {self.name} ({self.source})|' + '|'.join([f'<{f[0]}> {f[0]} : {f[1]}' for f in self.fields])
 
 
 @dataclass
 class GraphvizObject(CompiledSpecification):
     digraph: Digraph = None
 
-    def render(self, file_path: str, format='png', view=False) -> None:
+    def render(self, file_path: str, format="png", view=False) -> None:
         """
         Renders a graphviz graph to a file.
         :param file_path:
@@ -51,18 +61,20 @@ class GraphvizCompiler(Compiler):
     Compiles a Transformation Specification to GraphViz.
     """
 
-    def compile(self, specification: TransformationSpecification, elements: Optional[List[str]] = None) -> GraphvizObject:
-        dg = Digraph(comment='UML Class Diagram', format='png')
-        dg.attr(rankdir='LR')  # Set graph direction from left to right
+    def compile(
+        self, specification: TransformationSpecification, elements: Optional[List[str]] = None
+    ) -> GraphvizObject:
+        dg = Digraph(comment="UML Class Diagram", format="png")
+        dg.attr(rankdir="LR")  # Set graph direction from left to right
         target_schemaview = self.derived_target_schemaview(specification)
         source_schemaview = self.source_schemaview
 
         records = []
-        records += self.add_records(source_schemaview, 'source')
-        records += self.add_records(target_schemaview, 'target')
+        records += self.add_records(source_schemaview, "source")
+        records += self.add_records(target_schemaview, "target")
 
         for record in records:
-            dg.node(record.id, str(record), shape='plaintext')
+            dg.node(record.id, str(record), shape="plaintext")
 
         # Define the class nodes with fields in UML format using HTML-like labels
         # for precise control over the stacking of the fields
@@ -76,10 +88,10 @@ class GraphvizCompiler(Compiler):
             target_record = Record(name=target_cn, source="target")
             for slot_name, sd in cd.slot_derivations.items():
                 target_slot = sd.name
-                target_id = f'{target_record.id}:{target_slot}'
+                target_id = f"{target_record.id}:{target_slot}"
                 source_slot = sd.populated_from
                 if source_slot:
-                    source_id = f'{source_record.id}:{source_slot}'
+                    source_id = f"{source_record.id}:{source_slot}"
                     dg.edge(source_id, target_id)
                 elif sd.expr:
                     # TODO: do this in a less hacky way
@@ -87,7 +99,7 @@ class GraphvizCompiler(Compiler):
                     for token in tokens:
                         if token not in source_schemaview.all_slots():
                             continue
-                        dg.edge(f'{source_record.id}:{token}', target_id, style='dashed')
+                        dg.edge(f"{source_record.id}:{token}", target_id, style="dashed")
         return GraphvizObject(digraph=dg, serialization=dg.source)
 
     def add_records(self, schemaview: SchemaView, source: str) -> List[Record]:
@@ -98,5 +110,3 @@ class GraphvizCompiler(Compiler):
                 record.fields.append((induced_slot.name, induced_slot.range))
             records.append(record)
         return records
-
-

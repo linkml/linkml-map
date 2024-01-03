@@ -15,9 +15,9 @@ def compiler():
         source_schemaview=SchemaView(SCHEMA1),
     )
 
+
 def test_compile(compiler):
     spec = load_specification(SPECIFICATION)
     compiled = compiler.compile(spec)
     print(compiled.serialization)
     compiled.render("/tmp/test.png", view=False)
-

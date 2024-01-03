@@ -21,8 +21,9 @@ from pydantic import BaseModel
 from linkml_transformer.datamodel.transformer_model import (
     ClassDerivation,
     CollectionType,
+    EnumDerivation,
     SlotDerivation,
-    TransformationSpecification, EnumDerivation,
+    TransformationSpecification,
 )
 from linkml_transformer.inference.inference import induce_missing_values
 
@@ -136,12 +137,15 @@ class Transformer(ABC):
         matching_tgt_class_derivs = [
             deriv
             for deriv in spec.class_derivations.values()
-            if deriv.populated_from == target_class_name or (not deriv.populated_from and target_class_name == deriv.name)
+            if deriv.populated_from == target_class_name
+            or (not deriv.populated_from and target_class_name == deriv.name)
         ]
         logger.debug(f"Target class derivations={matching_tgt_class_derivs}")
         if len(matching_tgt_class_derivs) != 1:
-            raise ValueError(f"Could not find class derivation for {target_class_name} (results={len(matching_tgt_class_derivs)})")
-        cd =  matching_tgt_class_derivs[0]
+            raise ValueError(
+                f"Could not find class derivation for {target_class_name} (results={len(matching_tgt_class_derivs)})"
+            )
+        cd = matching_tgt_class_derivs[0]
         ancmap = self._class_derivation_ancestors(cd)
         if ancmap:
             cd = deepcopy(cd)
@@ -172,13 +176,13 @@ class Transformer(ABC):
             ancestors.update(self._class_derivation_ancestors(spec.class_derivations[parent]))
         return ancestors
 
-
     def _get_enum_derivation(self, target_enum_name: str) -> EnumDerivation:
         spec = self.derived_specification
         matching_tgt_enum_derivs = [
             deriv
             for deriv in spec.enum_derivations.values()
-            if deriv.populated_from == target_enum_name or (not deriv.populated_from and target_enum_name == deriv.name)
+            if deriv.populated_from == target_enum_name
+            or (not deriv.populated_from and target_enum_name == deriv.name)
         ]
         logger.debug(f"Target enum derivations={matching_tgt_enum_derivs}")
         if len(matching_tgt_enum_derivs) != 1:

@@ -6,22 +6,29 @@ from typing import Optional
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper
 
-from linkml_transformer.datamodel.transformer_model import TransformationSpecification, ClassDerivation, SlotDerivation, \
-    EnumDerivation, PermissibleValueDerivation, UnitConversionConfiguration
+from linkml_transformer.datamodel.transformer_model import (
+    ClassDerivation,
+    EnumDerivation,
+    PermissibleValueDerivation,
+    SlotDerivation,
+    TransformationSpecification,
+    UnitConversionConfiguration,
+)
 
 
 class NonInvertibleSpecification(ValueError):
     pass
+
 
 @dataclass
 class TransformationSpecificationInverter:
     """
     Invert a transformation specification.
     """
+
     source_schemaview: SchemaView = None
     target_schemaview: SchemaView = None
     strict: bool = field(default=True)
-
 
     def invert(self, spec: TransformationSpecification):
         """
@@ -39,7 +46,6 @@ class TransformationSpecificationInverter:
             inverted_spec.enum_derivations[inverted_ed.name] = inverted_ed
         return inverted_spec
 
-
     def invert_class_derivation(self, cd: ClassDerivation, spec: TransformationSpecification):
         """
         Invert a class derivation.
@@ -48,7 +54,9 @@ class TransformationSpecificationInverter:
         :param spec:
         :return:
         """
-        inverted_cd = ClassDerivation(name=cd.populated_from if cd.populated_from else cd.name, populated_from=cd.name)
+        inverted_cd = ClassDerivation(
+            name=cd.populated_from if cd.populated_from else cd.name, populated_from=cd.name
+        )
         for sd in cd.slot_derivations.values():
             inverted_sd = self.invert_slot_derivation(sd, cd, spec)
             if inverted_sd:
@@ -66,16 +74,22 @@ class TransformationSpecificationInverter:
         :param spec:
         :return:
         """
-        inverted_ed = EnumDerivation(name=ed.populated_from if ed.populated_from else ed.name, populated_from=ed.name)
+        inverted_ed = EnumDerivation(
+            name=ed.populated_from if ed.populated_from else ed.name, populated_from=ed.name
+        )
         if inverted_ed.expr:
             raise NonInvertibleSpecification("TODO: invert enum derivation with expression")
         for pv_deriv in ed.permissible_value_derivations.values():
-            inverted_pv_deriv = PermissibleValueDerivation(name=pv_deriv.populated_from if pv_deriv.populated_from else pv_deriv.name, populated_from=pv_deriv.name)
+            inverted_pv_deriv = PermissibleValueDerivation(
+                name=pv_deriv.populated_from if pv_deriv.populated_from else pv_deriv.name,
+                populated_from=pv_deriv.name,
+            )
             inverted_ed.permissible_value_derivations[inverted_pv_deriv.name] = inverted_pv_deriv
         return inverted_ed
 
-
-    def invert_slot_derivation(self, sd: SlotDerivation, cd: ClassDerivation, spec: TransformationSpecification) -> Optional[SlotDerivation]:
+    def invert_slot_derivation(
+        self, sd: SlotDerivation, cd: ClassDerivation, spec: TransformationSpecification
+    ) -> Optional[SlotDerivation]:
         """
         Invert a slot derivation.
 
@@ -92,18 +106,20 @@ class TransformationSpecificationInverter:
                 if not self.strict:
                     return None
                 # TODO: add logic for reversible expressions
-                raise NonInvertibleSpecification(f"Cannot invert expression {sd.expr} in slot derivation: {sd.name}")
+                raise NonInvertibleSpecification(
+                    f"Cannot invert expression {sd.expr} in slot derivation: {sd.name}"
+                )
         if not populated_from:
             # use defaults. TODO: decide on semantics of defaults
             populated_from = sd.name
             # raise NonInvertibleSpecification(f"No populate_from or expr in slot derivation: {sd.name}")
         inverted_sd = SlotDerivation(name=populated_from, populated_from=sd.name)
-        #source_cls_name = spec.class_derivations[cd.populated_from].name
+        # source_cls_name = spec.class_derivations[cd.populated_from].name
         source_cls_name = cd.populated_from
         if sd.range:
             source_slot = self.source_schemaview.induced_slot(sd.populated_from, source_cls_name)
             inverted_sd.range = source_slot.range
-        #if False and sd.unit_conversion:
+        # if False and sd.unit_conversion:
         #    source_slot = self.source_schemaview.induced_slot(sd.populated_from, source_cls_name)
         #    inverted_sd.unit_conversion = UnitConversionConfiguration(
         #        target_unit=source_slot.unit.ucum_code
@@ -119,8 +135,10 @@ class TransformationSpecificationInverter:
                     if target_unit is not None:
                         target_unit_scheme = p
                         break
-            inverted_uc = UnitConversionConfiguration(target_unit=target_unit, target_unit_scheme=target_unit_scheme)
-            #if sd.unit_conversion.target_unit:
+            inverted_uc = UnitConversionConfiguration(
+                target_unit=target_unit, target_unit_scheme=target_unit_scheme
+            )
+            # if sd.unit_conversion.target_unit:
             #    inverted_uc.source_unit = sd.unit_conversion.target_unit
             if sd.unit_conversion.source_unit_slot:
                 inverted_uc.target_unit_slot = sd.unit_conversion.source_unit_slot
@@ -133,5 +151,3 @@ class TransformationSpecificationInverter:
             inverted_sd.stringification = copy(sd.stringification)
             inverted_sd.stringification.reversed = not inverted_sd.stringification.reversed
         return inverted_sd
-
-

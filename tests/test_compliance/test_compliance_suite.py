@@ -19,23 +19,30 @@ to see what is being generated for each test.
 
 import re
 from dataclasses import dataclass
-from typing import Any, Optional, Dict
+from typing import Any, Dict, Optional
 
 import pytest
 from deepdiff import DeepDiff
-from linkml.validator import Validator, JsonschemaValidationPlugin
+from linkml.validator import JsonschemaValidationPlugin, Validator
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper
-from linkml_runtime.linkml_model import SchemaDefinition, Prefix
+from linkml_runtime.linkml_model import Prefix, SchemaDefinition
 
 from linkml_transformer.compiler.python_compiler import PythonCompiler
-from linkml_transformer.datamodel.transformer_model import TransformationSpecification, SerializationSyntaxType
-from linkml_transformer.functions.unit_conversion import DimensionalityError, UndefinedUnitError
-from linkml_transformer.inference.schema_mapper import SchemaMapper
+from linkml_transformer.datamodel.transformer_model import (
+    SerializationSyntaxType,
+    TransformationSpecification,
+)
+from linkml_transformer.functions.unit_conversion import (
+    DimensionalityError,
+    UndefinedUnitError,
+)
 from linkml_transformer.inference.inverter import TransformationSpecificationInverter
+from linkml_transformer.inference.schema_mapper import SchemaMapper
 from linkml_transformer.transformer.object_transformer import ObjectTransformer
 
-print("""
+print(
+    """
 # LinkML-Transformers Compliance Suite
 
 This is the output from running the full compliance test suite.
@@ -52,13 +59,15 @@ Each test is designed to demonstrate:
 - inversion (reverse transformation) (in some cases)
 - compliation to other frameworks (coming soon)
 
-""")
+"""
+)
 
 
 def print_yaml(obj: Any):
     print("```yaml")
     print(yaml_dumper.dumps(obj))
     print("```\n")
+
 
 def build_schema(name, **kwargs) -> SchemaDefinition:
     schema = SchemaDefinition(id=name, name=name, **kwargs)
@@ -87,15 +96,15 @@ class State:
 
 
 def map_object(
-        spec: TransformationSpecification,
-        source_object: Dict[str, Any],
-        expected_target_object: Dict[str, Any],
-        source_sv: SchemaView,
-        invertible: bool = False,
-        index: bool = False,
-        source_root: Optional[str] = "Container",
-        roundtrip_object: Optional[Any] = None,
-        raises_error: Optional[Exception] = None,
+    spec: TransformationSpecification,
+    source_object: Dict[str, Any],
+    expected_target_object: Dict[str, Any],
+    source_sv: SchemaView,
+    invertible: bool = False,
+    index: bool = False,
+    source_root: Optional[str] = "Container",
+    roundtrip_object: Optional[Any] = None,
+    raises_error: Optional[Exception] = None,
 ) -> State:
     """
     Map a source object to a target object, and optionally invert the transformation and perform roundtrip.
@@ -114,11 +123,11 @@ def map_object(
     """
     pc = PythonCompiler(source_schemaview=source_sv)
     python_code = pc.compile(spec)
-    #TODO: enable this
-    #print("Python Code (Generated)\n\n")
-    #print("```python")
-    #print(python_code.serialization)
-    #print("```\n")
+    # TODO: enable this
+    # print("Python Code (Generated)\n\n")
+    # print("```python")
+    # print(python_code.serialization)
+    # print("```\n")
     # mod = python_code.module
     schema_mapper = SchemaMapper(source_schemaview=source_sv)
     target_schema = schema_mapper.derive_schema(spec)
@@ -132,7 +141,9 @@ def map_object(
         target_object = None
     else:
         target_object = mapper.transform(source_object)
-    assert target_object == expected_target_object, f"failed to map {source_object} to {expected_target_object}"
+    assert (
+        target_object == expected_target_object
+    ), f"failed to map {source_object} to {expected_target_object}"
     assert not DeepDiff(target_object, expected_target_object)
     print("**Object Transformation**:\n")
     if raises_error:
@@ -157,7 +168,9 @@ def map_object(
         inv_target_object = inv_mapper.transform(target_object)
         if roundtrip_object is None:
             roundtrip_object = source_object
-        assert inv_target_object == roundtrip_object, f"failed to invert {target_object} to {source_object}"
+        assert (
+            inv_target_object == roundtrip_object
+        ), f"failed to invert {target_object} to {source_object}"
     return State(
         schema_mapper=schema_mapper,
         object_transformer=mapper,
@@ -166,10 +179,12 @@ def map_object(
 
 
 def ensure_validates(target_schema: SchemaDefinition, target_object: Any):
-    target_validator = Validator(yaml_dumper.dumps(target_schema), validation_plugins=[JsonschemaValidationPlugin()])
-    assert list(target_validator.iter_results(target_object)) == [], f"failed to validate {target_object}"
-
-
+    target_validator = Validator(
+        yaml_dumper.dumps(target_schema), validation_plugins=[JsonschemaValidationPlugin()]
+    )
+    assert (
+        list(target_validator.iter_results(target_object)) == []
+    ), f"failed to validate {target_object}"
 
 
 @pytest.fixture(scope="function")
@@ -183,7 +198,7 @@ def invocation_tracker(request) -> bool:
     :return:
     """
     node = request.node
-    key = 'first_invocation_' + node.originalname
+    key = "first_invocation_" + node.originalname
     first_invocation = False
     if not hasattr(request.config, key):
         setattr(request.config, key, True)
@@ -210,17 +225,22 @@ def invocation_tracker(request) -> bool:
     return first_invocation
 
 
-@pytest.mark.parametrize("source_datatype,target_datatype,source_value,target_value,invertible", [
-    ("string", "string", "foo", "foo", True),
-    ("integer", "integer", 5, 5, True),
-    ("string", "integer", "5", 5, True),
-    ("integer", "float", 5, 5.0, True),
-    ("float", "integer", 5.0, 5, True),
-    ("float", "integer", 5.2, 5, False),
-    ("integer", "boolean", 5, True, False),
-    ("integer", "boolean", 0, False, False),
-])
-def test_map_types(invocation_tracker, source_datatype, target_datatype, source_value, target_value, invertible):
+@pytest.mark.parametrize(
+    "source_datatype,target_datatype,source_value,target_value,invertible",
+    [
+        ("string", "string", "foo", "foo", True),
+        ("integer", "integer", 5, 5, True),
+        ("string", "integer", "5", 5, True),
+        ("integer", "float", 5, 5.0, True),
+        ("float", "integer", 5.0, 5, True),
+        ("float", "integer", 5.2, 5, False),
+        ("integer", "boolean", 5, True, False),
+        ("integer", "boolean", 0, False, False),
+    ],
+)
+def test_map_types(
+    invocation_tracker, source_datatype, target_datatype, source_value, target_value, invertible
+):
     """
     Test mapping between basic data types.
 
@@ -244,37 +264,27 @@ def test_map_types(invocation_tracker, source_datatype, target_datatype, source_
         print("Isomorphic mapping: input should equal output\n")
     else:
         print("Should coerce datatype\n")
-    classes = {
-        "C":
-        {
-            "attributes": {
+    classes = {"C": {"attributes": {"s1": {"range": source_datatype}}}}
+    schema = build_schema(
+        "types",
+        classes=classes,
+        description="Minimal single-attribute schema for testing datatype mapping",
+    )
+    source_sv = SchemaView(schema)
+    cds = {
+        "C": {
+            # "populated_from": "C",
+            "slot_derivations": {
                 "s1": {
-                    "range": source_datatype
+                    "populated_from": "s1",
+                    "range": target_datatype,
                 }
             }
         }
     }
-    schema = build_schema("types",
-                            classes=classes,
-                            description="Minimal single-attribute schema for testing datatype mapping"
-                          )
-    source_sv = SchemaView(schema)
-    cds = {
-            "C": {
-                # "populated_from": "C",
-                "slot_derivations": {
-                    "s1": {
-                        "populated_from": "s1",
-                        "range": target_datatype,
-                    }
-                }
-            }
-    }
     spec = build_transformer(class_derivations=cds)
 
-    source_object = {
-        "s1": source_value
-    }
+    source_object = {"s1": source_value}
     map_object(
         spec=spec,
         source_object=source_object,
@@ -284,18 +294,20 @@ def test_map_types(invocation_tracker, source_datatype, target_datatype, source_
     )
 
 
-
-@pytest.mark.parametrize("expr,source_object,target_value", [
-    ("s1 + s2", {"s1": 5, "s2": 6}, 11),
-    ("{s1} + {s2}", {"s1": 5, "s2": 6}, 11),
-    ("{s1} + {s2}", {"s1": 5}, None),
-    ("s1 + s2.s3", {"s1": 5, "s2": {"s3": 6}}, 11),
-    ("s1 + s2.s3.s4", {"s1": 5, "s2": {"s3": {"s4": 6}}}, 11),
-    ("s1 + s2", {"s1": "a", "s2": "b"}, "ab"),
-    ("s1 + s2", {"s1": ["a"], "s2": ["b"]}, ["a", "b"]),
-    ("len(s1)", {"s1": ["a"]}, 1),
-    ("s1 < s2", {"s1": 5, "s2": 6}, True),
-])
+@pytest.mark.parametrize(
+    "expr,source_object,target_value",
+    [
+        ("s1 + s2", {"s1": 5, "s2": 6}, 11),
+        ("{s1} + {s2}", {"s1": 5, "s2": 6}, 11),
+        ("{s1} + {s2}", {"s1": 5}, None),
+        ("s1 + s2.s3", {"s1": 5, "s2": {"s3": 6}}, 11),
+        ("s1 + s2.s3.s4", {"s1": 5, "s2": {"s3": {"s4": 6}}}, 11),
+        ("s1 + s2", {"s1": "a", "s2": "b"}, "ab"),
+        ("s1 + s2", {"s1": ["a"], "s2": ["b"]}, ["a", "b"]),
+        ("len(s1)", {"s1": ["a"]}, 1),
+        ("s1 < s2", {"s1": 5, "s2": 6}, True),
+    ],
+)
 def test_expr(invocation_tracker, expr, source_object, target_value):
     """
     Test transformation using pythonic expressions.
@@ -319,14 +331,8 @@ def test_expr(invocation_tracker, expr, source_object, target_value):
     :param target_value: expected value of slot in target object
     :return:
     """
-    classes = {
-        "C":
-            {
-                "tree_root": True,
-                "attributes": {
-                }
-            }
-    }
+    classes = {"C": {"tree_root": True, "attributes": {}}}
+
     def infer_range(v: Any, typ: Optional[str] = None):
         if isinstance(v, dict):
             if not typ:
@@ -355,19 +361,20 @@ def test_expr(invocation_tracker, expr, source_object, target_value):
             return "string"
         else:
             raise ValueError(f"Unknown type {type(v)}")
+
     infer_range(source_object, typ="C")
     schema = build_schema("expr", classes=classes)
 
     source_sv = SchemaView(schema)
     cds = {
-            "C": {
-                "populated_from": "C",
-                "slot_derivations": {
-                    "derived": {
-                        "expr": expr,
-                    }
+        "C": {
+            "populated_from": "C",
+            "slot_derivations": {
+                "derived": {
+                    "expr": expr,
                 }
-            }
+            },
+        }
     }
     spec = build_transformer(class_derivations=cds)
     map_object(
@@ -379,22 +386,36 @@ def test_expr(invocation_tracker, expr, source_object, target_value):
     )
 
 
-@pytest.mark.parametrize("source_slot,target_slot,source_unit,target_unit,unit_metaslot,source_value,target_value,err,skip", [
-    ("s1", "s1", "m", "cm", "ucum_code", 1.0, 100.0, None, None),
-    ("s1", "s1", "m", "cm", "symbol", 1.0, 100.0, None, None),
-    ("s1", "s1", "m", "m", "ucum_code", 1.0, 1.0, None, None),
-    ("s1", "s1", "a", "mo", "ucum_code", 10.0, 120.0, None, None),
-    ("s1", "s1", "a", "mo", "symbol", 10.0, None, UndefinedUnitError, None),
-    ("s1", "s1", "m", "ml", "ucum_code", 1.0, None, DimensionalityError, None),
-    ("s1", "s1", "m", "pinknoodles", "ucum_code", 1.0, None, UndefinedUnitError, None),
-    ("s1", "s1", "ml", "m", "ucum_code", 1.0, None, DimensionalityError, None),
-    ("s1", "s1", "pinknoodles", "m", "ucum_code", 1.0, None, UndefinedUnitError, None),
-    ("s1", "s1", "m/s", "cm/s", "ucum_code", 1.0, 100.0, None, None),
-    ("s1", "s1", "m.s-1", "cm.s-1", "ucum_code", 1.0, 100.0, None, None),
-    ("s1", "s1", "g.m2-1", "kg.m2-1", "ucum_code", 1.0, 0.001, None, None),
-    ("height_in_m", "height_in_cm", "m", "cm", "ucum_code", 1.0, 100.0, None, None),
-])
-def test_simple_unit_conversion(invocation_tracker, source_slot, target_slot, source_unit, target_unit, unit_metaslot, source_value, target_value, err, skip):
+@pytest.mark.parametrize(
+    "source_slot,target_slot,source_unit,target_unit,unit_metaslot,source_value,target_value,err,skip",
+    [
+        ("s1", "s1", "m", "cm", "ucum_code", 1.0, 100.0, None, None),
+        ("s1", "s1", "m", "cm", "symbol", 1.0, 100.0, None, None),
+        ("s1", "s1", "m", "m", "ucum_code", 1.0, 1.0, None, None),
+        ("s1", "s1", "a", "mo", "ucum_code", 10.0, 120.0, None, None),
+        ("s1", "s1", "a", "mo", "symbol", 10.0, None, UndefinedUnitError, None),
+        ("s1", "s1", "m", "ml", "ucum_code", 1.0, None, DimensionalityError, None),
+        ("s1", "s1", "m", "pinknoodles", "ucum_code", 1.0, None, UndefinedUnitError, None),
+        ("s1", "s1", "ml", "m", "ucum_code", 1.0, None, DimensionalityError, None),
+        ("s1", "s1", "pinknoodles", "m", "ucum_code", 1.0, None, UndefinedUnitError, None),
+        ("s1", "s1", "m/s", "cm/s", "ucum_code", 1.0, 100.0, None, None),
+        ("s1", "s1", "m.s-1", "cm.s-1", "ucum_code", 1.0, 100.0, None, None),
+        ("s1", "s1", "g.m2-1", "kg.m2-1", "ucum_code", 1.0, 0.001, None, None),
+        ("height_in_m", "height_in_cm", "m", "cm", "ucum_code", 1.0, 100.0, None, None),
+    ],
+)
+def test_simple_unit_conversion(
+    invocation_tracker,
+    source_slot,
+    target_slot,
+    source_unit,
+    target_unit,
+    unit_metaslot,
+    source_value,
+    target_value,
+    err,
+    skip,
+):
     """
     Test unit conversion.
 
@@ -423,8 +444,10 @@ def test_simple_unit_conversion(invocation_tracker, source_slot, target_slot, so
     """
     if skip:
         pytest.skip(f"TODO: {skip}")
-    print(f"Unit Conversion: {source_value} `{source_unit}` => "
-          f"{target_value} `{target_unit} [with {source_slot}]`\n\n")
+    print(
+        f"Unit Conversion: {source_value} `{source_unit}` => "
+        f"{target_value} `{target_unit} [with {source_slot}]`\n\n"
+    )
     if source_unit == target_unit:
         print("Isomorphic mapping: input should equal output")
     classes = {
@@ -442,22 +465,20 @@ def test_simple_unit_conversion(invocation_tracker, source_slot, target_slot, so
     schema = build_schema("types", classes=classes)
     source_sv = SchemaView(schema)
     cds = {
-            "C": {
-                "slot_derivations": {
-                    target_slot: {
-                        "populated_from": source_slot,
-                        "unit_conversion": {
-                            "target_unit": target_unit,
-                        },
-                    }
+        "C": {
+            "slot_derivations": {
+                target_slot: {
+                    "populated_from": source_slot,
+                    "unit_conversion": {
+                        "target_unit": target_unit,
+                    },
                 }
             }
+        }
     }
     spec = build_transformer(class_derivations=cds)
 
-    source_object = {
-        source_slot: source_value
-    }
+    source_object = {source_slot: source_value}
     map_object(
         spec=spec,
         source_object=source_object,
@@ -468,13 +489,18 @@ def test_simple_unit_conversion(invocation_tracker, source_slot, target_slot, so
     )
 
 
-@pytest.mark.parametrize("source_unit,target_unit,source_value,target_value,roundtrip_object,err", [
-    ("m", "cm", 1.0, 100.0, {"q": {"unit": "cm", "magnitude": 100.0}}, None),
-    ("cm", "cm", 100.0, 100.0, {"q": {"unit": "cm", "magnitude": 100.0}}, None),
-    ("cm", "ml", 100.0, None, None, DimensionalityError),
-    ("cm", "pinknoodles", 100.0, None, None, UndefinedUnitError),
-])
-def test_complex_unit_conversion(invocation_tracker, source_unit, target_unit, source_value, target_value, roundtrip_object, err):
+@pytest.mark.parametrize(
+    "source_unit,target_unit,source_value,target_value,roundtrip_object,err",
+    [
+        ("m", "cm", 1.0, 100.0, {"q": {"unit": "cm", "magnitude": 100.0}}, None),
+        ("cm", "cm", 100.0, 100.0, {"q": {"unit": "cm", "magnitude": 100.0}}, None),
+        ("cm", "ml", 100.0, None, None, DimensionalityError),
+        ("cm", "pinknoodles", 100.0, None, None, UndefinedUnitError),
+    ],
+)
+def test_complex_unit_conversion(
+    invocation_tracker, source_unit, target_unit, source_value, target_value, roundtrip_object, err
+):
     """
     Test unit conversion, from complex object to simple scalar.
 
@@ -505,25 +531,25 @@ def test_complex_unit_conversion(invocation_tracker, source_unit, target_unit, s
                 "q": {
                     "range": "Q",
                 }
-            }
-        }
+            },
+        },
     }
     schema = build_schema("types", classes=classes)
     source_sv = SchemaView(schema)
     cds = {
-            "D": {
-                "populated_from": "C",
-                "slot_derivations": {
-                    target_slot: {
-                        "populated_from": "q",
-                        "unit_conversion": {
-                            "target_unit": target_unit,
-                            "source_unit_slot": "unit",
-                            "source_magnitude_slot": "magnitude",
-                        },
-                    }
+        "D": {
+            "populated_from": "C",
+            "slot_derivations": {
+                target_slot: {
+                    "populated_from": "q",
+                    "unit_conversion": {
+                        "target_unit": target_unit,
+                        "source_unit_slot": "unit",
+                        "source_magnitude_slot": "magnitude",
+                    },
                 }
-            }
+            },
+        }
     }
     spec = build_transformer(class_derivations=cds)
 
@@ -544,15 +570,18 @@ def test_complex_unit_conversion(invocation_tracker, source_unit, target_unit, s
     )
 
 
-@pytest.mark.parametrize("delimiter,source_value,target_value", [
-    (",", ["a", "b"], "a,b"),
-    ("|", ["a", "b"], "a|b"),
-    ("|", ["a"], "a"),
-    ("|", [], ""),
-    (SerializationSyntaxType.JSON, ["a", "b"], '["a", "b"]'),
-    (SerializationSyntaxType.JSON, [], '[]'),
-    (SerializationSyntaxType.YAML, ["a", "b"], '[a, b]'),
-])
+@pytest.mark.parametrize(
+    "delimiter,source_value,target_value",
+    [
+        (",", ["a", "b"], "a,b"),
+        ("|", ["a", "b"], "a|b"),
+        ("|", ["a"], "a"),
+        ("|", [], ""),
+        (SerializationSyntaxType.JSON, ["a", "b"], '["a", "b"]'),
+        (SerializationSyntaxType.JSON, [], "[]"),
+        (SerializationSyntaxType.YAML, ["a", "b"], "[a, b]"),
+    ],
+)
 def test_stringify(invocation_tracker, delimiter, source_value, target_value):
     """
     Test compaction of multivalued slots into a string.
@@ -570,13 +599,9 @@ def test_stringify(invocation_tracker, delimiter, source_value, target_value):
     :return:
     """
     classes = {
-        "C":
-        {
+        "C": {
             "attributes": {
-                "s1": {
-                    "range": "string",
-                    "multivalued": True
-                },
+                "s1": {"range": "string", "multivalued": True},
             }
         },
     }
@@ -588,20 +613,18 @@ def test_stringify(invocation_tracker, delimiter, source_value, target_value):
     else:
         stringification["delimiter"] = delimiter
     cds = {
-            "D": {
-                "populated_from": "C",
-                "slot_derivations": {
-                    "s1_verbatim": {
-                        "populated_from": "s1",
-                        "stringification": stringification,
-                    }
+        "D": {
+            "populated_from": "C",
+            "slot_derivations": {
+                "s1_verbatim": {
+                    "populated_from": "s1",
+                    "stringification": stringification,
                 }
-            }
+            },
+        }
     }
     spec = build_transformer(class_derivations=cds)
-    source_object = {
-        "s1": source_value
-    }
+    source_object = {"s1": source_value}
     map_object(
         spec=spec,
         source_object=source_object,
@@ -611,11 +634,14 @@ def test_stringify(invocation_tracker, delimiter, source_value, target_value):
     )
 
 
-@pytest.mark.parametrize("source_object", [
-    ({"c_list": [{"s1": "a", "s2": "b"}, {"s1": "c", "s2": "d"}], "d": {"s3": "e"}}),
-])
+@pytest.mark.parametrize(
+    "source_object",
+    [
+        ({"c_list": [{"s1": "a", "s2": "b"}, {"s1": "c", "s2": "d"}], "d": {"s3": "e"}}),
+    ],
+)
 @pytest.mark.parametrize("use_expr", [True, False])
-def test_isomorphic(invocation_tracker,source_object,use_expr):
+def test_isomorphic(invocation_tracker, source_object, use_expr):
     """
     Test mapping a schema to an identical schema (i.e copy).
 
@@ -637,7 +663,7 @@ def test_isomorphic(invocation_tracker,source_object,use_expr):
                 "d": {
                     "range": "D",
                 },
-            }
+            },
         },
         "C": {
             "attributes": {
@@ -661,38 +687,38 @@ def test_isomorphic(invocation_tracker,source_object,use_expr):
     source_sv = SchemaView(schema)
     mapping_key = "expr" if use_expr else "populated_from"
     cds = {
-            "Container": {
-               "populated_from": "Container",
-                "slot_derivations": {
-                    "c_list": {
-                        "populated_from": "c_list",
-                        "range": "C",
-                    },
-                    "d": {
-                        "populated_from": "d",
-                        "range": "D",
-                    },
+        "Container": {
+            "populated_from": "Container",
+            "slot_derivations": {
+                "c_list": {
+                    "populated_from": "c_list",
+                    "range": "C",
+                },
+                "d": {
+                    "populated_from": "d",
+                    "range": "D",
                 },
             },
-            "C": {
-                "populated_from": "C",
-                "slot_derivations": {
-                    "s1": {
-                        "populated_from": "s1",
-                    },
-                    "s2": {
-                        "populated_from": "s2",
-                    },
+        },
+        "C": {
+            "populated_from": "C",
+            "slot_derivations": {
+                "s1": {
+                    "populated_from": "s1",
+                },
+                "s2": {
+                    "populated_from": "s2",
+                },
+            },
+        },
+        "D": {
+            "populated_from": "D",
+            "slot_derivations": {
+                "s3": {
+                    mapping_key: "s3",
                 }
             },
-            "D": {
-                "populated_from": "D",
-                "slot_derivations": {
-                    "s3": {
-                        mapping_key: "s3",
-                    }
-                }
-            },
+        },
     }
     spec = build_transformer(class_derivations=cds)
     map_object(
@@ -705,10 +731,15 @@ def test_isomorphic(invocation_tracker,source_object,use_expr):
 
 
 @pytest.mark.parametrize("inlined", [True, False])
-@pytest.mark.parametrize("source_object,target_object", [
-    ({"s1": {"id": "x1", "name": "foo"}, "s2": {"id": "x2", "name": "bar"}},
-     {"s1_id": "x1", "s1_name": "foo", "s2_id": "x2", "s2_name": "bar"}),
-])
+@pytest.mark.parametrize(
+    "source_object,target_object",
+    [
+        (
+            {"s1": {"id": "x1", "name": "foo"}, "s2": {"id": "x2", "name": "bar"}},
+            {"s1_id": "x1", "s1_name": "foo", "s2_id": "x2", "s2_name": "bar"},
+        ),
+    ],
+)
 def test_join(invocation_tracker, source_object, target_object, inlined):
     """
     Test joining two objects into a single object, aka denormalization.
@@ -731,7 +762,7 @@ def test_join(invocation_tracker, source_object, target_object, inlined):
                     "range": "E",
                     "inlined": inlined,
                 },
-            }
+            },
         },
         "E": {
             "attributes": {
@@ -741,7 +772,7 @@ def test_join(invocation_tracker, source_object, target_object, inlined):
                 },
                 "name": {
                     "range": "string",
-                }
+                },
             },
         },
     }
@@ -779,8 +810,10 @@ def test_join(invocation_tracker, source_object, target_object, inlined):
                 },
             },
         }
-        source_object = {"r_list": [{"s1": source_object["s1"]["id"], "s2": source_object["s2"]["id"]}],
-                         "e_list": [source_object["s1"], source_object["s2"]]}
+        source_object = {
+            "r_list": [{"s1": source_object["s1"]["id"], "s2": source_object["s2"]["id"]}],
+            "e_list": [source_object["s1"], source_object["s2"]],
+        }
         target_object = {"r_list": [target_object]}
         cds["Container"] = {
             "populated_from": "Container",
@@ -804,9 +837,12 @@ def test_join(invocation_tracker, source_object, target_object, inlined):
     )
 
 
-@pytest.mark.parametrize("source_value,mapping,target_value", [
-    ("A", {"B": "A"}, "B"),
-])
+@pytest.mark.parametrize(
+    "source_value,mapping,target_value",
+    [
+        ("A", {"B": "A"}, "B"),
+    ],
+)
 def test_map_enum(invocation_tracker, source_value, mapping, target_value):
     """
     Test mapping between enum values.
@@ -824,8 +860,7 @@ def test_map_enum(invocation_tracker, source_value, mapping, target_value):
     :return:
     """
     classes = {
-        "C":
-        {
+        "C": {
             "attributes": {
                 "s1": {
                     "range": "E",
@@ -833,33 +868,26 @@ def test_map_enum(invocation_tracker, source_value, mapping, target_value):
             }
         }
     }
-    enums = {
-        "E": {
-            "permissible_values": ["A", "B"]
-        }
-    }
+    enums = {"E": {"permissible_values": ["A", "B"]}}
     schema = build_schema("enums", classes=classes, enums=enums)
     source_sv = SchemaView(schema)
     cds = {
-            "C": {
-                "slot_derivations": {
-                    "s1": {
-                        "populated_from": "s1",
-                    }
+        "C": {
+            "slot_derivations": {
+                "s1": {
+                    "populated_from": "s1",
                 }
             }
+        }
     }
     eds = {
         "E": {
             "populated_from": "E",
-            "permissible_value_derivations": {
-                k: {"populated_from": v} for k, v in mapping.items()},
-            },
+            "permissible_value_derivations": {k: {"populated_from": v} for k, v in mapping.items()},
+        },
     }
     spec = build_transformer(class_derivations=cds, enum_derivations=eds)
-    source_object = {
-        "s1": source_value
-    }
+    source_object = {"s1": source_value}
     map_object(
         spec=spec,
         source_object=source_object,
@@ -871,7 +899,7 @@ def test_map_enum(invocation_tracker, source_value, mapping, target_value):
 
 @pytest.mark.parametrize("is_a", [True, False])
 @pytest.mark.parametrize("flatten", [False, True])
-def test_inheritance(invocation_tracker, is_a,flatten):
+def test_inheritance(invocation_tracker, is_a, flatten):
     """
     Test inheritance.
 
@@ -883,22 +911,21 @@ def test_inheritance(invocation_tracker, is_a,flatten):
     :return:
     """
     classes = {
-        "C":
-            {
-                "tree_root": True,
-                "attributes": {
-                    "s1": {
-                        "range": "integer",
-                    }
+        "C": {
+            "tree_root": True,
+            "attributes": {
+                "s1": {
+                    "range": "integer",
                 }
             },
+        },
         "D": {
             "attributes": {
                 "s2": {
                     "range": "integer",
                 }
             },
-        }
+        },
     }
     if is_a:
         classes["C"]["is_a"] = "D"
@@ -909,21 +936,21 @@ def test_inheritance(invocation_tracker, is_a,flatten):
 
     source_sv = SchemaView(schema)
     cds = {
-            "C": {
-                "populated_from": "C",
-                "slot_derivations": {
-                    "s1": {
-                        "expr": "s1 + 1",
-                    },
-                }
+        "C": {
+            "populated_from": "C",
+            "slot_derivations": {
+                "s1": {
+                    "expr": "s1 + 1",
+                },
             },
+        },
         "D": {
             "populated_from": "D",
             "slot_derivations": {
                 "s2": {
                     "expr": "s2 + 1",
                 }
-            }
+            },
         },
     }
     if flatten:

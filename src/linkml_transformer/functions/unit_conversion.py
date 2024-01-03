@@ -9,7 +9,7 @@ note that pint may not work well with UCUM, see:
 import re
 from enum import Enum
 from functools import lru_cache
-from typing import Optional, Any
+from typing import Any, Optional
 
 
 class UnitSystem(str, Enum):
@@ -26,6 +26,7 @@ MAPPINGS = {
     },
 }
 
+
 class UndefinedUnitError(Exception):
     """
     Raised when a unit is not defined.
@@ -33,6 +34,7 @@ class UndefinedUnitError(Exception):
     Note: equivalent to the pint error, but the
     pint dependency is optional
     """
+
 
 class DimensionalityError(Exception):
     """
@@ -42,7 +44,10 @@ class DimensionalityError(Exception):
     pint dependency is optional
     """
 
-def convert_units(magnitude: float, from_unit: str, to_unit: str, system: Optional[UnitSystem] = None):
+
+def convert_units(
+    magnitude: float, from_unit: str, to_unit: str, system: Optional[UnitSystem] = None
+):
     """
     Convert a quantity between units.
 
@@ -52,6 +57,7 @@ def convert_units(magnitude: float, from_unit: str, to_unit: str, system: Option
     :return:
     """
     import pint
+
     ureg: pint.UnitRegistry = get_unit_registry(system)
     from_unit = normalize_unit(from_unit, system)
     to_unit = normalize_unit(to_unit, system)
@@ -77,6 +83,7 @@ def get_unit_registry(system: Optional[UnitSystem] = None) -> Any:
     :return:
     """
     import pint
+
     ureg = pint.UnitRegistry()
     if not system:
         return ureg
@@ -94,7 +101,6 @@ def normalize_unit(unit: str, system: Optional[UnitSystem] = None) -> str:
         return remove_ucum_annotations(convert_to_exponential_format(convert_dot_to_slash(unit)))
     else:
         return unit
-
 
 
 def remove_ucum_annotations(code: str) -> str:

@@ -1,7 +1,7 @@
 import json
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Type, Union, List
+from typing import Any, Dict, List, Optional, Type, Union
 
 import yaml
 from asteval import Interpreter
@@ -10,11 +10,14 @@ from linkml_runtime.index.object_index import ObjectIndex
 from linkml_runtime.utils.yamlutils import YAMLRoot
 from pydantic import BaseModel
 
-from linkml_transformer.datamodel.transformer_model import SlotDerivation, SerializationSyntaxType
-from linkml_transformer.functions.unit_conversion import convert_units, UnitSystem
-from linkml_transformer.utils.eval_utils import eval_expr
+from linkml_transformer.datamodel.transformer_model import (
+    SerializationSyntaxType,
+    SlotDerivation,
+)
+from linkml_transformer.functions.unit_conversion import UnitSystem, convert_units
 from linkml_transformer.transformer.transformer import OBJECT_TYPE, Transformer
 from linkml_transformer.utils.dynamic_object import dynamic_object
+from linkml_transformer.utils.eval_utils import eval_expr
 
 DICT_OBJ = Dict[str, Any]
 
@@ -153,7 +156,10 @@ class ObjectTransformer(Transformer):
                     if isinstance(v, list):
                         v = [self.transform(v1, source_class_slot_range, target_range) for v1 in v]
                     elif isinstance(v, dict):
-                        v = {k1: self.transform(v1, source_class_slot_range, target_range) for k1, v1 in v.items()}
+                        v = {
+                            k1: self.transform(v1, source_class_slot_range, target_range)
+                            for k1, v1 in v.items()
+                        }
                     else:
                         v = [v]
                 else:
@@ -172,7 +178,9 @@ class ObjectTransformer(Transformer):
             tgt_attrs[str(slot_derivation.name)] = v
         return tgt_attrs
 
-    def _perform_unit_conversion(self, slot_derivation: SlotDerivation, source_obj: Any, sv: SchemaView, source_type: str) -> Union[float, Dict]:
+    def _perform_unit_conversion(
+        self, slot_derivation: SlotDerivation, source_obj: Any, sv: SchemaView, source_type: str
+    ) -> Union[float, Dict]:
         uc = slot_derivation.unit_conversion
         curr_v = source_obj.get(slot_derivation.populated_from, None)
         system = UnitSystem.UCUM
@@ -182,12 +190,15 @@ class ObjectTransformer(Transformer):
             if uc.source_unit_slot:
                 from_unit = curr_v.get(uc.source_unit_slot, None)
                 if from_unit is None:
-                    raise ValueError(f"Could not determine unit from {curr_v}"
-                                     f" using {uc.source_unit_slot}")
+                    raise ValueError(
+                        f"Could not determine unit from {curr_v}" f" using {uc.source_unit_slot}"
+                    )
                 magnitude = curr_v.get(uc.source_magnitude_slot, None)
                 if magnitude is None:
-                    raise ValueError(f"Could not determine magnitude from {curr_v}"
-                                     f" using {uc.source_magnitude_slot}")
+                    raise ValueError(
+                        f"Could not determine magnitude from {curr_v}"
+                        f" using {uc.source_magnitude_slot}"
+                    )
             else:
                 if slot.unit.ucum_code:
                     from_unit = slot.unit.ucum_code
@@ -209,7 +220,7 @@ class ObjectTransformer(Transformer):
                 raise ValueError(f"Could not determine from_unit for {slot_derivation}")
             if not to_unit:
                 to_unit = from_unit
-                #raise ValueError(f"Could not determine to_unit for {slot_derivation}")
+                # raise ValueError(f"Could not determine to_unit for {slot_derivation}")
             if from_unit == to_unit:
                 v = magnitude
             else:
@@ -220,12 +231,8 @@ class ObjectTransformer(Transformer):
                     system=system,
                 )
             if uc.target_magnitude_slot:
-                v = {
-                    uc.target_magnitude_slot: v,
-                    uc.target_unit_slot: to_unit
-                }
+                v = {uc.target_magnitude_slot: v, uc.target_unit_slot: to_unit}
             return v
-
 
     def _multivalued_to_singlevalued(self, vs: List[Any], slot_derivation: SlotDerivation) -> Any:
         if slot_derivation.stringification:
@@ -255,7 +262,7 @@ class ObjectTransformer(Transformer):
             delimiter = stringification.delimiter
             if delimiter:
                 vs = v.split(slot_derivation.stringification.delimiter)
-                if vs == ['']:
+                if vs == [""]:
                     vs = []
             elif stringification.syntax:
                 syntax = stringification.syntax
@@ -315,4 +322,3 @@ class ObjectTransformer(Transformer):
             if source_value == pv_deriv.populated_from:
                 return pv_deriv.name
         return str(source_value)
-

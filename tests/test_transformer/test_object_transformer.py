@@ -116,7 +116,6 @@ class ObjectTransformerTestCase(unittest.TestCase):
         x = tr._coerce_datatype(5, "integer")
         self.assertEqual(5, x)
 
-
     def test_transform_simple_object(self):
         """
         Tests transforming a Person object
@@ -408,8 +407,6 @@ class ObjectTransformerTestCase(unittest.TestCase):
         derived = tr.transform(source_object)
         print(derived)
         print(yaml.dump(derived))
-
-
 
 
 if __name__ == "__main__":

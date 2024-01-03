@@ -14,8 +14,8 @@ from linkml_runtime.dumpers import yaml_dumper
 
 from linkml_transformer.compiler.markdown_compiler import MarkdownCompiler
 from linkml_transformer.compiler.python_compiler import PythonCompiler
-from linkml_transformer.inference.schema_mapper import SchemaMapper
 from linkml_transformer.inference.inverter import TransformationSpecificationInverter
+from linkml_transformer.inference.schema_mapper import SchemaMapper
 from linkml_transformer.transformer.object_transformer import ObjectTransformer
 
 schema_option = click.option("-s", "--schema", help="Path to source schema.")
@@ -63,10 +63,12 @@ def main(verbose: int, quiet: bool):
 @schema_option
 @output_format_options
 @click.option("--source-type")
-@click.option("--unrestricted-eval/--no-unrestricted-eval",
-              default=False,
-              show_default=True,
-              help="Allow unrestricted eval of python expressions.")
+@click.option(
+    "--unrestricted-eval/--no-unrestricted-eval",
+    default=False,
+    show_default=True,
+    help="Allow unrestricted eval of python expressions.",
+)
 @click.argument("input")
 def map_data(
     input,
@@ -104,10 +106,7 @@ def map_data(
 @transformer_specification_option
 @schema_option
 @click.option("--source-type")
-@click.option("--target",
-              default="python",
-              show_default=True,
-              help="Target representation.")
+@click.option("--target", default="python", show_default=True, help="Target representation.")
 def compile(
     schema,
     source_type,
@@ -177,10 +176,7 @@ def derive_schema(schema, transformer_specification, output, output_format, **kw
 @output_option
 @transformer_specification_option
 @output_format_options
-@click.option("--strict/--no-strict",
-                default=True,
-                show_default=True,
-                help="Strict mode.")
+@click.option("--strict/--no-strict", default=True, show_default=True, help="Strict mode.")
 @click.argument("schema")
 def invert(schema, transformer_specification, output, output_format, **kwargs):
     """Invert a transformation specification.

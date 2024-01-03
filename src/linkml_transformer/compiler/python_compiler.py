@@ -87,7 +87,6 @@ class PythonCompiler(Compiler):
         s += "\nNULL = None\n\n"
         return s
 
-
     def _compile_iterator(self, specification: TransformationSpecification) -> Iterator[str]:
         specification = deepcopy(specification)
         induce_missing_values(specification, self.source_schemaview)

@@ -15,19 +15,22 @@ from linkml_runtime.linkml_model import (
     ClassDefinition,
     ClassDefinitionName,
     Element,
+    PermissibleValue,
     SchemaDefinition,
-    SlotDefinition, PermissibleValue,
+    SlotDefinition,
 )
 from linkml_runtime.linkml_model.units import UnitOfMeasure
 
 from linkml_transformer.datamodel.transformer_model import (
     ClassDerivation,
     CopyDirective,
-    TransformationSpecification, EnumDerivation,
+    EnumDerivation,
+    TransformationSpecification,
 )
 from linkml_transformer.transformer.transformer import Transformer
 
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class SchemaMapper:
@@ -45,10 +48,10 @@ class SchemaMapper:
 
     def derive_schema(
         self,
-            specification: Optional[TransformationSpecification] = None,
-            target_schema_id: Optional[str] = None,
-            target_schema_name: Optional[str] = None,
-            suffix="-derived",
+        specification: Optional[TransformationSpecification] = None,
+        target_schema_id: Optional[str] = None,
+        target_schema_name: Optional[str] = None,
+        suffix="-derived",
     ) -> SchemaDefinition:
         """
         Use a transformation specification to generate a target/profile schema from a source schema.

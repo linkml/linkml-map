@@ -12,4 +12,3 @@ class MarkdownCompiler(J2BasedCompiler):
     """
 
     template_name: str = "markdown.j2"
-
