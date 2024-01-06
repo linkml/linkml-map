@@ -7,16 +7,16 @@
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
 <link href="https://cmungall.github.io/linkml-transformer/PrefixDerivation/" rel="canonical"/>
 <link href="../assets/images/favicon.png" rel="icon"/>
-<meta content="mkdocs-1.4.0, mkdocs-material-8.5.6" name="generator"/>
+<meta content="mkdocs-1.4.3, mkdocs-material-9.1.9" name="generator"/>
 <title>Class: PrefixDerivation - LinkML-Transformer</title>
-<link href="../assets/stylesheets/main.20d9efc8.min.css" rel="stylesheet"/>
-<link href="../assets/stylesheets/palette.cbb835fc.min.css" rel="stylesheet"/>
+<link href="../assets/stylesheets/main.85bb2934.min.css" rel="stylesheet"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
 <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
 <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
 </head>
-<body data-md-color-accent="none" data-md-color-primary="none" data-md-color-scheme="" dir="ltr">
+<body dir="ltr">
+<script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
 <input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
@@ -27,7 +27,7 @@
 </div>
 <div data-md-component="announce">
 </div>
-<header class="md-header" data-md-component="header">
+<header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="LinkML-Transformer" class="md-header__button md-logo" data-md-component="logo" href=".." title="LinkML-Transformer">
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
@@ -75,7 +75,7 @@
 <div class="md-search-result__meta">
             Initializing search
           </div>
-<ol class="md-search-result__list"></ol>
+<ol class="md-search-result__list" role="presentation"></ol>
 </div>
 </div>
 </div>
@@ -84,7 +84,7 @@
 <div class="md-header__source">
 <a class="md-source" data-md-component="source" href="https://github.com/cmungall/linkml-transformer/" title="Go to repository">
 <div class="md-source__icon md-icon">
-<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
 </div>
 <div class="md-source__repository">
     GitHub
@@ -109,7 +109,7 @@
 <div class="md-nav__source">
 <a class="md-source" data-md-component="source" href="https://github.com/cmungall/linkml-transformer/" title="Go to repository">
 <div class="md-source__icon md-icon">
-<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
 </div>
 <div class="md-source__repository">
     GitHub
@@ -122,15 +122,25 @@
         Index
       </a>
 </li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          Specification
+          <span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_2">
+<span class="md-nav__icon md-icon"></span>
+          Specification
+        </label>
+<ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../about.md">
-        About
+<a class="md-nav__link" href="../specification/compliance/">
+        Compliance Suite
       </a>
 </li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../overview/">
-        Overview
-      </a>
+</ul>
+</nav>
 </li>
 </ul>
 </nav>
@@ -201,25 +211,63 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<a class="md-content__button md-icon" href="https://github.com/cmungall/linkml-transformer/edit/master/docs/PrefixDerivation.md" title="Edit this page">
-<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"></path></svg>
-</a>
 <h1 id="class-prefixderivation">Class: PrefixDerivation</h1>
 <p>URI: <a href="https://w3id.org/linkml/transformer/PrefixDerivation">linkmltr:PrefixDerivation</a></p>
 <div class="mermaid"> classDiagram
     class PrefixDerivation
       ElementDerivation &lt;|-- PrefixDerivation
 
+      PrefixDerivation : comments
+
       PrefixDerivation : copy_directives
+
+          PrefixDerivation --|&gt; CopyDirective : copy_directives
+
+      PrefixDerivation : description
+
+          PrefixDerivation --|&gt; None : description
+
+      PrefixDerivation : expression_to_expression_mappings
+
+          PrefixDerivation --|&gt; KeyVal : expression_to_expression_mappings
+
+      PrefixDerivation : expression_to_value_mappings
+
+          PrefixDerivation --|&gt; KeyVal : expression_to_value_mappings
+
+      PrefixDerivation : implements
+
       PrefixDerivation : is_a
+
+          PrefixDerivation --|&gt; ElementDerivation : is_a
+
+      PrefixDerivation : mirror_source
+
       PrefixDerivation : mixins
+
+          PrefixDerivation --|&gt; ElementDerivation : mixins
+
       PrefixDerivation : name
+
+          PrefixDerivation --|&gt; None : name
+
+      PrefixDerivation : overrides
+
+          PrefixDerivation --|&gt; Any : overrides
+
+      PrefixDerivation : value_mappings
+
+          PrefixDerivation --|&gt; KeyVal : value_mappings
+
 
 </div>
 <h2 id="inheritance">Inheritance</h2>
 <ul>
+<li><a href="../SpecificationComponent/">SpecificationComponent</a><ul>
 <li><a href="../ElementDerivation/">ElementDerivation</a><ul>
 <li><strong>PrefixDerivation</strong></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -236,7 +284,7 @@
 <tbody>
 <tr>
 <td><a href="../name/">name</a></td>
-<td>0..1 <br/> <a href="xsd:string">xsd:string</a></td>
+<td>1..1 <br/> <a href="../String/">String</a></td>
 <td>Name of the element in the target schema</td>
 <td><a href="../ElementDerivation/">ElementDerivation</a></td>
 </tr>
@@ -244,6 +292,12 @@
 <td><a href="../copy_directives/">copy_directives</a></td>
 <td>0..* <br/> <a href="../CopyDirective/">CopyDirective</a></td>
 <td></td>
+<td><a href="../ElementDerivation/">ElementDerivation</a></td>
+</tr>
+<tr>
+<td><a href="../overrides/">overrides</a></td>
+<td>0..1 <br/> <a href="../Any/">Any</a></td>
+<td>overrides source schema slots</td>
 <td><a href="../ElementDerivation/">ElementDerivation</a></td>
 </tr>
 <tr>
@@ -257,6 +311,48 @@
 <td>0..* <br/> <a href="../ElementDerivation/">ElementDerivation</a></td>
 <td></td>
 <td><a href="../ElementDerivation/">ElementDerivation</a></td>
+</tr>
+<tr>
+<td><a href="../value_mappings/">value_mappings</a></td>
+<td>0..* <br/> <a href="../KeyVal/">KeyVal</a></td>
+<td>A mapping table that is applied directly to mappings, in order of precedence</td>
+<td><a href="../ElementDerivation/">ElementDerivation</a></td>
+</tr>
+<tr>
+<td><a href="../expression_to_value_mappings/">expression_to_value_mappings</a></td>
+<td>0..* <br/> <a href="../KeyVal/">KeyVal</a></td>
+<td>A mapping table in which the keys are expressions</td>
+<td><a href="../ElementDerivation/">ElementDerivation</a></td>
+</tr>
+<tr>
+<td><a href="../expression_to_expression_mappings/">expression_to_expression_mappings</a></td>
+<td>0..* <br/> <a href="../KeyVal/">KeyVal</a></td>
+<td>A mapping table in which the keys and values are expressions</td>
+<td><a href="../ElementDerivation/">ElementDerivation</a></td>
+</tr>
+<tr>
+<td><a href="../mirror_source/">mirror_source</a></td>
+<td>0..1 <br/> <a href="../Boolean/">Boolean</a></td>
+<td></td>
+<td><a href="../ElementDerivation/">ElementDerivation</a></td>
+</tr>
+<tr>
+<td><a href="../description/">description</a></td>
+<td>0..1 <br/> <a href="../String/">String</a></td>
+<td>description of the specification component</td>
+<td><a href="../SpecificationComponent/">SpecificationComponent</a></td>
+</tr>
+<tr>
+<td><a href="../implements/">implements</a></td>
+<td>0..* <br/> <a href="../Uriorcurie/">Uriorcurie</a></td>
+<td>A reference to a specification that this component implements</td>
+<td><a href="../SpecificationComponent/">SpecificationComponent</a></td>
+</tr>
+<tr>
+<td><a href="../comments/">comments</a></td>
+<td>0..* <br/> <a href="../String/">String</a></td>
+<td>A list of comments about this component</td>
+<td><a href="../SpecificationComponent/">SpecificationComponent</a></td>
 </tr>
 </tbody>
 </table>
@@ -290,7 +386,6 @@
 <details>
 <pre><code class="language-yaml">name: PrefixDerivation
 from_schema: https://w3id.org/linkml/transformer
-rank: 1000
 is_a: ElementDerivation
 
 </code></pre>
@@ -299,7 +394,6 @@ is_a: ElementDerivation
 <details>
 <pre><code class="language-yaml">name: PrefixDerivation
 from_schema: https://w3id.org/linkml/transformer
-rank: 1000
 is_a: ElementDerivation
 attributes:
   name:
@@ -312,11 +406,11 @@ attributes:
     owner: PrefixDerivation
     domain_of:
     - ElementDerivation
-    - ClassDerivation
     - SlotDerivation
     - EnumDerivation
     - PermissibleValueDerivation
     range: string
+    required: true
   copy_directives:
     name: copy_directives
     from_schema: https://w3id.org/linkml/transformer
@@ -328,10 +422,21 @@ attributes:
     - ElementDerivation
     range: CopyDirective
     inlined: true
+  overrides:
+    name: overrides
+    description: overrides source schema slots
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    alias: overrides
+    owner: PrefixDerivation
+    domain_of:
+    - ElementDerivation
+    range: Any
   is_a:
     name: is_a
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
+    slot_uri: linkml:is_a
     alias: is_a
     owner: PrefixDerivation
     domain_of:
@@ -341,13 +446,96 @@ attributes:
     name: mixins
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
+    slot_uri: linkml:mixins
     multivalued: true
     alias: mixins
     owner: PrefixDerivation
     domain_of:
     - ElementDerivation
     range: ElementDerivation
+    inlined: false
+  value_mappings:
+    name: value_mappings
+    description: A mapping table that is applied directly to mappings, in order of
+      precedence
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    multivalued: true
+    alias: value_mappings
+    owner: PrefixDerivation
+    domain_of:
+    - ElementDerivation
+    range: KeyVal
     inlined: true
+  expression_to_value_mappings:
+    name: expression_to_value_mappings
+    description: A mapping table in which the keys are expressions
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    multivalued: true
+    alias: expression_to_value_mappings
+    owner: PrefixDerivation
+    domain_of:
+    - ElementDerivation
+    range: KeyVal
+    inlined: true
+  expression_to_expression_mappings:
+    name: expression_to_expression_mappings
+    description: A mapping table in which the keys and values are expressions
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    multivalued: true
+    alias: expression_to_expression_mappings
+    owner: PrefixDerivation
+    domain_of:
+    - ElementDerivation
+    range: KeyVal
+    inlined: true
+  mirror_source:
+    name: mirror_source
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    alias: mirror_source
+    owner: PrefixDerivation
+    domain_of:
+    - ElementDerivation
+    range: boolean
+  description:
+    name: description
+    description: description of the specification component
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    slot_uri: dcterms:description
+    alias: description
+    owner: PrefixDerivation
+    domain_of:
+    - SpecificationComponent
+    range: string
+  implements:
+    name: implements
+    description: A reference to a specification that this component implements.
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    multivalued: true
+    alias: implements
+    owner: PrefixDerivation
+    domain_of:
+    - SpecificationComponent
+    range: uriorcurie
+  comments:
+    name: comments
+    description: A list of comments about this component. Comments are free text,
+      and may be used to provide additional information about the component, including
+      instructions for its use.
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    slot_uri: rdfs:comment
+    multivalued: true
+    alias: comments
+    owner: PrefixDerivation
+    domain_of:
+    - SpecificationComponent
+    range: string
 
 </code></pre>
 </details>
@@ -374,7 +562,7 @@ attributes:
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "..", "features": ["content.tabs.link"], "search": "../assets/javascripts/workers/search.5bf1dace.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
-<script src="../assets/javascripts/bundle.078830c0.min.js"></script>
+<script id="__config" type="application/json">{"base": "..", "features": ["content.tabs.link"], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script src="../assets/javascripts/bundle.fac441b0.min.js"></script>
 <script src="https://unpkg.com/mermaid@8.8.0/dist/mermaid.min.js"></script><script>mermaid.initialize({});</script></body>
 </html>

@@ -1,0 +1,6725 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://cmungall.github.io/linkml-transformer/specification/compliance/">
+      
+      
+        <link rel="prev" href="../..">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.9">
+    
+    
+      
+        <title>Compliance Suite - LinkML-Transformer</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.85bb2934.min.css">
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#linkml-transformers-compliance-suite" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="LinkML-Transformer" class="md-header__button md-logo" aria-label="LinkML-Transformer" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            LinkML-Transformer
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Compliance Suite
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/cmungall/linkml-transformer/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="LinkML-Transformer" class="md-nav__button md-logo" aria-label="LinkML-Transformer" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    LinkML-Transformer
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/cmungall/linkml-transformer/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Index
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          Specification
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Specification
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Compliance Suite
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Compliance Suite
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#feature-set-test_map_types" class="md-nav__link">
+    Feature Set: test_map_types
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature Set: test_map_types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_typesstring-string-foo-foo-true" class="md-nav__link">
+    Combo: test_map_types[string-string-foo-foo-True]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_typesinteger-integer-5-5-true" class="md-nav__link">
+    Combo: test_map_types[integer-integer-5-5-True]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_typesstring-integer-5-5-true" class="md-nav__link">
+    Combo: test_map_types[string-integer-5-5-True]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_typesinteger-float-5-50-true-combo-test_map_typesinteger-float-5-50-true" class="md-nav__link">
+    Combo: test_map_types[integer-float-5-5.0-True] {#combo-test_map_typesinteger-float-5-50-true}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_typesfloat-integer-50-5-true-combo-test_map_typesfloat-integer-50-5-true" class="md-nav__link">
+    Combo: test_map_types[float-integer-5.0-5-True] {#combo-test_map_typesfloat-integer-50-5-true}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_typesfloat-integer-52-5-false-combo-test_map_typesfloat-integer-52-5-false" class="md-nav__link">
+    Combo: test_map_types[float-integer-5.2-5-False] {#combo-test_map_typesfloat-integer-52-5-false}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_typesinteger-boolean-5-true-false" class="md-nav__link">
+    Combo: test_map_types[integer-boolean-5-True-False]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_typesinteger-boolean-0-false-false" class="md-nav__link">
+    Combo: test_map_types[integer-boolean-0-False-False]
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-set-test_map_collections" class="md-nav__link">
+    Feature Set: test_map_collections
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature Set: test_map_collections">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_collectionsstring-string-source_value0-target_value0-true" class="md-nav__link">
+    Combo: test_map_collections[string-string-source_value0-target_value0-True]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_collectionsstring-string-source_value1-target_value1-true" class="md-nav__link">
+    Combo: test_map_collections[string-string-source_value1-target_value1-True]
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-set-test_expr" class="md-nav__link">
+    Feature Set: test_expr
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature Set: test_expr">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_exprs1-s2-source_object0-11-combo-test_exprs1-s2-source_object0-11" class="md-nav__link">
+    Combo: test_expr[s1 + s2-source_object0-11] {#combo-test_exprs1--s2-source_object0-11}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_exprs1-s2-source_object1-11-combo-test_exprs1-s2-source_object1-11" class="md-nav__link">
+    Combo: test_expr[{s1} + {s2}-source_object1-11] {#combo-test_exprs1--s2-source_object1-11}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_exprs1-s2-source_object2-none-combo-test_exprs1-s2-source_object2-none" class="md-nav__link">
+    Combo: test_expr[{s1} + {s2}-source_object2-None] {#combo-test_exprs1--s2-source_object2-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_exprs1-s2s3-source_object3-11-combo-test_exprs1-s2s3-source_object3-11" class="md-nav__link">
+    Combo: test_expr[s1 + s2.s3-source_object3-11] {#combo-test_exprs1--s2s3-source_object3-11}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_exprs1-s2s3s4-source_object4-11-combo-test_exprs1-s2s3s4-source_object4-11" class="md-nav__link">
+    Combo: test_expr[s1 + s2.s3.s4-source_object4-11] {#combo-test_exprs1--s2s3s4-source_object4-11}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_exprs1-s2-source_object5-ab-combo-test_exprs1-s2-source_object5-ab" class="md-nav__link">
+    Combo: test_expr[s1 + s2-source_object5-ab] {#combo-test_exprs1--s2-source_object5-ab}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_exprs1-s2-source_object6-target_value6-combo-test_exprs1-s2-source_object6-target_value6" class="md-nav__link">
+    Combo: test_expr[s1 + s2-source_object6-target_value6] {#combo-test_exprs1--s2-source_object6-target_value6}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_exprlens1-source_object7-1" class="md-nav__link">
+    Combo: test_expr[len(s1)-source_object7-1]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_exprs1-s2-source_object8-true-combo-test_exprs1-s2-source_object8-true" class="md-nav__link">
+    Combo: test_expr[s1 \&lt; s2-source_object8-True] {#combo-test_exprs1--s2-source_object8-true}
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-set-test_simple_unit_conversion" class="md-nav__link">
+    Feature Set: test_simple_unit_conversion
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature Set: test_simple_unit_conversion">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_simple_unit_conversions1-s1-m-cm-ucum_code-10-1000-none-none-combo-test_simple_unit_conversions1-s1-m-cm-ucum_code-10-1000-none-none" class="md-nav__link">
+    Combo: test_simple_unit_conversion[s1-s1-m-cm-ucum_code-1.0-100.0-None-None] {#combo-test_simple_unit_conversions1-s1-m-cm-ucum_code-10-1000-none-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_simple_unit_conversions1-s1-m-cm-symbol-10-1000-none-none-combo-test_simple_unit_conversions1-s1-m-cm-symbol-10-1000-none-none" class="md-nav__link">
+    Combo: test_simple_unit_conversion[s1-s1-m-cm-symbol-1.0-100.0-None-None] {#combo-test_simple_unit_conversions1-s1-m-cm-symbol-10-1000-none-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_simple_unit_conversions1-s1-m-m-ucum_code-10-10-none-none-combo-test_simple_unit_conversions1-s1-m-m-ucum_code-10-10-none-none" class="md-nav__link">
+    Combo: test_simple_unit_conversion[s1-s1-m-m-ucum_code-1.0-1.0-None-None] {#combo-test_simple_unit_conversions1-s1-m-m-ucum_code-10-10-none-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_simple_unit_conversions1-s1-a-mo-ucum_code-100-1200-none-none-combo-test_simple_unit_conversions1-s1-a-mo-ucum_code-100-1200-none-none" class="md-nav__link">
+    Combo: test_simple_unit_conversion[s1-s1-a-mo-ucum_code-10.0-120.0-None-None] {#combo-test_simple_unit_conversions1-s1-a-mo-ucum_code-100-1200-none-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_simple_unit_conversions1-s1-a-mo-symbol-100-none-undefineduniterror-none-combo-test_simple_unit_conversions1-s1-a-mo-symbol-100-none-undefineduniterror-none" class="md-nav__link">
+    Combo: test_simple_unit_conversion[s1-s1-a-mo-symbol-10.0-None-UndefinedUnitError-None] {#combo-test_simple_unit_conversions1-s1-a-mo-symbol-100-none-undefineduniterror-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_simple_unit_conversions1-s1-m-ml-ucum_code-10-none-dimensionalityerror-none-combo-test_simple_unit_conversions1-s1-m-ml-ucum_code-10-none-dimensionalityerror-none" class="md-nav__link">
+    Combo: test_simple_unit_conversion[s1-s1-m-ml-ucum_code-1.0-None-DimensionalityError-None] {#combo-test_simple_unit_conversions1-s1-m-ml-ucum_code-10-none-dimensionalityerror-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_simple_unit_conversions1-s1-m-pinknoodles-ucum_code-10-none-undefineduniterror-none-combo-test_simple_unit_conversions1-s1-m-pinknoodles-ucum_code-10-none-undefineduniterror-none" class="md-nav__link">
+    Combo: test_simple_unit_conversion[s1-s1-m-pinknoodles-ucum_code-1.0-None-UndefinedUnitError-None] {#combo-test_simple_unit_conversions1-s1-m-pinknoodles-ucum_code-10-none-undefineduniterror-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_simple_unit_conversions1-s1-ml-m-ucum_code-10-none-dimensionalityerror-none-combo-test_simple_unit_conversions1-s1-ml-m-ucum_code-10-none-dimensionalityerror-none" class="md-nav__link">
+    Combo: test_simple_unit_conversion[s1-s1-ml-m-ucum_code-1.0-None-DimensionalityError-None] {#combo-test_simple_unit_conversions1-s1-ml-m-ucum_code-10-none-dimensionalityerror-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_simple_unit_conversions1-s1-pinknoodles-m-ucum_code-10-none-undefineduniterror-none-combo-test_simple_unit_conversions1-s1-pinknoodles-m-ucum_code-10-none-undefineduniterror-none" class="md-nav__link">
+    Combo: test_simple_unit_conversion[s1-s1-pinknoodles-m-ucum_code-1.0-None-UndefinedUnitError-None] {#combo-test_simple_unit_conversions1-s1-pinknoodles-m-ucum_code-10-none-undefineduniterror-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_simple_unit_conversions1-s1-ms-cms-ucum_code-10-1000-none-none-combo-test_simple_unit_conversions1-s1-ms-cms-ucum_code-10-1000-none-none" class="md-nav__link">
+    Combo: test_simple_unit_conversion[s1-s1-m/s-cm/s-ucum_code-1.0-100.0-None-None] {#combo-test_simple_unit_conversions1-s1-ms-cms-ucum_code-10-1000-none-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_simple_unit_conversions1-s1-ms-1-cms-1-ucum_code-10-1000-none-none-combo-test_simple_unit_conversions1-s1-ms-1-cms-1-ucum_code-10-1000-none-none" class="md-nav__link">
+    Combo: test_simple_unit_conversion[s1-s1-m.s-1-cm.s-1-ucum_code-1.0-100.0-None-None] {#combo-test_simple_unit_conversions1-s1-ms-1-cms-1-ucum_code-10-1000-none-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_simple_unit_conversions1-s1-gm2-1-kgm2-1-ucum_code-10-0001-none-none-combo-test_simple_unit_conversions1-s1-gm2-1-kgm2-1-ucum_code-10-0001-none-none" class="md-nav__link">
+    Combo: test_simple_unit_conversion[s1-s1-g.m2-1-kg.m2-1-ucum_code-1.0-0.001-None-None] {#combo-test_simple_unit_conversions1-s1-gm2-1-kgm2-1-ucum_code-10-0001-none-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_simple_unit_conversionheight_in_m-height_in_cm-m-cm-ucum_code-10-1000-none-none-combo-test_simple_unit_conversionheight_in_m-height_in_cm-m-cm-ucum_code-10-1000-none-none" class="md-nav__link">
+    Combo: test_simple_unit_conversion[height_in_m-height_in_cm-m-cm-ucum_code-1.0-100.0-None-None] {#combo-test_simple_unit_conversionheight_in_m-height_in_cm-m-cm-ucum_code-10-1000-none-none}
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-set-test_complex_unit_conversion" class="md-nav__link">
+    Feature Set: test_complex_unit_conversion
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature Set: test_complex_unit_conversion">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_complex_unit_conversionm-cm-10-1000-roundtrip_object0-none-combo-test_complex_unit_conversionm-cm-10-1000-roundtrip_object0-none" class="md-nav__link">
+    Combo: test_complex_unit_conversion[m-cm-1.0-100.0-roundtrip_object0-None] {#combo-test_complex_unit_conversionm-cm-10-1000-roundtrip_object0-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_complex_unit_conversioncm-cm-1000-1000-roundtrip_object1-none-combo-test_complex_unit_conversioncm-cm-1000-1000-roundtrip_object1-none" class="md-nav__link">
+    Combo: test_complex_unit_conversion[cm-cm-100.0-100.0-roundtrip_object1-None] {#combo-test_complex_unit_conversioncm-cm-1000-1000-roundtrip_object1-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_complex_unit_conversioncm-ml-1000-none-none-dimensionalityerror-combo-test_complex_unit_conversioncm-ml-1000-none-none-dimensionalityerror" class="md-nav__link">
+    Combo: test_complex_unit_conversion[cm-ml-100.0-None-None-DimensionalityError] {#combo-test_complex_unit_conversioncm-ml-1000-none-none-dimensionalityerror}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_complex_unit_conversioncm-pinknoodles-1000-none-none-undefineduniterror-combo-test_complex_unit_conversioncm-pinknoodles-1000-none-none-undefineduniterror" class="md-nav__link">
+    Combo: test_complex_unit_conversion[cm-pinknoodles-100.0-None-None-UndefinedUnitError] {#combo-test_complex_unit_conversioncm-pinknoodles-1000-none-none-undefineduniterror}
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-set-test_stringify" class="md-nav__link">
+    Feature Set: test_stringify
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature Set: test_stringify">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_stringify-source_value0-ab" class="md-nav__link">
+    Combo: test_stringify[,-source_value0-a,b]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_stringify-source_value1-ab" class="md-nav__link">
+    Combo: test_stringify[|-source_value1-a|b]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_stringify-source_value2-a" class="md-nav__link">
+    Combo: test_stringify[|-source_value2-a]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_stringify-source_value3-" class="md-nav__link">
+    Combo: test_stringify[|-source_value3-]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_stringifyjson-source_value4-a-b" class="md-nav__link">
+    Combo: test_stringify[JSON-source_value4-[\"a\", \"b\"]]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_stringifyjson-source_value5-" class="md-nav__link">
+    Combo: test_stringify[JSON-source_value5-[]]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_stringifyyaml-source_value6-a-b" class="md-nav__link">
+    Combo: test_stringify[YAML-source_value6-[a, b]]
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-set-test_isomorphic" class="md-nav__link">
+    Feature Set: test_isomorphic
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature Set: test_isomorphic">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_isomorphictrue-true-source_object0" class="md-nav__link">
+    Combo: test_isomorphic[True-True-source_object0]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_isomorphictrue-false-source_object0" class="md-nav__link">
+    Combo: test_isomorphic[True-False-source_object0]
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-set-test_join" class="md-nav__link">
+    Feature Set: test_join
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature Set: test_join">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_joinsource_object0-target_object0-true" class="md-nav__link">
+    Combo: test_join[source_object0-target_object0-True]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_joinsource_object0-target_object0-false" class="md-nav__link">
+    Combo: test_join[source_object0-target_object0-False]
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-set-test_map_enum" class="md-nav__link">
+    Feature Set: test_map_enum
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature Set: test_map_enum">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_enuma-mapping0-b-false" class="md-nav__link">
+    Combo: test_map_enum[A-mapping0-B-False]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_enumz-mapping1-none-false" class="md-nav__link">
+    Combo: test_map_enum[Z-mapping1-None-False]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_enumc-mapping2-c-true" class="md-nav__link">
+    Combo: test_map_enum[C-mapping2-C-True]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_enumc-mapping4-b-false" class="md-nav__link">
+    Combo: test_map_enum[C-mapping4-B-False]
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-set-test_inheritance" class="md-nav__link">
+    Feature Set: test_inheritance
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature Set: test_inheritance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_inheritancefalse-true" class="md-nav__link">
+    Combo: test_inheritance[False-True]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_inheritancefalse-false" class="md-nav__link">
+    Combo: test_inheritance[False-False]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_inheritancetrue-true" class="md-nav__link">
+    Combo: test_inheritance[True-True]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_inheritancetrue-false" class="md-nav__link">
+    Combo: test_inheritance[True-False]
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#feature-set-test_map_types" class="md-nav__link">
+    Feature Set: test_map_types
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature Set: test_map_types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_typesstring-string-foo-foo-true" class="md-nav__link">
+    Combo: test_map_types[string-string-foo-foo-True]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_typesinteger-integer-5-5-true" class="md-nav__link">
+    Combo: test_map_types[integer-integer-5-5-True]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_typesstring-integer-5-5-true" class="md-nav__link">
+    Combo: test_map_types[string-integer-5-5-True]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_typesinteger-float-5-50-true-combo-test_map_typesinteger-float-5-50-true" class="md-nav__link">
+    Combo: test_map_types[integer-float-5-5.0-True] {#combo-test_map_typesinteger-float-5-50-true}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_typesfloat-integer-50-5-true-combo-test_map_typesfloat-integer-50-5-true" class="md-nav__link">
+    Combo: test_map_types[float-integer-5.0-5-True] {#combo-test_map_typesfloat-integer-50-5-true}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_typesfloat-integer-52-5-false-combo-test_map_typesfloat-integer-52-5-false" class="md-nav__link">
+    Combo: test_map_types[float-integer-5.2-5-False] {#combo-test_map_typesfloat-integer-52-5-false}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_typesinteger-boolean-5-true-false" class="md-nav__link">
+    Combo: test_map_types[integer-boolean-5-True-False]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_typesinteger-boolean-0-false-false" class="md-nav__link">
+    Combo: test_map_types[integer-boolean-0-False-False]
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-set-test_map_collections" class="md-nav__link">
+    Feature Set: test_map_collections
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature Set: test_map_collections">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_collectionsstring-string-source_value0-target_value0-true" class="md-nav__link">
+    Combo: test_map_collections[string-string-source_value0-target_value0-True]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_collectionsstring-string-source_value1-target_value1-true" class="md-nav__link">
+    Combo: test_map_collections[string-string-source_value1-target_value1-True]
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-set-test_expr" class="md-nav__link">
+    Feature Set: test_expr
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature Set: test_expr">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_exprs1-s2-source_object0-11-combo-test_exprs1-s2-source_object0-11" class="md-nav__link">
+    Combo: test_expr[s1 + s2-source_object0-11] {#combo-test_exprs1--s2-source_object0-11}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_exprs1-s2-source_object1-11-combo-test_exprs1-s2-source_object1-11" class="md-nav__link">
+    Combo: test_expr[{s1} + {s2}-source_object1-11] {#combo-test_exprs1--s2-source_object1-11}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_exprs1-s2-source_object2-none-combo-test_exprs1-s2-source_object2-none" class="md-nav__link">
+    Combo: test_expr[{s1} + {s2}-source_object2-None] {#combo-test_exprs1--s2-source_object2-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_exprs1-s2s3-source_object3-11-combo-test_exprs1-s2s3-source_object3-11" class="md-nav__link">
+    Combo: test_expr[s1 + s2.s3-source_object3-11] {#combo-test_exprs1--s2s3-source_object3-11}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_exprs1-s2s3s4-source_object4-11-combo-test_exprs1-s2s3s4-source_object4-11" class="md-nav__link">
+    Combo: test_expr[s1 + s2.s3.s4-source_object4-11] {#combo-test_exprs1--s2s3s4-source_object4-11}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_exprs1-s2-source_object5-ab-combo-test_exprs1-s2-source_object5-ab" class="md-nav__link">
+    Combo: test_expr[s1 + s2-source_object5-ab] {#combo-test_exprs1--s2-source_object5-ab}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_exprs1-s2-source_object6-target_value6-combo-test_exprs1-s2-source_object6-target_value6" class="md-nav__link">
+    Combo: test_expr[s1 + s2-source_object6-target_value6] {#combo-test_exprs1--s2-source_object6-target_value6}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_exprlens1-source_object7-1" class="md-nav__link">
+    Combo: test_expr[len(s1)-source_object7-1]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_exprs1-s2-source_object8-true-combo-test_exprs1-s2-source_object8-true" class="md-nav__link">
+    Combo: test_expr[s1 \&lt; s2-source_object8-True] {#combo-test_exprs1--s2-source_object8-true}
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-set-test_simple_unit_conversion" class="md-nav__link">
+    Feature Set: test_simple_unit_conversion
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature Set: test_simple_unit_conversion">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_simple_unit_conversions1-s1-m-cm-ucum_code-10-1000-none-none-combo-test_simple_unit_conversions1-s1-m-cm-ucum_code-10-1000-none-none" class="md-nav__link">
+    Combo: test_simple_unit_conversion[s1-s1-m-cm-ucum_code-1.0-100.0-None-None] {#combo-test_simple_unit_conversions1-s1-m-cm-ucum_code-10-1000-none-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_simple_unit_conversions1-s1-m-cm-symbol-10-1000-none-none-combo-test_simple_unit_conversions1-s1-m-cm-symbol-10-1000-none-none" class="md-nav__link">
+    Combo: test_simple_unit_conversion[s1-s1-m-cm-symbol-1.0-100.0-None-None] {#combo-test_simple_unit_conversions1-s1-m-cm-symbol-10-1000-none-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_simple_unit_conversions1-s1-m-m-ucum_code-10-10-none-none-combo-test_simple_unit_conversions1-s1-m-m-ucum_code-10-10-none-none" class="md-nav__link">
+    Combo: test_simple_unit_conversion[s1-s1-m-m-ucum_code-1.0-1.0-None-None] {#combo-test_simple_unit_conversions1-s1-m-m-ucum_code-10-10-none-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_simple_unit_conversions1-s1-a-mo-ucum_code-100-1200-none-none-combo-test_simple_unit_conversions1-s1-a-mo-ucum_code-100-1200-none-none" class="md-nav__link">
+    Combo: test_simple_unit_conversion[s1-s1-a-mo-ucum_code-10.0-120.0-None-None] {#combo-test_simple_unit_conversions1-s1-a-mo-ucum_code-100-1200-none-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_simple_unit_conversions1-s1-a-mo-symbol-100-none-undefineduniterror-none-combo-test_simple_unit_conversions1-s1-a-mo-symbol-100-none-undefineduniterror-none" class="md-nav__link">
+    Combo: test_simple_unit_conversion[s1-s1-a-mo-symbol-10.0-None-UndefinedUnitError-None] {#combo-test_simple_unit_conversions1-s1-a-mo-symbol-100-none-undefineduniterror-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_simple_unit_conversions1-s1-m-ml-ucum_code-10-none-dimensionalityerror-none-combo-test_simple_unit_conversions1-s1-m-ml-ucum_code-10-none-dimensionalityerror-none" class="md-nav__link">
+    Combo: test_simple_unit_conversion[s1-s1-m-ml-ucum_code-1.0-None-DimensionalityError-None] {#combo-test_simple_unit_conversions1-s1-m-ml-ucum_code-10-none-dimensionalityerror-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_simple_unit_conversions1-s1-m-pinknoodles-ucum_code-10-none-undefineduniterror-none-combo-test_simple_unit_conversions1-s1-m-pinknoodles-ucum_code-10-none-undefineduniterror-none" class="md-nav__link">
+    Combo: test_simple_unit_conversion[s1-s1-m-pinknoodles-ucum_code-1.0-None-UndefinedUnitError-None] {#combo-test_simple_unit_conversions1-s1-m-pinknoodles-ucum_code-10-none-undefineduniterror-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_simple_unit_conversions1-s1-ml-m-ucum_code-10-none-dimensionalityerror-none-combo-test_simple_unit_conversions1-s1-ml-m-ucum_code-10-none-dimensionalityerror-none" class="md-nav__link">
+    Combo: test_simple_unit_conversion[s1-s1-ml-m-ucum_code-1.0-None-DimensionalityError-None] {#combo-test_simple_unit_conversions1-s1-ml-m-ucum_code-10-none-dimensionalityerror-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_simple_unit_conversions1-s1-pinknoodles-m-ucum_code-10-none-undefineduniterror-none-combo-test_simple_unit_conversions1-s1-pinknoodles-m-ucum_code-10-none-undefineduniterror-none" class="md-nav__link">
+    Combo: test_simple_unit_conversion[s1-s1-pinknoodles-m-ucum_code-1.0-None-UndefinedUnitError-None] {#combo-test_simple_unit_conversions1-s1-pinknoodles-m-ucum_code-10-none-undefineduniterror-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_simple_unit_conversions1-s1-ms-cms-ucum_code-10-1000-none-none-combo-test_simple_unit_conversions1-s1-ms-cms-ucum_code-10-1000-none-none" class="md-nav__link">
+    Combo: test_simple_unit_conversion[s1-s1-m/s-cm/s-ucum_code-1.0-100.0-None-None] {#combo-test_simple_unit_conversions1-s1-ms-cms-ucum_code-10-1000-none-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_simple_unit_conversions1-s1-ms-1-cms-1-ucum_code-10-1000-none-none-combo-test_simple_unit_conversions1-s1-ms-1-cms-1-ucum_code-10-1000-none-none" class="md-nav__link">
+    Combo: test_simple_unit_conversion[s1-s1-m.s-1-cm.s-1-ucum_code-1.0-100.0-None-None] {#combo-test_simple_unit_conversions1-s1-ms-1-cms-1-ucum_code-10-1000-none-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_simple_unit_conversions1-s1-gm2-1-kgm2-1-ucum_code-10-0001-none-none-combo-test_simple_unit_conversions1-s1-gm2-1-kgm2-1-ucum_code-10-0001-none-none" class="md-nav__link">
+    Combo: test_simple_unit_conversion[s1-s1-g.m2-1-kg.m2-1-ucum_code-1.0-0.001-None-None] {#combo-test_simple_unit_conversions1-s1-gm2-1-kgm2-1-ucum_code-10-0001-none-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_simple_unit_conversionheight_in_m-height_in_cm-m-cm-ucum_code-10-1000-none-none-combo-test_simple_unit_conversionheight_in_m-height_in_cm-m-cm-ucum_code-10-1000-none-none" class="md-nav__link">
+    Combo: test_simple_unit_conversion[height_in_m-height_in_cm-m-cm-ucum_code-1.0-100.0-None-None] {#combo-test_simple_unit_conversionheight_in_m-height_in_cm-m-cm-ucum_code-10-1000-none-none}
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-set-test_complex_unit_conversion" class="md-nav__link">
+    Feature Set: test_complex_unit_conversion
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature Set: test_complex_unit_conversion">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_complex_unit_conversionm-cm-10-1000-roundtrip_object0-none-combo-test_complex_unit_conversionm-cm-10-1000-roundtrip_object0-none" class="md-nav__link">
+    Combo: test_complex_unit_conversion[m-cm-1.0-100.0-roundtrip_object0-None] {#combo-test_complex_unit_conversionm-cm-10-1000-roundtrip_object0-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_complex_unit_conversioncm-cm-1000-1000-roundtrip_object1-none-combo-test_complex_unit_conversioncm-cm-1000-1000-roundtrip_object1-none" class="md-nav__link">
+    Combo: test_complex_unit_conversion[cm-cm-100.0-100.0-roundtrip_object1-None] {#combo-test_complex_unit_conversioncm-cm-1000-1000-roundtrip_object1-none}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_complex_unit_conversioncm-ml-1000-none-none-dimensionalityerror-combo-test_complex_unit_conversioncm-ml-1000-none-none-dimensionalityerror" class="md-nav__link">
+    Combo: test_complex_unit_conversion[cm-ml-100.0-None-None-DimensionalityError] {#combo-test_complex_unit_conversioncm-ml-1000-none-none-dimensionalityerror}
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_complex_unit_conversioncm-pinknoodles-1000-none-none-undefineduniterror-combo-test_complex_unit_conversioncm-pinknoodles-1000-none-none-undefineduniterror" class="md-nav__link">
+    Combo: test_complex_unit_conversion[cm-pinknoodles-100.0-None-None-UndefinedUnitError] {#combo-test_complex_unit_conversioncm-pinknoodles-1000-none-none-undefineduniterror}
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-set-test_stringify" class="md-nav__link">
+    Feature Set: test_stringify
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature Set: test_stringify">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_stringify-source_value0-ab" class="md-nav__link">
+    Combo: test_stringify[,-source_value0-a,b]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_stringify-source_value1-ab" class="md-nav__link">
+    Combo: test_stringify[|-source_value1-a|b]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_stringify-source_value2-a" class="md-nav__link">
+    Combo: test_stringify[|-source_value2-a]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_stringify-source_value3-" class="md-nav__link">
+    Combo: test_stringify[|-source_value3-]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_stringifyjson-source_value4-a-b" class="md-nav__link">
+    Combo: test_stringify[JSON-source_value4-[\"a\", \"b\"]]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_stringifyjson-source_value5-" class="md-nav__link">
+    Combo: test_stringify[JSON-source_value5-[]]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_stringifyyaml-source_value6-a-b" class="md-nav__link">
+    Combo: test_stringify[YAML-source_value6-[a, b]]
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-set-test_isomorphic" class="md-nav__link">
+    Feature Set: test_isomorphic
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature Set: test_isomorphic">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_isomorphictrue-true-source_object0" class="md-nav__link">
+    Combo: test_isomorphic[True-True-source_object0]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_isomorphictrue-false-source_object0" class="md-nav__link">
+    Combo: test_isomorphic[True-False-source_object0]
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-set-test_join" class="md-nav__link">
+    Feature Set: test_join
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature Set: test_join">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_joinsource_object0-target_object0-true" class="md-nav__link">
+    Combo: test_join[source_object0-target_object0-True]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_joinsource_object0-target_object0-false" class="md-nav__link">
+    Combo: test_join[source_object0-target_object0-False]
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-set-test_map_enum" class="md-nav__link">
+    Feature Set: test_map_enum
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature Set: test_map_enum">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_enuma-mapping0-b-false" class="md-nav__link">
+    Combo: test_map_enum[A-mapping0-B-False]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_enumz-mapping1-none-false" class="md-nav__link">
+    Combo: test_map_enum[Z-mapping1-None-False]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_enumc-mapping2-c-true" class="md-nav__link">
+    Combo: test_map_enum[C-mapping2-C-True]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_map_enumc-mapping4-b-false" class="md-nav__link">
+    Combo: test_map_enum[C-mapping4-B-False]
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-set-test_inheritance" class="md-nav__link">
+    Feature Set: test_inheritance
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature Set: test_inheritance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_inheritancefalse-true" class="md-nav__link">
+    Combo: test_inheritance[False-True]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_inheritancefalse-false" class="md-nav__link">
+    Combo: test_inheritance[False-False]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_inheritancetrue-true" class="md-nav__link">
+    Combo: test_inheritance[True-True]
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combo-test_inheritancetrue-false" class="md-nav__link">
+    Combo: test_inheritance[True-False]
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<ul>
+<li><a href="#linkml-transformers-compliance-suite">LinkML-Transformers Compliance
+    Suite</a><ul>
+<li><a href="#feature-set-test_map_types">Feature Set: test_map_types</a></li>
+<li><a href="#feature-set-test_map_collections">Feature Set:
+    test_map_collections</a></li>
+<li><a href="#feature-set-test_expr">Feature Set: test_expr</a></li>
+<li><a href="#feature-set-test_simple_unit_conversion">Feature Set:
+    test_simple_unit_conversion</a></li>
+<li><a href="#feature-set-test_complex_unit_conversion">Feature Set:
+    test_complex_unit_conversion</a></li>
+<li><a href="#feature-set-test_stringify">Feature Set: test_stringify</a></li>
+<li><a href="#feature-set-test_isomorphic">Feature Set: test_isomorphic</a></li>
+<li><a href="#feature-set-test_join">Feature Set: test_join</a></li>
+<li><a href="#feature-set-test_map_enum">Feature Set: test_map_enum</a></li>
+<li><a href="#feature-set-test_inheritance">Feature Set: test_inheritance</a></li>
+</ul>
+</li>
+</ul>
+<h1 id="linkml-transformers-compliance-suite">LinkML-Transformers Compliance Suite</h1>
+<p>This is the output from running the full compliance test suite.</p>
+<p>It is organized into <strong>Feature Sets</strong> that test a particular feature or
+group of features, and <strong>combinations</strong> of different schemas, input
+objects, and transformation specifications. This is intended to
+exhaustively test all combinations of features, and provide informative
+output.</p>
+<p>Each test is designed to demonstrate:</p>
+<ul>
+<li>data mapping (transformation)</li>
+<li>derived schemas</li>
+<li>inversion (reverse transformation) (in some cases)</li>
+<li>compliation to other frameworks (coming soon)</li>
+</ul>
+<h2 id="feature-set-test_map_types">Feature Set: test_map_types</h2>
+<p>Test mapping between basic data types.</p>
+<p>This test uses an ultra-minimal schema with a single class and a single
+attribute, the transformation specification maps that attribute onto
+itself, with a different type, demonstrating type coercion.</p>
+<p>Some cases will be trivially isomorphic (where <code>source_datatype</code> ==
+<code>target_datatype</code>), but these are executed anyway.</p>
+<ul>
+<li><strong>source_datatype</strong>: linkml datatype of source object</li>
+<li><strong>target_datatype</strong>: linkml datatype of target object</li>
+<li><strong>source_value</strong>: value of source object</li>
+<li><strong>target_value</strong>: expected value of slot in target object</li>
+<li><strong>invertible</strong>: True if the transformation is invertible</li>
+</ul>
+<h3 id="combo-test_map_typesstring-string-foo-foo-true">Combo: test_map_types[string-string-foo-foo-True]</h3>
+<p>Mapping <code>string</code> => <code>string</code></p>
+<p>Isomorphic mapping: input should equal output</p>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+description: Minimal single-attribute schema for testing datatype mapping
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: string
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        range: string
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: foo
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: foo
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: string
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        range: string
+
+</code></pre>
+<h3 id="combo-test_map_typesinteger-integer-5-5-true">Combo: test_map_types[integer-integer-5-5-True]</h3>
+<p>Mapping <code>integer</code> => <code>integer</code></p>
+<p>Isomorphic mapping: input should equal output</p>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+description: Minimal single-attribute schema for testing datatype mapping
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: integer
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        range: integer
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 5
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 5
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: integer
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        range: integer
+
+</code></pre>
+<h3 id="combo-test_map_typesstring-integer-5-5-true">Combo: test_map_types[string-integer-5-5-True]</h3>
+<p>Mapping <code>string</code> => <code>integer</code></p>
+<p>Should coerce datatype</p>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+description: Minimal single-attribute schema for testing datatype mapping
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: string
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        range: integer
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: '5'
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 5
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: integer
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        range: string
+
+</code></pre>
+<h3 id="combo-test_map_typesinteger-float-5-50-true-combo-test_map_typesinteger-float-5-50-true">Combo: test_map_types[integer-float-5-5.0-True] {#combo-test_map_typesinteger-float-5-50-true}</h3>
+<p>Mapping <code>integer</code> => <code>float</code></p>
+<p>Should coerce datatype</p>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+description: Minimal single-attribute schema for testing datatype mapping
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: integer
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        range: float
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 5
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 5.0
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        range: integer
+
+</code></pre>
+<h3 id="combo-test_map_typesfloat-integer-50-5-true-combo-test_map_typesfloat-integer-50-5-true">Combo: test_map_types[float-integer-5.0-5-True] {#combo-test_map_typesfloat-integer-50-5-true}</h3>
+<p>Mapping <code>float</code> => <code>integer</code></p>
+<p>Should coerce datatype</p>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+description: Minimal single-attribute schema for testing datatype mapping
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        range: integer
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 5.0
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 5
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: integer
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        range: float
+
+</code></pre>
+<h3 id="combo-test_map_typesfloat-integer-52-5-false-combo-test_map_typesfloat-integer-52-5-false">Combo: test_map_types[float-integer-5.2-5-False] {#combo-test_map_typesfloat-integer-52-5-false}</h3>
+<p>Mapping <code>float</code> => <code>integer</code></p>
+<p>Should coerce datatype</p>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+description: Minimal single-attribute schema for testing datatype mapping
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        range: integer
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 5.2
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 5
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: integer
+
+</code></pre>
+<h3 id="combo-test_map_typesinteger-boolean-5-true-false">Combo: test_map_types[integer-boolean-5-True-False]</h3>
+<p>Mapping <code>integer</code> => <code>boolean</code></p>
+<p>Should coerce datatype</p>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+description: Minimal single-attribute schema for testing datatype mapping
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: integer
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        range: boolean
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 5
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: true
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: boolean
+
+</code></pre>
+<h3 id="combo-test_map_typesinteger-boolean-0-false-false">Combo: test_map_types[integer-boolean-0-False-False]</h3>
+<p>Mapping <code>integer</code> => <code>boolean</code></p>
+<p>Should coerce datatype</p>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+description: Minimal single-attribute schema for testing datatype mapping
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: integer
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        range: boolean
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 0
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: false
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: boolean
+
+</code></pre>
+<h2 id="feature-set-test_map_collections">Feature Set: test_map_collections</h2>
+<p>Test mapping between collection data types (lists and dicts).</p>
+<p>This makes use of the <code>cast_collection_as</code> construct</p>
+<ul>
+<li><strong>source_datatype</strong>:</li>
+<li><strong>target_datatype</strong>:</li>
+<li><strong>source_value</strong>:</li>
+<li><strong>target_value</strong>:</li>
+<li><strong>invertible</strong>:</li>
+</ul>
+<h3 id="combo-test_map_collectionsstring-string-source_value0-target_value0-true">Combo: test_map_collections[string-string-source_value0-target_value0-True]</h3>
+<p>Mapping <code>string</code> => <code>string</code></p>
+<p>Isomorphic mapping: input should equal output</p>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+description: Mapping between collection types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      ds:
+        name: ds
+        multivalued: true
+        range: D
+        inlined: true
+        inlined_as_list: true
+    tree_root: true
+  D:
+    name: D
+    attributes:
+      id:
+        name: id
+        identifier: true
+      s1:
+        name: s1
+        range: string
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      ds:
+        name: ds
+        populated_from: ds
+        cast_collection_as: MultiValuedDict
+        dictionary_key: id
+  D:
+    name: D
+    slot_derivations:
+      id:
+        name: id
+        populated_from: id
+      s1:
+        name: s1
+        populated_from: s1
+        range: string
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">ds:
+- id: X
+  s1: foo
+- id: Y
+  s1: bar
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">ds:
+  X:
+    s1: foo
+  Y:
+    s1: bar
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      ds:
+        name: ds
+        multivalued: true
+        range: D
+        inlined: true
+        inlined_as_list: false
+    tree_root: true
+  D:
+    name: D
+    attributes:
+      id:
+        name: id
+        identifier: true
+        required: true
+      s1:
+        name: s1
+        range: string
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      ds:
+        name: ds
+        populated_from: ds
+        cast_collection_as: MultiValuedList
+  D:
+    name: D
+    populated_from: D
+    slot_derivations:
+      id:
+        name: id
+        populated_from: id
+      s1:
+        name: s1
+        populated_from: s1
+        range: string
+
+</code></pre>
+<h3 id="combo-test_map_collectionsstring-string-source_value1-target_value1-true">Combo: test_map_collections[string-string-source_value1-target_value1-True]</h3>
+<p>Mapping <code>string</code> => <code>string</code></p>
+<p>Isomorphic mapping: input should equal output</p>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+description: Mapping between collection types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      ds:
+        name: ds
+        multivalued: true
+        range: D
+        inlined: true
+        inlined_as_list: false
+    tree_root: true
+  D:
+    name: D
+    attributes:
+      id:
+        name: id
+        identifier: true
+      s1:
+        name: s1
+        range: string
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      ds:
+        name: ds
+        populated_from: ds
+        cast_collection_as: MultiValuedList
+  D:
+    name: D
+    slot_derivations:
+      id:
+        name: id
+        populated_from: id
+      s1:
+        name: s1
+        populated_from: s1
+        range: string
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">ds:
+  X:
+    s1: foo
+  Y:
+    s1: bar
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">ds:
+- id: X
+  s1: foo
+- id: Y
+  s1: bar
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      ds:
+        name: ds
+        multivalued: true
+        range: D
+        inlined: true
+        inlined_as_list: true
+    tree_root: true
+  D:
+    name: D
+    attributes:
+      id:
+        name: id
+        identifier: true
+        required: true
+      s1:
+        name: s1
+        range: string
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      ds:
+        name: ds
+        populated_from: ds
+        cast_collection_as: MultiValuedDict
+        dictionary_key: id
+  D:
+    name: D
+    populated_from: D
+    slot_derivations:
+      id:
+        name: id
+        populated_from: id
+      s1:
+        name: s1
+        populated_from: s1
+        range: string
+
+</code></pre>
+<h2 id="feature-set-test_expr">Feature Set: test_expr</h2>
+<p>Test transformation using pythonic expressions.</p>
+<p>This test uses a simple source schema with two slots (<code>s1</code> and <code>s2</code>).
+These are combined using a pythonic expression, to populate the only
+slot in the target schema (called <code>derived</code>).</p>
+<p>The values of <code>s1</code> and <code>s2</code> can be numbers or strings.</p>
+<p>If the expression wraps a slot in <code>{...}</code> then the presence of a None
+forces the entire expression to be <code>None</code></p>
+<p>Limitations: At this time, the framework cannot generate a complete
+derived schema or inversion for expressions. This will be fixed in
+future.</p>
+<ul>
+<li><strong>expr</strong>: pythonic expression</li>
+<li><strong>source_object</strong>: source object</li>
+<li><strong>target_value</strong>: expected value of slot in target object</li>
+</ul>
+<h3 id="combo-test_exprs1-s2-source_object0-11-combo-test_exprs1-s2-source_object0-11">Combo: test_expr[s1 + s2-source_object0-11] {#combo-test_exprs1--s2-source_object0-11}</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: expr
+id: expr
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: integer
+      s2:
+        name: s2
+        range: integer
+    tree_root: true
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      derived:
+        name: derived
+        expr: s1 + s2
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 5
+s2: 6
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">derived: 11
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: expr-derived
+id: expr-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: expr-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      derived:
+        name: derived
+    tree_root: true
+
+</code></pre>
+<h3 id="combo-test_exprs1-s2-source_object1-11-combo-test_exprs1-s2-source_object1-11">Combo: test_expr[{s1} + {s2}-source_object1-11] {#combo-test_exprs1--s2-source_object1-11}</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: expr
+id: expr
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: integer
+      s2:
+        name: s2
+        range: integer
+    tree_root: true
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      derived:
+        name: derived
+        expr: '{s1} + {s2}'
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 5
+s2: 6
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">derived: 11
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: expr-derived
+id: expr-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: expr-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      derived:
+        name: derived
+    tree_root: true
+
+</code></pre>
+<h3 id="combo-test_exprs1-s2-source_object2-none-combo-test_exprs1-s2-source_object2-none">Combo: test_expr[{s1} + {s2}-source_object2-None] {#combo-test_exprs1--s2-source_object2-none}</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: expr
+id: expr
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: integer
+    tree_root: true
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      derived:
+        name: derived
+        expr: '{s1} + {s2}'
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 5
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">{}
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: expr-derived
+id: expr-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: expr-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      derived:
+        name: derived
+    tree_root: true
+
+</code></pre>
+<h3 id="combo-test_exprs1-s2s3-source_object3-11-combo-test_exprs1-s2s3-source_object3-11">Combo: test_expr[s1 + s2.s3-source_object3-11] {#combo-test_exprs1--s2s3-source_object3-11}</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: expr
+id: expr
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: integer
+      s2:
+        name: s2
+        range: D
+    tree_root: true
+  D:
+    name: D
+    attributes:
+      s3:
+        name: s3
+        range: integer
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      derived:
+        name: derived
+        expr: s1 + s2.s3
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 5
+s2:
+  s3: 6
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">derived: 11
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: expr-derived
+id: expr-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: expr-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      derived:
+        name: derived
+    tree_root: true
+
+</code></pre>
+<h3 id="combo-test_exprs1-s2s3s4-source_object4-11-combo-test_exprs1-s2s3s4-source_object4-11">Combo: test_expr[s1 + s2.s3.s4-source_object4-11] {#combo-test_exprs1--s2s3s4-source_object4-11}</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: expr
+id: expr
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: integer
+      s2:
+        name: s2
+        range: D
+    tree_root: true
+  D:
+    name: D
+    attributes:
+      s4:
+        name: s4
+        range: integer
+      s3:
+        name: s3
+        range: D
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      derived:
+        name: derived
+        expr: s1 + s2.s3.s4
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 5
+s2:
+  s3:
+    s4: 6
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">derived: 11
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: expr-derived
+id: expr-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: expr-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      derived:
+        name: derived
+    tree_root: true
+
+</code></pre>
+<h3 id="combo-test_exprs1-s2-source_object5-ab-combo-test_exprs1-s2-source_object5-ab">Combo: test_expr[s1 + s2-source_object5-ab] {#combo-test_exprs1--s2-source_object5-ab}</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: expr
+id: expr
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: string
+      s2:
+        name: s2
+        range: string
+    tree_root: true
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      derived:
+        name: derived
+        expr: s1 + s2
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: a
+s2: b
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">derived: ab
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: expr-derived
+id: expr-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: expr-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      derived:
+        name: derived
+    tree_root: true
+
+</code></pre>
+<h3 id="combo-test_exprs1-s2-source_object6-target_value6-combo-test_exprs1-s2-source_object6-target_value6">Combo: test_expr[s1 + s2-source_object6-target_value6] {#combo-test_exprs1--s2-source_object6-target_value6}</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: expr
+id: expr
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        multivalued: true
+        range: string
+      s2:
+        name: s2
+        multivalued: true
+        range: string
+    tree_root: true
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      derived:
+        name: derived
+        expr: s1 + s2
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1:
+- a
+s2:
+- b
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">derived:
+- a
+- b
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: expr-derived
+id: expr-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: expr-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      derived:
+        name: derived
+    tree_root: true
+
+</code></pre>
+<h3 id="combo-test_exprlens1-source_object7-1">Combo: test_expr[len(s1)-source_object7-1]</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: expr
+id: expr
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        multivalued: true
+        range: string
+    tree_root: true
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      derived:
+        name: derived
+        expr: len(s1)
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1:
+- a
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">derived: 1
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: expr-derived
+id: expr-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: expr-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      derived:
+        name: derived
+    tree_root: true
+
+</code></pre>
+<h3 id="combo-test_exprs1-s2-source_object8-true-combo-test_exprs1-s2-source_object8-true">Combo: test_expr[s1 \&lt; s2-source_object8-True] {#combo-test_exprs1--s2-source_object8-true}</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: expr
+id: expr
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: integer
+      s2:
+        name: s2
+        range: integer
+    tree_root: true
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      derived:
+        name: derived
+        expr: s1 &lt; s2
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 5
+s2: 6
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">derived: true
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: expr-derived
+id: expr-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: expr-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      derived:
+        name: derived
+    tree_root: true
+
+</code></pre>
+<h2 id="feature-set-test_simple_unit_conversion">Feature Set: test_simple_unit_conversion</h2>
+<p>Test unit conversion.</p>
+<p>This test uses a simple source schema with a single class and a single
+attribute, where the attribute is described using the
+<a href="https://w3id.org/linkml/units">units</a> metaslot.</p>
+<p>The recommended way to describe unit slots in LinkML is with UCUM, but a
+number of other schemes can be used. We explicitly test for some known
+cases where UCUM uses non-standard units (e.g. Cel, mo), as well as
+UCUM-specific syntax (e.g. <code>m.s-1</code>) and extensions (e.g. using
+annotations like <code>{Cre}</code>).</p>
+<p>Developers note: to run this test, the units extension should be
+installed:</p>
+<p><code>poetry install -E units</code></p>
+<p>This installs the <code>pint</code> framework.</p>
+<ul>
+<li><strong>source_slot</strong>: name of slot in source schema</li>
+<li><strong>target_slot</strong>: name of slot in target schema</li>
+<li><strong>source_unit</strong>: unit of source slot</li>
+<li><strong>target_unit</strong>: unit of target slot</li>
+<li><strong>source_value</strong>: magnitude of source slot (to be converted)</li>
+<li><strong>target_value</strong>: expected magnitude of target slot (output of
+    conversion)</li>
+<li><strong>err</strong>:</li>
+</ul>
+<h3 id="combo-test_simple_unit_conversions1-s1-m-cm-ucum_code-10-1000-none-none-combo-test_simple_unit_conversions1-s1-m-cm-ucum_code-10-1000-none-none">Combo: test_simple_unit_conversion[s1-s1-m-cm-ucum_code-1.0-100.0-None-None] {#combo-test_simple_unit_conversions1-s1-m-cm-ucum_code-10-1000-none-none}</h3>
+<p>Unit Conversion: 1.0 <code>m</code> => 100.0 <code>cm [with s1]</code></p>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+        unit:
+          ucum_code: m
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        unit_conversion:
+          target_unit: cm
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 1.0
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 100.0
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+        unit:
+          ucum_code: cm
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        unit_conversion:
+          target_unit: m
+          target_unit_scheme: ucum_code
+          source_unit: cm
+
+</code></pre>
+<h3 id="combo-test_simple_unit_conversions1-s1-m-cm-symbol-10-1000-none-none-combo-test_simple_unit_conversions1-s1-m-cm-symbol-10-1000-none-none">Combo: test_simple_unit_conversion[s1-s1-m-cm-symbol-1.0-100.0-None-None] {#combo-test_simple_unit_conversions1-s1-m-cm-symbol-10-1000-none-none}</h3>
+<p>Unit Conversion: 1.0 <code>m</code> => 100.0 <code>cm [with s1]</code></p>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+        unit:
+          symbol: m
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        unit_conversion:
+          target_unit: cm
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 1.0
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 100.0
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+        unit:
+          ucum_code: cm
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        unit_conversion:
+          target_unit: m
+          target_unit_scheme: symbol
+          source_unit: cm
+
+</code></pre>
+<h3 id="combo-test_simple_unit_conversions1-s1-m-m-ucum_code-10-10-none-none-combo-test_simple_unit_conversions1-s1-m-m-ucum_code-10-10-none-none">Combo: test_simple_unit_conversion[s1-s1-m-m-ucum_code-1.0-1.0-None-None] {#combo-test_simple_unit_conversions1-s1-m-m-ucum_code-10-10-none-none}</h3>
+<p>Unit Conversion: 1.0 <code>m</code> => 1.0 <code>m [with s1]</code></p>
+<p>Isomorphic mapping: input should equal output <strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+        unit:
+          ucum_code: m
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        unit_conversion:
+          target_unit: m
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 1.0
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 1.0
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+        unit:
+          ucum_code: m
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        unit_conversion:
+          target_unit: m
+          target_unit_scheme: ucum_code
+          source_unit: m
+
+</code></pre>
+<h3 id="combo-test_simple_unit_conversions1-s1-a-mo-ucum_code-100-1200-none-none-combo-test_simple_unit_conversions1-s1-a-mo-ucum_code-100-1200-none-none">Combo: test_simple_unit_conversion[s1-s1-a-mo-ucum_code-10.0-120.0-None-None] {#combo-test_simple_unit_conversions1-s1-a-mo-ucum_code-100-1200-none-none}</h3>
+<p>Unit Conversion: 10.0 <code>a</code> => 120.0 <code>mo [with s1]</code></p>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+        unit:
+          ucum_code: a
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        unit_conversion:
+          target_unit: mo
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 10.0
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 120.0
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+        unit:
+          ucum_code: mo
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        unit_conversion:
+          target_unit: a
+          target_unit_scheme: ucum_code
+          source_unit: mo
+
+</code></pre>
+<h3 id="combo-test_simple_unit_conversions1-s1-a-mo-symbol-100-none-undefineduniterror-none-combo-test_simple_unit_conversions1-s1-a-mo-symbol-100-none-undefineduniterror-none">Combo: test_simple_unit_conversion[s1-s1-a-mo-symbol-10.0-None-UndefinedUnitError-None] {#combo-test_simple_unit_conversions1-s1-a-mo-symbol-100-none-undefineduniterror-none}</h3>
+<p>Unit Conversion: 10.0 <code>a</code> => None <code>mo [with s1]</code></p>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+        unit:
+          symbol: a
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        unit_conversion:
+          target_unit: mo
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<p><strong>Expected Error</strong>: UndefinedUnitError</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 10.0
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">null
+...
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+        unit:
+          ucum_code: mo
+
+</code></pre>
+<h3 id="combo-test_simple_unit_conversions1-s1-m-ml-ucum_code-10-none-dimensionalityerror-none-combo-test_simple_unit_conversions1-s1-m-ml-ucum_code-10-none-dimensionalityerror-none">Combo: test_simple_unit_conversion[s1-s1-m-ml-ucum_code-1.0-None-DimensionalityError-None] {#combo-test_simple_unit_conversions1-s1-m-ml-ucum_code-10-none-dimensionalityerror-none}</h3>
+<p>Unit Conversion: 1.0 <code>m</code> => None <code>ml [with s1]</code></p>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+        unit:
+          ucum_code: m
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        unit_conversion:
+          target_unit: ml
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<p><strong>Expected Error</strong>: DimensionalityError</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 1.0
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">null
+...
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+        unit:
+          ucum_code: ml
+
+</code></pre>
+<h3 id="combo-test_simple_unit_conversions1-s1-m-pinknoodles-ucum_code-10-none-undefineduniterror-none-combo-test_simple_unit_conversions1-s1-m-pinknoodles-ucum_code-10-none-undefineduniterror-none">Combo: test_simple_unit_conversion[s1-s1-m-pinknoodles-ucum_code-1.0-None-UndefinedUnitError-None] {#combo-test_simple_unit_conversions1-s1-m-pinknoodles-ucum_code-10-none-undefineduniterror-none}</h3>
+<p>Unit Conversion: 1.0 <code>m</code> => None <code>pinknoodles [with s1]</code></p>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+        unit:
+          ucum_code: m
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        unit_conversion:
+          target_unit: pinknoodles
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<p><strong>Expected Error</strong>: UndefinedUnitError</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 1.0
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">null
+...
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+        unit:
+          ucum_code: pinknoodles
+
+</code></pre>
+<h3 id="combo-test_simple_unit_conversions1-s1-ml-m-ucum_code-10-none-dimensionalityerror-none-combo-test_simple_unit_conversions1-s1-ml-m-ucum_code-10-none-dimensionalityerror-none">Combo: test_simple_unit_conversion[s1-s1-ml-m-ucum_code-1.0-None-DimensionalityError-None] {#combo-test_simple_unit_conversions1-s1-ml-m-ucum_code-10-none-dimensionalityerror-none}</h3>
+<p>Unit Conversion: 1.0 <code>ml</code> => None <code>m [with s1]</code></p>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+        unit:
+          ucum_code: ml
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        unit_conversion:
+          target_unit: m
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<p><strong>Expected Error</strong>: DimensionalityError</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 1.0
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">null
+...
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+        unit:
+          ucum_code: m
+
+</code></pre>
+<h3 id="combo-test_simple_unit_conversions1-s1-pinknoodles-m-ucum_code-10-none-undefineduniterror-none-combo-test_simple_unit_conversions1-s1-pinknoodles-m-ucum_code-10-none-undefineduniterror-none">Combo: test_simple_unit_conversion[s1-s1-pinknoodles-m-ucum_code-1.0-None-UndefinedUnitError-None] {#combo-test_simple_unit_conversions1-s1-pinknoodles-m-ucum_code-10-none-undefineduniterror-none}</h3>
+<p>Unit Conversion: 1.0 <code>pinknoodles</code> => None <code>m [with s1]</code></p>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+        unit:
+          ucum_code: pinknoodles
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        unit_conversion:
+          target_unit: m
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<p><strong>Expected Error</strong>: UndefinedUnitError</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 1.0
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">null
+...
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+        unit:
+          ucum_code: m
+
+</code></pre>
+<h3 id="combo-test_simple_unit_conversions1-s1-ms-cms-ucum_code-10-1000-none-none-combo-test_simple_unit_conversions1-s1-ms-cms-ucum_code-10-1000-none-none">Combo: test_simple_unit_conversion[s1-s1-m/s-cm/s-ucum_code-1.0-100.0-None-None] {#combo-test_simple_unit_conversions1-s1-ms-cms-ucum_code-10-1000-none-none}</h3>
+<p>Unit Conversion: 1.0 <code>m/s</code> => 100.0 <code>cm/s [with s1]</code></p>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+        unit:
+          ucum_code: m/s
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        unit_conversion:
+          target_unit: cm/s
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 1.0
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 100.0
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+        unit:
+          ucum_code: cm/s
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        unit_conversion:
+          target_unit: m/s
+          target_unit_scheme: ucum_code
+          source_unit: cm/s
+
+</code></pre>
+<h3 id="combo-test_simple_unit_conversions1-s1-ms-1-cms-1-ucum_code-10-1000-none-none-combo-test_simple_unit_conversions1-s1-ms-1-cms-1-ucum_code-10-1000-none-none">Combo: test_simple_unit_conversion[s1-s1-m.s-1-cm.s-1-ucum_code-1.0-100.0-None-None] {#combo-test_simple_unit_conversions1-s1-ms-1-cms-1-ucum_code-10-1000-none-none}</h3>
+<p>Unit Conversion: 1.0 <code>m.s-1</code> => 100.0 <code>cm.s-1 [with s1]</code></p>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+        unit:
+          ucum_code: m.s-1
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        unit_conversion:
+          target_unit: cm.s-1
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 1.0
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 100.0
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+        unit:
+          ucum_code: cm.s-1
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        unit_conversion:
+          target_unit: m.s-1
+          target_unit_scheme: ucum_code
+          source_unit: cm.s-1
+
+</code></pre>
+<h3 id="combo-test_simple_unit_conversions1-s1-gm2-1-kgm2-1-ucum_code-10-0001-none-none-combo-test_simple_unit_conversions1-s1-gm2-1-kgm2-1-ucum_code-10-0001-none-none">Combo: test_simple_unit_conversion[s1-s1-g.m2-1-kg.m2-1-ucum_code-1.0-0.001-None-None] {#combo-test_simple_unit_conversions1-s1-gm2-1-kgm2-1-ucum_code-10-0001-none-none}</h3>
+<p>Unit Conversion: 1.0 <code>g.m2-1</code> => 0.001 <code>kg.m2-1 [with s1]</code></p>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+        unit:
+          ucum_code: g.m2-1
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        unit_conversion:
+          target_unit: kg.m2-1
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 1.0
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 0.001
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+        unit:
+          ucum_code: kg.m2-1
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        unit_conversion:
+          target_unit: g.m2-1
+          target_unit_scheme: ucum_code
+          source_unit: kg.m2-1
+
+</code></pre>
+<h3 id="combo-test_simple_unit_conversionheight_in_m-height_in_cm-m-cm-ucum_code-10-1000-none-none-combo-test_simple_unit_conversionheight_in_m-height_in_cm-m-cm-ucum_code-10-1000-none-none">Combo: test_simple_unit_conversion[height_in_m-height_in_cm-m-cm-ucum_code-1.0-100.0-None-None] {#combo-test_simple_unit_conversionheight_in_m-height_in_cm-m-cm-ucum_code-10-1000-none-none}</h3>
+<p>Unit Conversion: 1.0 <code>m</code> => 100.0 <code>cm [with height_in_m]</code></p>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      height_in_m:
+        name: height_in_m
+        range: float
+        unit:
+          ucum_code: m
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      height_in_cm:
+        name: height_in_cm
+        populated_from: height_in_m
+        unit_conversion:
+          target_unit: cm
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">height_in_m: 1.0
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">height_in_cm: 100.0
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      height_in_cm:
+        name: height_in_cm
+        range: float
+        unit:
+          ucum_code: cm
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      height_in_m:
+        name: height_in_m
+        populated_from: height_in_cm
+        unit_conversion:
+          target_unit: m
+          target_unit_scheme: ucum_code
+          source_unit: cm
+
+</code></pre>
+<h2 id="feature-set-test_complex_unit_conversion">Feature Set: test_complex_unit_conversion</h2>
+<p>Test unit conversion, from complex object to simple scalar.</p>
+<ul>
+<li><strong>source_unit</strong>:</li>
+<li><strong>target_unit</strong>:</li>
+<li><strong>source_value</strong>:</li>
+<li><strong>target_value</strong>:</li>
+<li><strong>roundtrip_object</strong>:</li>
+<li><strong>err</strong>:</li>
+</ul>
+<h3 id="combo-test_complex_unit_conversionm-cm-10-1000-roundtrip_object0-none-combo-test_complex_unit_conversionm-cm-10-1000-roundtrip_object0-none">Combo: test_complex_unit_conversion[m-cm-1.0-100.0-roundtrip_object0-None] {#combo-test_complex_unit_conversionm-cm-10-1000-roundtrip_object0-none}</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  Q:
+    name: Q
+    attributes:
+      magnitude:
+        name: magnitude
+        range: float
+      unit:
+        name: unit
+        range: string
+  C:
+    name: C
+    attributes:
+      q:
+        name: q
+        range: Q
+    tree_root: true
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  D:
+    name: D
+    populated_from: C
+    slot_derivations:
+      q_in_cm:
+        name: q_in_cm
+        populated_from: q
+        unit_conversion:
+          target_unit: cm
+          source_unit_slot: unit
+          source_magnitude_slot: magnitude
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">q:
+  magnitude: 1.0
+  unit: m
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">q_in_cm: 100.0
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  D:
+    name: D
+    attributes:
+      q_in_cm:
+        name: q_in_cm
+        range: Q
+        unit:
+          ucum_code: cm
+    tree_root: true
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: D
+    slot_derivations:
+      q:
+        name: q
+        populated_from: q_in_cm
+        unit_conversion:
+          source_unit: cm
+          target_unit_slot: unit
+          target_magnitude_slot: magnitude
+
+</code></pre>
+<h3 id="combo-test_complex_unit_conversioncm-cm-1000-1000-roundtrip_object1-none-combo-test_complex_unit_conversioncm-cm-1000-1000-roundtrip_object1-none">Combo: test_complex_unit_conversion[cm-cm-100.0-100.0-roundtrip_object1-None] {#combo-test_complex_unit_conversioncm-cm-1000-1000-roundtrip_object1-none}</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  Q:
+    name: Q
+    attributes:
+      magnitude:
+        name: magnitude
+        range: float
+      unit:
+        name: unit
+        range: string
+  C:
+    name: C
+    attributes:
+      q:
+        name: q
+        range: Q
+    tree_root: true
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  D:
+    name: D
+    populated_from: C
+    slot_derivations:
+      q_in_cm:
+        name: q_in_cm
+        populated_from: q
+        unit_conversion:
+          target_unit: cm
+          source_unit_slot: unit
+          source_magnitude_slot: magnitude
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">q:
+  magnitude: 100.0
+  unit: cm
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">q_in_cm: 100.0
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  D:
+    name: D
+    attributes:
+      q_in_cm:
+        name: q_in_cm
+        range: Q
+        unit:
+          ucum_code: cm
+    tree_root: true
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: D
+    slot_derivations:
+      q:
+        name: q
+        populated_from: q_in_cm
+        unit_conversion:
+          source_unit: cm
+          target_unit_slot: unit
+          target_magnitude_slot: magnitude
+
+</code></pre>
+<h3 id="combo-test_complex_unit_conversioncm-ml-1000-none-none-dimensionalityerror-combo-test_complex_unit_conversioncm-ml-1000-none-none-dimensionalityerror">Combo: test_complex_unit_conversion[cm-ml-100.0-None-None-DimensionalityError] {#combo-test_complex_unit_conversioncm-ml-1000-none-none-dimensionalityerror}</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  Q:
+    name: Q
+    attributes:
+      magnitude:
+        name: magnitude
+        range: float
+      unit:
+        name: unit
+        range: string
+  C:
+    name: C
+    attributes:
+      q:
+        name: q
+        range: Q
+    tree_root: true
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  D:
+    name: D
+    populated_from: C
+    slot_derivations:
+      q_in_ml:
+        name: q_in_ml
+        populated_from: q
+        unit_conversion:
+          target_unit: ml
+          source_unit_slot: unit
+          source_magnitude_slot: magnitude
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<p><strong>Expected Error</strong>: DimensionalityError</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">q:
+  magnitude: 100.0
+  unit: cm
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">null
+...
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  D:
+    name: D
+    attributes:
+      q_in_ml:
+        name: q_in_ml
+        range: Q
+        unit:
+          ucum_code: ml
+    tree_root: true
+
+</code></pre>
+<h3 id="combo-test_complex_unit_conversioncm-pinknoodles-1000-none-none-undefineduniterror-combo-test_complex_unit_conversioncm-pinknoodles-1000-none-none-undefineduniterror">Combo: test_complex_unit_conversion[cm-pinknoodles-100.0-None-None-UndefinedUnitError] {#combo-test_complex_unit_conversioncm-pinknoodles-1000-none-none-undefineduniterror}</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  Q:
+    name: Q
+    attributes:
+      magnitude:
+        name: magnitude
+        range: float
+      unit:
+        name: unit
+        range: string
+  C:
+    name: C
+    attributes:
+      q:
+        name: q
+        range: Q
+    tree_root: true
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  D:
+    name: D
+    populated_from: C
+    slot_derivations:
+      q_in_pinknoodles:
+        name: q_in_pinknoodles
+        populated_from: q
+        unit_conversion:
+          target_unit: pinknoodles
+          source_unit_slot: unit
+          source_magnitude_slot: magnitude
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<p><strong>Expected Error</strong>: UndefinedUnitError</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">q:
+  magnitude: 100.0
+  unit: cm
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">null
+...
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  D:
+    name: D
+    attributes:
+      q_in_pinknoodles:
+        name: q_in_pinknoodles
+        range: Q
+        unit:
+          ucum_code: pinknoodles
+    tree_root: true
+
+</code></pre>
+<h2 id="feature-set-test_stringify">Feature Set: test_stringify</h2>
+<p>Test compaction of multivalued slots into a string.</p>
+<p>Stringification is primarily intended for mapping from complex nested
+formats to simple tabular TSV formats, where some of the following
+methodologies can be used:</p>
+<ul>
+<li>flattening lists using an (internal) delimiter</li>
+<li>flattening lists or more complex objects using JSON or YAML</li>
+</ul>
+<!-- -->
+
+<ul>
+<li><strong>delimiter</strong>: delimiter to use in stringification</li>
+<li><strong>source_value</strong>: source value (a list)</li>
+<li><strong>target_value</strong>: expected value of slot in target object (a
+    string)</li>
+</ul>
+<h3 id="combo-test_stringify-source_value0-ab">Combo: test_stringify[,-source_value0-a,b]</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        multivalued: true
+        range: string
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  D:
+    name: D
+    populated_from: C
+    slot_derivations:
+      s1_verbatim:
+        name: s1_verbatim
+        populated_from: s1
+        stringification:
+          delimiter: ','
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1:
+- a
+- b
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1_verbatim: a,b
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  D:
+    name: D
+    attributes:
+      s1_verbatim:
+        name: s1_verbatim
+        multivalued: false
+        range: string
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: D
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1_verbatim
+        stringification:
+          delimiter: ','
+          reversed: true
+
+</code></pre>
+<h3 id="combo-test_stringify-source_value1-ab">Combo: test_stringify[|-source_value1-a|b]</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        multivalued: true
+        range: string
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  D:
+    name: D
+    populated_from: C
+    slot_derivations:
+      s1_verbatim:
+        name: s1_verbatim
+        populated_from: s1
+        stringification:
+          delimiter: '|'
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1:
+- a
+- b
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1_verbatim: a|b
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  D:
+    name: D
+    attributes:
+      s1_verbatim:
+        name: s1_verbatim
+        multivalued: false
+        range: string
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: D
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1_verbatim
+        stringification:
+          delimiter: '|'
+          reversed: true
+
+</code></pre>
+<h3 id="combo-test_stringify-source_value2-a">Combo: test_stringify[|-source_value2-a]</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        multivalued: true
+        range: string
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  D:
+    name: D
+    populated_from: C
+    slot_derivations:
+      s1_verbatim:
+        name: s1_verbatim
+        populated_from: s1
+        stringification:
+          delimiter: '|'
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1:
+- a
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1_verbatim: a
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  D:
+    name: D
+    attributes:
+      s1_verbatim:
+        name: s1_verbatim
+        multivalued: false
+        range: string
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: D
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1_verbatim
+        stringification:
+          delimiter: '|'
+          reversed: true
+
+</code></pre>
+<h3 id="combo-test_stringify-source_value3-">Combo: test_stringify[|-source_value3-]</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        multivalued: true
+        range: string
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  D:
+    name: D
+    populated_from: C
+    slot_derivations:
+      s1_verbatim:
+        name: s1_verbatim
+        populated_from: s1
+        stringification:
+          delimiter: '|'
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">{}
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1_verbatim: ''
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  D:
+    name: D
+    attributes:
+      s1_verbatim:
+        name: s1_verbatim
+        multivalued: false
+        range: string
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: D
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1_verbatim
+        stringification:
+          delimiter: '|'
+          reversed: true
+
+</code></pre>
+<h3 id="combo-test_stringifyjson-source_value4-a-b">Combo: test_stringify[JSON-source_value4-[\"a\", \"b\"]]</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        multivalued: true
+        range: string
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  D:
+    name: D
+    populated_from: C
+    slot_derivations:
+      s1_verbatim:
+        name: s1_verbatim
+        populated_from: s1
+        stringification:
+          syntax: JSON
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1:
+- a
+- b
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1_verbatim: '[&quot;a&quot;, &quot;b&quot;]'
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  D:
+    name: D
+    attributes:
+      s1_verbatim:
+        name: s1_verbatim
+        multivalued: false
+        range: string
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: D
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1_verbatim
+        stringification:
+          reversed: true
+          syntax: JSON
+
+</code></pre>
+<h3 id="combo-test_stringifyjson-source_value5-">Combo: test_stringify[JSON-source_value5-[]]</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        multivalued: true
+        range: string
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  D:
+    name: D
+    populated_from: C
+    slot_derivations:
+      s1_verbatim:
+        name: s1_verbatim
+        populated_from: s1
+        stringification:
+          syntax: JSON
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">{}
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1_verbatim: '[]'
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  D:
+    name: D
+    attributes:
+      s1_verbatim:
+        name: s1_verbatim
+        multivalued: false
+        range: string
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: D
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1_verbatim
+        stringification:
+          reversed: true
+          syntax: JSON
+
+</code></pre>
+<h3 id="combo-test_stringifyyaml-source_value6-a-b">Combo: test_stringify[YAML-source_value6-[a, b]]</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        multivalued: true
+        range: string
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  D:
+    name: D
+    populated_from: C
+    slot_derivations:
+      s1_verbatim:
+        name: s1_verbatim
+        populated_from: s1
+        stringification:
+          syntax: YAML
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1:
+- a
+- b
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1_verbatim: '[a, b]'
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  D:
+    name: D
+    attributes:
+      s1_verbatim:
+        name: s1_verbatim
+        multivalued: false
+        range: string
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: D
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1_verbatim
+        stringification:
+          reversed: true
+          syntax: YAML
+
+</code></pre>
+<h2 id="feature-set-test_isomorphic">Feature Set: test_isomorphic</h2>
+<p>Test mapping a schema to an identical schema (i.e copy).</p>
+<p>This also tests for the ability to recursively descend a nested
+structure.</p>
+<ul>
+<li><strong>source_object</strong>:</li>
+<li><strong>use_expr</strong>:</li>
+<li><strong>supply_source_schema</strong>: TODO: always True for now</li>
+</ul>
+<h3 id="combo-test_isomorphictrue-true-source_object0">Combo: test_isomorphic[True-True-source_object0]</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: isomorphic
+id: isomorphic
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  Container:
+    name: Container
+    attributes:
+      c_list:
+        name: c_list
+        multivalued: true
+        range: C
+      d:
+        name: d
+        range: D
+    tree_root: true
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: string
+      s2:
+        name: s2
+        range: string
+  D:
+    name: D
+    attributes:
+      s3:
+        name: s3
+        range: string
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  Container:
+    name: Container
+    populated_from: Container
+    slot_derivations:
+      c_list:
+        name: c_list
+        populated_from: c_list
+        range: C
+      d:
+        name: d
+        populated_from: d
+        range: D
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+      s2:
+        name: s2
+        populated_from: s2
+  D:
+    name: D
+    populated_from: D
+    slot_derivations:
+      s3:
+        name: s3
+        expr: s3
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">c_list:
+- s1: a
+  s2: b
+- s1: c
+  s2: d
+d:
+  s3: e
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">c_list:
+- s1: a
+  s2: b
+- s1: c
+  s2: d
+d:
+  s3: e
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: isomorphic-derived
+id: isomorphic-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: isomorphic-derived/
+classes:
+  Container:
+    name: Container
+    attributes:
+      c_list:
+        name: c_list
+        multivalued: true
+        range: C
+      d:
+        name: d
+        range: D
+    tree_root: true
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: string
+      s2:
+        name: s2
+        range: string
+  D:
+    name: D
+    attributes:
+      s3:
+        name: s3
+        range: string
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  Container:
+    name: Container
+    populated_from: Container
+    slot_derivations:
+      c_list:
+        name: c_list
+        populated_from: c_list
+        range: C
+      d:
+        name: d
+        populated_from: d
+        range: D
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+      s2:
+        name: s2
+        populated_from: s2
+  D:
+    name: D
+    populated_from: D
+    slot_derivations:
+      s3:
+        name: s3
+        populated_from: s3
+
+</code></pre>
+<h3 id="combo-test_isomorphictrue-false-source_object0">Combo: test_isomorphic[True-False-source_object0]</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: isomorphic
+id: isomorphic
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  Container:
+    name: Container
+    attributes:
+      c_list:
+        name: c_list
+        multivalued: true
+        range: C
+      d:
+        name: d
+        range: D
+    tree_root: true
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: string
+      s2:
+        name: s2
+        range: string
+  D:
+    name: D
+    attributes:
+      s3:
+        name: s3
+        range: string
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  Container:
+    name: Container
+    populated_from: Container
+    slot_derivations:
+      c_list:
+        name: c_list
+        populated_from: c_list
+        range: C
+      d:
+        name: d
+        populated_from: d
+        range: D
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+      s2:
+        name: s2
+        populated_from: s2
+  D:
+    name: D
+    populated_from: D
+    slot_derivations:
+      s3:
+        name: s3
+        populated_from: s3
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">c_list:
+- s1: a
+  s2: b
+- s1: c
+  s2: d
+d:
+  s3: e
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">c_list:
+- s1: a
+  s2: b
+- s1: c
+  s2: d
+d:
+  s3: e
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: isomorphic-derived
+id: isomorphic-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: isomorphic-derived/
+classes:
+  Container:
+    name: Container
+    attributes:
+      c_list:
+        name: c_list
+        multivalued: true
+        range: C
+      d:
+        name: d
+        range: D
+    tree_root: true
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: string
+      s2:
+        name: s2
+        range: string
+  D:
+    name: D
+    attributes:
+      s3:
+        name: s3
+        range: string
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  Container:
+    name: Container
+    populated_from: Container
+    slot_derivations:
+      c_list:
+        name: c_list
+        populated_from: c_list
+        range: C
+      d:
+        name: d
+        populated_from: d
+        range: D
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+      s2:
+        name: s2
+        populated_from: s2
+  D:
+    name: D
+    populated_from: D
+    slot_derivations:
+      s3:
+        name: s3
+        populated_from: s3
+
+</code></pre>
+<h2 id="feature-set-test_join">Feature Set: test_join</h2>
+<p>Test joining two objects into a single object, aka denormalization.</p>
+<ul>
+<li><strong>source_object</strong>: normalized source object</li>
+<li><strong>target_object</strong>: denormalized target object</li>
+<li><strong>inlined</strong>: True if the source objects are inlined</li>
+</ul>
+<h3 id="combo-test_joinsource_object0-target_object0-true">Combo: test_join[source_object0-target_object0-True]</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  R:
+    name: R
+    attributes:
+      s1:
+        name: s1
+        range: E
+        inlined: true
+      s2:
+        name: s2
+        range: E
+        inlined: true
+    tree_root: true
+  E:
+    name: E
+    attributes:
+      id:
+        name: id
+        identifier: true
+        range: string
+      name:
+        name: name
+        range: string
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  R:
+    name: R
+    populated_from: R
+    slot_derivations:
+      s1_id:
+        name: s1_id
+        expr: s1.id
+      s1_name:
+        name: s1_name
+        expr: s1.name
+      s2_id:
+        name: s2_id
+        expr: s2.id
+      s2_name:
+        name: s2_name
+        expr: s2.name
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1:
+  id: x1
+  name: foo
+s2:
+  id: x2
+  name: bar
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1_id: x1
+s1_name: foo
+s2_id: x2
+s2_name: bar
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  R:
+    name: R
+    attributes:
+      s1_id:
+        name: s1_id
+      s1_name:
+        name: s1_name
+      s2_id:
+        name: s2_id
+      s2_name:
+        name: s2_name
+    tree_root: true
+
+</code></pre>
+<h3 id="combo-test_joinsource_object0-target_object0-false">Combo: test_join[source_object0-target_object0-False]</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  R:
+    name: R
+    attributes:
+      s1:
+        name: s1
+        range: E
+        inlined: false
+      s2:
+        name: s2
+        range: E
+        inlined: false
+    tree_root: false
+  E:
+    name: E
+    attributes:
+      id:
+        name: id
+        identifier: true
+        range: string
+      name:
+        name: name
+        range: string
+  Container:
+    name: Container
+    attributes:
+      r_list:
+        name: r_list
+        multivalued: true
+        range: R
+      e_list:
+        name: e_list
+        multivalued: true
+        range: E
+        inlined_as_list: true
+    tree_root: true
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  R:
+    name: R
+    populated_from: R
+    slot_derivations:
+      s1_id:
+        name: s1_id
+        expr: s1.id
+      s1_name:
+        name: s1_name
+        expr: s1.name
+      s2_id:
+        name: s2_id
+        expr: s2.id
+      s2_name:
+        name: s2_name
+        expr: s2.name
+  Container:
+    name: Container
+    populated_from: Container
+    slot_derivations:
+      r_list:
+        name: r_list
+        populated_from: r_list
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">r_list:
+- s1: x1
+  s2: x2
+e_list:
+- id: x1
+  name: foo
+- id: x2
+  name: bar
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">r_list:
+- s1_id: x1
+  s1_name: foo
+  s2_id: x2
+  s2_name: bar
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  R:
+    name: R
+    attributes:
+      s1_id:
+        name: s1_id
+      s1_name:
+        name: s1_name
+      s2_id:
+        name: s2_id
+      s2_name:
+        name: s2_name
+    tree_root: false
+  Container:
+    name: Container
+    attributes:
+      r_list:
+        name: r_list
+        multivalued: true
+        range: R
+    tree_root: true
+
+</code></pre>
+<h2 id="feature-set-test_map_enum">Feature Set: test_map_enum</h2>
+<p>Test mapping between enum values.</p>
+<p>Currently this only supports simple dictionary-style mapping between
+permissible values, akin to SSSOM, but in future additional expressivity
+will be supported, including:</p>
+<ul>
+<li>mapping ranges to categorical values</li>
+<li>boolean/branching logic</li>
+</ul>
+<!-- -->
+
+<ul>
+<li><strong>source_value</strong>:</li>
+<li><strong>mapping</strong>:</li>
+<li><strong>target_value</strong>:</li>
+</ul>
+<h3 id="combo-test_map_enuma-mapping0-b-false">Combo: test_map_enum[A-mapping0-B-False]</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: enums
+id: enums
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+enums:
+  E:
+    name: E
+    permissible_values:
+      A:
+        text: A
+      B:
+        text: B
+      C:
+        text: C
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: E
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+enum_derivations:
+  E:
+    name: E
+    mirror_source: false
+    populated_from: E
+    permissible_value_derivations:
+      B:
+        name: B
+        populated_from: A
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: A
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: B
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: enums-derived
+id: enums-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: enums-derived/
+enums:
+  E:
+    name: E
+    permissible_values:
+      A:
+        text: A
+      B:
+        text: B
+      C:
+        text: C
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: E
+
+</code></pre>
+<p><strong>Inverted Transformation Specification</strong> (Derived):</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+enum_derivations:
+  E:
+    name: E
+    populated_from: E
+    permissible_value_derivations:
+      A:
+        name: A
+        populated_from: B
+
+</code></pre>
+<h3 id="combo-test_map_enumz-mapping1-none-false">Combo: test_map_enum[Z-mapping1-None-False]</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: enums
+id: enums
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+enums:
+  E:
+    name: E
+    permissible_values:
+      A:
+        text: A
+      B:
+        text: B
+      C:
+        text: C
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: E
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+enum_derivations:
+  E:
+    name: E
+    mirror_source: false
+    populated_from: E
+    permissible_value_derivations:
+      B:
+        name: B
+        populated_from: A
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: Z
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">{}
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: enums-derived
+id: enums-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: enums-derived/
+enums:
+  E:
+    name: E
+    permissible_values:
+      A:
+        text: A
+      B:
+        text: B
+      C:
+        text: C
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: E
+
+</code></pre>
+<h3 id="combo-test_map_enumc-mapping2-c-true">Combo: test_map_enum[C-mapping2-C-True]</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: enums
+id: enums
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+enums:
+  E:
+    name: E
+    permissible_values:
+      A:
+        text: A
+      B:
+        text: B
+      C:
+        text: C
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: E
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+enum_derivations:
+  E:
+    name: E
+    mirror_source: true
+    populated_from: E
+    permissible_value_derivations:
+      B:
+        name: B
+        populated_from: A
+
+</code></pre>
+<p>s### Combo: test_map_enum[A-mapping3-B-False]</p>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: enums
+id: enums
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+enums:
+  E:
+    name: E
+    permissible_values:
+      A:
+        text: A
+      B:
+        text: B
+      C:
+        text: C
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: E
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+enum_derivations:
+  E:
+    name: E
+    mirror_source: false
+    populated_from: E
+    permissible_value_derivations:
+      B:
+        name: B
+        sources:
+        - A
+        - C
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: A
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: B
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: enums-derived
+id: enums-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: enums-derived/
+enums:
+  E:
+    name: E
+    permissible_values:
+      A:
+        text: A
+      B:
+        text: B
+      C:
+        text: C
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: E
+
+</code></pre>
+<h3 id="combo-test_map_enumc-mapping4-b-false">Combo: test_map_enum[C-mapping4-B-False]</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: enums
+id: enums
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+enums:
+  E:
+    name: E
+    permissible_values:
+      A:
+        text: A
+      B:
+        text: B
+      C:
+        text: C
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: E
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+enum_derivations:
+  E:
+    name: E
+    mirror_source: false
+    populated_from: E
+    permissible_value_derivations:
+      B:
+        name: B
+        sources:
+        - A
+        - C
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: C
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: B
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: enums-derived
+id: enums-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: enums-derived/
+enums:
+  E:
+    name: E
+    permissible_values:
+      A:
+        text: A
+      B:
+        text: B
+      C:
+        text: C
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: E
+
+</code></pre>
+<h2 id="feature-set-test_inheritance">Feature Set: test_inheritance</h2>
+<p>Test inheritance.</p>
+<p>Transformation specifications can utilize inheritance, in the same way
+that LinkML schemas can.</p>
+<ul>
+<li><strong>is_a</strong>: use is_as instead of mixins in test schema</li>
+<li><strong>flatten</strong>: roll down inherited slots</li>
+</ul>
+<h3 id="combo-test_inheritancefalse-true">Combo: test_inheritance[False-True]</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: expr
+id: expr
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    is_a: D
+    attributes:
+      s1:
+        name: s1
+        range: integer
+    tree_root: true
+  D:
+    name: D
+    attributes:
+      s2:
+        name: s2
+        range: integer
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    is_a: D
+    populated_from: C
+    slot_derivations:
+      s1:
+        name: s1
+        expr: s1 + 1
+  D:
+    name: D
+    populated_from: D
+    slot_derivations:
+      s2:
+        name: s2
+        expr: s2 + 1
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 1
+s2: 2
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 2
+s2: 3
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: expr-derived
+id: expr-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: expr-derived/
+classes:
+  C:
+    name: C
+    is_a: D
+    attributes:
+      s1:
+        name: s1
+        range: integer
+    tree_root: true
+  D:
+    name: D
+    attributes:
+      s2:
+        name: s2
+        range: integer
+
+</code></pre>
+<h3 id="combo-test_inheritancefalse-false">Combo: test_inheritance[False-False]</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: expr
+id: expr
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    mixins:
+    - D
+    attributes:
+      s1:
+        name: s1
+        range: integer
+    tree_root: true
+  D:
+    name: D
+    attributes:
+      s2:
+        name: s2
+        range: integer
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    mixins:
+    - D
+    populated_from: C
+    slot_derivations:
+      s1:
+        name: s1
+        expr: s1 + 1
+  D:
+    name: D
+    populated_from: D
+    slot_derivations:
+      s2:
+        name: s2
+        expr: s2 + 1
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 1
+s2: 2
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 2
+s2: 3
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: expr-derived
+id: expr-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: expr-derived/
+classes:
+  C:
+    name: C
+    mixins:
+    - D
+    attributes:
+      s1:
+        name: s1
+        range: integer
+    tree_root: true
+  D:
+    name: D
+    attributes:
+      s2:
+        name: s2
+        range: integer
+
+</code></pre>
+<h3 id="combo-test_inheritancetrue-true">Combo: test_inheritance[True-True]</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: expr
+id: expr
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    is_a: D
+    attributes:
+      s1:
+        name: s1
+        range: integer
+    tree_root: true
+  D:
+    name: D
+    attributes:
+      s2:
+        name: s2
+        range: integer
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      s1:
+        name: s1
+        expr: s1 + 1
+      s2:
+        name: s2
+        expr: s2 + 1
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 1
+s2: 2
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 2
+s2: 3
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: expr-derived
+id: expr-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: expr-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: integer
+      s2:
+        name: s2
+        range: integer
+    tree_root: true
+
+</code></pre>
+<h3 id="combo-test_inheritancetrue-false">Combo: test_inheritance[True-False]</h3>
+<p><strong>Source Schema</strong>:</p>
+<pre><code class="language-yaml">name: expr
+id: expr
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    mixins:
+    - D
+    attributes:
+      s1:
+        name: s1
+        range: integer
+    tree_root: true
+  D:
+    name: D
+    attributes:
+      s2:
+        name: s2
+        range: integer
+
+</code></pre>
+<p><strong>Transformer Specification</strong>:</p>
+<pre><code class="language-yaml">class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      s1:
+        name: s1
+        expr: s1 + 1
+      s2:
+        name: s2
+        expr: s2 + 1
+
+</code></pre>
+<p><strong>Object Transformation</strong>:</p>
+<ul>
+<li>Source Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 1
+s2: 2
+
+</code></pre>
+<ul>
+<li>Target Object:</li>
+</ul>
+<pre><code class="language-yaml">s1: 2
+s2: 3
+
+</code></pre>
+<p><strong>Target Schema (Derived)</strong>:</p>
+<pre><code class="language-yaml">name: expr-derived
+id: expr-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: expr-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: integer
+      s2:
+        name: s2
+        range: integer
+    tree_root: true
+
+</code></pre>
+<p>. 55 passed, 1 skipped, 250 warnings in 9.98s</p>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.tabs.link"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.fac441b0.min.js"></script>
+      
+    
+  </body>
+</html>
