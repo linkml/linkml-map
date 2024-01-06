@@ -7,7 +7,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel as BaseModel
-from pydantic import Field, validator
+from pydantic import ConfigDict, Field, field_validator
 
 if sys.version_info >= (3, 8):
     from typing import Literal
@@ -19,20 +19,14 @@ metamodel_version = "None"
 version = "None"
 
 
-class WeakRefShimBaseModel(BaseModel):
-    __slots__ = "__weakref__"
-
-
-class ConfiguredBaseModel(
-    WeakRefShimBaseModel,
-    validate_assignment=True,
-    validate_all=True,
-    underscore_attrs_are_private=True,
-    extra="forbid",
-    arbitrary_types_allowed=True,
-    use_enum_values=True,
-):
-    pass
+class ConfiguredBaseModel(BaseModel):
+    model_config = ConfigDict(
+        validate_assignment=True,
+        validate_default=True,
+        extra="forbid",
+        arbitrary_types_allowed=True,
+        use_enum_values=True,
+    )
 
 
 class CollectionType(str, Enum):
@@ -225,6 +219,7 @@ class SlotDerivation(ElementDerivation):
     hide: Optional[bool] = Field(None, description="""True if this is suppressed""")
     type_designator: Optional[bool] = Field(None)
     cast_collection_as: Optional[CollectionType] = Field(None)
+    dictionary_key: Optional[str] = Field(None)
     stringification: Optional[StringificationConfiguration] = Field(None)
     copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict)
     overrides: Optional[Any] = Field(None, description="""overrides source schema slots""")
@@ -415,19 +410,19 @@ class CopyDirective(ConfiguredBaseModel):
     add: Optional[Any] = Field(None)
 
 
-# Update forward refs
-# see https://pydantic-docs.helpmanual.io/usage/postponed_annotations/
-SpecificationComponent.update_forward_refs()
-TransformationSpecification.update_forward_refs()
-ElementDerivation.update_forward_refs()
-ClassDerivation.update_forward_refs()
-AliasedClass.update_forward_refs()
-SlotDerivation.update_forward_refs()
-EnumDerivation.update_forward_refs()
-PermissibleValueDerivation.update_forward_refs()
-PrefixDerivation.update_forward_refs()
-UnitConversionConfiguration.update_forward_refs()
-StringificationConfiguration.update_forward_refs()
-Inverse.update_forward_refs()
-KeyVal.update_forward_refs()
-CopyDirective.update_forward_refs()
+# Model rebuild
+# see https://pydantic-docs.helpmanual.io/usage/models/#rebuilding-a-model
+SpecificationComponent.model_rebuild()
+TransformationSpecification.model_rebuild()
+ElementDerivation.model_rebuild()
+ClassDerivation.model_rebuild()
+AliasedClass.model_rebuild()
+SlotDerivation.model_rebuild()
+EnumDerivation.model_rebuild()
+PermissibleValueDerivation.model_rebuild()
+PrefixDerivation.model_rebuild()
+UnitConversionConfiguration.model_rebuild()
+StringificationConfiguration.model_rebuild()
+Inverse.model_rebuild()
+KeyVal.model_rebuild()
+CopyDirective.model_rebuild()

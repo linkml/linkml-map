@@ -7,7 +7,7 @@ import logging
 from collections import defaultdict
 from copy import copy
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import json_dumper
@@ -15,6 +15,7 @@ from linkml_runtime.linkml_model import (
     ClassDefinition,
     ClassDefinitionName,
     Element,
+    EnumDefinition,
     PermissibleValue,
     SchemaDefinition,
     SlotDefinition,
@@ -23,6 +24,7 @@ from linkml_runtime.linkml_model.units import UnitOfMeasure
 
 from linkml_transformer.datamodel.transformer_model import (
     ClassDerivation,
+    CollectionType,
     CopyDirective,
     EnumDerivation,
     TransformationSpecification,
@@ -45,6 +47,8 @@ class SchemaMapper:
     source_to_target_class_mappings: Dict[str, List[str]] = field(
         default_factory=lambda: defaultdict(list)
     )
+
+    slot_info: Dict[Tuple[str, str], Any] = field(default_factory=lambda: {})
 
     def derive_schema(
         self,
@@ -81,6 +85,11 @@ class SchemaMapper:
         target_schema.default_range = source_schema.default_range
         for cd in target_schema.classes.values():
             self._rewire_class(cd)
+        for (cn, sn), info in self.slot_info.items():
+            cd = target_schema.classes[cn]
+            sd = cd.attributes[sn]
+            for k, v in info.items():
+                setattr(sd, k, v)
         return target_schema
 
     def _derive_class(self, class_derivation: ClassDerivation) -> ClassDefinition:
@@ -113,7 +122,7 @@ class SchemaMapper:
             target_class = ClassDefinition(**curr)
         return target_class
 
-    def _derive_enum(self, enum_derivation: EnumDerivation) -> ClassDefinition:
+    def _derive_enum(self, enum_derivation: EnumDerivation) -> EnumDefinition:
         """
         Derive an enum from an enum derivation.
 
@@ -175,6 +184,20 @@ class SchemaMapper:
                 target_slot.multivalued = True
             else:
                 target_slot.multivalued = False
+        if slot_derivation.dictionary_key:
+            target_slot.inlined = True
+            target_slot.inlined_as_list = False
+            self.slot_info[(target_slot.range, slot_derivation.dictionary_key)] = {
+                "identifier": True
+            }
+        if slot_derivation.cast_collection_as:
+            if slot_derivation.cast_collection_as == CollectionType.MultiValued:
+                target_slot.inlined = True
+            elif slot_derivation.cast_collection_as == CollectionType.MultiValuedList:
+                target_slot.inlined_as_list = True
+            elif slot_derivation.cast_collection_as == CollectionType.MultiValuedDict:
+                target_slot.inlined = True
+                target_slot.inlined_as_list = False
         return target_slot
 
     def _rewire_class(self, class_definition: ClassDefinition):

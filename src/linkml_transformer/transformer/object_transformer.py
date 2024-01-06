@@ -11,6 +11,7 @@ from linkml_runtime.utils.yamlutils import YAMLRoot
 from pydantic import BaseModel
 
 from linkml_transformer.datamodel.transformer_model import (
+    CollectionType,
     SerializationSyntaxType,
     SlotDerivation,
 )
@@ -69,7 +70,10 @@ class ObjectTransformer(Transformer):
         :return: transformed data, either as type target_type or a dictionary
         """
         sv = self.source_schemaview
-        if source_type is None:
+        if source_type is None and sv is None:
+            # TODO: use smarter method
+            source_type = list(self.specification.class_derivations.values())[0].name
+        if source_type is None and sv is not None:
             source_types = [c.name for c in sv.all_classes().values() if c.tree_root]
             if len(source_types) == 1:
                 source_type = source_types[0]
@@ -191,6 +195,25 @@ class ObjectTransformer(Transformer):
                 ):
                     v = self._multivalued_to_singlevalued(v, slot_derivation)
                 v = self._coerce_datatype(v, target_range)
+                if slot_derivation.dictionary_key and isinstance(v, list):
+                    # List to CompactDict
+                    v = {v1[slot_derivation.dictionary_key]: v1 for v1 in v}
+                    for v1 in v.values():
+                        del v1[slot_derivation.dictionary_key]
+                elif (
+                    slot_derivation.cast_collection_as
+                    and slot_derivation.cast_collection_as == CollectionType.MultiValuedList
+                    and isinstance(v, dict)
+                ):
+                    # CompactDict to List
+                    src_rng = source_class_slot.range
+                    src_rng_id_slot = self.source_schemaview.get_identifier_slot(
+                        src_rng, use_key=True
+                    )
+                    if src_rng_id_slot:
+                        v = [{**v1, src_rng_id_slot.name: k} for k, v1 in v.items()]
+                    else:
+                        v = list(v.values())
             tgt_attrs[str(slot_derivation.name)] = v
         return tgt_attrs
 

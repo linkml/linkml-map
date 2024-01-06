@@ -230,6 +230,8 @@ classes:
         range: boolean
       cast_collection_as:
         range: CollectionType
+      dictionary_key:
+        range: string
       stringification:
         range: StringificationConfiguration
 
