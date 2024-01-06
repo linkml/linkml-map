@@ -193,7 +193,11 @@ class Transformer(ABC):
         self, slot_derivation: SlotDerivation, class_derivation: ClassDerivation
     ):
         cast_as = slot_derivation.cast_collection_as
-        if cast_as and cast_as == CollectionType.MultiValued:
+        if cast_as and cast_as in [
+            CollectionType.MultiValued,
+            CollectionType.MultiValuedDict,
+            CollectionType.MultiValuedDict,
+        ]:
             return True
         if slot_derivation.stringification and slot_derivation.stringification.reversed:
             return True
@@ -224,6 +228,8 @@ class Transformer(ABC):
             return v
         if isinstance(v, list):
             return [self._coerce_datatype(v1, target_range) for v1 in v]
+        if isinstance(v, dict):
+            return {k: self._coerce_datatype(v1, target_range) for k, v1 in v.items()}
         cmap = {
             "integer": int,
             "float": float,

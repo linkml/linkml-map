@@ -30,6 +30,7 @@ from linkml_runtime.linkml_model import Prefix, SchemaDefinition
 
 from linkml_transformer.compiler.python_compiler import PythonCompiler
 from linkml_transformer.datamodel.transformer_model import (
+    CollectionType,
     SerializationSyntaxType,
     TransformationSpecification,
 )
@@ -107,6 +108,7 @@ def map_object(
     source_root: Optional[str] = "Container",
     roundtrip_object: Optional[Any] = None,
     raises_error: Optional[Exception] = None,
+    supply_source_schema: Optional[bool] = True,
 ) -> State:
     """
     Map a source object to a target object, and optionally invert the transformation and perform roundtrip.
@@ -135,7 +137,10 @@ def map_object(
     schema_mapper = SchemaMapper(source_schemaview=source_sv)
     target_schema = schema_mapper.derive_schema(spec)
     target_sv = SchemaView(yaml_dumper.dumps(target_schema))
-    mapper = ObjectTransformer(source_schemaview=source_sv, specification=spec)
+    if supply_source_schema:
+        mapper = ObjectTransformer(source_schemaview=source_sv, specification=spec)
+    else:
+        mapper = ObjectTransformer(specification=spec)
     if index:
         mapper.index(source_object, target=source_root)
     if raises_error:
@@ -148,7 +153,7 @@ def map_object(
     assert (
         target_object == expected_target_object
     ), f"failed to map {source_object} to {expected_target_object}"
-    assert not DeepDiff(target_object, expected_target_object)
+    assert not DeepDiff(target_object, expected_target_object), "unexpected differences"
     print("**Object Transformation**:\n")
     if raises_error:
         print(f"**Expected Error**: {raises_error.__name__}")
@@ -295,6 +300,110 @@ def test_map_types(
         spec=spec,
         source_object=source_object,
         expected_target_object={"s1": target_value},
+        source_sv=source_sv,
+        invertible=invertible,
+    )
+
+
+@pytest.mark.parametrize(
+    "source_datatype,target_datatype,source_value,target_value,invertible",
+    [
+        (
+            "string",
+            "string",
+            [{"id": "X", "s1": "foo"}, {"id": "Y", "s1": "bar"}],
+            {"X": {"s1": "foo"}, "Y": {"s1": "bar"}},
+            True,
+        ),
+        (
+            "string",
+            "string",
+            {"X": {"s1": "foo"}, "Y": {"s1": "bar"}},
+            [{"id": "X", "s1": "foo"}, {"id": "Y", "s1": "bar"}],
+            True,
+        ),
+    ],
+)
+def test_map_collections(
+    invocation_tracker, source_datatype, target_datatype, source_value, target_value, invertible
+):
+    """
+    Test mapping between collection data types (lists and dicts).
+
+    This makes use of the `cast_collection_as` construct
+
+    :param invocation_tracker:
+    :param source_datatype:
+    :param target_datatype:
+    :param source_value:
+    :param target_value:
+    :param invertible:
+    :return:
+    """
+    print(f"Mapping `{source_datatype}` => `{target_datatype}`\n\n")
+    if source_datatype == target_datatype:
+        print("Isomorphic mapping: input should equal output\n")
+    else:
+        print("Should coerce datatype\n")
+    source_collection_type = (
+        CollectionType.MultiValuedList
+        if isinstance(source_value, list)
+        else CollectionType.MultiValuedDict
+    )
+    target_collection_type = (
+        CollectionType.MultiValuedList
+        if isinstance(target_value, list)
+        else CollectionType.MultiValuedDict
+    )
+    classes = {
+        "C": {
+            "tree_root": True,
+            "attributes": {
+                "ds": {
+                    "range": "D",
+                    "inlined": True,
+                    "inlined_as_list": source_collection_type == CollectionType.MultiValuedList,
+                    "multivalued": True,
+                }
+            },
+        },
+        "D": {"attributes": {"id": {"identifier": True}, "s1": {"range": source_datatype}}},
+    }
+    schema = build_schema(
+        "types",
+        classes=classes,
+        description="Mapping between collection types",
+    )
+    source_sv = SchemaView(schema)
+    cds = {
+        "C": {
+            "slot_derivations": {
+                "ds": {
+                    "populated_from": "ds",
+                    "dictionary_key": "id" if isinstance(source_value, list) else None,
+                    "cast_collection_as": target_collection_type.value,
+                }
+            }
+        },
+        "D": {
+            "slot_derivations": {
+                "id": {
+                    "populated_from": "id",
+                },
+                "s1": {
+                    "populated_from": "s1",
+                    "range": target_datatype,
+                },
+            }
+        },
+    }
+    spec = build_transformer(class_derivations=cds)
+
+    source_object = {"ds": source_value}
+    map_object(
+        spec=spec,
+        source_object=source_object,
+        expected_target_object={"ds": target_value},
         source_sv=source_sv,
         invertible=invertible,
     )
@@ -647,7 +756,8 @@ def test_stringify(invocation_tracker, delimiter, source_value, target_value):
     ],
 )
 @pytest.mark.parametrize("use_expr", [True, False])
-def test_isomorphic(invocation_tracker, source_object, use_expr):
+@pytest.mark.parametrize("supply_source_schema", [True])  # TODO
+def test_isomorphic(invocation_tracker, source_object, use_expr, supply_source_schema):
     """
     Test mapping a schema to an identical schema (i.e copy).
 
@@ -656,6 +766,7 @@ def test_isomorphic(invocation_tracker, source_object, use_expr):
     :param invocation_tracker:
     :param source_object:
     :param use_expr:
+    :param supply_source_schema: TODO: always True for now
     :return:
     """
     classes = {
@@ -733,6 +844,7 @@ def test_isomorphic(invocation_tracker, source_object, use_expr):
         expected_target_object=source_object,
         source_sv=source_sv,
         invertible=True,
+        supply_source_schema=supply_source_schema,
     )
 
 

@@ -1,3 +1,4 @@
+import logging
 import re
 from copy import copy
 from dataclasses import dataclass, field
@@ -7,12 +8,15 @@ from linkml_runtime import SchemaView
 
 from linkml_transformer.datamodel.transformer_model import (
     ClassDerivation,
+    CollectionType,
     EnumDerivation,
     PermissibleValueDerivation,
     SlotDerivation,
     TransformationSpecification,
     UnitConversionConfiguration,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class NonInvertibleSpecification(ValueError):
@@ -26,7 +30,14 @@ class TransformationSpecificationInverter:
     """
 
     source_schemaview: SchemaView = None
+    """The source schema for the forward transformation.
+    Note this becomes the target schema for the generated inverse transformation,
+    because the goal of the inverted transformation is to map back to the original source."""
+
     target_schemaview: SchemaView = None
+    """The target schema for the forward transformation.
+    Note this becomes the source schema for the generated inverse transformation."""
+
     strict: bool = field(default=True)
 
     def invert(self, spec: TransformationSpecification):
@@ -36,6 +47,7 @@ class TransformationSpecificationInverter:
         :param spec:
         :return:
         """
+        logger.info("Inverting specification")
         inverted_spec = TransformationSpecification()
         for cd in spec.class_derivations.values():
             inverted_cd = self.invert_class_derivation(cd, spec)
@@ -115,15 +127,32 @@ class TransformationSpecificationInverter:
         inverted_sd = SlotDerivation(name=populated_from, populated_from=sd.name)
         # source_cls_name = spec.class_derivations[cd.populated_from].name
         source_cls_name = cd.populated_from
-        if sd.range:
+        if (
+            source_cls_name is None or source_cls_name in self.source_schemaview.all_classes()
+        ) and sd.populated_from:
             source_slot = self.source_schemaview.induced_slot(sd.populated_from, source_cls_name)
+        else:
+            source_slot = None
+        if sd.range:
+            # source_slot = self.source_schemaview.induced_slot(sd.populated_from, source_cls_name)
             inverted_sd.range = source_slot.range
-        # if False and sd.unit_conversion:
-        #    source_slot = self.source_schemaview.induced_slot(sd.populated_from, source_cls_name)
-        #    inverted_sd.unit_conversion = UnitConversionConfiguration(
-        #        target_unit=source_slot.unit.ucum_code
-        #    )
-        #
+            if source_slot.range in self.source_schemaview.all_classes():
+                id_slot = self.source_schemaview.get_identifier_slot(
+                    source_slot.range, use_key=True
+                )
+                if id_slot:
+                    inverted_sd.dictionary_key = id_slot.name
+        if source_slot and source_slot.multivalued:
+            if source_slot.inlined_as_list:
+                inverted_sd.cast_collection_as = CollectionType.MultiValuedList
+            elif source_slot.inlined:
+                if source_slot.range in self.source_schemaview.all_classes():
+                    id_slot = self.source_schemaview.get_identifier_slot(
+                        source_slot.range, use_key=True
+                    )
+                    if id_slot:
+                        inverted_sd.cast_collection_as = CollectionType.MultiValuedDict
+                        inverted_sd.dictionary_key = id_slot.name
         if sd.unit_conversion:
             source_slot = self.source_schemaview.induced_slot(sd.populated_from, source_cls_name)
             target_unit = None
