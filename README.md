@@ -123,7 +123,7 @@ The data model for transformations mirrors the data model for schemas:
 - A top level `TransformationSpecification` class contains:
    - Zero or more `ClassDerivation` objects, specifying how to map to a class, containing:
        - Zero or more `SlotDerivation` objects, specifying how to map to a slot, containing:
-   - Zero or more `EnumDerivation` objects, specifying how to map permissable values.
+   - Zero or more `EnumDerivation` objects, specifying how to map permissible values.
 
 See the [generated docs](https://linkml.github.io/linkml-transformer/)
 

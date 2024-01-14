@@ -30,7 +30,7 @@ Each test is designed to demonstrate:
 -   data mapping (transformation)
 -   derived schemas
 -   inversion (reverse transformation) (in some cases)
--   compliation to other frameworks (coming soon)
+-   compilation to other frameworks (coming soon)
 
 Feature Set: test\_map\_types
 -----------------------------
