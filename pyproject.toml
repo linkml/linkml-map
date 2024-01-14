@@ -47,3 +47,10 @@ profile = "black"
 multi_line_output = 3
 include_trailing_comma = true
 reverse_relative = true
+
+# Ref: https://github.com/codespell-project/codespell#using-a-config-file
+[tool.codespell]
+skip = '.git,*.pdf,*.svg,go.sum,*.lock'
+check-hidden = true
+ignore-regex = '^\s*"image/\S+": ".*'
+# ignore-words-list = ''
