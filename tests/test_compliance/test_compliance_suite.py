@@ -515,8 +515,19 @@ def test_expr(invocation_tracker, expr, source_object, target_value):
         ("s1", "s1", "pinknoodles", "m", "ucum_code", 1.0, None, UndefinedUnitError, None),
         ("s1", "s1", "m/s", "cm/s", "ucum_code", 1.0, 100.0, None, None),
         ("s1", "s1", "m.s-1", "cm.s-1", "ucum_code", 1.0, 100.0, None, None),
-        ("s1", "s1", "g.m2-1", "kg.m2-1", "ucum_code", 1.0, 0.001, None, None),
+        (
+            "s1",
+            "s1",
+            "g.m2-1",
+            "kg.m2-1",
+            "ucum_code",
+            1.0,
+            0.001,
+            None,
+            "https://github.com/dalito/ucumvert/issues/8",
+        ),
         ("height_in_m", "height_in_cm", "m", "cm", "ucum_code", 1.0, 100.0, None, None),
+        ("s1", "s1", "m[H2O]{35Cel}", "m[H2O]{35Cel}", "ucum_code", 1.0, 1.0, None, None),
     ],
 )
 def test_simple_unit_conversion(

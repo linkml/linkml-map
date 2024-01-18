@@ -305,6 +305,7 @@ See [tests/test_mapper/test_schema_mapper.py](tests/test_schema_mapper/test_sche
 ## Not supported
 
 - Aggregation
+- ...
 
 ## Why another framework?
 
@@ -337,6 +338,7 @@ precise mappings between *entities* (e.g. schema.org Person is the same as DBPed
 that many people wanted to extend the language to perform more complex mappings. To address this, we
 help a workshop at the Biocuration conference in Padua, Italy in 2022.
 
+- [Discussion](https://github.com/orgs/linkml/discussions/1829)
 - [SSSOM paper](https://academic.oup.com/database/article/doi/10.1093/database/baac035/6591806)
 - [SSSOM Update 2023](https://ceur-ws.org/Vol-3591/om2023_STpaper3.pdf)
 - [SSSOM Complex Mappings Workshop 2023](https://www.youtube.com/playlist?list=PLqu_J7ADQtKyX55F7RqZtaSS7TwGd3MoR)
