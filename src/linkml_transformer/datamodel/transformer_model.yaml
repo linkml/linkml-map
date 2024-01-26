@@ -44,6 +44,9 @@ classes:
     class_uri: linkml:Any
 
   SpecificationComponent:
+    description: >-
+        An abstract grouping for classes that provide a specific kind of specification of a transformation
+        component.
     abstract: true
     attributes:
       description:
@@ -64,12 +67,19 @@ classes:
 
   TransformationSpecification:
     is_a: SpecificationComponent
-    description: A collection of mappings between source and target classes
+    description: >- 
+      A metadata object that contains collections of class, slot, and enum element derivations as well
+      as metadata about the transformation event like the location of the source and target schemas
+      the human readable title of the transform and an optional unique identifier for the transform.
     tree_root: true
     attributes:
       id:
-        # identifier: true
-        description: Unique identifier for this transformation specification
+        description: >-
+          Unique identifier for this transformation specification.  This is an optional attribute, however
+          it is recommended that a unique identifier be provided for each transformation specification.  Unique
+          identifiers allow for keeping track of the application of a transform in downstream systems and prevent
+          double application of a transform which may cause damage to a datastore that has progressed past the 
+          initial transform run.
         slot_uri: schema:identifier
       title:
         description: human readable title for this transformation specification

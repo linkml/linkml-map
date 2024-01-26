@@ -10,5 +10,6 @@ nav:
   - Index: index.md
   - Specification:
       Compliance Suite: specification/compliance.md
+      Creating a Transform YAML: specification/transform_yaml.md
 site_url: https://cmungall.github.io/linkml-transformer/
 repo_url: https://github.com/cmungall/linkml-transformer/
