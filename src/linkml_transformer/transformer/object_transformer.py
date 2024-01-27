@@ -55,12 +55,11 @@ class ObjectTransformer(Transformer):
         else:
             self.object_index = ObjectIndex(source_obj, schemaview=self.source_schemaview)
 
-    def deprecate(self, source_obj: Any, target: str = None):
+    def deprecate(self, source_obj: Any):
         """
         Deprecate an object.
 
         :param source_obj: source data structure to be deprecated
-        :param target: class to convert source object into
         """
 
     def transform(
