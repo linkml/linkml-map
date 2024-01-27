@@ -246,6 +246,12 @@ classes:
         range: string
       stringification:
         range: StringificationConfiguration
+      deprecated:
+        range: boolean
+        description: >-
+          If a slot is deprecated, it will not be included in the target schema yaml file, and all references
+          in the source schema to that slot will be removed.  However, the deprecated slot will be added to an
+          "obsolete" yaml file that will be generated along with the target schema yaml file.
 
   EnumDerivation:
     is_a: ElementDerivation
