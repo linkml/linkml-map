@@ -82,7 +82,9 @@ classes:
           initial transform run.
         slot_uri: schema:identifier
       title:
-        description: human readable title for this transformation specification
+        description: >- 
+          A human readable title for this transformation specification. Best practice is to use a title that 
+          incorporates the source schema and the target schema version.
         slot_uri: dcterms:title
       prefixes:
         description: maps prefixes to URL expansions
