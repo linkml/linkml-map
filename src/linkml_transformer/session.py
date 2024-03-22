@@ -7,6 +7,8 @@ import yaml
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper
 from linkml_runtime.linkml_model import SchemaDefinition
+from linkml_runtime.processing.referencevalidator import ReferenceValidator
+from linkml_runtime.utils.introspection import package_schemaview
 
 from linkml_transformer import ObjectTransformer
 from linkml_transformer.datamodel.transformer_model import TransformationSpecification
@@ -22,16 +24,33 @@ class Session:
     A wrapper object for a transformer session.
     """
 
+    transformer_specification: Optional[TransformationSpecification] = None
     source_schemaview: Optional[SchemaView] = None
     object_transformer: Optional[ObjectTransformer] = None
     schema_mapper: Optional[SchemaMapper] = None
     _target_schema: Optional[SchemaDefinition] = None
+    _target_schemaview: Optional[SchemaView] = None
 
-    @property
-    def transformer_specification(self) -> TransformationSpecification:
-        if self.object_transformer is None:
-            raise ValueError("No transformer specified")
-        return self.object_transformer.specification
+    def set_transformer_specification(
+        self, specification: Optional[Union[TransformationSpecification, dict, str, Path]] = None
+    ):
+        if isinstance(specification, TransformationSpecification):
+            self.transformer_specification = specification
+        elif isinstance(specification, dict):
+            # TODO: centralize this code
+            normalizer = ReferenceValidator(
+                package_schemaview("linkml_transformer.datamodel.transformer_model")
+            )
+            normalizer.expand_all = True
+            specification = normalizer.normalize(specification)
+            self.transformer_specification = TransformationSpecification(**specification)
+        elif isinstance(specification, str):
+            if "\n" in specification:
+                obj = yaml.safe_load(specification)
+            else:
+                obj = yaml.safe_load(open(specification))
+            self.set_transformer_specification(obj)
+
 
     def set_source_schema(self, schema: Union[str, Path, dict, SchemaView, SchemaDefinition]):
         """
@@ -53,7 +72,7 @@ class Session:
         self._target_schema = None
 
     def set_object_transformer(
-        self, transformer: Optional[Union[ObjectTransformer, dict, str, Path]] = None
+        self, transformer: Optional[Union[ObjectTransformer, TransformationSpecification, dict, str, Path]] = None
     ):
         if transformer is None:
             if self.object_transformer is not None:
@@ -62,24 +81,31 @@ class Session:
             else:
                 logger.warning("No transformer specified")
                 return
-        if isinstance(transformer, ObjectTransformer):
-            self.object_transformer = transformer
-        elif isinstance(transformer, dict):
-            self.object_transformer = ObjectTransformer()
-            self.object_transformer.create_transformer_specification(transformer)
-        elif isinstance(transformer, str):
-            self.object_transformer = ObjectTransformer()
-            self.object_transformer.create_transformer_specification(yaml.safe_load(transformer))
+        if transformer is not None:
+            if isinstance(transformer, ObjectTransformer):
+                self.object_transformer = transformer
+            else:
+                self.set_transformer_specification(transformer)
+                self.object_transformer = ObjectTransformer()
+                self.object_transformer.specification = self.transformer_specification
         self._target_schema = None
 
+    @property
     def target_schema(self) -> SchemaDefinition:
         if self._target_schema is None:
             if not self.schema_mapper:
                 self.schema_mapper = SchemaMapper(source_schemaview=self.source_schemaview)
             self._target_schema = self.schema_mapper.derive_schema(
-                self.object_transformer.specification
+                self.transformer_specification
             )
         return self._target_schema
+
+    @property
+    def target_schemaview(self) -> SchemaView:
+        if self._target_schemaview is None:
+            # TODO: simplify
+            self._target_schemaview = SchemaView(yaml_dumper.dumps(self.target_schema))
+        return self._target_schemaview
 
     def transform(self, obj: dict, **kwargs) -> dict:
         if self.object_transformer is None:

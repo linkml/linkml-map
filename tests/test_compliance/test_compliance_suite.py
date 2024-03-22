@@ -19,6 +19,7 @@ to see what is being generated for each test.
 import logging
 import re
 from dataclasses import dataclass
+from types import ModuleType
 from typing import Any, Dict, Optional
 
 import pytest
@@ -29,6 +30,7 @@ from linkml_runtime.dumpers import yaml_dumper
 from linkml_runtime.linkml_model import Prefix, SchemaDefinition
 
 from linkml_transformer.compiler.python_compiler import PythonCompiler
+from linkml_transformer.compiler.sql_compiler import SQLCompiler
 from linkml_transformer.datamodel.transformer_model import (
     CollectionType,
     SerializationSyntaxType,
@@ -89,6 +91,25 @@ def build_transformer(**kwargs) -> TransformationSpecification:
     print("**Transformer Specification**:\n\n")
     print_yaml(mapper.specification)
     return mapper.specification
+
+
+def create_compilers(spec: TransformationSpecification, expected_map: [Dict[ModuleType, str]]):
+    """
+    Test compilation of transformation specifications to other languages.
+
+    This test is a placeholder for future development, where the
+    transformation specification will be compiled to other languages
+    (e.g. SQL, R2RML, etc.)
+
+    :param spec: transformation specification
+    :return:
+    """
+    for compiler_type, expected in expected_map.items():
+        compiler = compiler_type()
+        compiled_spec = compiler.compile(spec)
+        print(f"**Compiled Specification ({compiler_type.__name__})**:\n\n")
+        print(compiled_spec.serialization)
+        assert expected in compiled_spec.serialization
 
 
 @dataclass
@@ -697,18 +718,18 @@ def test_complex_unit_conversion(
 
 
 @pytest.mark.parametrize(
-    "delimiter,source_value,target_value",
+    "syntax,delimiter,source_value,target_value",
     [
-        (",", ["a", "b"], "a,b"),
-        ("|", ["a", "b"], "a|b"),
-        ("|", ["a"], "a"),
-        ("|", [], ""),
-        (SerializationSyntaxType.JSON, ["a", "b"], '["a", "b"]'),
-        (SerializationSyntaxType.JSON, [], "[]"),
-        (SerializationSyntaxType.YAML, ["a", "b"], "[a, b]"),
+        (None, ",", ["a", "b"], "a,b"),
+        (None, "|", ["a", "b"], "a|b"),
+        (None, "|", ["a"], "a"),
+        (None, "|", [], ""),
+        (SerializationSyntaxType.JSON, None, ["a", "b"], '["a", "b"]'),
+        (SerializationSyntaxType.JSON, None, [], "[]"),
+        (SerializationSyntaxType.YAML, None, ["a", "b"], "[a, b]"),
     ],
 )
-def test_stringify(invocation_tracker, delimiter, source_value, target_value):
+def test_stringify(invocation_tracker, syntax, delimiter, source_value, target_value):
     """
     Test compaction of multivalued slots into a string.
 
@@ -719,6 +740,7 @@ def test_stringify(invocation_tracker, delimiter, source_value, target_value):
     - flattening lists or more complex objects using JSON or YAML
 
     :param invocation_tracker: pytest fixture to emit metadata
+    :param syntax: SerializationSyntaxType
     :param delimiter: delimiter to use in stringification
     :param source_value: source value (a list)
     :param target_value: expected value of slot in target object (a string)
@@ -733,18 +755,16 @@ def test_stringify(invocation_tracker, delimiter, source_value, target_value):
     }
     schema = build_schema("types", classes=classes)
     source_sv = SchemaView(schema)
-    stringification = {}
-    if isinstance(delimiter, SerializationSyntaxType):
-        stringification["syntax"] = delimiter.value
-    else:
-        stringification["delimiter"] = delimiter
     cds = {
         "D": {
             "populated_from": "C",
             "slot_derivations": {
                 "s1_verbatim": {
                     "populated_from": "s1",
-                    "stringification": stringification,
+                    "stringification": {
+                        "syntax": syntax,
+                        "delimiter": delimiter,
+                    },
                 }
             },
         }
@@ -758,6 +778,7 @@ def test_stringify(invocation_tracker, delimiter, source_value, target_value):
         source_sv=source_sv,
         invertible=True,
     )
+    create_compilers(spec, {SQLCompiler: ""})
 
 
 @pytest.mark.parametrize(

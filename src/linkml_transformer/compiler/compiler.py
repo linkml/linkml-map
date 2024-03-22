@@ -13,7 +13,7 @@ For example:
 - LinkML-Transformer Specifications to Hamilton
 """
 from abc import ABC
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from types import ModuleType
 from typing import Iterator, Optional
 
@@ -27,7 +27,7 @@ from linkml_transformer.inference.schema_mapper import SchemaMapper
 
 @dataclass
 class CompiledSpecification:
-    serialization: str
+    serialization: str = field(default="")
 
     _module: Optional[ModuleType] = None
 
