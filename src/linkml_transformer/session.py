@@ -51,7 +51,6 @@ class Session:
                 obj = yaml.safe_load(open(specification))
             self.set_transformer_specification(obj)
 
-
     def set_source_schema(self, schema: Union[str, Path, dict, SchemaView, SchemaDefinition]):
         """
         Sets the schema from a path or SchemaView object.
@@ -72,7 +71,10 @@ class Session:
         self._target_schema = None
 
     def set_object_transformer(
-        self, transformer: Optional[Union[ObjectTransformer, TransformationSpecification, dict, str, Path]] = None
+        self,
+        transformer: Optional[
+            Union[ObjectTransformer, TransformationSpecification, dict, str, Path]
+        ] = None,
     ):
         if transformer is None:
             if self.object_transformer is not None:
@@ -95,9 +97,7 @@ class Session:
         if self._target_schema is None:
             if not self.schema_mapper:
                 self.schema_mapper = SchemaMapper(source_schemaview=self.source_schemaview)
-            self._target_schema = self.schema_mapper.derive_schema(
-                self.transformer_specification
-            )
+            self._target_schema = self.schema_mapper.derive_schema(self.transformer_specification)
         return self._target_schema
 
     @property

@@ -35,8 +35,8 @@ def test_compile(session):
     target_ddl = compiler.create_ddl(target_sv)
     print(target_ddl)
 
-
     import duckdb
-    conn = duckdb.connect(':memory:')
+
+    conn = duckdb.connect(":memory:")
     conn.execute(target_ddl)
     conn.execute(compiled.serialization)

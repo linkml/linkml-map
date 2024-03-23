@@ -3,7 +3,6 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Type, Union
 
-
 from linkml_transformer.transformer.transformer import OBJECT_TYPE, Transformer
 
 DICT_OBJ = Dict[str, Any]
@@ -33,5 +32,6 @@ class DuckDBTransformer(Transformer):
         :return: transformed data, either as type target_type or a dictionary
         """
         import duckdb
+
         sv = self.source_schemaview
         raise NotImplementedError("DuckDBTransformer.transform")

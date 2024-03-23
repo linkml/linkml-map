@@ -2,9 +2,11 @@ from linkml_runtime import SchemaView
 from linkml_runtime.linkml_model import SlotDefinition
 
 from linkml_transformer.compiler.compiler import CompiledSpecification, Compiler
-from linkml_transformer.datamodel.transformer_model import TransformationSpecification, ClassDerivation, \
-    SerializationSyntaxType
-
+from linkml_transformer.datamodel.transformer_model import (
+    ClassDerivation,
+    SerializationSyntaxType,
+    TransformationSpecification,
+)
 
 LINKML_TO_SQL_TYPE_MAP = {
     "string": "TEXT",
@@ -16,9 +18,8 @@ LINKML_TO_SQL_TYPE_MAP = {
     "date": "DATE",
     "time": "TIME",
     "uri": "TEXT",
-    "any": "TEXT"
+    "any": "TEXT",
 }
-
 
 
 class SQLCompiler(Compiler):
@@ -27,6 +28,7 @@ class SQLCompiler(Compiler):
 
     Note: this is currently highly geared towards DuckDB.
     """
+
     add_if_not_exists: bool = True
     new_table_when_transforming: bool = False
 
@@ -36,7 +38,12 @@ class SQLCompiler(Compiler):
             self.compile_class(compiled, cd, specification)
         return compiled
 
-    def compile_class(self, compiled: CompiledSpecification, cd: ClassDerivation, specification: TransformationSpecification) -> None:
+    def compile_class(
+        self,
+        compiled: CompiledSpecification,
+        cd: ClassDerivation,
+        specification: TransformationSpecification,
+    ) -> None:
         """
         Compile a class derivation to SQL.
 
@@ -80,7 +87,6 @@ class SQLCompiler(Compiler):
                 elif delimiter:
                     expr = f"STRING_AGG({expr}, '{delimiter}')"
         return f"  {sd.name} AS {expr}"
-
 
     def create_ddl(self, schemaview: SchemaView) -> str:
         """
@@ -130,5 +136,3 @@ class SQLCompiler(Compiler):
         if slot.multivalued:
             typ = f"{typ}[]"
         return typ
-
-
