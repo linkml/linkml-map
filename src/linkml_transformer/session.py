@@ -118,7 +118,7 @@ class Session:
         inv_spec = self.invert()
         reverse_transformer = ObjectTransformer()
         reverse_transformer.specification = inv_spec
-        reverse_transformer.source_schemaview = SchemaView(yaml_dumper.dumps(self.target_schema()))
+        reverse_transformer.source_schemaview = SchemaView(yaml_dumper.dumps(self.target_schema))
         return reverse_transformer.transform(obj, **kwargs)
 
     def invert(self, in_place=False) -> TransformationSpecification:
@@ -127,7 +127,7 @@ class Session:
         """
         inverter = TransformationSpecificationInverter(
             source_schemaview=self.source_schemaview,
-            target_schemaview=SchemaView(yaml_dumper.dumps(self.target_schema())),
+            target_schemaview=SchemaView(yaml_dumper.dumps(self.target_schema)),
         )
         inv_spec = inverter.invert(self.transformer_specification)
         if in_place:
