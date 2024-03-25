@@ -1,7 +1,8 @@
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional, Union
+from types import ModuleType
+from typing import Any, Optional, Type, Union
 
 import yaml
 from linkml_runtime import SchemaView
@@ -14,6 +15,7 @@ from linkml_transformer import ObjectTransformer
 from linkml_transformer.datamodel.transformer_model import TransformationSpecification
 from linkml_transformer.inference.inverter import TransformationSpecificationInverter
 from linkml_transformer.inference.schema_mapper import SchemaMapper
+from linkml_transformer.transformer.transformer import Transformer
 
 logger = logging.getLogger(__name__)
 
@@ -22,10 +24,19 @@ logger = logging.getLogger(__name__)
 class Session:
     """
     A wrapper object for a transformer session.
+
+    TODO:
+
+    - rename to Manager?
+    - consolidate configuration
+    - include source and target database
+
+        - current spec, src_sv, tgt_sv all live in both this class and transformer
     """
 
     transformer_specification: Optional[TransformationSpecification] = None
     source_schemaview: Optional[SchemaView] = None
+    transformer: Optional[Transformer] = None
     object_transformer: Optional[ObjectTransformer] = None
     schema_mapper: Optional[SchemaMapper] = None
     _target_schema: Optional[SchemaDefinition] = None
@@ -34,6 +45,8 @@ class Session:
     def set_transformer_specification(
         self, specification: Optional[Union[TransformationSpecification, dict, str, Path]] = None
     ):
+        if isinstance(specification, Path):
+            specification = str(specification)
         if isinstance(specification, TransformationSpecification):
             self.transformer_specification = specification
         elif isinstance(specification, dict):
@@ -69,6 +82,16 @@ class Session:
             raise ValueError(f"Unsupported schema type: {type(schema)}")
         self.source_schemaview = sv
         self._target_schema = None
+
+    def set_transformer(
+        self,
+        transformer: Optional[Union[Transformer, Type[Transformer]]],
+        **kwargs,
+    ):
+        if isinstance(transformer, Type):
+            transformer = transformer()
+        transformer.specification = self.transformer_specification
+        self.transformer = transformer
 
     def set_object_transformer(
         self,
@@ -112,14 +135,14 @@ class Session:
             raise ValueError("No transformer specified")
         if not self.object_transformer.source_schemaview:
             self.object_transformer.source_schemaview = self.source_schemaview
-        return self.object_transformer.transform(obj, **kwargs)
+        return self.object_transformer.map_object(obj, **kwargs)
 
     def reverse_transform(self, obj: dict, **kwargs) -> dict:
         inv_spec = self.invert()
         reverse_transformer = ObjectTransformer()
         reverse_transformer.specification = inv_spec
         reverse_transformer.source_schemaview = SchemaView(yaml_dumper.dumps(self.target_schema))
-        return reverse_transformer.transform(obj, **kwargs)
+        return reverse_transformer.map_object(obj, **kwargs)
 
     def invert(self, in_place=False) -> TransformationSpecification:
         """

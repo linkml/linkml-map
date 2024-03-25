@@ -1,6 +1,7 @@
 """Iterate through all examples in a folder testing them for validity.
 
 """
+
 import glob
 import logging
 import os
@@ -190,7 +191,7 @@ class MultiFileTransformer:
             for step in tr.steps:
                 input_obj = yaml.safe_load(open(str(root_directory / step.source_data)))
                 transformer.index(input_obj, step.source_class)
-                target_obj = transformer.transform(input_obj, source_type=step.source_class)
+                target_obj = transformer.map_object(input_obj, source_type=step.source_class)
                 if step.target_data:
                     out_path = output_directory / step.target_data
                     out_path.parent.mkdir(parents=True, exist_ok=True)

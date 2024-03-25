@@ -55,7 +55,7 @@ class ObjectTransformer(Transformer):
         else:
             self.object_index = ObjectIndex(source_obj, schemaview=self.source_schemaview)
 
-    def transform(
+    def map_object(
         self,
         source_obj: OBJECT_TYPE,
         source_type: str = None,
@@ -174,16 +174,16 @@ class ObjectTransformer(Transformer):
                 source_class_slot_range = source_class_slot.range
                 if source_class_slot.multivalued:
                     if isinstance(v, list):
-                        v = [self.transform(v1, source_class_slot_range, target_range) for v1 in v]
+                        v = [self.map_object(v1, source_class_slot_range, target_range) for v1 in v]
                     elif isinstance(v, dict):
                         v = {
-                            k1: self.transform(v1, source_class_slot_range, target_range)
+                            k1: self.map_object(v1, source_class_slot_range, target_range)
                             for k1, v1 in v.items()
                         }
                     else:
                         v = [v]
                 else:
-                    v = self.transform(v, source_class_slot_range, target_range)
+                    v = self.map_object(v, source_class_slot_range, target_range)
                 if (
                     self._is_coerce_to_multivalued(slot_derivation, class_deriv)
                     and v is not None
@@ -342,7 +342,7 @@ class ObjectTransformer(Transformer):
         #    source_obj_dict = source_obj.dict()
         # else:
         #    raise ValueError(f"Do not know how to handle type: {typ}")
-        tr_obj_dict = self.transform(source_obj, source_type_name)
+        tr_obj_dict = self.map_object(source_obj, source_type_name)
         return target_class(**tr_obj_dict)
 
     def transform_enum(self, source_value: str, enum_name: str, source_obj: Any) -> Optional[str]:

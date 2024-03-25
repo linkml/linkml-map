@@ -1,4 +1,5 @@
 """Command line interface for linkml-transformer."""
+
 import logging
 import sys
 
@@ -93,7 +94,7 @@ def map_data(
     with open(input) as file:
         input_obj = yaml.safe_load(file)
     tr.index(input_obj, source_type)
-    tr_obj = tr.transform(input_obj, source_type)
+    tr_obj = tr.map_object(input_obj, source_type)
     if output:
         outfile = open(output, "w", encoding="utf-8")
     else:

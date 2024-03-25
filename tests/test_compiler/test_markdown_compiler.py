@@ -1,6 +1,7 @@
 """
 Tests compilation of a specification to markdown
 """
+
 import pytest
 from linkml_runtime import SchemaView
 

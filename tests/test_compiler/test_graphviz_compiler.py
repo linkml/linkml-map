@@ -1,6 +1,7 @@
 """
 Tests compilation of a specification to graphviz
 """
+
 import pytest
 from linkml_runtime import SchemaView
 

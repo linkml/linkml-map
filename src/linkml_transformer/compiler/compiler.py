@@ -12,6 +12,7 @@ For example:
 - LinkML-Transformer Specifications to Pandas
 - LinkML-Transformer Specifications to Hamilton
 """
+
 from abc import ABC
 from dataclasses import dataclass, field
 from types import ModuleType
@@ -47,6 +48,9 @@ class Compiler(ABC):
     an alternative representation.
 
     An example compiler would be a R2RML compiler.
+
+    Note: Compilers and Importers will in general be implemented by providing
+    mapping specifications
     """
 
     source_schemaview: SchemaView = None

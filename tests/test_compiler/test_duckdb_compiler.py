@@ -1,6 +1,7 @@
 """
 Tests compilation of a specification to python
 """
+
 import pytest
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper

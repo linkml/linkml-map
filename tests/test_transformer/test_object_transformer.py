@@ -73,7 +73,7 @@ class ObjectTransformerTestCase(unittest.TestCase):
         tr = self.tr
         person_dict: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_DATA)))
         assert person_dict["age_in_years"] == AGE_INT
-        target_dict: dict[str, Any] = tr.transform(person_dict, source_type="Person")
+        target_dict: dict[str, Any] = tr.map_object(person_dict, source_type="Person")
         assert isinstance(target_dict, type(TARGET_DATA))
         assert target_dict["age"] == AGE_STRING
         assert target_dict == TARGET_DATA
@@ -86,7 +86,7 @@ class ObjectTransformerTestCase(unittest.TestCase):
         tr = self.tr
         person_dict: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_DATA)))
         container_dict = {"persons": [person_dict]}
-        target_dict = tr.transform(container_dict, source_type="Container")
+        target_dict = tr.map_object(container_dict, source_type="Container")
         assert target_dict == {"agents": [TARGET_DATA]}
 
     def test_transform_multiple_dicts_in_container(self) -> None:
@@ -96,7 +96,7 @@ class ObjectTransformerTestCase(unittest.TestCase):
         """
         tr = self.tr
         container_dict: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_CONTAINER_DATA)))
-        target_dict: dict[str, Any] = tr.transform(container_dict, source_type="Container")
+        target_dict: dict[str, Any] = tr.map_object(container_dict, source_type="Container")
         assert target_dict == CONTAINER_DATA
 
     def check_familial_relationships(self, obj, data_model, expected):
@@ -294,7 +294,7 @@ class ObjectTransformerTestCase(unittest.TestCase):
         assert mset["mappings"] == [{"subject": "X:1", "object": "Y:1", "predicate": "P:1"}]
         assert mset["entities"] == {"X:1": {"name": "x1"}, "Y:1": {"name": "y1"}}
         tr.index(mset, "MappingSet")
-        target_obj = tr.transform(mset, source_type="MappingSet")
+        target_obj = tr.map_object(mset, source_type="MappingSet")
         assert isinstance(target_obj, dict)
         assert target_obj["mappings"][0] == {
             "subject_id": "X:1",
@@ -391,7 +391,7 @@ class ObjectTransformerTestCase(unittest.TestCase):
                 source_schemaview=SchemaView(source_schema),
                 target_schemaview=SchemaView(target_schema),
             )
-            target_instance = tr.transform(source_instance, class_name)
+            target_instance = tr.map_object(source_instance, class_name)
             assert [val] if target_multivalued else val == target_instance[att_name]
 
     def test_self_transform(self):
@@ -404,7 +404,7 @@ class ObjectTransformerTestCase(unittest.TestCase):
         )
         normalizer.expand_all = True
         source_object = normalizer.normalize(source_object)
-        derived = tr.transform(source_object)
+        derived = tr.map_object(source_object)
         print(derived)
         print(yaml.dump(derived))
 

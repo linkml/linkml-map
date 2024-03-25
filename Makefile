@@ -96,13 +96,13 @@ $(DOCDIR):
 
 gendoc: $(DOCDIR)
 	cp -pr $(SRC)/docs/* $(DOCDIR) ; \
-	$(RUN) gen-doc -d $(DOCDIR) $(SOURCE_SCHEMA_PATH)
+	$(RUN) gen-doc -d $(DOCDIR) $(SOURCE_SCHEMA_PATH) --index-name datamodel
 
 testdoc: gendoc serve
 
 MKDOCS = $(RUN) mkdocs
 mkd-%:
-	$(MKDOCS) $*
+	$(MKDOCS) $* $(MKDOCS_ARGS)
 
 PROJECT_FOLDERS = sqlschema shex shacl protobuf prefixmap owl jsonschema jsonld graphql excel
 git-init-add: git-init git-add git-commit git-status

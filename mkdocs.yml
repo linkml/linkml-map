@@ -1,14 +1,21 @@
 site_name: "LinkML-Transformer"
 theme:
-  name: material
+#  name: material
+  name: windmill
   features:
     - content.tabs.link
 plugins:
   - search
   - mermaid2
+  - mknotebooks:
+      execute: true  # This will execute the notebooks when building the site  
 nav:
   - Index: index.md
+  - Examples:
+      Tutorial: examples/Tutorial.ipynb
   - Specification:
+      Data Model: datamodel.md
       Compliance Suite: specification/compliance.md
-site_url: https://cmungall.github.io/linkml-transformer/
-repo_url: https://github.com/cmungall/linkml-transformer/
+  - FAQ: faq.md
+site_url: https://linkml.github.io/linkml-transformer/
+repo_url: https://github.com/linkml/linkml-transformer/

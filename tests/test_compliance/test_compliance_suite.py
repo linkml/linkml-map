@@ -16,6 +16,7 @@ it can be hard to reason through combinations, and some of the generative
 code can be abstract. You are encouraged to look at the markdown outputs
 to see what is being generated for each test.
 """
+
 import logging
 import re
 from dataclasses import dataclass
@@ -166,11 +167,11 @@ def map_object(
         mapper.index(source_object, target=source_root)
     if raises_error:
         with pytest.raises(raises_error):
-            target_object = mapper.transform(source_object)
+            target_object = mapper.map_object(source_object)
             logger.debug(f"Unexpected Target Object: {target_object}")
         target_object = None
     else:
-        target_object = mapper.transform(source_object)
+        target_object = mapper.map_object(source_object)
     assert (
         target_object == expected_target_object
     ), f"failed to map {source_object} to {expected_target_object}"
@@ -197,7 +198,7 @@ def map_object(
         print("**Inverted Transformation Specification** (Derived):\n\n")
         print_yaml(inv_spec)
         inv_mapper = ObjectTransformer(source_schemaview=target_sv, specification=inv_spec)
-        inv_target_object = inv_mapper.transform(target_object)
+        inv_target_object = inv_mapper.map_object(target_object)
         if roundtrip_object is None:
             roundtrip_object = source_object
         assert (
