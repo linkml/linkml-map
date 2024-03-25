@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    
+    <link rel="canonical" href="https://linkml.github.io/linkml-transformer/examples/Tutorial/">
+    <link rel="shortcut icon" href="../../img/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <title>Tutorial - LinkML-Transformer</title>
+    <link href="../../css/bootstrap-3.3.7.min.css" rel="stylesheet">
+    <link href="../../css/font-awesome-4.7.0.css" rel="stylesheet">
+    <link href="../../css/base.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/highlight.css">
+    <link href="../../css/ansi-colours.css" rel="stylesheet">
+    <link href="../../css/jupyter-cells.css" rel="stylesheet">
+    <link href="../../css/pandas-dataframe.css" rel="stylesheet">
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+
+    <script src="../../js/jquery-3.2.1.min.js"></script>
+    <script src="../../js/bootstrap-3.3.7.min.js"></script>
+    <script src="../../js/highlight.pack.js"></script>
+    
+    <base target="_top">
+    <script>
+      var base_url = '../..';
+      var is_top_frame = false;
+        
+        var pageToc = [
+          {title: "LinkML-Transformer tutorial", url: "#_top", children: [
+              {title: "Creating an example schema", url: "#creating-an-example-schema" },
+              {title: "Creating a Transformer Session object", url: "#creating-a-transformer-session-object" },
+              {title: "Visualizing transformer specifications", url: "#visualizing-transformer-specifications" },
+              {title: "Transforming objects", url: "#transforming-objects" },
+              {title: "Deriving target schemas", url: "#deriving-target-schemas" },
+              {title: "Using Expressions", url: "#using-expressions" },
+              {title: "Unit conversions", url: "#unit-conversions" },
+              {title: "Adding target_unit to transformer specification", url: "#adding-target_unit-to-transformer-specification" },
+              {title: "Units in derived schema", url: "#units-in-derived-schema" },
+              {title: "Tabular serialization", url: "#tabular-serialization" },
+              {title: "Reverse transform", url: "#reverse-transform" },
+          ]},
+        ];
+
+    </script>
+    <script src="../../js/base.js"></script> 
+</head>
+
+<body>
+<script>
+if (is_top_frame) { $('body').addClass('wm-top-page'); }
+</script>
+
+
+
+<div class="container-fluid wm-page-content">
+  <a name="_top"></a>
+    
+
+    
+    
+      
+    
+
+  <div class="row wm-article-nav-buttons" role="navigation" aria-label="navigation">
+    
+    <div class="wm-article-nav pull-right">
+      <a href="../../datamodel/" class="btn btn-xs btn-default pull-right">
+        Next
+        <i class="fa fa-chevron-right" aria-hidden="true"></i>
+      </a>
+      <a href="../../datamodel/" class="btn btn-xs btn-link">
+        Data Model
+      </a>
+    </div>
+    
+    <div class="wm-article-nav">
+      <a href="../.." class="btn btn-xs btn-default pull-left">
+        <i class="fa fa-chevron-left" aria-hidden="true"></i>
+        Previous</a><a href="../.." class="btn btn-xs btn-link">
+        Index
+      </a>
+    </div>
+    
+  </div>
+
+    
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script>
+(function() {
+  function addWidgetsRenderer() {
+    var requireJsScript = document.createElement('script');
+    requireJsScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js';
+
+    var mimeElement = document.querySelector('script[type="application/vnd.jupyter.widget-view+json"]');
+    var jupyterWidgetsScript = document.createElement('script');
+    var widgetRendererSrc = 'https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js';
+    var widgetState;
+
+    // Fallback for older version:
+    try {
+      widgetState = mimeElement && JSON.parse(mimeElement.innerHTML);
+
+      if (widgetState && (widgetState.version_major < 2 || !widgetState.version_major)) {
+        widgetRendererSrc = 'jupyter-js-widgets@*/dist/embed.js';
+      }
+    } catch(e) {}
+
+    jupyterWidgetsScript.src = widgetRendererSrc;
+
+    document.body.appendChild(requireJsScript);
+    document.body.appendChild(jupyterWidgetsScript);
+  }
+
+  document.addEventListener('DOMContentLoaded', addWidgetsRenderer);
+}());
+</script>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="linkml-transformer-tutorial">LinkML-Transformer tutorial</h1>
+<p>This tutorial walks through basic programmatic use of the LinkML-Transformer framework.
+This is intended for Python developers - note that many of the operations here can also be performed
+at the command line.</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+
+<pre><code class="language-python">import yaml
+</code></pre>
+
+
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="creating-an-example-schema">Creating an example schema</h2>
+<p>We will use a LinkML SchemaBuilder object to progressively build up a schema, adding
+additional features as we go.</p>
+<p>We'll start with a simple <code>Person</code> schema, with a few single valued scalar slots:</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+
+<pre><code class="language-python">from linkml.utils.schema_builder import SchemaBuilder
+from linkml_runtime.linkml_model import SlotDefinition
+
+sb = SchemaBuilder()
+sb.add_class(&quot;Person&quot;, slots=[SlotDefinition(&quot;family_name&quot;, range=&quot;string&quot;), 
+                              SlotDefinition(&quot;given_name&quot;, range=&quot;string&quot;),
+                              SlotDefinition(&quot;age_in_years&quot;, range=&quot;integer&quot;),
+                              SlotDefinition(&quot;height_in_cm&quot;, range=&quot;float&quot;),
+                              ])
+sb.add_defaults()
+print(yaml.dump(sb.as_dict(), sort_keys=False))
+</code></pre>
+
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+<code>name: test-schema
+id: http://example.org/test-schema
+imports:
+- linkml:types
+prefixes:
+  linkml: https://w3id.org/linkml/
+  test_schema: http://example.org/test-schema/
+default_prefix: test_schema
+default_range: string
+slots:
+  family_name:
+    range: string
+  given_name:
+    range: string
+  age_in_years:
+    range: integer
+  height_in_cm:
+    range: float
+classes:
+  Person:
+    slots:
+    - family_name
+    - given_name
+    - age_in_years
+    - height_in_cm
+
+</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="creating-a-transformer-session-object">Creating a Transformer Session object</h2>
+<p>We will use a <code>Session</code> object which conveniently wraps a number of different capabilities;
+the first of these capabilities is to map (transform) data objects from one schema to another
+(implicit) schema using a <em>transformer specification</em>).</p>
+<p>Our initial transformer specification will be a trivial isomorphic one that:</p>
+<ul>
+<li>maps the <code>Person</code> class to an <code>Individual</code> class</li>
+<li>passes through <code>name</code> fields as-is</li>
+<li>renames measurement fields (<code>age_in_years</code> and <code>height_in_cm</code> to <code>age</code> and <code>height</code>)</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+
+<pre><code class="language-python">from linkml_transformer.session import Session
+
+session = Session()
+session.set_source_schema(sb.as_dict())
+</code></pre>
+
+
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+
+<pre><code class="language-python"># Transformer specification (in YAML)
+session.set_object_transformer(&quot;&quot;&quot;
+class_derivations:
+  Individual:
+    populated_from: Person
+    slot_derivations:
+      family_name:
+        populated_from: family_name
+      given_name:
+        populated_from: given_name
+      age:
+        populated_from: age_in_years
+      height:
+        populated_from: height_in_cm
+&quot;&quot;&quot;)
+</code></pre>
+
+
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="visualizing-transformer-specifications">Visualizing transformer specifications</h2>
+<p>We can visualize the transformer specification using graphviz:</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+
+<pre><code class="language-python">session.graphviz()
+</code></pre>
+
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_subarea output_text output_error">
+<pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">FileNotFoundError</span>                         Traceback (most recent call last)
+File <span class="ansi-green-fg">~/.cache/pypoetry/virtualenvs/linkml-transformer-kbFOg3ty-py3.9/lib/python3.9/site-packages/graphviz/backend/execute.py:76</span>, in <span class="ansi-cyan-fg">run_check</span><span class="ansi-blue-fg">(cmd, input_lines, encoding, quiet, **kwargs)</span>
+<span class="ansi-green-intense-fg ansi-bold">     75</span>         kwargs[<span style="color: rgb(175,0,0)">'</span><span style="color: rgb(175,0,0)">stdout</span><span style="color: rgb(175,0,0)">'</span>] <span style="color: rgb(98,98,98)">=</span> kwargs[<span style="color: rgb(175,0,0)">'</span><span style="color: rgb(175,0,0)">stderr</span><span style="color: rgb(175,0,0)">'</span>] <span style="color: rgb(98,98,98)">=</span> subprocess<span style="color: rgb(98,98,98)">.</span>PIPE
+<span class="ansi-green-fg">---&gt; 76</span>     proc <span style="color: rgb(98,98,98)">=</span> <span class="ansi-yellow-bg">_run_input_lines</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">cmd</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">input_lines</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">kwargs</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">kwargs</span><span class="ansi-yellow-bg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">     77</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span>:
+
+File <span class="ansi-green-fg">~/.cache/pypoetry/virtualenvs/linkml-transformer-kbFOg3ty-py3.9/lib/python3.9/site-packages/graphviz/backend/execute.py:96</span>, in <span class="ansi-cyan-fg">_run_input_lines</span><span class="ansi-blue-fg">(cmd, input_lines, kwargs)</span>
+<span class="ansi-green-intense-fg ansi-bold">     95</span> <span class="ansi-bold" style="color: rgb(0,135,0)">def</span> <span style="color: rgb(0,0,255)">_run_input_lines</span>(cmd, input_lines, <span style="color: rgb(98,98,98)">*</span>, kwargs):
+<span class="ansi-green-fg">---&gt; 96</span>     popen <span style="color: rgb(98,98,98)">=</span> <span class="ansi-yellow-bg">subprocess</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">Popen</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">cmd</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">stdin</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">subprocess</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">PIPE</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">*</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">*</span><span class="ansi-yellow-bg">kwargs</span><span class="ansi-yellow-bg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">     98</span>     stdin_write <span style="color: rgb(98,98,98)">=</span> popen<span style="color: rgb(98,98,98)">.</span>stdin<span style="color: rgb(98,98,98)">.</span>write
+
+File <span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.9.18/x64/lib/python3.9/subprocess.py:951</span>, in <span class="ansi-cyan-fg">Popen.__init__</span><span class="ansi-blue-fg">(self, args, bufsize, executable, stdin, stdout, stderr, preexec_fn, close_fds, shell, cwd, env, universal_newlines, startupinfo, creationflags, restore_signals, start_new_session, pass_fds, user, group, extra_groups, encoding, errors, text, umask)</span>
+<span class="ansi-green-intense-fg ansi-bold">    948</span>             <span style="color: rgb(0,135,0)">self</span><span style="color: rgb(98,98,98)">.</span>stderr <span style="color: rgb(98,98,98)">=</span> io<span style="color: rgb(98,98,98)">.</span>TextIOWrapper(<span style="color: rgb(0,135,0)">self</span><span style="color: rgb(98,98,98)">.</span>stderr,
+<span class="ansi-green-intense-fg ansi-bold">    949</span>                     encoding<span style="color: rgb(98,98,98)">=</span>encoding, errors<span style="color: rgb(98,98,98)">=</span>errors)
+<span class="ansi-green-fg">--&gt; 951</span>     <span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">_execute_child</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">args</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">executable</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">preexec_fn</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">close_fds</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    952</span> <span class="ansi-yellow-bg">                        </span><span class="ansi-yellow-bg">pass_fds</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">cwd</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">env</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    953</span> <span class="ansi-yellow-bg">                        </span><span class="ansi-yellow-bg">startupinfo</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">creationflags</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">shell</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    954</span> <span class="ansi-yellow-bg">                        </span><span class="ansi-yellow-bg">p2cread</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">p2cwrite</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    955</span> <span class="ansi-yellow-bg">                        </span><span class="ansi-yellow-bg">c2pread</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">c2pwrite</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    956</span> <span class="ansi-yellow-bg">                        </span><span class="ansi-yellow-bg">errread</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">errwrite</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    957</span> <span class="ansi-yellow-bg">                        </span><span class="ansi-yellow-bg">restore_signals</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    958</span> <span class="ansi-yellow-bg">                        </span><span class="ansi-yellow-bg">gid</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">gids</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">uid</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">umask</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    959</span> <span class="ansi-yellow-bg">                        </span><span class="ansi-yellow-bg">start_new_session</span><span class="ansi-yellow-bg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">    960</span> <span class="ansi-bold" style="color: rgb(0,135,0)">except</span>:
+<span class="ansi-green-intense-fg ansi-bold">    961</span>     <span style="color: rgb(95,135,135)"># Cleanup if the child failed starting.</span>
+
+File <span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.9.18/x64/lib/python3.9/subprocess.py:1837</span>, in <span class="ansi-cyan-fg">Popen._execute_child</span><span class="ansi-blue-fg">(self, args, executable, preexec_fn, close_fds, pass_fds, cwd, env, startupinfo, creationflags, shell, p2cread, p2cwrite, c2pread, c2pwrite, errread, errwrite, restore_signals, gid, gids, uid, umask, start_new_session)</span>
+<span class="ansi-green-intense-fg ansi-bold">   1836</span>         err_msg <span style="color: rgb(98,98,98)">=</span> os<span style="color: rgb(98,98,98)">.</span>strerror(errno_num)
+<span class="ansi-green-fg">-&gt; 1837</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> child_exception_type(errno_num, err_msg, err_filename)
+<span class="ansi-green-intense-fg ansi-bold">   1838</span> <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> child_exception_type(err_msg)
+
+<span class="ansi-red-fg">FileNotFoundError</span>: [Errno 2] No such file or directory: PosixPath('dot')
+
+The above exception was the direct cause of the following exception:
+
+<span class="ansi-red-fg">ExecutableNotFound</span>                        Traceback (most recent call last)
+File <span class="ansi-green-fg">~/.cache/pypoetry/virtualenvs/linkml-transformer-kbFOg3ty-py3.9/lib/python3.9/site-packages/IPython/core/formatters.py:974</span>, in <span class="ansi-cyan-fg">MimeBundleFormatter.__call__</span><span class="ansi-blue-fg">(self, obj, include, exclude)</span>
+<span class="ansi-green-intense-fg ansi-bold">    971</span>     method <span style="color: rgb(98,98,98)">=</span> get_real_method(obj, <span style="color: rgb(0,135,0)">self</span><span style="color: rgb(98,98,98)">.</span>print_method)
+<span class="ansi-green-intense-fg ansi-bold">    973</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> method <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>:
+<span class="ansi-green-fg">--&gt; 974</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-yellow-bg">method</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">include</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">include</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">exclude</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">exclude</span><span class="ansi-yellow-bg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">    975</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>
+<span class="ansi-green-intense-fg ansi-bold">    976</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span>:
+
+File <span class="ansi-green-fg">~/.cache/pypoetry/virtualenvs/linkml-transformer-kbFOg3ty-py3.9/lib/python3.9/site-packages/graphviz/jupyter_integration.py:98</span>, in <span class="ansi-cyan-fg">JupyterIntegration._repr_mimebundle_</span><span class="ansi-blue-fg">(self, include, exclude, **_)</span>
+<span class="ansi-green-intense-fg ansi-bold">     96</span> include <span style="color: rgb(98,98,98)">=</span> <span style="color: rgb(0,135,0)">set</span>(include) <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> include <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span> {<span style="color: rgb(0,135,0)">self</span><span style="color: rgb(98,98,98)">.</span>_jupyter_mimetype}
+<span class="ansi-green-intense-fg ansi-bold">     97</span> include <span style="color: rgb(98,98,98)">-</span><span style="color: rgb(98,98,98)">=</span> <span style="color: rgb(0,135,0)">set</span>(exclude <span class="ansi-bold" style="color: rgb(175,0,255)">or</span> [])
+<span class="ansi-green-fg">---&gt; 98</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> {mimetype: <span style="color: rgb(0,135,0)">getattr</span>(<span style="color: rgb(0,135,0)">self</span>, method_name)()
+<span class="ansi-green-intense-fg ansi-bold">     99</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> mimetype, method_name <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> MIME_TYPES<span style="color: rgb(98,98,98)">.</span>items()
+<span class="ansi-green-intense-fg ansi-bold">    100</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> mimetype <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> include}
+
+File <span class="ansi-green-fg">~/.cache/pypoetry/virtualenvs/linkml-transformer-kbFOg3ty-py3.9/lib/python3.9/site-packages/graphviz/jupyter_integration.py:98</span>, in <span class="ansi-cyan-fg">&lt;dictcomp&gt;</span><span class="ansi-blue-fg">(.0)</span>
+<span class="ansi-green-intense-fg ansi-bold">     96</span> include <span style="color: rgb(98,98,98)">=</span> <span style="color: rgb(0,135,0)">set</span>(include) <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> include <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span> {<span style="color: rgb(0,135,0)">self</span><span style="color: rgb(98,98,98)">.</span>_jupyter_mimetype}
+<span class="ansi-green-intense-fg ansi-bold">     97</span> include <span style="color: rgb(98,98,98)">-</span><span style="color: rgb(98,98,98)">=</span> <span style="color: rgb(0,135,0)">set</span>(exclude <span class="ansi-bold" style="color: rgb(175,0,255)">or</span> [])
+<span class="ansi-green-fg">---&gt; 98</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> {mimetype: <span class="ansi-yellow-bg" style="color: rgb(0,135,0)">getattr</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">method_name</span><span class="ansi-yellow-bg">)</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">     99</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> mimetype, method_name <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> MIME_TYPES<span style="color: rgb(98,98,98)">.</span>items()
+<span class="ansi-green-intense-fg ansi-bold">    100</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> mimetype <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> include}
+
+File <span class="ansi-green-fg">~/.cache/pypoetry/virtualenvs/linkml-transformer-kbFOg3ty-py3.9/lib/python3.9/site-packages/graphviz/jupyter_integration.py:112</span>, in <span class="ansi-cyan-fg">JupyterIntegration._repr_image_svg_xml</span><span class="ansi-blue-fg">(self)</span>
+<span class="ansi-green-intense-fg ansi-bold">    110</span> <span class="ansi-bold" style="color: rgb(0,135,0)">def</span> <span style="color: rgb(0,0,255)">_repr_image_svg_xml</span>(<span style="color: rgb(0,135,0)">self</span>) <span style="color: rgb(98,98,98)">-</span><span style="color: rgb(98,98,98)">&gt;</span> <span style="color: rgb(0,135,0)">str</span>:
+<span class="ansi-green-intense-fg ansi-bold">    111</span> <span style="color: rgb(188,188,188)">    </span><span style="color: rgb(175,0,0)">"""Return the rendered graph as SVG string."""</span>
+<span class="ansi-green-fg">--&gt; 112</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">pipe</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg" style="color: rgb(0,135,0)">format</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg" style="color: rgb(175,0,0)">'</span><span class="ansi-yellow-bg" style="color: rgb(175,0,0)">svg</span><span class="ansi-yellow-bg" style="color: rgb(175,0,0)">'</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">encoding</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">SVG_ENCODING</span><span class="ansi-yellow-bg">)</span>
+
+File <span class="ansi-green-fg">~/.cache/pypoetry/virtualenvs/linkml-transformer-kbFOg3ty-py3.9/lib/python3.9/site-packages/graphviz/piping.py:104</span>, in <span class="ansi-cyan-fg">Pipe.pipe</span><span class="ansi-blue-fg">(self, format, renderer, formatter, neato_no_op, quiet, engine, encoding)</span>
+<span class="ansi-green-intense-fg ansi-bold">     55</span> <span class="ansi-bold" style="color: rgb(0,135,0)">def</span> <span style="color: rgb(0,0,255)">pipe</span>(<span style="color: rgb(0,135,0)">self</span>,
+<span class="ansi-green-intense-fg ansi-bold">     56</span>          <span style="color: rgb(0,135,0)">format</span>: typing<span style="color: rgb(98,98,98)">.</span>Optional[<span style="color: rgb(0,135,0)">str</span>] <span style="color: rgb(98,98,98)">=</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>,
+<span class="ansi-green-intense-fg ansi-bold">     57</span>          renderer: typing<span style="color: rgb(98,98,98)">.</span>Optional[<span style="color: rgb(0,135,0)">str</span>] <span style="color: rgb(98,98,98)">=</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>,
+<span class="ansi-green-fg">   (...)</span>
+<span class="ansi-green-intense-fg ansi-bold">     61</span>          engine: typing<span style="color: rgb(98,98,98)">.</span>Optional[<span style="color: rgb(0,135,0)">str</span>] <span style="color: rgb(98,98,98)">=</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>,
+<span class="ansi-green-intense-fg ansi-bold">     62</span>          encoding: typing<span style="color: rgb(98,98,98)">.</span>Optional[<span style="color: rgb(0,135,0)">str</span>] <span style="color: rgb(98,98,98)">=</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>) <span style="color: rgb(98,98,98)">-</span><span style="color: rgb(98,98,98)">&gt;</span> typing<span style="color: rgb(98,98,98)">.</span>Union[<span style="color: rgb(0,135,0)">bytes</span>, <span style="color: rgb(0,135,0)">str</span>]:
+<span class="ansi-green-intense-fg ansi-bold">     63</span> <span style="color: rgb(188,188,188)">    </span><span style="color: rgb(175,0,0)">"""Return the source piped through the Graphviz layout command.</span>
+<span class="ansi-green-intense-fg ansi-bold">     64</span> 
+<span class="ansi-green-intense-fg ansi-bold">     65</span> <span style="color: rgb(175,0,0)">    Args:</span>
+<span class="ansi-green-fg">   (...)</span>
+<span class="ansi-green-intense-fg ansi-bold">    102</span> <span style="color: rgb(175,0,0)">        '&lt;?xml version='</span>
+<span class="ansi-green-intense-fg ansi-bold">    103</span> <span style="color: rgb(175,0,0)">    """</span>
+<span class="ansi-green-fg">--&gt; 104</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">_pipe_legacy</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg" style="color: rgb(0,135,0)">format</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    105</span> <span class="ansi-yellow-bg">                             </span><span class="ansi-yellow-bg">renderer</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">renderer</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    106</span> <span class="ansi-yellow-bg">                             </span><span class="ansi-yellow-bg">formatter</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">formatter</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    107</span> <span class="ansi-yellow-bg">                             </span><span class="ansi-yellow-bg">neato_no_op</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">neato_no_op</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    108</span> <span class="ansi-yellow-bg">                             </span><span class="ansi-yellow-bg">quiet</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">quiet</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    109</span> <span class="ansi-yellow-bg">                             </span><span class="ansi-yellow-bg">engine</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">engine</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    110</span> <span class="ansi-yellow-bg">                             </span><span class="ansi-yellow-bg">encoding</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">encoding</span><span class="ansi-yellow-bg">)</span>
+
+File <span class="ansi-green-fg">~/.cache/pypoetry/virtualenvs/linkml-transformer-kbFOg3ty-py3.9/lib/python3.9/site-packages/graphviz/_tools.py:171</span>, in <span class="ansi-cyan-fg">deprecate_positional_args.&lt;locals&gt;.decorator.&lt;locals&gt;.wrapper</span><span class="ansi-blue-fg">(*args, **kwargs)</span>
+<span class="ansi-green-intense-fg ansi-bold">    162</span>     wanted <span style="color: rgb(98,98,98)">=</span> <span style="color: rgb(175,0,0)">'</span><span style="color: rgb(175,0,0)">, </span><span style="color: rgb(175,0,0)">'</span><span style="color: rgb(98,98,98)">.</span>join(<span style="color: rgb(175,0,0)">f</span><span style="color: rgb(175,0,0)">'</span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>name<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span style="color: rgb(175,0,0)">=</span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>value<span class="ansi-bold" style="color: rgb(175,95,135)">!r}</span><span style="color: rgb(175,0,0)">'</span>
+<span class="ansi-green-intense-fg ansi-bold">    163</span>                        <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> name, value <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> deprecated<span style="color: rgb(98,98,98)">.</span>items())
+<span class="ansi-green-intense-fg ansi-bold">    164</span>     warnings<span style="color: rgb(98,98,98)">.</span>warn(<span style="color: rgb(175,0,0)">f</span><span style="color: rgb(175,0,0)">'</span><span style="color: rgb(175,0,0)">The signature of </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>func<span style="color: rgb(98,98,98)">.</span><span style="color: rgb(0,0,135)">__name__</span><span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span style="color: rgb(175,0,0)"> will be reduced</span><span style="color: rgb(175,0,0)">'</span>
+<span class="ansi-green-intense-fg ansi-bold">    165</span>                   <span style="color: rgb(175,0,0)">f</span><span style="color: rgb(175,0,0)">'</span><span style="color: rgb(175,0,0)"> to </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>supported_number<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span style="color: rgb(175,0,0)"> positional args</span><span style="color: rgb(175,0,0)">'</span>
+<span class="ansi-green-intense-fg ansi-bold">    166</span>                   <span style="color: rgb(175,0,0)">f</span><span style="color: rgb(175,0,0)">'</span><span style="color: rgb(175,0,0)"> </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span><span style="color: rgb(0,135,0)">list</span>(supported)<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span style="color: rgb(175,0,0)">: pass </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>wanted<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span style="color: rgb(175,0,0)">'</span>
+<span class="ansi-green-intense-fg ansi-bold">    167</span>                   <span style="color: rgb(175,0,0)">'</span><span style="color: rgb(175,0,0)"> as keyword arg(s)</span><span style="color: rgb(175,0,0)">'</span>,
+<span class="ansi-green-intense-fg ansi-bold">    168</span>                   stacklevel<span style="color: rgb(98,98,98)">=</span>stacklevel,
+<span class="ansi-green-intense-fg ansi-bold">    169</span>                   category<span style="color: rgb(98,98,98)">=</span>category)
+<span class="ansi-green-fg">--&gt; 171</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-yellow-bg">func</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">*</span><span class="ansi-yellow-bg">args</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">*</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">*</span><span class="ansi-yellow-bg">kwargs</span><span class="ansi-yellow-bg">)</span>
+
+File <span class="ansi-green-fg">~/.cache/pypoetry/virtualenvs/linkml-transformer-kbFOg3ty-py3.9/lib/python3.9/site-packages/graphviz/piping.py:121</span>, in <span class="ansi-cyan-fg">Pipe._pipe_legacy</span><span class="ansi-blue-fg">(self, format, renderer, formatter, neato_no_op, quiet, engine, encoding)</span>
+<span class="ansi-green-intense-fg ansi-bold">    112</span> <span style="color: rgb(175,0,255)">@_tools</span><span style="color: rgb(98,98,98)">.</span>deprecate_positional_args(supported_number<span style="color: rgb(98,98,98)">=</span><span style="color: rgb(98,98,98)">2</span>)
+<span class="ansi-green-intense-fg ansi-bold">    113</span> <span class="ansi-bold" style="color: rgb(0,135,0)">def</span> <span style="color: rgb(0,0,255)">_pipe_legacy</span>(<span style="color: rgb(0,135,0)">self</span>,
+<span class="ansi-green-intense-fg ansi-bold">    114</span>                  <span style="color: rgb(0,135,0)">format</span>: typing<span style="color: rgb(98,98,98)">.</span>Optional[<span style="color: rgb(0,135,0)">str</span>] <span style="color: rgb(98,98,98)">=</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>,
+<span class="ansi-green-fg">   (...)</span>
+<span class="ansi-green-intense-fg ansi-bold">    119</span>                  engine: typing<span style="color: rgb(98,98,98)">.</span>Optional[<span style="color: rgb(0,135,0)">str</span>] <span style="color: rgb(98,98,98)">=</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>,
+<span class="ansi-green-intense-fg ansi-bold">    120</span>                  encoding: typing<span style="color: rgb(98,98,98)">.</span>Optional[<span style="color: rgb(0,135,0)">str</span>] <span style="color: rgb(98,98,98)">=</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>) <span style="color: rgb(98,98,98)">-</span><span style="color: rgb(98,98,98)">&gt;</span> typing<span style="color: rgb(98,98,98)">.</span>Union[<span style="color: rgb(0,135,0)">bytes</span>, <span style="color: rgb(0,135,0)">str</span>]:
+<span class="ansi-green-fg">--&gt; 121</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">_pipe_future</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg" style="color: rgb(0,135,0)">format</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    122</span> <span class="ansi-yellow-bg">                             </span><span class="ansi-yellow-bg">renderer</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">renderer</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    123</span> <span class="ansi-yellow-bg">                             </span><span class="ansi-yellow-bg">formatter</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">formatter</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    124</span> <span class="ansi-yellow-bg">                             </span><span class="ansi-yellow-bg">neato_no_op</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">neato_no_op</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    125</span> <span class="ansi-yellow-bg">                             </span><span class="ansi-yellow-bg">quiet</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">quiet</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    126</span> <span class="ansi-yellow-bg">                             </span><span class="ansi-yellow-bg">engine</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">engine</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    127</span> <span class="ansi-yellow-bg">                             </span><span class="ansi-yellow-bg">encoding</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">encoding</span><span class="ansi-yellow-bg">)</span>
+
+File <span class="ansi-green-fg">~/.cache/pypoetry/virtualenvs/linkml-transformer-kbFOg3ty-py3.9/lib/python3.9/site-packages/graphviz/piping.py:149</span>, in <span class="ansi-cyan-fg">Pipe._pipe_future</span><span class="ansi-blue-fg">(self, format, renderer, formatter, neato_no_op, quiet, engine, encoding)</span>
+<span class="ansi-green-intense-fg ansi-bold">    146</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> encoding <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>:
+<span class="ansi-green-intense-fg ansi-bold">    147</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> codecs<span style="color: rgb(98,98,98)">.</span>lookup(encoding) <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> codecs<span style="color: rgb(98,98,98)">.</span>lookup(<span style="color: rgb(0,135,0)">self</span><span style="color: rgb(98,98,98)">.</span>encoding):
+<span class="ansi-green-intense-fg ansi-bold">    148</span>         <span style="color: rgb(95,135,135)"># common case: both stdin and stdout need the same encoding</span>
+<span class="ansi-green-fg">--&gt; 149</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">_pipe_lines_string</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">*</span><span class="ansi-yellow-bg">args</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">encoding</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">encoding</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">*</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">*</span><span class="ansi-yellow-bg">kwargs</span><span class="ansi-yellow-bg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">    150</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">try</span>:
+<span class="ansi-green-intense-fg ansi-bold">    151</span>         raw <span style="color: rgb(98,98,98)">=</span> <span style="color: rgb(0,135,0)">self</span><span style="color: rgb(98,98,98)">.</span>_pipe_lines(<span style="color: rgb(98,98,98)">*</span>args, input_encoding<span style="color: rgb(98,98,98)">=</span><span style="color: rgb(0,135,0)">self</span><span style="color: rgb(98,98,98)">.</span>encoding, <span style="color: rgb(98,98,98)">*</span><span style="color: rgb(98,98,98)">*</span>kwargs)
+
+File <span class="ansi-green-fg">~/.cache/pypoetry/virtualenvs/linkml-transformer-kbFOg3ty-py3.9/lib/python3.9/site-packages/graphviz/backend/piping.py:212</span>, in <span class="ansi-cyan-fg">pipe_lines_string</span><span class="ansi-blue-fg">(engine, format, input_lines, encoding, renderer, formatter, neato_no_op, quiet)</span>
+<span class="ansi-green-intense-fg ansi-bold">    206</span> cmd <span style="color: rgb(98,98,98)">=</span> dot_command<span style="color: rgb(98,98,98)">.</span>command(engine, <span style="color: rgb(0,135,0)">format</span>,
+<span class="ansi-green-intense-fg ansi-bold">    207</span>                           renderer<span style="color: rgb(98,98,98)">=</span>renderer,
+<span class="ansi-green-intense-fg ansi-bold">    208</span>                           formatter<span style="color: rgb(98,98,98)">=</span>formatter,
+<span class="ansi-green-intense-fg ansi-bold">    209</span>                           neato_no_op<span style="color: rgb(98,98,98)">=</span>neato_no_op)
+<span class="ansi-green-intense-fg ansi-bold">    210</span> kwargs <span style="color: rgb(98,98,98)">=</span> {<span style="color: rgb(175,0,0)">'</span><span style="color: rgb(175,0,0)">input_lines</span><span style="color: rgb(175,0,0)">'</span>: input_lines, <span style="color: rgb(175,0,0)">'</span><span style="color: rgb(175,0,0)">encoding</span><span style="color: rgb(175,0,0)">'</span>: encoding}
+<span class="ansi-green-fg">--&gt; 212</span> proc <span style="color: rgb(98,98,98)">=</span> <span class="ansi-yellow-bg">execute</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">run_check</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">cmd</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">capture_output</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg ansi-bold" style="color: rgb(0,135,0)">True</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">quiet</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">quiet</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">*</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">*</span><span class="ansi-yellow-bg">kwargs</span><span class="ansi-yellow-bg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">    213</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> proc<span style="color: rgb(98,98,98)">.</span>stdout
+
+File <span class="ansi-green-fg">~/.cache/pypoetry/virtualenvs/linkml-transformer-kbFOg3ty-py3.9/lib/python3.9/site-packages/graphviz/backend/execute.py:81</span>, in <span class="ansi-cyan-fg">run_check</span><span class="ansi-blue-fg">(cmd, input_lines, encoding, quiet, **kwargs)</span>
+<span class="ansi-green-intense-fg ansi-bold">     79</span> <span class="ansi-bold" style="color: rgb(0,135,0)">except</span> <span class="ansi-bold" style="color: rgb(215,95,95)">OSError</span> <span class="ansi-bold" style="color: rgb(0,135,0)">as</span> e:
+<span class="ansi-green-intense-fg ansi-bold">     80</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> e<span style="color: rgb(98,98,98)">.</span>errno <span style="color: rgb(98,98,98)">==</span> errno<span style="color: rgb(98,98,98)">.</span>ENOENT:
+<span class="ansi-green-fg">---&gt; 81</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> ExecutableNotFound(cmd) <span class="ansi-bold" style="color: rgb(0,135,0)">from</span> <span class="ansi-bold" style="color: rgb(0,0,255)">e</span>
+<span class="ansi-green-intense-fg ansi-bold">     82</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span>
+<span class="ansi-green-intense-fg ansi-bold">     84</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> quiet <span class="ansi-bold" style="color: rgb(175,0,255)">and</span> proc<span style="color: rgb(98,98,98)">.</span>stderr:
+
+<span class="ansi-red-fg">ExecutableNotFound</span>: failed to execute PosixPath('dot'), make sure the Graphviz executables are on your systems' PATH</pre>
+</div>
+</div>
+<div class="output_area">
+<div class="output_text output_subarea output_execute_result">
+<pre>
+<code>&lt;graphviz.graphs.Digraph at 0x7f1a74af0070&gt;</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="transforming-objects">Transforming objects</h2>
+<p>We'll next make a simple <code>Person</code> object. Note that for simplicity we are specifying this
+using a Python dictionary. The framework also works with objects instantiating either
+Pydantic or Dataclasses classes (use the <code>transform_object</code> method instead of <code>transform</code>).</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+
+<pre><code class="language-python">obj = {
+        &quot;given_name&quot;: &quot;Jane&quot;,
+        &quot;family_name&quot;: &quot;Doe&quot;,
+        &quot;age_in_years&quot;: 42,
+        &quot;height_in_cm&quot;: 180.0,
+    }
+session.transform(obj)
+</code></pre>
+
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_text output_subarea output_execute_result">
+<pre>
+<code>{'family_name': 'Doe', 'given_name': 'Jane', 'age': 42, 'height': 180.0}</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>This does what we expect - it renames the two fields, but leaves all values intact.</p>
+<p>Note that because we use using dictionaries here, the renaming of the class has no effect,
+as this is implicit with JSON/dictionaries.</p>
+<p>TODO: docs on type designator fields</p>
+<p>For command line users, the same thing can be achieved with the <code>map-data</code> command.</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="deriving-target-schemas">Deriving target schemas</h2>
+<p>LinkML-Transformer is intended as a <em>declarative</em> framework, in contrast to writing Python
+transformation code. This allows tools to introspect mappings and perform other kinds of inference.
+An example of this is <em>deriving the (implicit) target schema</em></p>
+<p>Here we use the <code>target_schema</code> method on the session object to derive the target schema:</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+
+<pre><code class="language-python">from linkml_runtime.dumpers import yaml_dumper
+
+print(yaml_dumper.dumps(session.target_schema))
+</code></pre>
+
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+<code>name: test-schema-derived
+id: http://example.org/test-schema-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test_schema:
+    prefix_prefix: test_schema
+    prefix_reference: http://example.org/test-schema/
+default_prefix: http://example.org/test-schema-derived/
+default_range: string
+classes:
+  Individual:
+    name: Individual
+    attributes:
+      family_name:
+        name: family_name
+        domain_of:
+        - Person
+        range: string
+      given_name:
+        name: given_name
+        domain_of:
+        - Person
+        range: string
+      age:
+        name: age
+        domain_of:
+        - Person
+        range: integer
+      height:
+        name: height
+        domain_of:
+        - Person
+        range: float
+
+</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>As expected, this is isomorphic to the original (source) schema, with fields and classes renamed.</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="using-expressions">Using Expressions</h2>
+<p>In addition to renaming fields, we can derive field values via evaluation of function <em>expressions</em>.</p>
+<p>You are encouraged to follow the subset of Python defined by the LinkML expression language. This provides
+both safety, and declarativity. However, if you need
+to, you can include arbitrary Python code, provided you configure the session to allow this.</p>
+<p>We'll keep the original schema, and will provide a new Transformer specification, 
+giving an example of both string manipulation functions and arithmetic functions; the latter
+perform unit conversions (later on we will see more flexible and declarative ways to perform unit conversions).</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+
+<pre><code class="language-python">
+session.set_object_transformer(&quot;&quot;&quot;
+class_derivations:
+  Individual:
+    populated_from: Person
+    slot_derivations:
+      name:
+        expr: &quot;{given_name} + ' ' + {family_name}&quot;
+        description: Concatenating given and family names
+          note this is a bad assumption for names in general,
+          this is just for demonstration
+      age_in_months:
+        expr: age_in_years * 12
+      height_in_meters:
+        expr: height_in_cm / 100
+&quot;&quot;&quot;)
+
+</code></pre>
+
+
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Note that when we visualize this specification, dotted lines are shown indicating a relationship
+between source and target that is different from direct copy:</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+
+<pre><code class="language-python">session.graphviz()
+</code></pre>
+
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_subarea output_text output_error">
+<pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">FileNotFoundError</span>                         Traceback (most recent call last)
+File <span class="ansi-green-fg">~/.cache/pypoetry/virtualenvs/linkml-transformer-kbFOg3ty-py3.9/lib/python3.9/site-packages/graphviz/backend/execute.py:76</span>, in <span class="ansi-cyan-fg">run_check</span><span class="ansi-blue-fg">(cmd, input_lines, encoding, quiet, **kwargs)</span>
+<span class="ansi-green-intense-fg ansi-bold">     75</span>         kwargs[<span style="color: rgb(175,0,0)">'</span><span style="color: rgb(175,0,0)">stdout</span><span style="color: rgb(175,0,0)">'</span>] <span style="color: rgb(98,98,98)">=</span> kwargs[<span style="color: rgb(175,0,0)">'</span><span style="color: rgb(175,0,0)">stderr</span><span style="color: rgb(175,0,0)">'</span>] <span style="color: rgb(98,98,98)">=</span> subprocess<span style="color: rgb(98,98,98)">.</span>PIPE
+<span class="ansi-green-fg">---&gt; 76</span>     proc <span style="color: rgb(98,98,98)">=</span> <span class="ansi-yellow-bg">_run_input_lines</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">cmd</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">input_lines</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">kwargs</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">kwargs</span><span class="ansi-yellow-bg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">     77</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span>:
+
+File <span class="ansi-green-fg">~/.cache/pypoetry/virtualenvs/linkml-transformer-kbFOg3ty-py3.9/lib/python3.9/site-packages/graphviz/backend/execute.py:96</span>, in <span class="ansi-cyan-fg">_run_input_lines</span><span class="ansi-blue-fg">(cmd, input_lines, kwargs)</span>
+<span class="ansi-green-intense-fg ansi-bold">     95</span> <span class="ansi-bold" style="color: rgb(0,135,0)">def</span> <span style="color: rgb(0,0,255)">_run_input_lines</span>(cmd, input_lines, <span style="color: rgb(98,98,98)">*</span>, kwargs):
+<span class="ansi-green-fg">---&gt; 96</span>     popen <span style="color: rgb(98,98,98)">=</span> <span class="ansi-yellow-bg">subprocess</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">Popen</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">cmd</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">stdin</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">subprocess</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">PIPE</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">*</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">*</span><span class="ansi-yellow-bg">kwargs</span><span class="ansi-yellow-bg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">     98</span>     stdin_write <span style="color: rgb(98,98,98)">=</span> popen<span style="color: rgb(98,98,98)">.</span>stdin<span style="color: rgb(98,98,98)">.</span>write
+
+File <span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.9.18/x64/lib/python3.9/subprocess.py:951</span>, in <span class="ansi-cyan-fg">Popen.__init__</span><span class="ansi-blue-fg">(self, args, bufsize, executable, stdin, stdout, stderr, preexec_fn, close_fds, shell, cwd, env, universal_newlines, startupinfo, creationflags, restore_signals, start_new_session, pass_fds, user, group, extra_groups, encoding, errors, text, umask)</span>
+<span class="ansi-green-intense-fg ansi-bold">    948</span>             <span style="color: rgb(0,135,0)">self</span><span style="color: rgb(98,98,98)">.</span>stderr <span style="color: rgb(98,98,98)">=</span> io<span style="color: rgb(98,98,98)">.</span>TextIOWrapper(<span style="color: rgb(0,135,0)">self</span><span style="color: rgb(98,98,98)">.</span>stderr,
+<span class="ansi-green-intense-fg ansi-bold">    949</span>                     encoding<span style="color: rgb(98,98,98)">=</span>encoding, errors<span style="color: rgb(98,98,98)">=</span>errors)
+<span class="ansi-green-fg">--&gt; 951</span>     <span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">_execute_child</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">args</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">executable</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">preexec_fn</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">close_fds</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    952</span> <span class="ansi-yellow-bg">                        </span><span class="ansi-yellow-bg">pass_fds</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">cwd</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">env</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    953</span> <span class="ansi-yellow-bg">                        </span><span class="ansi-yellow-bg">startupinfo</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">creationflags</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">shell</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    954</span> <span class="ansi-yellow-bg">                        </span><span class="ansi-yellow-bg">p2cread</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">p2cwrite</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    955</span> <span class="ansi-yellow-bg">                        </span><span class="ansi-yellow-bg">c2pread</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">c2pwrite</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    956</span> <span class="ansi-yellow-bg">                        </span><span class="ansi-yellow-bg">errread</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">errwrite</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    957</span> <span class="ansi-yellow-bg">                        </span><span class="ansi-yellow-bg">restore_signals</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    958</span> <span class="ansi-yellow-bg">                        </span><span class="ansi-yellow-bg">gid</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">gids</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">uid</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">umask</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    959</span> <span class="ansi-yellow-bg">                        </span><span class="ansi-yellow-bg">start_new_session</span><span class="ansi-yellow-bg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">    960</span> <span class="ansi-bold" style="color: rgb(0,135,0)">except</span>:
+<span class="ansi-green-intense-fg ansi-bold">    961</span>     <span style="color: rgb(95,135,135)"># Cleanup if the child failed starting.</span>
+
+File <span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.9.18/x64/lib/python3.9/subprocess.py:1837</span>, in <span class="ansi-cyan-fg">Popen._execute_child</span><span class="ansi-blue-fg">(self, args, executable, preexec_fn, close_fds, pass_fds, cwd, env, startupinfo, creationflags, shell, p2cread, p2cwrite, c2pread, c2pwrite, errread, errwrite, restore_signals, gid, gids, uid, umask, start_new_session)</span>
+<span class="ansi-green-intense-fg ansi-bold">   1836</span>         err_msg <span style="color: rgb(98,98,98)">=</span> os<span style="color: rgb(98,98,98)">.</span>strerror(errno_num)
+<span class="ansi-green-fg">-&gt; 1837</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> child_exception_type(errno_num, err_msg, err_filename)
+<span class="ansi-green-intense-fg ansi-bold">   1838</span> <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> child_exception_type(err_msg)
+
+<span class="ansi-red-fg">FileNotFoundError</span>: [Errno 2] No such file or directory: PosixPath('dot')
+
+The above exception was the direct cause of the following exception:
+
+<span class="ansi-red-fg">ExecutableNotFound</span>                        Traceback (most recent call last)
+File <span class="ansi-green-fg">~/.cache/pypoetry/virtualenvs/linkml-transformer-kbFOg3ty-py3.9/lib/python3.9/site-packages/IPython/core/formatters.py:974</span>, in <span class="ansi-cyan-fg">MimeBundleFormatter.__call__</span><span class="ansi-blue-fg">(self, obj, include, exclude)</span>
+<span class="ansi-green-intense-fg ansi-bold">    971</span>     method <span style="color: rgb(98,98,98)">=</span> get_real_method(obj, <span style="color: rgb(0,135,0)">self</span><span style="color: rgb(98,98,98)">.</span>print_method)
+<span class="ansi-green-intense-fg ansi-bold">    973</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> method <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>:
+<span class="ansi-green-fg">--&gt; 974</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-yellow-bg">method</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">include</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">include</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">exclude</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">exclude</span><span class="ansi-yellow-bg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">    975</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>
+<span class="ansi-green-intense-fg ansi-bold">    976</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span>:
+
+File <span class="ansi-green-fg">~/.cache/pypoetry/virtualenvs/linkml-transformer-kbFOg3ty-py3.9/lib/python3.9/site-packages/graphviz/jupyter_integration.py:98</span>, in <span class="ansi-cyan-fg">JupyterIntegration._repr_mimebundle_</span><span class="ansi-blue-fg">(self, include, exclude, **_)</span>
+<span class="ansi-green-intense-fg ansi-bold">     96</span> include <span style="color: rgb(98,98,98)">=</span> <span style="color: rgb(0,135,0)">set</span>(include) <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> include <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span> {<span style="color: rgb(0,135,0)">self</span><span style="color: rgb(98,98,98)">.</span>_jupyter_mimetype}
+<span class="ansi-green-intense-fg ansi-bold">     97</span> include <span style="color: rgb(98,98,98)">-</span><span style="color: rgb(98,98,98)">=</span> <span style="color: rgb(0,135,0)">set</span>(exclude <span class="ansi-bold" style="color: rgb(175,0,255)">or</span> [])
+<span class="ansi-green-fg">---&gt; 98</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> {mimetype: <span style="color: rgb(0,135,0)">getattr</span>(<span style="color: rgb(0,135,0)">self</span>, method_name)()
+<span class="ansi-green-intense-fg ansi-bold">     99</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> mimetype, method_name <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> MIME_TYPES<span style="color: rgb(98,98,98)">.</span>items()
+<span class="ansi-green-intense-fg ansi-bold">    100</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> mimetype <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> include}
+
+File <span class="ansi-green-fg">~/.cache/pypoetry/virtualenvs/linkml-transformer-kbFOg3ty-py3.9/lib/python3.9/site-packages/graphviz/jupyter_integration.py:98</span>, in <span class="ansi-cyan-fg">&lt;dictcomp&gt;</span><span class="ansi-blue-fg">(.0)</span>
+<span class="ansi-green-intense-fg ansi-bold">     96</span> include <span style="color: rgb(98,98,98)">=</span> <span style="color: rgb(0,135,0)">set</span>(include) <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> include <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span> {<span style="color: rgb(0,135,0)">self</span><span style="color: rgb(98,98,98)">.</span>_jupyter_mimetype}
+<span class="ansi-green-intense-fg ansi-bold">     97</span> include <span style="color: rgb(98,98,98)">-</span><span style="color: rgb(98,98,98)">=</span> <span style="color: rgb(0,135,0)">set</span>(exclude <span class="ansi-bold" style="color: rgb(175,0,255)">or</span> [])
+<span class="ansi-green-fg">---&gt; 98</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> {mimetype: <span class="ansi-yellow-bg" style="color: rgb(0,135,0)">getattr</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">method_name</span><span class="ansi-yellow-bg">)</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">     99</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> mimetype, method_name <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> MIME_TYPES<span style="color: rgb(98,98,98)">.</span>items()
+<span class="ansi-green-intense-fg ansi-bold">    100</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> mimetype <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> include}
+
+File <span class="ansi-green-fg">~/.cache/pypoetry/virtualenvs/linkml-transformer-kbFOg3ty-py3.9/lib/python3.9/site-packages/graphviz/jupyter_integration.py:112</span>, in <span class="ansi-cyan-fg">JupyterIntegration._repr_image_svg_xml</span><span class="ansi-blue-fg">(self)</span>
+<span class="ansi-green-intense-fg ansi-bold">    110</span> <span class="ansi-bold" style="color: rgb(0,135,0)">def</span> <span style="color: rgb(0,0,255)">_repr_image_svg_xml</span>(<span style="color: rgb(0,135,0)">self</span>) <span style="color: rgb(98,98,98)">-</span><span style="color: rgb(98,98,98)">&gt;</span> <span style="color: rgb(0,135,0)">str</span>:
+<span class="ansi-green-intense-fg ansi-bold">    111</span> <span style="color: rgb(188,188,188)">    </span><span style="color: rgb(175,0,0)">"""Return the rendered graph as SVG string."""</span>
+<span class="ansi-green-fg">--&gt; 112</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">pipe</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg" style="color: rgb(0,135,0)">format</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg" style="color: rgb(175,0,0)">'</span><span class="ansi-yellow-bg" style="color: rgb(175,0,0)">svg</span><span class="ansi-yellow-bg" style="color: rgb(175,0,0)">'</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">encoding</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">SVG_ENCODING</span><span class="ansi-yellow-bg">)</span>
+
+File <span class="ansi-green-fg">~/.cache/pypoetry/virtualenvs/linkml-transformer-kbFOg3ty-py3.9/lib/python3.9/site-packages/graphviz/piping.py:104</span>, in <span class="ansi-cyan-fg">Pipe.pipe</span><span class="ansi-blue-fg">(self, format, renderer, formatter, neato_no_op, quiet, engine, encoding)</span>
+<span class="ansi-green-intense-fg ansi-bold">     55</span> <span class="ansi-bold" style="color: rgb(0,135,0)">def</span> <span style="color: rgb(0,0,255)">pipe</span>(<span style="color: rgb(0,135,0)">self</span>,
+<span class="ansi-green-intense-fg ansi-bold">     56</span>          <span style="color: rgb(0,135,0)">format</span>: typing<span style="color: rgb(98,98,98)">.</span>Optional[<span style="color: rgb(0,135,0)">str</span>] <span style="color: rgb(98,98,98)">=</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>,
+<span class="ansi-green-intense-fg ansi-bold">     57</span>          renderer: typing<span style="color: rgb(98,98,98)">.</span>Optional[<span style="color: rgb(0,135,0)">str</span>] <span style="color: rgb(98,98,98)">=</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>,
+<span class="ansi-green-fg">   (...)</span>
+<span class="ansi-green-intense-fg ansi-bold">     61</span>          engine: typing<span style="color: rgb(98,98,98)">.</span>Optional[<span style="color: rgb(0,135,0)">str</span>] <span style="color: rgb(98,98,98)">=</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>,
+<span class="ansi-green-intense-fg ansi-bold">     62</span>          encoding: typing<span style="color: rgb(98,98,98)">.</span>Optional[<span style="color: rgb(0,135,0)">str</span>] <span style="color: rgb(98,98,98)">=</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>) <span style="color: rgb(98,98,98)">-</span><span style="color: rgb(98,98,98)">&gt;</span> typing<span style="color: rgb(98,98,98)">.</span>Union[<span style="color: rgb(0,135,0)">bytes</span>, <span style="color: rgb(0,135,0)">str</span>]:
+<span class="ansi-green-intense-fg ansi-bold">     63</span> <span style="color: rgb(188,188,188)">    </span><span style="color: rgb(175,0,0)">"""Return the source piped through the Graphviz layout command.</span>
+<span class="ansi-green-intense-fg ansi-bold">     64</span> 
+<span class="ansi-green-intense-fg ansi-bold">     65</span> <span style="color: rgb(175,0,0)">    Args:</span>
+<span class="ansi-green-fg">   (...)</span>
+<span class="ansi-green-intense-fg ansi-bold">    102</span> <span style="color: rgb(175,0,0)">        '&lt;?xml version='</span>
+<span class="ansi-green-intense-fg ansi-bold">    103</span> <span style="color: rgb(175,0,0)">    """</span>
+<span class="ansi-green-fg">--&gt; 104</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">_pipe_legacy</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg" style="color: rgb(0,135,0)">format</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    105</span> <span class="ansi-yellow-bg">                             </span><span class="ansi-yellow-bg">renderer</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">renderer</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    106</span> <span class="ansi-yellow-bg">                             </span><span class="ansi-yellow-bg">formatter</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">formatter</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    107</span> <span class="ansi-yellow-bg">                             </span><span class="ansi-yellow-bg">neato_no_op</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">neato_no_op</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    108</span> <span class="ansi-yellow-bg">                             </span><span class="ansi-yellow-bg">quiet</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">quiet</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    109</span> <span class="ansi-yellow-bg">                             </span><span class="ansi-yellow-bg">engine</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">engine</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    110</span> <span class="ansi-yellow-bg">                             </span><span class="ansi-yellow-bg">encoding</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">encoding</span><span class="ansi-yellow-bg">)</span>
+
+File <span class="ansi-green-fg">~/.cache/pypoetry/virtualenvs/linkml-transformer-kbFOg3ty-py3.9/lib/python3.9/site-packages/graphviz/_tools.py:171</span>, in <span class="ansi-cyan-fg">deprecate_positional_args.&lt;locals&gt;.decorator.&lt;locals&gt;.wrapper</span><span class="ansi-blue-fg">(*args, **kwargs)</span>
+<span class="ansi-green-intense-fg ansi-bold">    162</span>     wanted <span style="color: rgb(98,98,98)">=</span> <span style="color: rgb(175,0,0)">'</span><span style="color: rgb(175,0,0)">, </span><span style="color: rgb(175,0,0)">'</span><span style="color: rgb(98,98,98)">.</span>join(<span style="color: rgb(175,0,0)">f</span><span style="color: rgb(175,0,0)">'</span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>name<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span style="color: rgb(175,0,0)">=</span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>value<span class="ansi-bold" style="color: rgb(175,95,135)">!r}</span><span style="color: rgb(175,0,0)">'</span>
+<span class="ansi-green-intense-fg ansi-bold">    163</span>                        <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> name, value <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> deprecated<span style="color: rgb(98,98,98)">.</span>items())
+<span class="ansi-green-intense-fg ansi-bold">    164</span>     warnings<span style="color: rgb(98,98,98)">.</span>warn(<span style="color: rgb(175,0,0)">f</span><span style="color: rgb(175,0,0)">'</span><span style="color: rgb(175,0,0)">The signature of </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>func<span style="color: rgb(98,98,98)">.</span><span style="color: rgb(0,0,135)">__name__</span><span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span style="color: rgb(175,0,0)"> will be reduced</span><span style="color: rgb(175,0,0)">'</span>
+<span class="ansi-green-intense-fg ansi-bold">    165</span>                   <span style="color: rgb(175,0,0)">f</span><span style="color: rgb(175,0,0)">'</span><span style="color: rgb(175,0,0)"> to </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>supported_number<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span style="color: rgb(175,0,0)"> positional args</span><span style="color: rgb(175,0,0)">'</span>
+<span class="ansi-green-intense-fg ansi-bold">    166</span>                   <span style="color: rgb(175,0,0)">f</span><span style="color: rgb(175,0,0)">'</span><span style="color: rgb(175,0,0)"> </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span><span style="color: rgb(0,135,0)">list</span>(supported)<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span style="color: rgb(175,0,0)">: pass </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>wanted<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span style="color: rgb(175,0,0)">'</span>
+<span class="ansi-green-intense-fg ansi-bold">    167</span>                   <span style="color: rgb(175,0,0)">'</span><span style="color: rgb(175,0,0)"> as keyword arg(s)</span><span style="color: rgb(175,0,0)">'</span>,
+<span class="ansi-green-intense-fg ansi-bold">    168</span>                   stacklevel<span style="color: rgb(98,98,98)">=</span>stacklevel,
+<span class="ansi-green-intense-fg ansi-bold">    169</span>                   category<span style="color: rgb(98,98,98)">=</span>category)
+<span class="ansi-green-fg">--&gt; 171</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-yellow-bg">func</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">*</span><span class="ansi-yellow-bg">args</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">*</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">*</span><span class="ansi-yellow-bg">kwargs</span><span class="ansi-yellow-bg">)</span>
+
+File <span class="ansi-green-fg">~/.cache/pypoetry/virtualenvs/linkml-transformer-kbFOg3ty-py3.9/lib/python3.9/site-packages/graphviz/piping.py:121</span>, in <span class="ansi-cyan-fg">Pipe._pipe_legacy</span><span class="ansi-blue-fg">(self, format, renderer, formatter, neato_no_op, quiet, engine, encoding)</span>
+<span class="ansi-green-intense-fg ansi-bold">    112</span> <span style="color: rgb(175,0,255)">@_tools</span><span style="color: rgb(98,98,98)">.</span>deprecate_positional_args(supported_number<span style="color: rgb(98,98,98)">=</span><span style="color: rgb(98,98,98)">2</span>)
+<span class="ansi-green-intense-fg ansi-bold">    113</span> <span class="ansi-bold" style="color: rgb(0,135,0)">def</span> <span style="color: rgb(0,0,255)">_pipe_legacy</span>(<span style="color: rgb(0,135,0)">self</span>,
+<span class="ansi-green-intense-fg ansi-bold">    114</span>                  <span style="color: rgb(0,135,0)">format</span>: typing<span style="color: rgb(98,98,98)">.</span>Optional[<span style="color: rgb(0,135,0)">str</span>] <span style="color: rgb(98,98,98)">=</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>,
+<span class="ansi-green-fg">   (...)</span>
+<span class="ansi-green-intense-fg ansi-bold">    119</span>                  engine: typing<span style="color: rgb(98,98,98)">.</span>Optional[<span style="color: rgb(0,135,0)">str</span>] <span style="color: rgb(98,98,98)">=</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>,
+<span class="ansi-green-intense-fg ansi-bold">    120</span>                  encoding: typing<span style="color: rgb(98,98,98)">.</span>Optional[<span style="color: rgb(0,135,0)">str</span>] <span style="color: rgb(98,98,98)">=</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>) <span style="color: rgb(98,98,98)">-</span><span style="color: rgb(98,98,98)">&gt;</span> typing<span style="color: rgb(98,98,98)">.</span>Union[<span style="color: rgb(0,135,0)">bytes</span>, <span style="color: rgb(0,135,0)">str</span>]:
+<span class="ansi-green-fg">--&gt; 121</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">_pipe_future</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg" style="color: rgb(0,135,0)">format</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    122</span> <span class="ansi-yellow-bg">                             </span><span class="ansi-yellow-bg">renderer</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">renderer</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    123</span> <span class="ansi-yellow-bg">                             </span><span class="ansi-yellow-bg">formatter</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">formatter</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    124</span> <span class="ansi-yellow-bg">                             </span><span class="ansi-yellow-bg">neato_no_op</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">neato_no_op</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    125</span> <span class="ansi-yellow-bg">                             </span><span class="ansi-yellow-bg">quiet</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">quiet</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    126</span> <span class="ansi-yellow-bg">                             </span><span class="ansi-yellow-bg">engine</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">engine</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    127</span> <span class="ansi-yellow-bg">                             </span><span class="ansi-yellow-bg">encoding</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">encoding</span><span class="ansi-yellow-bg">)</span>
+
+File <span class="ansi-green-fg">~/.cache/pypoetry/virtualenvs/linkml-transformer-kbFOg3ty-py3.9/lib/python3.9/site-packages/graphviz/piping.py:149</span>, in <span class="ansi-cyan-fg">Pipe._pipe_future</span><span class="ansi-blue-fg">(self, format, renderer, formatter, neato_no_op, quiet, engine, encoding)</span>
+<span class="ansi-green-intense-fg ansi-bold">    146</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> encoding <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>:
+<span class="ansi-green-intense-fg ansi-bold">    147</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> codecs<span style="color: rgb(98,98,98)">.</span>lookup(encoding) <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> codecs<span style="color: rgb(98,98,98)">.</span>lookup(<span style="color: rgb(0,135,0)">self</span><span style="color: rgb(98,98,98)">.</span>encoding):
+<span class="ansi-green-intense-fg ansi-bold">    148</span>         <span style="color: rgb(95,135,135)"># common case: both stdin and stdout need the same encoding</span>
+<span class="ansi-green-fg">--&gt; 149</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">_pipe_lines_string</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">*</span><span class="ansi-yellow-bg">args</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">encoding</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">encoding</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">*</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">*</span><span class="ansi-yellow-bg">kwargs</span><span class="ansi-yellow-bg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">    150</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">try</span>:
+<span class="ansi-green-intense-fg ansi-bold">    151</span>         raw <span style="color: rgb(98,98,98)">=</span> <span style="color: rgb(0,135,0)">self</span><span style="color: rgb(98,98,98)">.</span>_pipe_lines(<span style="color: rgb(98,98,98)">*</span>args, input_encoding<span style="color: rgb(98,98,98)">=</span><span style="color: rgb(0,135,0)">self</span><span style="color: rgb(98,98,98)">.</span>encoding, <span style="color: rgb(98,98,98)">*</span><span style="color: rgb(98,98,98)">*</span>kwargs)
+
+File <span class="ansi-green-fg">~/.cache/pypoetry/virtualenvs/linkml-transformer-kbFOg3ty-py3.9/lib/python3.9/site-packages/graphviz/backend/piping.py:212</span>, in <span class="ansi-cyan-fg">pipe_lines_string</span><span class="ansi-blue-fg">(engine, format, input_lines, encoding, renderer, formatter, neato_no_op, quiet)</span>
+<span class="ansi-green-intense-fg ansi-bold">    206</span> cmd <span style="color: rgb(98,98,98)">=</span> dot_command<span style="color: rgb(98,98,98)">.</span>command(engine, <span style="color: rgb(0,135,0)">format</span>,
+<span class="ansi-green-intense-fg ansi-bold">    207</span>                           renderer<span style="color: rgb(98,98,98)">=</span>renderer,
+<span class="ansi-green-intense-fg ansi-bold">    208</span>                           formatter<span style="color: rgb(98,98,98)">=</span>formatter,
+<span class="ansi-green-intense-fg ansi-bold">    209</span>                           neato_no_op<span style="color: rgb(98,98,98)">=</span>neato_no_op)
+<span class="ansi-green-intense-fg ansi-bold">    210</span> kwargs <span style="color: rgb(98,98,98)">=</span> {<span style="color: rgb(175,0,0)">'</span><span style="color: rgb(175,0,0)">input_lines</span><span style="color: rgb(175,0,0)">'</span>: input_lines, <span style="color: rgb(175,0,0)">'</span><span style="color: rgb(175,0,0)">encoding</span><span style="color: rgb(175,0,0)">'</span>: encoding}
+<span class="ansi-green-fg">--&gt; 212</span> proc <span style="color: rgb(98,98,98)">=</span> <span class="ansi-yellow-bg">execute</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">run_check</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">cmd</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">capture_output</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg ansi-bold" style="color: rgb(0,135,0)">True</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">quiet</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">quiet</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">*</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">*</span><span class="ansi-yellow-bg">kwargs</span><span class="ansi-yellow-bg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">    213</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> proc<span style="color: rgb(98,98,98)">.</span>stdout
+
+File <span class="ansi-green-fg">~/.cache/pypoetry/virtualenvs/linkml-transformer-kbFOg3ty-py3.9/lib/python3.9/site-packages/graphviz/backend/execute.py:81</span>, in <span class="ansi-cyan-fg">run_check</span><span class="ansi-blue-fg">(cmd, input_lines, encoding, quiet, **kwargs)</span>
+<span class="ansi-green-intense-fg ansi-bold">     79</span> <span class="ansi-bold" style="color: rgb(0,135,0)">except</span> <span class="ansi-bold" style="color: rgb(215,95,95)">OSError</span> <span class="ansi-bold" style="color: rgb(0,135,0)">as</span> e:
+<span class="ansi-green-intense-fg ansi-bold">     80</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> e<span style="color: rgb(98,98,98)">.</span>errno <span style="color: rgb(98,98,98)">==</span> errno<span style="color: rgb(98,98,98)">.</span>ENOENT:
+<span class="ansi-green-fg">---&gt; 81</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> ExecutableNotFound(cmd) <span class="ansi-bold" style="color: rgb(0,135,0)">from</span> <span class="ansi-bold" style="color: rgb(0,0,255)">e</span>
+<span class="ansi-green-intense-fg ansi-bold">     82</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span>
+<span class="ansi-green-intense-fg ansi-bold">     84</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> quiet <span class="ansi-bold" style="color: rgb(175,0,255)">and</span> proc<span style="color: rgb(98,98,98)">.</span>stderr:
+
+<span class="ansi-red-fg">ExecutableNotFound</span>: failed to execute PosixPath('dot'), make sure the Graphviz executables are on your systems' PATH</pre>
+</div>
+</div>
+<div class="output_area">
+<div class="output_text output_subarea output_execute_result">
+<pre>
+<code>&lt;graphviz.graphs.Digraph at 0x7f1a74454ca0&gt;</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Now we'll transform the same object as before, and see the results:</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+
+<pre><code class="language-python">session.transform(obj)
+</code></pre>
+
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_text output_subarea output_execute_result">
+<pre>
+<code>{'name': 'Jane Doe', 'age_in_months': 504, 'height_in_meters': 1.8}</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>As expected, we concatenated the name fields, and converted the age and height fields to different units.</p>
+<p>Let's take a look at the derived schema for this new transformation:</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+
+<pre><code class="language-python">print(yaml_dumper.dumps(session.target_schema))
+</code></pre>
+
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+<code>name: test-schema-derived
+id: http://example.org/test-schema-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test_schema:
+    prefix_prefix: test_schema
+    prefix_reference: http://example.org/test-schema/
+default_prefix: http://example.org/test-schema-derived/
+default_range: string
+classes:
+  Individual:
+    name: Individual
+    attributes:
+      name:
+        name: name
+      age_in_months:
+        name: age_in_months
+      height_in_meters:
+        name: height_in_meters
+
+</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Note that at this time, deriving ranges using expressions is not supported, so the two measurement fields
+are erroneously typed as having the <code>default_range</code> of <code>string</code>. However, in principle, if you use the
+linkml subset of Python it should be possible to infer the range of the derived field, and this may be added
+in future versions. Currently the tool chain is at an early stage of development.</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="unit-conversions">Unit conversions</h2>
+<p>Next we will look at a different way of doing unit conversions. The LinkML specification allows
+schemas to explicitly declare the units of slots, so let's modify our schema to do this, adding
+a UCUM code for our <code>height_in_cm</code> slot:</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+
+<pre><code class="language-python">from linkml_runtime.linkml_model.units import UnitOfMeasure
+sb.schema.slots['height_in_cm'].unit = UnitOfMeasure(ucum_code='cm')
+session.set_source_schema(sb.as_dict())
+print(yaml.dump(sb.as_dict(), sort_keys=False))
+</code></pre>
+
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+<code>name: test-schema
+id: http://example.org/test-schema
+imports:
+- linkml:types
+prefixes:
+  linkml: https://w3id.org/linkml/
+  test_schema: http://example.org/test-schema/
+default_prefix: test_schema
+default_range: string
+slots:
+  family_name:
+    range: string
+  given_name:
+    range: string
+  age_in_years:
+    range: integer
+  height_in_cm:
+    range: float
+    unit:
+      ucum_code: cm
+classes:
+  Person:
+    slots:
+    - family_name
+    - given_name
+    - age_in_years
+    - height_in_cm
+
+</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="adding-target_unit-to-transformer-specification">Adding target_unit to transformer specification</h2>
+<p>We will create a new transformer specification, focusing on the <code>height_in_cm</code> field. We will
+transform this into a <code>height_in_meters</code> field, and will use the <code>target_unit</code> field to specify
+the target unit.</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+
+<pre><code class="language-python">session.set_object_transformer(&quot;&quot;&quot;
+class_derivations:
+  Individual:
+    populated_from: Person
+    slot_derivations:
+      name:
+        expr: &quot;{given_name} + ' ' + {family_name}&quot;
+      height_in_meters:
+        populated_from: height_in_cm
+        unit_conversion:
+          target_unit: m
+&quot;&quot;&quot;)
+</code></pre>
+
+
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+
+<pre><code class="language-python">session.transform(obj)
+</code></pre>
+
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_text output_subarea output_execute_result">
+<pre>
+<code>{'name': 'Jane Doe', 'height_in_meters': 1.8}</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="units-in-derived-schema">Units in derived schema</h2>
+<p>Next we'll look at the derived target schema, and as expected we see that it has inferred
+the target unit for the <code>height_in_meters</code> field:</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+
+<pre><code class="language-python">print(yaml_dumper.dumps(session.target_schema))
+
+</code></pre>
+
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+<code>name: test-schema-derived
+id: http://example.org/test-schema-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test_schema:
+    prefix_prefix: test_schema
+    prefix_reference: http://example.org/test-schema/
+default_prefix: http://example.org/test-schema-derived/
+default_range: string
+classes:
+  Individual:
+    name: Individual
+    attributes:
+      name:
+        name: name
+      height_in_meters:
+        name: height_in_meters
+        domain_of:
+        - Person
+        range: float
+        unit:
+          ucum_code: m
+
+</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="tabular-serialization">Tabular serialization</h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+
+<pre><code class="language-python">slot = sb.add_slot(&quot;aliases&quot;, multivalued=True, range=&quot;string&quot;, replace_if_present=True)
+</code></pre>
+
+
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+
+<pre><code class="language-python">sb.schema.classes['Person'].slots.append(slot.name)
+</code></pre>
+
+
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+
+<pre><code class="language-python">session.set_source_schema(sb.as_dict())
+</code></pre>
+
+
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+
+<pre><code class="language-python">session.set_object_transformer(&quot;&quot;&quot;
+class_derivations:
+  Individual:
+    populated_from: Person
+    slot_derivations:
+      family_name:
+        populated_from: family_name
+      given_name:
+        populated_from: given_name
+      age:
+        populated_from: age_in_years
+      height:
+        populated_from: height_in_cm
+      aliases:
+        populated_from: aliases
+        stringification:
+          delimiter: '|'
+&quot;&quot;&quot;)    
+</code></pre>
+
+
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+
+<pre><code class="language-python">obj = {
+        &quot;given_name&quot;: &quot;Jane&quot;,
+        &quot;family_name&quot;: &quot;Doe&quot;,
+        &quot;age_in_years&quot;: 42,
+        &quot;height_in_cm&quot;: 180.0,
+        &quot;aliases&quot;: [&quot;Jane&quot;, &quot;Janie&quot;, &quot;Janey&quot;]
+    }
+flattened = session.transform(obj)
+flattened
+</code></pre>
+
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_text output_subarea output_execute_result">
+<pre>
+<code>{'family_name': 'Doe',
+ 'given_name': 'Jane',
+ 'age': 42,
+ 'height': 180.0,
+ 'aliases': 'Jane|Janie|Janey'}</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>this can easily be serialized to a CSV/TSV</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="reverse-transform">Reverse transform</h2>
+<p>If a transform does not contain one-way functions,
+it can be <em>reversed</em>.</p>
+<p>In this case, reversing the transform allows us to map
+from the tabular form back to the richer original representation.</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+
+<pre><code class="language-python">session.reverse_transform(flattened)
+</code></pre>
+
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_text output_subarea output_execute_result">
+<pre>
+<code>{'family_name': 'Doe',
+ 'given_name': 'Jane',
+ 'age_in_years': 42,
+ 'height_in_cm': 180.0,
+ 'aliases': ['Jane', 'Janie', 'Janey']}</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+
+<pre><code class="language-python">
+</code></pre>
+
+
+</div>
+</div>
+
+  <br>
+    
+
+    
+    
+      
+    
+
+  <div class="row wm-article-nav-buttons" role="navigation" aria-label="navigation">
+    
+    <div class="wm-article-nav pull-right">
+      <a href="../../datamodel/" class="btn btn-xs btn-default pull-right">
+        Next
+        <i class="fa fa-chevron-right" aria-hidden="true"></i>
+      </a>
+      <a href="../../datamodel/" class="btn btn-xs btn-link">
+        Data Model
+      </a>
+    </div>
+    
+    <div class="wm-article-nav">
+      <a href="../.." class="btn btn-xs btn-default pull-left">
+        <i class="fa fa-chevron-left" aria-hidden="true"></i>
+        Previous</a><a href="../.." class="btn btn-xs btn-link">
+        Index
+      </a>
+    </div>
+    
+  </div>
+
+    <br>
+</div>
+
+<footer class="container-fluid wm-page-content">
+      <p>
+        <a href="https://github.com/linkml/linkml-transformer/edit/master/docs/examples/Tutorial.ipynb"><i class="fa fa-github"></i>
+Edit on GitHub</a>
+      </p>
+  <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a> using <a href="https://github.com/gristlabs/mkdocs-windmill">Windmill</a> theme by Grist Labs.</p>
+</footer>
+
+</body>
+</html>
