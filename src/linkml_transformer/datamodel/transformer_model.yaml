@@ -312,6 +312,9 @@ classes:
           - value: ';'
       reversed:
         range: boolean
+      over_slots:
+        range: string
+        multivalued: true
       syntax:
         range: SerializationSyntaxType
         examples:

@@ -2,12 +2,12 @@
 Transformers (aka data mappers) are used to transform objects from one class to another
 using a transformation specification.
 """
+
 import logging
 from abc import ABC
 from copy import deepcopy
 from dataclasses import dataclass, field
 from pathlib import Path
-from types import ModuleType
 from typing import Any, Dict, Optional, Union
 
 import yaml
@@ -46,11 +46,11 @@ class Transformer(ABC):
     subclass this
     """
 
-    source_schemaview: SchemaView = None
-    """A view over the schema describing the input/source object."""
-
     specification: TransformationSpecification = None
     """A specification of how to generate target objects from source objects."""
+
+    source_schemaview: SchemaView = None
+    """A view over the schema describing the input/source object."""
 
     _derived_specification: TransformationSpecification = None
     """A specification with inferred missing values."""
@@ -58,22 +58,30 @@ class Transformer(ABC):
     target_schemaview: Optional[SchemaView] = None
     """A view over the schema describing the output/target object."""
 
-    target_module: Optional[ModuleType] = None
-    """The python module which the target object should conform to."""
-
-    prefix_map: Optional[Dict[str, str]] = None
-    """Additional prefixes"""
-
     unrestricted_eval: bool = field(default=False)
+    """Set to True to allow arbitrary evals as part of transformation."""
 
     _curie_converter: Converter = None
 
-    def transform(self, obj: OBJECT_TYPE, source_type: str = None) -> OBJECT_TYPE:
+    def map_object(self, obj: OBJECT_TYPE, source_type: str = None, **kwargs) -> OBJECT_TYPE:
         """
         Transform source object into an instance of the target class.
 
         :param obj:
         :param source_type:
+        :return:
+        """
+        raise NotImplementedError
+
+    def map_database(
+        self, source_database: Any, target_database: Optional[Any] = None, **kwargs
+    ) -> OBJECT_TYPE:
+        """
+        Transform source resource.
+
+        :param source_database:
+        :param target_database:
+        :param kwargs:
         :return:
         """
         raise NotImplementedError

@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-linkml-runtime = ">=1.5.2"
+linkml-runtime = ">=1.7.2"
 asteval = "^0.9.29"
 deepdiff = "^6.7.1"
 pydantic = "^2.5.3"
@@ -16,8 +16,11 @@ ucumvert = "^0.1.1"
 [tool.poetry.dev-dependencies]
 pytest = "^7.3.1"
 pytest-cov = "^4.0.0"
-linkml = ">=1.5.0"
+linkml = ">=1.7.0"
 mkdocs-mermaid2-plugin = "^0.6.0"
+mknotebooks = "^0.8.0"
+mkdocs-windmill = "*"
+tox = "*"
 
 [tool.poetry.scripts]
 linkml-tr = "linkml_transformer.cli.cli:main"
@@ -33,6 +36,10 @@ pint = "^0.23"
 
 [tool.poetry.group.graphviz.dependencies]
 graphviz = "^0.20.1"
+
+
+[tool.poetry.group.duckdb.dependencies]
+duckdb = "^0.10.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -3,6 +3,7 @@ A SchemaMapper translates a source schema and transformation specification into 
 
 AKA profiling
 """
+
 import logging
 from collections import defaultdict
 from copy import copy

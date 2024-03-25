@@ -6,6 +6,7 @@ Currently only native pint units or UCUM units are supported.
 For UCUM, the ucumvert library is used to convert UCUM units to pint units,
 see `<https://github.com/dalito/ucumvert>`_.
 """
+
 from enum import Enum
 from functools import lru_cache
 from typing import Any, Optional
