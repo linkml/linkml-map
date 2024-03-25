@@ -5,12 +5,9 @@ Tests compilation of a specification to python
 import pytest
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper
-from linkml_runtime.utils.compile_python import compile_python
 
-import tests.input.examples.personinfo_basic.model.personinfo_model as src
 from linkml_transformer.compiler.sql_compiler import SQLCompiler
 from linkml_transformer.session import Session
-from linkml_transformer.utils.loaders import load_specification
 from tests import SCHEMA1, SPECIFICATION
 
 

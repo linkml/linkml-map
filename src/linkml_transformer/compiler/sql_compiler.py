@@ -54,7 +54,7 @@ class SQLCompiler(Compiler):
         """
         stmt = ""
         if self.new_table_when_transforming:
-            stmt += f"CREATE TABLE "
+            stmt += "CREATE TABLE "
             if self.add_if_not_exists:
                 stmt += "IF NOT EXISTS "
             stmt += f"{cd.name} \n"

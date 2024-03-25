@@ -1,7 +1,6 @@
-import json
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Dict, Optional, Union
 
 from duckdb import DuckDBPyConnection
 
@@ -36,8 +35,7 @@ class DuckDBTransformer(Transformer):
         :param target_type: target_obj instantiates this (may be class, type, or enum)
         :return: transformed data, either as type target_type or a dictionary
         """
-
-        sv = self.source_schemaview
+        # sv = self.source_schemaview
         raise NotImplementedError("DuckDBTransformer.transform")
 
     def map_database(
