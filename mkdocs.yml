@@ -8,7 +8,7 @@ plugins:
   - search
   - mermaid2
   - mknotebooks:
-      execute: true  # This will execute the notebooks when building the site  
+      execute: false
 nav:
   - Index: index.md
   - Examples:
