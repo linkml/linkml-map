@@ -1,5 +1,9 @@
 # linkml-transformer
 
+THIS PACKAGE HAS BEEN RENAMED
+
+It is now called linkml-map: https://pypi.org/project/linkml-map/
+
 [![Pyversions](https://img.shields.io/pypi/pyversions/linkml-transformer.svg)](https://pypi.python.org/pypi/linkml-transformer)
 ![](https://github.com/linkml/linkml-transformer/workflows/Build/badge.svg)
 [![PyPi](https://img.shields.io/pypi/v/linkml-transformer.svg)](https://pypi.python.org/pypi/linkml-transformer)

@@ -24,13 +24,17 @@ def test_compile(session):
     assert session.transformer_specification is not None
     compiled = compiler.compile(session.transformer_specification)
     # TODO: include imports so that code compiles
+    print("Compiled SQL:")
     print(compiled.serialization)
     source_sv = SchemaView(SCHEMA1)
     source_ddl = compiler.create_ddl(source_sv)
+    print("Source DDL:")
     print(source_ddl)
     target_sv = session.target_schemaview
+    print("Target Schema:")
     print(yaml_dumper.dumps(target_sv.schema))
     target_ddl = compiler.create_ddl(target_sv)
+    print("Target DDL:")
     print(target_ddl)
 
     import duckdb
