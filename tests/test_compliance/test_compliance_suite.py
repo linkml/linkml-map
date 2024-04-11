@@ -37,10 +37,7 @@ from linkml_map.datamodel.transformer_model import (
     SerializationSyntaxType,
     TransformationSpecification,
 )
-from linkml_map.functions.unit_conversion import (
-    DimensionalityError,
-    UndefinedUnitError,
-)
+from linkml_map.functions.unit_conversion import DimensionalityError, UndefinedUnitError
 from linkml_map.inference.inverter import TransformationSpecificationInverter
 from linkml_map.inference.schema_mapper import SchemaMapper
 from linkml_map.transformer.object_transformer import ObjectTransformer
