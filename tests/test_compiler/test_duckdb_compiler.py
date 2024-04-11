@@ -6,8 +6,8 @@ import pytest
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper
 
-from linkml_transformer.compiler.sql_compiler import SQLCompiler
-from linkml_transformer.session import Session
+from linkml_map.compiler.sql_compiler import SQLCompiler
+from linkml_map.session import Session
 from tests import SCHEMA1, SPECIFICATION
 
 

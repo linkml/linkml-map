@@ -1,6 +1,6 @@
-# LinkML-Transformer
+# LinkML-Map
 
-LinkML Transformer is a framework for specifying and executing mappings between data models.
+LinkML Map is a framework for specifying and executing mappings between data models.
 
 Features:
 
@@ -17,7 +17,7 @@ Features:
 
 This documentation are available at:
 
-- [linkml.io/linkml-transformer/](https://linkml.io/linkml-transformer/)
+- [linkml.io/linkml-map/](https://linkml.io/linkml-map/)
 
 Status:
 
@@ -82,7 +82,7 @@ aliases: Janey|Janie
 Installation and command line usage:
 
 ```bash
-pip[x] install linkml-transformer
+pip[x] install linkml-map
 cd tests/input/examples/personinfo_basic
 linkml-tr map-data \
   -T transform/personinfo-to-agent.transform.yaml \
@@ -136,7 +136,7 @@ See the [generated docs](datamodel.md)
 
 ## Conformance Suite
 
-The Transformers conformance suite contains a collection of tests for each feature of the language.
+The Maps conformance suite contains a collection of tests for each feature of the language.
 
 See:
 
@@ -149,7 +149,7 @@ See:
 linkml-tr --help
 Usage: linkml-tr [OPTIONS] COMMAND [ARGS]...
 
-  CLI for linkml-transformer.
+  CLI for linkml-map.
 
 Options:
   -v, --verbose

@@ -5,8 +5,8 @@ Tests compilation of a specification to python
 import pytest
 from linkml_runtime import SchemaView
 
-from linkml_transformer.session import Session
-from linkml_transformer.transformer.duckdb_transformer import DuckDBTransformer
+from linkml_map.session import Session
+from linkml_map.transformer.duckdb_transformer import DuckDBTransformer
 from tests import PERSONINFO_SRC_SCHEMA, PERSONINFO_TGT_SCHEMA, PERSONINFO_TR
 
 

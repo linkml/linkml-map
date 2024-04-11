@@ -1,6 +1,6 @@
 import unittest
 
-from linkml_transformer.utils.multi_file_transformer import MultiFileTransformer
+from linkml_map.utils.multi_file_transformer import MultiFileTransformer
 from tests import EXAMPLE_DIR
 
 EXAMPLE_PROJECTS = [

@@ -3,12 +3,12 @@ import unittest
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper
 
-from linkml_transformer.datamodel.transformer_model import (
+from linkml_map.datamodel.transformer_model import (
     ClassDerivation,
     TransformationSpecification,
 )
-from linkml_transformer.inference.schema_mapper import SchemaMapper
-from linkml_transformer.transformer.object_transformer import ObjectTransformer
+from linkml_map.inference.schema_mapper import SchemaMapper
+from linkml_map.transformer.object_transformer import ObjectTransformer
 from tests import SCHEMA1, SPECIFICATION
 
 

@@ -30,26 +30,23 @@ from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper
 from linkml_runtime.linkml_model import Prefix, SchemaDefinition
 
-from linkml_transformer.compiler.python_compiler import PythonCompiler
-from linkml_transformer.compiler.sql_compiler import SQLCompiler
-from linkml_transformer.datamodel.transformer_model import (
+from linkml_map.compiler.python_compiler import PythonCompiler
+from linkml_map.compiler.sql_compiler import SQLCompiler
+from linkml_map.datamodel.transformer_model import (
     CollectionType,
     SerializationSyntaxType,
     TransformationSpecification,
 )
-from linkml_transformer.functions.unit_conversion import (
-    DimensionalityError,
-    UndefinedUnitError,
-)
-from linkml_transformer.inference.inverter import TransformationSpecificationInverter
-from linkml_transformer.inference.schema_mapper import SchemaMapper
-from linkml_transformer.transformer.object_transformer import ObjectTransformer
+from linkml_map.functions.unit_conversion import DimensionalityError, UndefinedUnitError
+from linkml_map.inference.inverter import TransformationSpecificationInverter
+from linkml_map.inference.schema_mapper import SchemaMapper
+from linkml_map.transformer.object_transformer import ObjectTransformer
 
 logger = logging.getLogger(__name__)
 
 print(
     """
-# LinkML-Transformers Compliance Suite
+# LinkML-Map Compliance Suite
 
 This is the output from running the full compliance test suite.
 

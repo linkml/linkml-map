@@ -1,15 +1,11 @@
-# linkml-transformer
+# linkml-map
 
-THIS PACKAGE HAS BEEN RENAMED
+[![Pyversions](https://img.shields.io/pypi/pyversions/linkml-map.svg)](https://pypi.python.org/pypi/linkml-map)
+![](https://github.com/linkml/linkml-map/workflows/Build/badge.svg)
+[![PyPi](https://img.shields.io/pypi/v/linkml-map.svg)](https://pypi.python.org/pypi/linkml-map)
+[![codecov](https://codecov.io/gh/linkml/linkml-map/branch/main/graph/badge.svg?token=WNQNG986UN)](https://codecov.io/gh/linkml/linkml-map)
 
-It is now called linkml-map: https://pypi.org/project/linkml-map/
-
-[![Pyversions](https://img.shields.io/pypi/pyversions/linkml-transformer.svg)](https://pypi.python.org/pypi/linkml-transformer)
-![](https://github.com/linkml/linkml-transformer/workflows/Build/badge.svg)
-[![PyPi](https://img.shields.io/pypi/v/linkml-transformer.svg)](https://pypi.python.org/pypi/linkml-transformer)
-[![codecov](https://codecov.io/gh/linkml/linkml-transformer/branch/main/graph/badge.svg?token=WNQNG986UN)](https://codecov.io/gh/linkml/linkml-transformer)
-
-LinkML Transformer is a framework for specifying and executing mappings between data models.
+LinkML Map is a framework for specifying and executing mappings between data models.
 
 Features:
 
@@ -25,7 +21,7 @@ Features:
 
 For full documentation see:
 
-- [linkml.io/linkml-transformer/](https://linkml.io/linkml-transformer/)
+- [linkml.io/linkml-map/](https://linkml.io/linkml-map/)
 
 Status:
 
@@ -35,6 +31,6 @@ Not all parts of the model are implemented in the reference Python framework.
 ## Quickstart
 
 * [Tutorial Notebook](src/docs/examples/Tutorial.ipynb)
-* [Generated Docs](https://linkml.github.io/linkml-transformer/)
-* [Compliance Suite](https://linkml.github.io/linkml-transformer/specification/compliance)
+* [Generated Docs](https://linkml.github.io/linkml-map/)
+* [Compliance Suite](https://linkml.github.io/linkml-map/specification/compliance)
 

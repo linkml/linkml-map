@@ -1,5 +1,4 @@
--   [LinkML-Transformers Compliance
-    Suite](#linkml-transformers-compliance-suite)
+-   [LinkML-Map Compliance Suite](#linkml-map-compliance-suite)
     -   [Feature Set: test\_map\_types](#feature-set-test_map_types)
     -   [Feature Set:
         test\_map\_collections](#feature-set-test_map_collections)
@@ -14,8 +13,8 @@
     -   [Feature Set: test\_map\_enum](#feature-set-test_map_enum)
     -   [Feature Set: test\_inheritance](#feature-set-test_inheritance)
 
-LinkML-Transformers Compliance Suite
-====================================
+LinkML-Map Compliance Suite
+===========================
 
 This is the output from running the full compliance test suite.
 
@@ -133,6 +132,8 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: string
 
 ```
@@ -235,6 +236,8 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: integer
 
 ```
@@ -337,6 +340,8 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: integer
 
 ```
@@ -439,6 +444,8 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: float
 
 ```
@@ -541,6 +548,8 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: integer
 
 ```
@@ -643,6 +652,8 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: integer
 
 ```
@@ -730,6 +741,8 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: boolean
 
 ```
@@ -817,6 +830,8 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: boolean
 
 ```
@@ -950,6 +965,8 @@ classes:
       ds:
         name: ds
         multivalued: true
+        domain_of:
+        - C
         range: D
         inlined: true
         inlined_as_list: false
@@ -960,9 +977,13 @@ classes:
       id:
         name: id
         identifier: true
+        domain_of:
+        - D
         required: true
       s1:
         name: s1
+        domain_of:
+        - D
         range: string
 
 ```
@@ -1108,6 +1129,8 @@ classes:
       ds:
         name: ds
         multivalued: true
+        domain_of:
+        - C
         range: D
         inlined: true
         inlined_as_list: true
@@ -1118,9 +1141,13 @@ classes:
       id:
         name: id
         identifier: true
+        domain_of:
+        - D
         required: true
       s1:
         name: s1
+        domain_of:
+        - D
         range: string
 
 ```
@@ -2089,6 +2116,8 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: float
         unit:
           ucum_code: cm
@@ -2196,6 +2225,8 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: float
         unit:
           ucum_code: cm
@@ -2303,6 +2334,8 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: float
         unit:
           ucum_code: m
@@ -2410,6 +2443,8 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: float
         unit:
           ucum_code: mo
@@ -2520,6 +2555,8 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: float
         unit:
           ucum_code: mo
@@ -2612,6 +2649,8 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: float
         unit:
           ucum_code: ml
@@ -2704,6 +2743,8 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: float
         unit:
           ucum_code: pinknoodles
@@ -2796,6 +2837,8 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: float
         unit:
           ucum_code: m
@@ -2888,6 +2931,8 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: float
         unit:
           ucum_code: m
@@ -2977,6 +3022,8 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: float
         unit:
           ucum_code: cm/s
@@ -3084,6 +3131,8 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: float
         unit:
           ucum_code: cm.s-1
@@ -3108,114 +3157,10 @@ class_derivations:
 
 ```
 
-### Combo: test\_simple\_unit\_conversion\[s1-s1-g.m2-1-kg.m2-1-ucum\_code-1.0-0.001-None-None\] {#combo-test_simple_unit_conversions1-s1-gm2-1-kgm2-1-ucum_code-10-0001-none-none}
+### Combo: test\_simple\_unit\_conversion\[s1-s1-g.m2-1-kg.m2-1-ucum\_code-1.0-0.001-None-https://github.com/dalito/ucumvert/issues/8\] {#combo-test_simple_unit_conversions1-s1-gm2-1-kgm2-1-ucum_code-10-0001-none-httpsgithubcomdalitoucumvertissues8}
 
-Unit Conversion: 1.0 `g.m2-1` =\> 0.001 `kg.m2-1 [with s1]`
-
-**Source Schema**:
-
-``` {.yaml}
-name: types
-id: types
-imports:
-- linkml:types
-prefixes:
-  linkml:
-    prefix_prefix: linkml
-    prefix_reference: https://w3id.org/linkml/
-  test:
-    prefix_prefix: test
-    prefix_reference: http://example.org/test/
-default_prefix: test
-classes:
-  C:
-    name: C
-    attributes:
-      s1:
-        name: s1
-        range: float
-        unit:
-          ucum_code: g.m2-1
-
-```
-
-**Transformer Specification**:
-
-``` {.yaml}
-class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        unit_conversion:
-          target_unit: kg.m2-1
-
-```
-
-**Object Transformation**:
-
--   Source Object:
-
-``` {.yaml}
-s1: 1.0
-
-```
-
--   Target Object:
-
-``` {.yaml}
-s1: 0.001
-
-```
-
-**Target Schema (Derived)**:
-
-``` {.yaml}
-name: types-derived
-id: types-derived
-imports:
-- linkml:types
-prefixes:
-  linkml:
-    prefix_prefix: linkml
-    prefix_reference: https://w3id.org/linkml/
-  test:
-    prefix_prefix: test
-    prefix_reference: http://example.org/test/
-default_prefix: types-derived/
-classes:
-  C:
-    name: C
-    attributes:
-      s1:
-        name: s1
-        range: float
-        unit:
-          ucum_code: kg.m2-1
-
-```
-
-**Inverted Transformation Specification** (Derived):
-
-``` {.yaml}
-class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        unit_conversion:
-          target_unit: g.m2-1
-          target_unit_scheme: ucum_code
-          source_unit: kg.m2-1
-
-```
-
-### Combo: test\_simple\_unit\_conversion\[height\_in\_m-height\_in\_cm-m-cm-ucum\_code-1.0-100.0-None-None\] {#combo-test_simple_unit_conversionheight_in_m-height_in_cm-m-cm-ucum_code-10-1000-none-none}
+s\#\#\# Combo:
+test\_simple\_unit\_conversion\[height\_in\_m-height\_in\_cm-m-cm-ucum\_code-1.0-100.0-None-None\]
 
 Unit Conversion: 1.0 `m` =\> 100.0 `cm [with height_in_m]`
 
@@ -3298,6 +3243,8 @@ classes:
     attributes:
       height_in_cm:
         name: height_in_cm
+        domain_of:
+        - C
         range: float
         unit:
           ucum_code: cm
@@ -3319,6 +3266,115 @@ class_derivations:
           target_unit: m
           target_unit_scheme: ucum_code
           source_unit: cm
+
+```
+
+### Combo: test\_simple\_unit\_conversion\[s1-s1-m\[H2O\]{35Cel}-m\[H2O\]{35Cel}-ucum\_code-1.0-1.0-None-None\] {#combo-test_simple_unit_conversions1-s1-mh2o35cel-mh2o35cel-ucum_code-10-10-none-none}
+
+Unit Conversion: 1.0 `m[H2O]{35Cel}` =\> 1.0 `m[H2O]{35Cel} [with s1]`
+
+Isomorphic mapping: input should equal output **Source Schema**:
+
+``` {.yaml}
+name: types
+id: types
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: test
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        range: float
+        unit:
+          ucum_code: m[H2O]{35Cel}
+
+```
+
+**Transformer Specification**:
+
+``` {.yaml}
+class_derivations:
+  C:
+    name: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        unit_conversion:
+          target_unit: m[H2O]{35Cel}
+
+```
+
+**Object Transformation**:
+
+-   Source Object:
+
+``` {.yaml}
+s1: 1.0
+
+```
+
+-   Target Object:
+
+``` {.yaml}
+s1: 1.0
+
+```
+
+**Target Schema (Derived)**:
+
+``` {.yaml}
+name: types-derived
+id: types-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  test:
+    prefix_prefix: test
+    prefix_reference: http://example.org/test/
+default_prefix: types-derived/
+classes:
+  C:
+    name: C
+    attributes:
+      s1:
+        name: s1
+        domain_of:
+        - C
+        range: float
+        unit:
+          ucum_code: m[H2O]{35Cel}
+
+```
+
+**Inverted Transformation Specification** (Derived):
+
+``` {.yaml}
+class_derivations:
+  C:
+    name: C
+    populated_from: C
+    slot_derivations:
+      s1:
+        name: s1
+        populated_from: s1
+        unit_conversion:
+          target_unit: m[H2O]{35Cel}
+          target_unit_scheme: ucum_code
+          source_unit: m[H2O]{35Cel}
 
 ```
 
@@ -3428,6 +3484,8 @@ classes:
     attributes:
       q_in_cm:
         name: q_in_cm
+        domain_of:
+        - C
         range: Q
         unit:
           ucum_code: cm
@@ -3547,6 +3605,8 @@ classes:
     attributes:
       q_in_cm:
         name: q_in_cm
+        domain_of:
+        - C
         range: Q
         unit:
           ucum_code: cm
@@ -3669,6 +3729,8 @@ classes:
     attributes:
       q_in_ml:
         name: q_in_ml
+        domain_of:
+        - C
         range: Q
         unit:
           ucum_code: ml
@@ -3773,6 +3835,8 @@ classes:
     attributes:
       q_in_pinknoodles:
         name: q_in_pinknoodles
+        domain_of:
+        - C
         range: Q
         unit:
           ucum_code: pinknoodles
@@ -3794,12 +3858,13 @@ methodologies can be used:
 
 <!-- -->
 
+-   **syntax**: SerializationSyntaxType
 -   **delimiter**: delimiter to use in stringification
 -   **source\_value**: source value (a list)
 -   **target\_value**: expected value of slot in target object (a
     string)
 
-### Combo: test\_stringify\[,-source\_value0-a,b\]
+### Combo: test\_stringify\[None-,-source\_value0-a,b\]
 
 **Source Schema**:
 
@@ -3883,6 +3948,8 @@ classes:
       s1_verbatim:
         name: s1_verbatim
         multivalued: false
+        domain_of:
+        - C
         range: string
 
 ```
@@ -3904,7 +3971,11 @@ class_derivations:
 
 ```
 
-### Combo: test\_stringify\[\|-source\_value1-a\|b\]
+**Compiled Specification (SQLCompiler)**:
+
+INSERT INTO D SELECT s1\_verbatim AS STRING\_AGG(s1, \',\') FROM D;
+
+### Combo: test\_stringify\[None-\|-source\_value1-a\|b\]
 
 **Source Schema**:
 
@@ -3988,6 +4059,8 @@ classes:
       s1_verbatim:
         name: s1_verbatim
         multivalued: false
+        domain_of:
+        - C
         range: string
 
 ```
@@ -4009,7 +4082,11 @@ class_derivations:
 
 ```
 
-### Combo: test\_stringify\[\|-source\_value2-a\]
+**Compiled Specification (SQLCompiler)**:
+
+INSERT INTO D SELECT s1\_verbatim AS STRING\_AGG(s1, \'\|\') FROM D;
+
+### Combo: test\_stringify\[None-\|-source\_value2-a\]
 
 **Source Schema**:
 
@@ -4092,6 +4169,8 @@ classes:
       s1_verbatim:
         name: s1_verbatim
         multivalued: false
+        domain_of:
+        - C
         range: string
 
 ```
@@ -4113,7 +4192,11 @@ class_derivations:
 
 ```
 
-### Combo: test\_stringify\[\|-source\_value3-\]
+**Compiled Specification (SQLCompiler)**:
+
+INSERT INTO D SELECT s1\_verbatim AS STRING\_AGG(s1, \'\|\') FROM D;
+
+### Combo: test\_stringify\[None-\|-source\_value3-\]
 
 **Source Schema**:
 
@@ -4195,6 +4278,8 @@ classes:
       s1_verbatim:
         name: s1_verbatim
         multivalued: false
+        domain_of:
+        - C
         range: string
 
 ```
@@ -4216,7 +4301,11 @@ class_derivations:
 
 ```
 
-### Combo: test\_stringify\[JSON-source\_value4-\[\"a\", \"b\"\]\]
+**Compiled Specification (SQLCompiler)**:
+
+INSERT INTO D SELECT s1\_verbatim AS STRING\_AGG(s1, \'\|\') FROM D;
+
+### Combo: test\_stringify\[JSON-None-source\_value4-\[\"a\", \"b\"\]\]
 
 **Source Schema**:
 
@@ -4300,6 +4389,8 @@ classes:
       s1_verbatim:
         name: s1_verbatim
         multivalued: false
+        domain_of:
+        - C
         range: string
 
 ```
@@ -4321,7 +4412,11 @@ class_derivations:
 
 ```
 
-### Combo: test\_stringify\[JSON-source\_value5-\[\]\]
+**Compiled Specification (SQLCompiler)**:
+
+INSERT INTO D SELECT s1\_verbatim AS CAST(s1 AS TEXT) FROM D;
+
+### Combo: test\_stringify\[JSON-None-source\_value5-\[\]\]
 
 **Source Schema**:
 
@@ -4403,6 +4498,8 @@ classes:
       s1_verbatim:
         name: s1_verbatim
         multivalued: false
+        domain_of:
+        - C
         range: string
 
 ```
@@ -4424,7 +4521,11 @@ class_derivations:
 
 ```
 
-### Combo: test\_stringify\[YAML-source\_value6-\[a, b\]\]
+**Compiled Specification (SQLCompiler)**:
+
+INSERT INTO D SELECT s1\_verbatim AS CAST(s1 AS TEXT) FROM D;
+
+### Combo: test\_stringify\[YAML-None-source\_value6-\[a, b\]\]
 
 **Source Schema**:
 
@@ -4508,6 +4609,8 @@ classes:
       s1_verbatim:
         name: s1_verbatim
         multivalued: false
+        domain_of:
+        - C
         range: string
 
 ```
@@ -4528,6 +4631,10 @@ class_derivations:
           syntax: YAML
 
 ```
+
+**Compiled Specification (SQLCompiler)**:
+
+INSERT INTO D SELECT s1\_verbatim AS s1 FROM D;
 
 Feature Set: test\_isomorphic
 -----------------------------
@@ -4674,9 +4781,13 @@ classes:
       c_list:
         name: c_list
         multivalued: true
+        domain_of:
+        - Container
         range: C
       d:
         name: d
+        domain_of:
+        - Container
         range: D
     tree_root: true
   C:
@@ -4684,15 +4795,21 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: string
       s2:
         name: s2
+        domain_of:
+        - C
         range: string
   D:
     name: D
     attributes:
       s3:
         name: s3
+        domain_of:
+        - D
         range: string
 
 ```
@@ -4866,9 +4983,13 @@ classes:
       c_list:
         name: c_list
         multivalued: true
+        domain_of:
+        - Container
         range: C
       d:
         name: d
+        domain_of:
+        - Container
         range: D
     tree_root: true
   C:
@@ -4876,15 +4997,21 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: string
       s2:
         name: s2
+        domain_of:
+        - C
         range: string
   D:
     name: D
     attributes:
       s3:
         name: s3
+        domain_of:
+        - D
         range: string
 
 ```
@@ -5202,6 +5329,8 @@ classes:
       r_list:
         name: r_list
         multivalued: true
+        domain_of:
+        - Container
         range: R
     tree_root: true
 
@@ -5331,6 +5460,8 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: E
 
 ```
@@ -5463,6 +5594,8 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: E
 
 ```
@@ -5634,6 +5767,8 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: E
 
 ```
@@ -5746,6 +5881,8 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: E
 
 ```
@@ -5858,6 +5995,8 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: integer
     tree_root: true
   D:
@@ -5865,6 +6004,8 @@ classes:
     attributes:
       s2:
         name: s2
+        domain_of:
+        - D
         range: integer
 
 ```
@@ -5969,6 +6110,8 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: integer
     tree_root: true
   D:
@@ -5976,6 +6119,8 @@ classes:
     attributes:
       s2:
         name: s2
+        domain_of:
+        - D
         range: integer
 
 ```
@@ -6071,9 +6216,13 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: integer
       s2:
         name: s2
+        domain_of:
+        - D
         range: integer
     tree_root: true
 
@@ -6171,12 +6320,16 @@ classes:
     attributes:
       s1:
         name: s1
+        domain_of:
+        - C
         range: integer
       s2:
         name: s2
+        domain_of:
+        - D
         range: integer
     tree_root: true
 
 ```
 
-. 55 passed, 1 skipped, 250 warnings in 9.98s
+. 55 passed, 2 skipped, 83 warnings in 3.98s

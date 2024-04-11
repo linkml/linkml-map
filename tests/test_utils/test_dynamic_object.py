@@ -3,7 +3,7 @@ import unittest
 import yaml
 from linkml_runtime import SchemaView
 
-from linkml_transformer.utils.dynamic_object import dynamic_object
+from linkml_map.utils.dynamic_object import dynamic_object
 from tests import FLATTENING_DATA, NORM_SCHEMA
 
 

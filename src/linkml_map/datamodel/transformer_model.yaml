@@ -1,0 +1,369 @@
+id: https://w3id.org/linkml/transformer
+name: linkml-map
+title: LinkML Map Data Model
+description: |-
+  Datamodel for LinkML schema mappings and transformations.
+  
+  A mapper generates instances of a *target* data model from
+  instances of a *source* data model. This transformation process
+  is guided by a *TransformationSpecification*.
+  
+  The specification is independent of any one method for transforming
+  data. It allows different approaches, including:
+  
+  - direct implementation, transforming python or json objects
+  - translation of the specification into SQL commands, to operate on relations
+  - translation of the specification into SPARQL CONSTRUCTs, to operate on triples
+  - translation into another specification language, such as R2RML
+prefixes:
+  linkml: https://w3id.org/linkml/
+  linkmltr: https://w3id.org/linkml/transformer/
+  dcterms: http://purl.org/dc/terms/
+  schema: http://schema.org/
+  rdfs: http://www.w3.org/2000/01/rdf-schema#
+  sh: http://www.w3.org/ns/shacl#
+default_prefix: linkmltr
+
+imports:
+  - linkml:types
+
+types:
+
+  ClassReference:
+    typeof: string
+
+  SlotReference:
+    typeof: string
+
+  EnumReference:
+    typeof: string
+
+classes:
+
+  Any:
+    class_uri: linkml:Any
+
+  SpecificationComponent:
+    abstract: true
+    attributes:
+      description:
+        description: description of the specification component
+        slot_uri: dcterms:description
+      implements:
+        description: A reference to a specification that this component implements.
+        multivalued: true
+        range: uriorcurie
+      comments:
+        description: >-
+          A list of comments about this component. Comments are free text, and may be
+          used to provide additional information about the component, including
+          instructions for its use.
+        multivalued: true
+        range: string
+        slot_uri: rdfs:comment
+
+  TransformationSpecification:
+    is_a: SpecificationComponent
+    description: A collection of mappings between source and target classes
+    tree_root: true
+    attributes:
+      id:
+        # identifier: true
+        description: Unique identifier for this transformation specification
+        slot_uri: schema:identifier
+      title:
+        description: human readable title for this transformation specification
+        slot_uri: dcterms:title
+      prefixes:
+        description: maps prefixes to URL expansions
+        range: KeyVal
+        multivalued: true
+        inlined: true
+        slot_uri: sh:declare
+      source_schema:
+        description: name of the schema that describes the source (input) objects
+      target_schema:
+        description: name of the schema that describes the target (output) objects
+      class_derivations:
+        description: >-
+          Instructions on how to derive a set of classes in the target schema
+          from classes in the source schema.
+        range: ClassDerivation
+        multivalued: true
+        inlined: true
+      enum_derivations:
+        description: >-
+          Instructions on how to derive a set of enums in the target schema
+        range: EnumDerivation
+        multivalued: true
+        inlined: true
+      slot_derivations:
+        description: >-
+          Instructions on how to derive a set of top level slots in the target schema
+        range: SlotDerivation
+        multivalued: true
+        inlined: true
+
+  ElementDerivation:
+    is_a: SpecificationComponent
+    abstract: true
+    description: >-
+      An abstract grouping for classes that provide a specification of how to 
+      derive a target element from a source element.
+    attributes:
+      name:
+        key: true
+        description: Name of the element in the target schema
+      copy_directives:
+        range: CopyDirective
+        multivalued: true
+        inlined: true
+      overrides:
+        description: overrides source schema slots
+        range: Any
+        #multivalued: true
+        #inlined: true
+      is_a:
+        range: ElementDerivation
+        slot_uri: linkml:is_a
+      mixins:
+        range: ElementDerivation
+        multivalued: true
+        inlined: false
+        slot_uri: linkml:mixins
+      value_mappings:
+        range: KeyVal
+        multivalued: true
+        inlined: true
+        description: >-
+          A mapping table that is applied directly to mappings, in order of precedence
+      expression_to_value_mappings:
+        range: KeyVal
+        multivalued: true
+        inlined: true
+        description: >-
+          A mapping table in which the keys are expressions
+      expression_to_expression_mappings:
+        range: KeyVal
+        multivalued: true
+        inlined: true
+        description: >-
+          A mapping table in which the keys and values are expressions
+      mirror_source:
+        range: boolean
+
+
+  ClassDerivation:
+    is_a: ElementDerivation
+    description: >-
+      A specification of how to derive a target class from a source class.
+    attributes:
+      #name:
+      #  key: true
+      #  description: Name of the class in the target schema
+      populated_from:
+        range: ClassReference
+        description: Name of the class in the source schema
+      sources:
+        range: ClassReference
+        multivalued: true
+      joins:
+        range: AliasedClass
+        multivalued: true
+        inlined: true
+        description: Additional classes to be joined to derive instances of the target class
+        comments:
+          - not yet implemented
+      slot_derivations:
+        range: SlotDerivation
+        multivalued: true
+        inlined: true
+
+  AliasedClass:
+    description: alias-class key value pairs for classes
+    attributes:
+      alias:
+        key: true
+        description: name of the class to be aliased
+      class_named:
+        description: local alias for the class
+
+  SlotDerivation:
+    is_a: ElementDerivation
+    description: A specification of how to derive the value of a target slot from a source slot
+    attributes:
+      name:
+        key: true
+        description: Target slot name
+      populated_from:
+        range: SlotReference
+        description: Source slot name
+      sources:
+        range: SlotReference
+        multivalued: true
+      derived_from:
+        range: SlotReference
+        multivalued: true
+        description: Source slots that are used to derive this slot. This can be computed from the expr,
+          if the expr is declarative.
+      expr:
+        range: string
+        description: >-
+          An expression to be evaluated on the source object to derive the target slot.
+          Should be specified using the LinkML expression language.
+      range:
+        slot_uri: linkml:range
+        range: string
+      unit_conversion:
+        range: UnitConversionConfiguration
+      inverse_of:
+        range: Inverse
+        description: >-
+          Used to specify a class-slot tuple that is the inverse of the derived/target slot.
+          This is used primarily for mapping to relational databases or formalisms that do
+          not allow multiple values. The class representing the repeated element has a foreign
+          key slot inserted in that 'back references' the original multivalued slot.
+      hide:
+        range: boolean
+        description: True if this is suppressed
+      type_designator:
+        range: boolean
+      cast_collection_as:
+        range: CollectionType
+      dictionary_key:
+        range: string
+      stringification:
+        range: StringificationConfiguration
+
+  EnumDerivation:
+    is_a: ElementDerivation
+    description: A specification of how to derive the value of a target enum from a source enum
+    attributes:
+      name:
+        key: true
+        description: Target enum name
+      populated_from:
+        range: EnumReference
+        description: Source enum name
+      sources:
+        range: EnumReference
+        multivalued: true
+      expr:
+        range: string
+        description: >-
+          An expression to be evaluated on the source object to derive the target slot.
+          Should be specified using the LinkML expression language.
+      hide:
+        range: boolean
+        description: True if this is suppressed
+      permissible_value_derivations:
+        description: Instructions on how to derive a set of PVs in the target schema
+        range: PermissibleValueDerivation
+        multivalued: true
+        inlined: true
+
+  PermissibleValueDerivation:
+    is_a: ElementDerivation
+    description: A specification of how to derive the value of a PV from a source enum
+    todos:
+      - this is currently under-specified. We will need boolean combinators to express if-then-else
+    attributes:
+      name:
+        key: true
+        description: Target permissible value text
+      expr:
+        range: string
+      populated_from:
+        range: string
+        description: Source permissible value
+      sources:
+        range: string
+        multivalued: true
+      hide:
+        range: boolean
+
+  PrefixDerivation:
+    is_a: ElementDerivation
+
+  UnitConversionConfiguration:
+    attributes:
+      target_unit:
+      target_unit_scheme:
+        range: string
+        examples:
+          - value: ucum
+      source_unit:
+      source_unit_scheme:
+          range: string
+          examples:
+          - value: ucum
+      source_unit_slot:
+      source_magnitude_slot:
+      target_unit_slot:
+      target_magnitude_slot:
+
+  StringificationConfiguration:
+    attributes:
+      delimiter:
+        range: string
+        examples:
+          - value: ','
+          - value: '|'
+          - value: ';'
+      reversed:
+        range: boolean
+      over_slots:
+        range: string
+        multivalued: true
+      syntax:
+        range: SerializationSyntaxType
+        examples:
+          - value: 'json'
+          - value: 'yaml'
+
+  Inverse:
+    description: Used for back references in mapping to relational model
+    aliases:
+      - backref
+      - back_references
+    attributes:
+      slot_name:
+      class_name:
+
+  KeyVal:
+    attributes:
+      key:
+        key: true
+      value:
+        range: Any
+
+  CopyDirective:
+    description: >-
+      Instructs a Schema Mapper in how to map to a target schema. Not used for data transformation.
+    status: testing
+    attributes:
+      element_name:
+        key: true
+      copy_all:
+        range: boolean
+      exclude_all:
+        range: boolean
+      exclude:
+        range: Any
+      include:
+        range: Any
+      add:
+        range: Any
+
+enums:
+  CollectionType:
+    permissible_values:
+      SingleValued:
+      MultiValued:
+      MultiValuedList:
+      MultiValuedDict:
+  SerializationSyntaxType:
+    permissible_values:
+      JSON:
+      YAML:
+      TURTLE:
