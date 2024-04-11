@@ -1,0 +1,8 @@
+class_derivations:
+  Mapping:
+    any_of:
+      - populated_from: ClassDerivation
+        slot_derivations:
+          ..
+      - populated_from: SlotDerivation
+
