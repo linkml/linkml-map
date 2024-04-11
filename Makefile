@@ -51,7 +51,7 @@ src/linkml_map/datamodel/transformer_model.py: src/linkml_map/datamodel/transfor
 # generates all project files
 # TODO: combine pydantic into this step
 gen-project: $(PYMODEL) src/linkml_map/datamodel/transformer_model.py
-	$(RUN) gen-project -d $(DEST) $(SOURCE_SCHEMA_PATH)
+	$(RUN) gen-project -X sqltable -d $(DEST) $(SOURCE_SCHEMA_PATH)
 
 test: test-python doctest
 test-python:

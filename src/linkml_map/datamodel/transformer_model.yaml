@@ -1,10 +1,10 @@
 id: https://w3id.org/linkml/transformer
-name: transformer
-title: LinkML Data Transformer Model
+name: linkml-map
+title: LinkML Map Data Model
 description: |-
-  Datamodel for LinkML schema transformations.
+  Datamodel for LinkML schema mappings and transformations.
   
-  A transformer generates instances of a *target* data model from
+  A mapper generates instances of a *target* data model from
   instances of a *source* data model. This transformation process
   is guided by a *TransformationSpecification*.
   

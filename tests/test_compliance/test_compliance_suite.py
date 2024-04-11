@@ -49,7 +49,7 @@ logger = logging.getLogger(__name__)
 
 print(
     """
-# LinkML-Transformers Compliance Suite
+# LinkML-Map Compliance Suite
 
 This is the output from running the full compliance test suite.
 

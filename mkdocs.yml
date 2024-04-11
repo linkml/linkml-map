@@ -1,4 +1,4 @@
-site_name: "LinkML-Transformer"
+site_name: "LinkML-Map"
 theme:
 #  name: material
   name: windmill
@@ -13,9 +13,11 @@ nav:
   - Index: index.md
   - Examples:
       Tutorial: examples/Tutorial.ipynb
+      Compilation to SQL: examples/Tutorial-SQLCompiler.ipynb
+      Metamodel Mapping: examples/MetamodelMapping.ipynb
   - Specification:
       Data Model: datamodel.md
       Compliance Suite: specification/compliance.md
   - FAQ: faq.md
-site_url: https://linkml.github.io/linkml-transformer/
-repo_url: https://github.com/linkml/linkml-transformer/
+site_url: https://linkml.github.io/linkml-map/
+repo_url: https://github.com/linkml/linkml-map/
