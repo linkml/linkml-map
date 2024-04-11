@@ -2,9 +2,9 @@ from dataclasses import dataclass
 
 from jinja2 import Environment, FileSystemLoader
 
-from linkml_transformer.compiler.compiler import CompiledSpecification, Compiler
-from linkml_transformer.compiler.templates import TEMPLATE_DIR
-from linkml_transformer.datamodel.transformer_model import TransformationSpecification
+from linkml_map.compiler.compiler import CompiledSpecification, Compiler
+from linkml_map.compiler.templates import TEMPLATE_DIR
+from linkml_map.datamodel.transformer_model import TransformationSpecification
 
 
 @dataclass

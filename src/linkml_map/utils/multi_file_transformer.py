@@ -15,8 +15,8 @@ from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper
 from pydantic import BaseModel
 
-from linkml_transformer.inference.schema_mapper import SchemaMapper
-from linkml_transformer.transformer.object_transformer import ObjectTransformer
+from linkml_map.inference.schema_mapper import SchemaMapper
+from linkml_map.transformer.object_transformer import ObjectTransformer
 
 
 class Step(BaseModel):

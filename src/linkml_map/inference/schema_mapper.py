@@ -23,14 +23,14 @@ from linkml_runtime.linkml_model import (
 )
 from linkml_runtime.linkml_model.units import UnitOfMeasure
 
-from linkml_transformer.datamodel.transformer_model import (
+from linkml_map.datamodel.transformer_model import (
     ClassDerivation,
     CollectionType,
     CopyDirective,
     EnumDerivation,
     TransformationSpecification,
 )
-from linkml_transformer.transformer.transformer import Transformer
+from linkml_map.transformer.transformer import Transformer
 
 logger = logging.getLogger(__name__)
 

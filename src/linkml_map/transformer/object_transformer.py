@@ -10,15 +10,15 @@ from linkml_runtime.index.object_index import ObjectIndex
 from linkml_runtime.utils.yamlutils import YAMLRoot
 from pydantic import BaseModel
 
-from linkml_transformer.datamodel.transformer_model import (
+from linkml_map.datamodel.transformer_model import (
     CollectionType,
     SerializationSyntaxType,
     SlotDerivation,
 )
-from linkml_transformer.functions.unit_conversion import UnitSystem, convert_units
-from linkml_transformer.transformer.transformer import OBJECT_TYPE, Transformer
-from linkml_transformer.utils.dynamic_object import dynamic_object
-from linkml_transformer.utils.eval_utils import eval_expr
+from linkml_map.functions.unit_conversion import UnitSystem, convert_units
+from linkml_map.transformer.transformer import OBJECT_TYPE, Transformer
+from linkml_map.utils.dynamic_object import dynamic_object
+from linkml_map.utils.eval_utils import eval_expr
 
 DICT_OBJ = Dict[str, Any]
 

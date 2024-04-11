@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from linkml_transformer.compiler.j2_based_compiler import J2BasedCompiler
+from linkml_map.compiler.j2_based_compiler import J2BasedCompiler
 
 
 @dataclass

@@ -45,12 +45,12 @@ all: gen-project gendoc
 deploy: all mkd-gh-deploy
 
 # TODO: make this default
-src/linkml_transformer/datamodel/transformer_model.py: src/linkml_transformer/datamodel/transformer_model.yaml
+src/linkml_map/datamodel/transformer_model.py: src/linkml_map/datamodel/transformer_model.yaml
 	$(RUN) gen-pydantic --pydantic-version 2 $< > $@.tmp && mv $@.tmp $@
 
 # generates all project files
 # TODO: combine pydantic into this step
-gen-project: $(PYMODEL) src/linkml_transformer/datamodel/transformer_model.py
+gen-project: $(PYMODEL) src/linkml_map/datamodel/transformer_model.py
 	$(RUN) gen-project -d $(DEST) $(SOURCE_SCHEMA_PATH)
 
 test: test-python doctest

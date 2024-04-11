@@ -6,8 +6,8 @@ from graphviz import Digraph
 from linkml_runtime import SchemaView
 from pydantic import BaseModel
 
-from linkml_transformer.compiler.compiler import CompiledSpecification, Compiler
-from linkml_transformer.datamodel.transformer_model import TransformationSpecification
+from linkml_map.compiler.compiler import CompiledSpecification, Compiler
+from linkml_map.datamodel.transformer_model import TransformationSpecification
 
 
 class Record(BaseModel):

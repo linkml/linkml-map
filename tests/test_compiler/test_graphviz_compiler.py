@@ -5,8 +5,8 @@ Tests compilation of a specification to graphviz
 import pytest
 from linkml_runtime import SchemaView
 
-from linkml_transformer.compiler.graphviz_compiler import GraphvizCompiler
-from linkml_transformer.utils.loaders import load_specification
+from linkml_map.compiler.graphviz_compiler import GraphvizCompiler
+from linkml_map.utils.loaders import load_specification
 from tests import OUTPUT_DIR, SCHEMA1, SPECIFICATION
 
 

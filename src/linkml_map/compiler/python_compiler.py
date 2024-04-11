@@ -4,12 +4,12 @@ from typing import Iterator
 
 from jinja2 import Template
 
-from linkml_transformer.compiler.compiler import Compiler
-from linkml_transformer.datamodel.transformer_model import (
+from linkml_map.compiler.compiler import Compiler
+from linkml_map.datamodel.transformer_model import (
     ClassDerivation,
     TransformationSpecification,
 )
-from linkml_transformer.inference.inference import induce_missing_values
+from linkml_map.inference.inference import induce_missing_values
 
 CD_TEMPLATE = """
 {% macro gen_slot_derivation_value(sd, var) -%}

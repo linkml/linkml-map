@@ -1,6 +1,6 @@
 import unittest
 
-from linkml_transformer.transformer.object_transformer import ObjectTransformer
+from linkml_map.transformer.object_transformer import ObjectTransformer
 from tests import PERSONINFO_TR
 
 

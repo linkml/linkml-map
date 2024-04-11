@@ -1,8 +1,8 @@
 from linkml_runtime import SchemaView
 from linkml_runtime.linkml_model import SlotDefinition
 
-from linkml_transformer.compiler.compiler import CompiledSpecification, Compiler
-from linkml_transformer.datamodel.transformer_model import (
+from linkml_map.compiler.compiler import CompiledSpecification, Compiler
+from linkml_map.datamodel.transformer_model import (
     ClassDerivation,
     SerializationSyntaxType,
     TransformationSpecification,

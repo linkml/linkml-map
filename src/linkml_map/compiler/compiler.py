@@ -22,8 +22,8 @@ from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper
 from linkml_runtime.utils.compile_python import compile_python
 
-from linkml_transformer.datamodel.transformer_model import TransformationSpecification
-from linkml_transformer.inference.schema_mapper import SchemaMapper
+from linkml_map.datamodel.transformer_model import TransformationSpecification
+from linkml_map.inference.schema_mapper import SchemaMapper
 
 
 @dataclass

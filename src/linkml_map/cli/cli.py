@@ -13,11 +13,11 @@ import yaml
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper
 
-from linkml_transformer.compiler.markdown_compiler import MarkdownCompiler
-from linkml_transformer.compiler.python_compiler import PythonCompiler
-from linkml_transformer.inference.inverter import TransformationSpecificationInverter
-from linkml_transformer.inference.schema_mapper import SchemaMapper
-from linkml_transformer.transformer.object_transformer import ObjectTransformer
+from linkml_map.compiler.markdown_compiler import MarkdownCompiler
+from linkml_map.compiler.python_compiler import PythonCompiler
+from linkml_map.inference.inverter import TransformationSpecificationInverter
+from linkml_map.inference.schema_mapper import SchemaMapper
+from linkml_map.transformer.object_transformer import ObjectTransformer
 
 schema_option = click.option("-s", "--schema", help="Path to source schema.")
 transformer_specification_option = click.option(

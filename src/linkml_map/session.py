@@ -10,11 +10,11 @@ from linkml_runtime.linkml_model import SchemaDefinition
 from linkml_runtime.processing.referencevalidator import ReferenceValidator
 from linkml_runtime.utils.introspection import package_schemaview
 
-from linkml_transformer import ObjectTransformer
-from linkml_transformer.datamodel.transformer_model import TransformationSpecification
-from linkml_transformer.inference.inverter import TransformationSpecificationInverter
-from linkml_transformer.inference.schema_mapper import SchemaMapper
-from linkml_transformer.transformer.transformer import Transformer
+from linkml_map import ObjectTransformer
+from linkml_map.datamodel.transformer_model import TransformationSpecification
+from linkml_map.inference.inverter import TransformationSpecificationInverter
+from linkml_map.inference.schema_mapper import SchemaMapper
+from linkml_map.transformer.transformer import Transformer
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +51,7 @@ class Session:
         elif isinstance(specification, dict):
             # TODO: centralize this code
             normalizer = ReferenceValidator(
-                package_schemaview("linkml_transformer.datamodel.transformer_model")
+                package_schemaview("linkml_map.datamodel.transformer_model")
             )
             normalizer.expand_all = True
             specification = normalizer.normalize(specification)
@@ -160,7 +160,7 @@ class Session:
         """
         Return a graphviz representation of the schema.
         """
-        from linkml_transformer.compiler.graphviz_compiler import GraphvizCompiler
+        from linkml_map.compiler.graphviz_compiler import GraphvizCompiler
 
         gc = GraphvizCompiler(source_schemaview=self.source_schemaview)
         compiled = gc.compile(self.transformer_specification)

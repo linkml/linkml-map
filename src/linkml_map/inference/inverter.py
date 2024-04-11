@@ -6,7 +6,7 @@ from typing import Optional
 
 from linkml_runtime import SchemaView
 
-from linkml_transformer.datamodel.transformer_model import (
+from linkml_map.datamodel.transformer_model import (
     ClassDerivation,
     CollectionType,
     EnumDerivation,

@@ -1,6 +1,6 @@
 from linkml_runtime import SchemaView
 
-from linkml_transformer.datamodel.transformer_model import TransformationSpecification
+from linkml_map.datamodel.transformer_model import TransformationSpecification
 
 
 def induce_missing_values(

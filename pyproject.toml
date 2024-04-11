@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "linkml-transformer"
+name = "linkml-map"
 version = "0.1.0"
 description = ""
 authors = ["cmungall <cjm@berkeleybop.org>"]
@@ -23,7 +23,7 @@ mkdocs-windmill = "*"
 tox = "*"
 
 [tool.poetry.scripts]
-linkml-tr = "linkml_transformer.cli.cli:main"
+linkml-map = "linkml_map.cli.cli:main"
 
 [tool.poetry.group.dev.dependencies]
 jupyter = "^1.0.0"

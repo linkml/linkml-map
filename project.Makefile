@@ -11,5 +11,5 @@ src/docs/specification/compliance.md: tests/test_compliance/test_compliance_suit
 	$(RUN) python -m doctest --option ELLIPSIS --option NORMALIZE_WHITESPACE $<
 
 doctest:
-	$(RUN) python -m doctest --option ELLIPSIS --option NORMALIZE_WHITESPACE src/linkml_transformer/*.py src/linkml_transformer/*/*.py
+	$(RUN) python -m doctest --option ELLIPSIS --option NORMALIZE_WHITESPACE src/linkml_map/*.py src/linkml_map/*/*.py
 

@@ -5,7 +5,7 @@ from click.testing import CliRunner
 from linkml_runtime import SchemaView
 from linkml_runtime.linkml_model import SchemaDefinition
 
-from linkml_transformer.cli.cli import main
+from linkml_map.cli.cli import main
 from tests import (
     DENORM_SPECIFICATION,
     FLATTENING_DATA,

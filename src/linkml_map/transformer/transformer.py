@@ -18,14 +18,14 @@ from linkml_runtime.utils.introspection import package_schemaview
 from linkml_runtime.utils.yamlutils import YAMLRoot
 from pydantic import BaseModel
 
-from linkml_transformer.datamodel.transformer_model import (
+from linkml_map.datamodel.transformer_model import (
     ClassDerivation,
     CollectionType,
     EnumDerivation,
     SlotDerivation,
     TransformationSpecification,
 )
-from linkml_transformer.inference.inference import induce_missing_values
+from linkml_map.inference.inference import induce_missing_values
 
 logger = logging.getLogger(__name__)
 
@@ -109,7 +109,7 @@ class Transformer(ABC):
             obj = yaml.safe_load(f)
             # necessary to expand first
             normalizer = ReferenceValidator(
-                package_schemaview("linkml_transformer.datamodel.transformer_model")
+                package_schemaview("linkml_map.datamodel.transformer_model")
             )
             normalizer.expand_all = True
             obj = normalizer.normalize(obj)
@@ -125,7 +125,7 @@ class Transformer(ABC):
         :return:
         """
         normalizer = ReferenceValidator(
-            package_schemaview("linkml_transformer.datamodel.transformer_model")
+            package_schemaview("linkml_map.datamodel.transformer_model")
         )
         normalizer.expand_all = True
         obj = normalizer.normalize(obj)

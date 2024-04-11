@@ -11,7 +11,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any
 
-from linkml_transformer.datamodel.transformer_model import TransformationSpecification
+from linkml_map.datamodel.transformer_model import TransformationSpecification
 
 
 @dataclass

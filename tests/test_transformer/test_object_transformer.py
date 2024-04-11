@@ -17,16 +17,16 @@ import tests.input.examples.flattening.model.denormalized_model as sssom_tgt_dm
 import tests.input.examples.flattening.model.normalized_model as sssom_src_dm
 import tests.input.examples.personinfo_basic.model.agent_model as tgt_dm
 import tests.input.examples.personinfo_basic.model.personinfo_model as src_dm
-from linkml_transformer.compiler.tr import TR_TO_MAPPING_TABLES
-from linkml_transformer.datamodel import TR_SCHEMA
-from linkml_transformer.datamodel.transformer_model import (
+from linkml_map.compiler.tr import TR_TO_MAPPING_TABLES
+from linkml_map.datamodel import TR_SCHEMA
+from linkml_map.datamodel.transformer_model import (
     ClassDerivation,
     CollectionType,
     SlotDerivation,
     TransformationSpecification,
 )
-from linkml_transformer.transformer.object_transformer import ObjectTransformer
-from linkml_transformer.utils.dynamic_object import dynamic_object
+from linkml_map.transformer.object_transformer import ObjectTransformer
+from linkml_map.utils.dynamic_object import dynamic_object
 from tests import (
     DENORM_SCHEMA,
     DENORM_SPECIFICATION,
@@ -400,7 +400,7 @@ class ObjectTransformerTestCase(unittest.TestCase):
         tr.load_transformer_specification(TR_TO_MAPPING_TABLES)
         source_object = yaml.safe_load(open(str(PERSONINFO_TR)))
         normalizer = ReferenceValidator(
-            package_schemaview("linkml_transformer.datamodel.transformer_model")
+            package_schemaview("linkml_map.datamodel.transformer_model")
         )
         normalizer.expand_all = True
         source_object = normalizer.normalize(source_object)

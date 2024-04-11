@@ -86,7 +86,7 @@ jobs:
       #    run tests and generate coverage report
       #----------------------------------------------
       - name: Run tests
-        run: poetry run pytest --cov=src/linkml_transformer --cov-report=xml -rP tests/
+        run: poetry run pytest --cov=src/linkml_map --cov-report=xml -rP tests/
 
       #----------------------------------------------
       #           upload coverage results
