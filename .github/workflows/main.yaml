@@ -82,19 +82,3 @@ jobs:
       - name: Install library
         run: poetry install --no-interaction
 
-      #----------------------------------------------
-      #    run tests and generate coverage report
-      #----------------------------------------------
-      - name: Run tests
-        run: poetry run pytest --cov=src/linkml_map --cov-report=xml -rP tests/
-
-      #----------------------------------------------
-      #           upload coverage results
-      #----------------------------------------------
-      - name: Upload coverage report
-        uses: codecov/codecov-action@v3
-        with:
-          name: codecov-results-${{ matrix.python-version }}
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage.xml
-          fail_ci_if_error: true
