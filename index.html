@@ -8,10 +8,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="None">
     
-    <link rel="canonical" href="https://linkml.github.io/linkml-transformer/">
+    <link rel="canonical" href="https://linkml.github.io/linkml-map/">
     <link rel="shortcut icon" href="./img/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-    <title>LinkML-Transformer</title>
+    <title>LinkML-Map</title>
     <link href="./css/bootstrap-3.3.7.min.css" rel="stylesheet">
     <link href="./css/font-awesome-4.7.0.css" rel="stylesheet">
     <link href="./css/base.css" rel="stylesheet">
@@ -37,7 +37,7 @@
       var is_top_frame = (window === window.parent);
         
         var pageToc = [
-          {title: "LinkML-Transformer", url: "#_top", children: [
+          {title: "LinkML-Map", url: "#_top", children: [
               {title: "Basic idea", url: "#basic-idea" },
               {title: "Installation and usage", url: "#installation-and-usage" },
               {title: "Details", url: "#details" },
@@ -89,7 +89,7 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
     <a href="" class="wm-top-brand wm-top-link wm-vcenter">
       
       <div class="wm-top-title">
-        LinkML-Transformer<br>
+        LinkML-Map<br>
         
       </div>
     </a>
@@ -102,7 +102,7 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
   
     <ul class="wm-toctree wm-toc-repo">
       <li class="wm-toc-li wm-toc-lev1">
-      <a class="wm-article-link wm-toc-text" href="https://github.com/linkml/linkml-transformer/">
+      <a class="wm-article-link wm-toc-text" href="https://github.com/linkml/linkml-map/">
         <i class="fa fa-github"></i>
 
         GitHub
@@ -117,6 +117,10 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
 <li class="wm-toc-li-nested collapse">
   <ul class="wm-toctree">
       <li class="wm-toc-li wm-toc-lev2 "><a href="examples/Tutorial/" class="wm-article-link wm-toc-text">Tutorial</a>
+</li>
+      <li class="wm-toc-li wm-toc-lev2 "><a href="examples/Tutorial-SQLCompiler.ipynb" class="wm-article-link wm-toc-text">Compilation to SQL</a>
+</li>
+      <li class="wm-toc-li wm-toc-lev2 "><a href="examples/MetamodelMapping.ipynb" class="wm-article-link wm-toc-text">Metamodel Mapping</a>
 </li>
   </ul>
 </li>
@@ -167,8 +171,8 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
 
     
 
-    <h1 id="linkml-transformer">LinkML-Transformer</h1>
-<p>LinkML Transformer is a framework for specifying and executing mappings between data models.</p>
+    <h1 id="linkml-map">LinkML-Map</h1>
+<p>LinkML Map is a framework for specifying and executing mappings between data models.</p>
 <p>Features:</p>
 <ul>
 <li>YAML-based lightweight syntax</li>
@@ -184,7 +188,7 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
 </ul>
 <p>This documentation are available at:</p>
 <ul>
-<li><a href="https://linkml.io/linkml-transformer/">linkml.io/linkml-transformer/</a></li>
+<li><a href="https://linkml.io/linkml-map/">linkml.io/linkml-map/</a></li>
 </ul>
 <p>Status:</p>
 <p>The transformation data model is not yet fully stable, and may be subject to change.
@@ -229,7 +233,7 @@ aliases: Janey|Janie
 </code></pre>
 <h2 id="installation-and-usage">Installation and usage</h2>
 <p>Installation and command line usage:</p>
-<pre><code class="language-bash">pip[x] install linkml-transformer
+<pre><code class="language-bash">pip[x] install linkml-map
 cd tests/input/examples/personinfo_basic
 linkml-tr map-data \
   -T transform/personinfo-to-agent.transform.yaml \
@@ -280,7 +284,7 @@ specifying how to map data models independent of underlying representation
 </ul>
 <p>See the <a href="datamodel/">generated docs</a></p>
 <h2 id="conformance-suite">Conformance Suite</h2>
-<p>The Transformers conformance suite contains a collection of tests for each feature of the language.</p>
+<p>The Maps conformance suite contains a collection of tests for each feature of the language.</p>
 <p>See:</p>
 <ul>
 <li><a href="specification/compliance/">Compliance Suite</a></li>
@@ -289,7 +293,7 @@ specifying how to map data models independent of underlying representation
 <pre><code class="language-bash">linkml-tr --help
 Usage: linkml-tr [OPTIONS] COMMAND [ARGS]...
 
-  CLI for linkml-transformer.
+  CLI for linkml-map.
 
 Options:
   -v, --verbose
@@ -338,7 +342,7 @@ linkml-tr derive-schema -T transform/personinfo-to-agent.transform.yaml source/p
 
 <footer class="container-fluid wm-page-content">
       <p>
-        <a href="https://github.com/linkml/linkml-transformer/edit/master/docs/index.md"><i class="fa fa-github"></i>
+        <a href="https://github.com/linkml/linkml-map/edit/master/docs/index.md"><i class="fa fa-github"></i>
 Edit on GitHub</a>
       </p>
   <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a> using <a href="https://github.com/gristlabs/mkdocs-windmill">Windmill</a> theme by Grist Labs.</p>
@@ -348,5 +352,5 @@ Edit on GitHub</a>
 </html>
 <!--
 MkDocs version : 1.5.3
-Build Date UTC : 2024-03-26 01:51:27.110214+00:00
+Build Date UTC : 2024-04-12 20:38:12.102127+00:00
 -->

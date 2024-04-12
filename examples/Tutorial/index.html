@@ -8,10 +8,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     
-    <link rel="canonical" href="https://linkml.github.io/linkml-transformer/examples/Tutorial/">
+    <link rel="canonical" href="https://linkml.github.io/linkml-map/examples/Tutorial/">
     <link rel="shortcut icon" href="../../img/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-    <title>Tutorial - LinkML-Transformer</title>
+    <title>Tutorial - LinkML-Map</title>
     <link href="../../css/bootstrap-3.3.7.min.css" rel="stylesheet">
     <link href="../../css/font-awesome-4.7.0.css" rel="stylesheet">
     <link href="../../css/base.css" rel="stylesheet">
@@ -35,7 +35,7 @@
       var is_top_frame = false;
         
         var pageToc = [
-          {title: "LinkML-Transformer tutorial", url: "#_top", children: [
+          {title: "LinkML-Map tutorial", url: "#_top", children: [
               {title: "Creating an example schema", url: "#creating-an-example-schema" },
               {title: "Creating a Transformer Session object", url: "#creating-a-transformer-session-object" },
               {title: "Visualizing transformer specifications", url: "#visualizing-transformer-specifications" },
@@ -127,8 +127,8 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
 <div class="cell border-box-sizing text_cell rendered">
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="linkml-transformer-tutorial">LinkML-Transformer tutorial</h1>
-<p>This tutorial walks through basic programmatic use of the LinkML-Transformer framework.
+<h1 id="linkml-map-tutorial">LinkML-Map tutorial</h1>
+<p>This tutorial walks through basic programmatic use of the LinkML-Map framework.
 This is intended for Python developers - note that many of the operations here can also be performed
 at the command line.</p>
 </div>
@@ -230,7 +230,7 @@ the first of these capabilities is to map (transform) data objects from one sche
 <div class="input">
 
 
-<pre><code class="language-python">from linkml_transformer.session import Session
+<pre><code class="language-python">from linkml_map.session import Session
 
 session = Session()
 session.set_source_schema(sb.as_dict())
@@ -477,15 +477,23 @@ classes:
     attributes:
       family_name:
         name: family_name
+        domain_of:
+        - Person
         range: string
       given_name:
         name: given_name
+        domain_of:
+        - Person
         range: string
       age:
         name: age
+        domain_of:
+        - Person
         range: integer
       height:
         name: height
+        domain_of:
+        - Person
         range: float
 </code>
 </pre>
@@ -907,6 +915,8 @@ classes:
         name: name
       height_in_meters:
         name: height_in_meters
+        domain_of:
+        - Person
         range: float
         unit:
           ucum_code: m
@@ -1103,7 +1113,7 @@ from the tabular form back to the richer original representation.</p>
 
 <footer class="container-fluid wm-page-content">
       <p>
-        <a href="https://github.com/linkml/linkml-transformer/edit/master/docs/examples/Tutorial.ipynb"><i class="fa fa-github"></i>
+        <a href="https://github.com/linkml/linkml-map/edit/master/docs/examples/Tutorial.ipynb"><i class="fa fa-github"></i>
 Edit on GitHub</a>
       </p>
   <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a> using <a href="https://github.com/gristlabs/mkdocs-windmill">Windmill</a> theme by Grist Labs.</p>
