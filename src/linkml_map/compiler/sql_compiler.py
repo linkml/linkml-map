@@ -115,7 +115,7 @@ class SQLCompiler(Compiler):
         return "\n".join(ddl)
 
     def create_target_ddl(self, specification: TransformationSpecification) -> str:
-        target_sv = self.derived_target_schemaview(specification
+        target_sv = self.derived_target_schemaview(specification)
         return self.create_ddl(target_sv)
 
 
