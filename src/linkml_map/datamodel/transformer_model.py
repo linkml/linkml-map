@@ -1,18 +1,14 @@
 from __future__ import annotations
 
-import re
-import sys
-from datetime import date, datetime
-from decimal import Decimal
 from enum import Enum
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from pydantic.version import VERSION as PYDANTIC_VERSION
 
 if int(PYDANTIC_VERSION[0]) >= 2:
-    from pydantic import BaseModel, ConfigDict, Field, field_validator
+    from pydantic import BaseModel, ConfigDict, Field
 else:
-    from pydantic import BaseModel, Field, validator
+    from pydantic import BaseModel, Field
 
 metamodel_version = "None"
 version = "None"
