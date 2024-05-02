@@ -66,8 +66,6 @@ class SQLCompiler(Compiler):
         if not col_trs:
             return
         stmt += ", \n".join(col_trs)
-        if self.new_table_when_transforming:
-            stmt += ");"
         stmt += f" FROM {cd.name}"
         compiled.serialization += f"{stmt};\n"
 
