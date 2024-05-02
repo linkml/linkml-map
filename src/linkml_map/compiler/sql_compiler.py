@@ -118,7 +118,6 @@ class SQLCompiler(Compiler):
         target_sv = self.derived_target_schemaview(specification)
         return self.create_ddl(target_sv)
 
-
     def sql_type(self, slot: SlotDefinition, schemaview: SchemaView) -> str:
         """
         Map LinkML types to DuckDB SQL types.
