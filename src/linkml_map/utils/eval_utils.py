@@ -8,6 +8,7 @@ TODO: move to core
 
 import ast
 import operator as op
+from collections.abc import Mapping
 
 # supported operators
 from typing import Any, List, Tuple
@@ -52,6 +53,21 @@ class UnsetValueError(Exception):
     pass
 
 
+def eval_expr_with_mapping(expr: str, mapping: Mapping) -> Any:
+    """
+    Evaluates a given expression, with restricted syntax.
+    This function is equivalent to eval_expr where **kwargs has been switched to a Mapping (eg. a dictionary).
+    See eval_expr for details.
+    """
+    if expr == "None":
+        # TODO: do this as part of parsing
+        return None
+    try:
+        return eval_(ast.parse(expr, mode="eval").body, mapping)
+    except UnsetValueError:
+        return None
+
+
 def eval_expr(expr: str, **kwargs) -> Any:
     """
     Evaluates a given expression, with restricted syntax
@@ -94,15 +110,7 @@ def eval_expr(expr: str, **kwargs) -> Any:
 
     :param expr: expression to evaluate
     """
-    # if kwargs:
-    #    expr = expr.format(**kwargs)
-    if expr == "None":
-        # TODO: do this as part of parsing
-        return None
-    try:
-        return eval_(ast.parse(expr, mode="eval").body, kwargs)
-    except UnsetValueError:
-        return None
+    return eval_expr_with_mapping(expr, kwargs)
 
 
 def eval_(node, bindings=None):
