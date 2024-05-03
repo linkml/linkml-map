@@ -112,6 +112,7 @@ class ObjectTransformer(Transformer):
             return source_obj
         class_deriv = self._get_class_derivation(source_type)
         tgt_attrs = {}
+        ctxt_obj = ctxt_dict = None
         # map each slot assignment in source_obj, if there is a slot_derivation
         for slot_derivation in class_deriv.slot_derivations.values():
             v = None
@@ -119,21 +120,22 @@ class ObjectTransformer(Transformer):
             if slot_derivation.unit_conversion:
                 v = self._perform_unit_conversion(slot_derivation, source_obj, sv, source_type)
             elif slot_derivation.expr:
-                if self.object_index:
-                    if not source_obj_typed:
-                        source_obj_dyn = dynamic_object(source_obj, sv, source_type)
+                if ctxt_obj is None:
+                    if self.object_index:
+                        if not source_obj_typed:
+                            source_obj_dyn = dynamic_object(source_obj, sv, source_type)
+                        else:
+                            source_obj_dyn = source_obj_typed
+                        ctxt_obj = self.object_index.bless(source_obj_dyn)
+                        ctxt_dict = {
+                            k: getattr(ctxt_obj, k)
+                            for k in ctxt_obj._attributes()
+                            if not k.startswith("_")
+                        }
                     else:
-                        source_obj_dyn = source_obj_typed
-                    ctxt_obj = self.object_index.bless(source_obj_dyn)
-                    ctxt_dict = {
-                        k: getattr(ctxt_obj, k)
-                        for k in ctxt_obj._attributes()
-                        if not k.startswith("_")
-                    }
-                else:
-                    do = dynamic_object(source_obj, sv, source_type)
-                    ctxt_obj = do
-                    ctxt_dict = vars(do)
+                        do = dynamic_object(source_obj, sv, source_type)
+                        ctxt_obj = do
+                        ctxt_dict = vars(do)
 
                 try:
                     v = eval_expr(slot_derivation.expr, **ctxt_dict, NULL=None)
