@@ -1,8 +1,7 @@
 import json
 import logging
-from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Dict, Iterator, List, Optional, Tuple, Type, Union
+from typing import Any, Dict, List, Optional, Type, Union
 
 import yaml
 from asteval import Interpreter
@@ -18,95 +17,13 @@ from linkml_map.datamodel.transformer_model import (
 )
 from linkml_map.functions.unit_conversion import UnitSystem, convert_units
 from linkml_map.transformer.transformer import OBJECT_TYPE, Transformer
-from linkml_map.utils.dynamic_object import DynObj, dynamic_object
-from linkml_map.utils.eval_utils import eval_expr, eval_expr_with_mapping
+from linkml_map.utils.dynamic_object import dynamic_object
+from linkml_map.utils.eval_utils import eval_expr
 
 DICT_OBJ = Dict[str, Any]
 
 
 logger = logging.getLogger(__name__)
-
-
-class Bindings(Mapping):
-    """
-    Efficiently access source object attributes.
-    """
-
-    def __init__(
-        self,
-        object_transformer: "ObjectTransformer",
-        source_obj: OBJECT_TYPE,
-        source_obj_typed: OBJECT_TYPE,
-        source_type: str,
-        sv: SchemaView,
-        bindings: Dict,
-    ):
-        self.object_transformer: "ObjectTransformer" = object_transformer
-        self.source_obj: OBJECT_TYPE = source_obj
-        self.source_obj_typed: OBJECT_TYPE = source_obj_typed
-        self.source_type: str = source_type
-        self.sv: SchemaView = sv
-        self.bindings: Dict = {}
-        if bindings:
-            self.bindings.update(bindings)
-
-    def get_ctxt_obj_and_dict(self, source_obj: OBJECT_TYPE = None) -> Tuple[DynObj, OBJECT_TYPE]:
-        """
-        Transform a source object into a typed context object and dictionary, and cache results.
-
-        :param source_obj: Source data. Should be a subset of source_obj provided in the constructor.
-        If None the full source_obj from constructor is used.
-        :return: Tuple of typed context object and context dictionary. The object is the dictionary
-        with keys converted to member variables.
-        """
-        if source_obj is None:
-            source_obj = self.source_obj
-
-        if self.object_transformer.object_index:
-            if not self.source_obj_typed:
-                source_obj_dyn = dynamic_object(source_obj, self.sv, self.source_type)
-            else:
-                source_obj_dyn = self.source_obj_typed
-            # Clear cache: Cache doesn't work since the cache key is the same when source_obj has only a subset
-            # of its keys. eg. {"age": self.source_obj["age"]} and {"name": self.source_obj["name"]}
-            # (with optionally the identifier key included) will have the same cache key, and so `bless` will
-            # incorrectly return the same cached values.
-            self.object_transformer.object_index.clear_proxy_object_cache()
-
-            ctxt_obj = self.object_transformer.object_index.bless(source_obj_dyn)
-            ctxt_dict = {
-                k: getattr(ctxt_obj, k) for k in ctxt_obj._attributes() if not k.startswith("_")
-            }
-        else:
-            do = dynamic_object(source_obj, self.sv, self.source_type)
-            ctxt_obj = do
-            ctxt_dict = vars(do)
-
-        self.bindings.update(ctxt_dict)
-
-        return ctxt_obj, ctxt_dict
-
-    def _all_keys(self) -> List[Any]:
-        keys = list(self.source_obj.keys()) + list(self.bindings.keys())
-        # Remove duplicate keys (ie. found in both source_obj and bindings), and retain original order
-        keys = list(dict.fromkeys(keys).keys())
-        return keys
-
-    def __len__(self) -> int:
-        return len(self._all_keys())
-
-    def __iter__(self) -> Iterator:
-        return iter(self._all_keys())
-
-    def __getitem__(self, name: Any) -> Any:
-        if name not in self.bindings:
-            _ = self.get_ctxt_obj_and_dict({name: self.source_obj[name]})
-
-        return self.bindings.get(name)
-
-    def __setitem__(self, name: Any, value: Any):
-        del name, value
-        raise RuntimeError(f"__setitem__ not allowed on class {self.__class__.__name__}")
 
 
 @dataclass
@@ -195,7 +112,7 @@ class ObjectTransformer(Transformer):
             return source_obj
         class_deriv = self._get_class_derivation(source_type)
         tgt_attrs = {}
-        bindings = None
+        ctxt_obj = ctxt_dict = None
         # map each slot assignment in source_obj, if there is a slot_derivation
         for slot_derivation in class_deriv.slot_derivations.values():
             v = None
@@ -203,22 +120,28 @@ class ObjectTransformer(Transformer):
             if slot_derivation.unit_conversion:
                 v = self._perform_unit_conversion(slot_derivation, source_obj, sv, source_type)
             elif slot_derivation.expr:
-                if bindings is None:
-                    bindings = Bindings(
-                        self,
-                        source_obj=source_obj,
-                        source_obj_typed=source_obj_typed,
-                        source_type=source_type,
-                        sv=sv,
-                        bindings={"NULL": None},
-                    )
+                if ctxt_obj is None:
+                    if self.object_index:
+                        if not source_obj_typed:
+                            source_obj_dyn = dynamic_object(source_obj, sv, source_type)
+                        else:
+                            source_obj_dyn = source_obj_typed
+                        ctxt_obj = self.object_index.bless(source_obj_dyn)
+                        ctxt_dict = {
+                            k: getattr(ctxt_obj, k)
+                            for k in ctxt_obj._attributes()
+                            if not k.startswith("_")
+                        }
+                    else:
+                        do = dynamic_object(source_obj, sv, source_type)
+                        ctxt_obj = do
+                        ctxt_dict = vars(do)
 
                 try:
-                    v = eval_expr_with_mapping(slot_derivation.expr, bindings)
+                    v = eval_expr(slot_derivation.expr, **ctxt_dict, NULL=None)
                 except Exception:
                     if not self.unrestricted_eval:
                         raise RuntimeError(f"Expression not in safe subset: {slot_derivation.expr}")
-                    ctxt_obj, _ = bindings.get_ctxt_obj_and_dict()
                     aeval = Interpreter(usersyms={"src": ctxt_obj, "target": None})
                     aeval(slot_derivation.expr)
                     v = aeval.symtable["target"]
