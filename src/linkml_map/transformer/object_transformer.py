@@ -1,8 +1,8 @@
 import json
 import logging
-from dataclasses import dataclass
-from typing import Any, Dict, List, Iterator, Optional, Tuple, Type, Union
 from collections.abc import Mapping
+from dataclasses import dataclass
+from typing import Any, Dict, Iterator, List, Optional, Tuple, Type, Union
 
 import yaml
 from asteval import Interpreter
@@ -10,7 +10,6 @@ from linkml_runtime import SchemaView
 from linkml_runtime.index.object_index import ObjectIndex
 from linkml_runtime.utils.yamlutils import YAMLRoot
 from pydantic import BaseModel
-from collections.abc import Mapping
 
 from linkml_map.datamodel.transformer_model import (
     CollectionType,
@@ -62,7 +61,7 @@ class Bindings(Mapping):
         """
         if source_obj is None:
             source_obj = self.source_obj
-            
+
         if self.object_transformer.object_index:
             if not self.source_obj_typed:
                 source_obj_dyn = dynamic_object(source_obj, self.sv, self.source_type)
@@ -73,7 +72,7 @@ class Bindings(Mapping):
             # (with optionally the identifier key included) will have the same cache key, and so `bless` will
             # incorrectly return the same cached values.
             self.object_transformer.object_index.clear_proxy_object_cache()
-                
+
             ctxt_obj = self.object_transformer.object_index.bless(source_obj_dyn)
             ctxt_dict = {
                 k: getattr(ctxt_obj, k) for k in ctxt_obj._attributes() if not k.startswith("_")
@@ -86,7 +85,7 @@ class Bindings(Mapping):
         self.bindings.update(ctxt_dict)
 
         return ctxt_obj, ctxt_dict
-    
+
     def _all_keys(self) -> List[Any]:
         keys = list(self.source_obj.keys()) + list(self.bindings.keys())
         # Remove duplicate keys (ie. found in both source_obj and bindings), and retain original order
@@ -95,14 +94,14 @@ class Bindings(Mapping):
 
     def __len__(self) -> int:
         return len(self._all_keys())
-    
+
     def __iter__(self) -> Iterator:
         return iter(self._all_keys())
-    
+
     def __getitem__(self, name: Any) -> Any:
         if name not in self.bindings:
             _ = self.get_ctxt_obj_and_dict({name: self.source_obj[name]})
-        
+
         return self.bindings.get(name)
 
     def __setitem__(self, name: Any, value: Any):
@@ -213,7 +212,7 @@ class ObjectTransformer(Transformer):
                         sv=sv,
                         bindings={"NULL": None},
                     )
-                    
+
                 try:
                     v = eval_expr_with_mapping(slot_derivation.expr, bindings)
                 except Exception:
