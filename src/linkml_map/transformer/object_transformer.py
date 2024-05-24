@@ -181,10 +181,15 @@ class ObjectTransformer(Transformer):
                 elif target_type == "curie":
                     return self.compress_uri(source_obj)
             return source_obj
-        if source_type in sv.all_enums():
-            # TODO: enum derivations
-            return self.transform_enum(source_obj, source_type, source_obj)
-            # return str(source_obj)
+
+        # Do enumeration transform if source_type has enumeration name(s)
+        source_type_enums = yaml.safe_load(source_type)
+        if not isinstance(source_type_enums, list):
+            source_type_enums = [source_type_enums]
+        source_type_enums = [enum for enum in source_type_enums if enum in sv.all_enums()]
+        if len(source_type_enums) > 0:
+            return self.transform_enum(source_obj, source_type_enums, source_obj)
+
         source_obj_typed = None
         if isinstance(source_obj, (BaseModel, YAMLRoot)):
             # ensure dict
@@ -424,24 +429,28 @@ class ObjectTransformer(Transformer):
         tr_obj_dict = self.map_object(source_obj, source_type_name)
         return target_class(**tr_obj_dict)
 
-    def transform_enum(self, source_value: str, enum_name: str, source_obj: Any) -> Optional[str]:
-        enum_deriv = self._get_enum_derivation(enum_name)
-        if enum_deriv.expr:
-            try:
-                if enum_deriv.expr:
-                    v = eval_expr(enum_deriv.expr, **source_obj, NULL=None)
-            except Exception:
-                aeval = Interpreter(usersyms={"src": source_obj, "target": None})
-                aeval(enum_deriv.expr)
-                v = aeval.symtable["target"]
-            if v is not None:
-                return v
-        for pv_deriv in enum_deriv.permissible_value_derivations.values():
-            if source_value == pv_deriv.populated_from:
-                return pv_deriv.name
-            if source_value in pv_deriv.sources:
-                return pv_deriv.name
-        if enum_deriv.mirror_source:
-            return str(source_value)
-        else:
-            return None
+    def transform_enum(
+        self, source_value: str, enum_name: Union[str, List[str]], source_obj: Any
+    ) -> Optional[str]:
+        if isinstance(enum_name, str):
+            enum_name = [enum_name]
+        for cur_enum in enum_name:
+            enum_deriv = self._get_enum_derivation(cur_enum)
+            if enum_deriv.expr:
+                try:
+                    if enum_deriv.expr:
+                        v = eval_expr(enum_deriv.expr, **source_obj, NULL=None)
+                except Exception:
+                    aeval = Interpreter(usersyms={"src": source_obj, "target": None})
+                    aeval(enum_deriv.expr)
+                    v = aeval.symtable["target"]
+                if v is not None:
+                    return v
+            for pv_deriv in enum_deriv.permissible_value_derivations.values():
+                if source_value == pv_deriv.populated_from:
+                    return pv_deriv.name
+                if source_value in pv_deriv.sources:
+                    return pv_deriv.name
+            if enum_deriv.mirror_source:
+                return str(source_value)
+        return None
