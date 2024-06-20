@@ -1,0 +1,71 @@
+name: light_bulbs
+id: light_bulbs
+description: Light Bulbs
+imports:
+- linkml:types
+default_range: string
+enums:
+  size:
+    permissible_values:
+      xsmall:
+      small:
+      medium:
+      large:
+      xlarge:
+  primary_colors:
+    permissible_values:
+      light_red:
+      dark_red:
+      light_green:
+      dark_green:
+      light_blue:
+      dark_blue:
+  secondary_colors:
+    permissible_values:
+      light_cyan:
+      dark_cyan:
+      light_magenta:
+      dark_magenta:
+      light_yellow:
+      dark_yellow:
+  missingness:
+    permissible_values:
+      not_available:
+      other:
+classes:
+  lights:
+    slots:
+      - sku
+      - sizes
+      - colors
+      - main_color
+  Container:
+    tree_root: True
+    attributes:
+      lights:
+        range: lights
+        multivalued: True
+        inlined_as_list: True
+slots:
+    sizes:
+      range:
+        - size
+        - missingness
+      multivalued: True
+      inlined_as_list: True
+    colors:
+      range:
+        - primary_colors
+        - secondary_colors
+        - missingness
+      multivalued: True
+      inlined_as_list: True
+    main_color:
+      range:
+        - primary_colors
+        - secondary_colors
+        - missingness
+      multivalued: False
+    sku:
+      identifier: True
+      range: string

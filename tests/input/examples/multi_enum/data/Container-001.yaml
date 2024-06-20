@@ -1,0 +1,33 @@
+lights:
+  - colors:
+    - light_red
+    - dark_green
+    - dark_blue
+    main_color: dark_green
+    sizes:
+    - xsmall
+    - small
+    - medium
+    - large
+    - xlarge
+    sku: a0001
+  - colors:
+    - light_green
+    main_color: light_green
+    sizes:
+    - small
+    - other
+    sku: a0002
+  - colors:
+    - other
+    main_color: other
+    sizes:
+    - medium
+    sku: a0003
+  - colors:
+    - light_blue
+    main_color: light_blue
+    sizes:
+    - xsmall
+    - not_available
+    sku: a0004

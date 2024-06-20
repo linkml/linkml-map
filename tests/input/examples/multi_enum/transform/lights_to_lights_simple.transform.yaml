@@ -1,0 +1,93 @@
+class_derivations:
+  lights_inventory:
+    name: lights_inventory
+    populated_from: lights
+    slot_derivations:
+      light_sizes:
+        name: light_sizes
+        populated_from: sizes
+      light_colors:
+        name: light_colors
+        populated_from: colors
+      light_main_color:
+        name: light_main_color
+        populated_from: main_color
+      SKU:
+        name: SKU
+        populated_from: sku
+  Container:
+    name: Container
+    slot_derivations:
+      lights_inventory:
+        populated_from: lights
+        range: string
+enum_derivations:
+  light_size_enum:
+    name: light_size_enum
+    mirror_source: false
+    populated_from: size
+    permissible_value_derivations:
+      size_0:
+        name: size_0
+        sources:
+        - xsmall
+        - small
+      size_1:
+        name: size_1
+        populated_from: medium
+      size_2:
+        name: size_2
+        sources:
+        - large
+        - xlarge
+  missingness_enum:
+    name: missingness_enum
+    mirror_source: false
+    populated_from: missingness
+    permissible_value_derivations:
+      na:
+        name: na
+        populated_from: not_available
+      oth:
+        name: oth
+        populated_from: other
+  light_primary_colors_enum:
+    name: light_primary_colors_enum
+    mirror_source: false
+    populated_from: primary_colors
+    permissible_value_derivations:
+      red:
+        name: red
+        sources:
+        - light_red
+        - dark_red
+      green:
+        name: green
+        sources:
+        - light_green
+        - dark_green
+      blue:
+        name: blue
+        sources:
+        - light_blue
+        - dark_blue
+  light_secondary_colors_enum:
+    name: light_secondary_colors_enum
+    mirror_source: false
+    populated_from: secondary_colors
+    permissible_value_derivations:
+      cyan:
+        name: cyan
+        sources:
+        - light_cyan
+        - dark_cyan
+      magenta:
+        name: magenta
+        sources:
+        - light_magenta
+        - dark_magenta
+      yellow:
+        name: yellow
+        sources:
+        - light_yellow
+        - dark_yellow

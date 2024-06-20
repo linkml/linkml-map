@@ -1,0 +1,33 @@
+lights_inventory:
+- light_sizes:
+  - size_0
+  - size_0
+  - size_1
+  - size_2
+  - size_2
+  light_colors:
+  - red
+  - green
+  - blue
+  light_main_color: green
+  SKU: a0001
+- light_sizes:
+  - size_0
+  - oth
+  light_colors:
+  - green
+  light_main_color: green
+  SKU: a0002
+- light_sizes:
+  - size_1
+  light_colors:
+  - oth
+  light_main_color: oth
+  SKU: a0003
+- light_sizes:
+  - size_0
+  - na
+  light_colors:
+  - blue
+  light_main_color: blue
+  SKU: a0004
