@@ -20,6 +20,7 @@ to see what is being generated for each test.
 import logging
 import re
 from dataclasses import dataclass
+from datetime import date
 from types import ModuleType
 from typing import Any, Dict, Optional
 
@@ -41,7 +42,6 @@ from linkml_map.functions.unit_conversion import DimensionalityError, UndefinedU
 from linkml_map.inference.inverter import TransformationSpecificationInverter
 from linkml_map.inference.schema_mapper import SchemaMapper
 from linkml_map.transformer.object_transformer import ObjectTransformer
-from datetime import date
 
 today = date.today()
 formatted_date = today.strftime("%Y-%m-%d")
