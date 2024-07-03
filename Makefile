@@ -94,9 +94,11 @@ $(PYMODEL):
 $(DOCDIR):
 	mkdir -p $@
 
+#docsync:
+#	cp -pr $(SRC)/docs/* $(DOCDIR)
+
 gendoc: $(DOCDIR)
-	cp -pr $(SRC)/docs/* $(DOCDIR) ; \
-	$(RUN) gen-doc -d $(DOCDIR) $(SOURCE_SCHEMA_PATH) --index-name datamodel
+	$(RUN) gen-doc -d $(DOCDIR)/schema $(SOURCE_SCHEMA_PATH) --index-name datamodel
 
 testdoc: gendoc serve
 

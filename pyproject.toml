@@ -18,6 +18,7 @@ pytest = "^7.3.1"
 pytest-cov = "^4.0.0"
 linkml = ">=1.7.0"
 mkdocs-mermaid2-plugin = "^0.6.0"
+mkdocstrings = {extras = ["crystal", "python"], version = "*"}
 mknotebooks = "^0.8.0"
 mkdocs-windmill = "*"
 tox = "*"

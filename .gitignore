@@ -1,6 +1,8 @@
+*.old
+.coverage
+coverage.xml
 .idea
 project/
-docs/
 tmp/
 site/
 __pycache__

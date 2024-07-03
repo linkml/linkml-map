@@ -41,14 +41,23 @@ from linkml_map.functions.unit_conversion import DimensionalityError, UndefinedU
 from linkml_map.inference.inverter import TransformationSpecificationInverter
 from linkml_map.inference.schema_mapper import SchemaMapper
 from linkml_map.transformer.object_transformer import ObjectTransformer
+from datetime import date
+
+today = date.today()
+formatted_date = today.strftime("%Y-%m-%d")
 
 logger = logging.getLogger(__name__)
 
 print(
-    """
+    f"""
 # LinkML-Map Compliance Suite
 
 This is the output from running the full compliance test suite.
+
+```yaml
+Time_executed: {formatted_date}
+Package: {__file__}
+```
 
 It is organized into **Feature Sets** that test a particular feature or group of features,
 and **combinations** of different schemas, input objects, and transformation specifications.
@@ -352,16 +361,16 @@ def test_map_collections(
     This makes use of the `cast_collection_as` construct
 
     :param invocation_tracker:
-    :param source_datatype:
-    :param target_datatype:
-    :param source_value:
-    :param target_value:
-    :param invertible:
+    :param source_datatype: linkml datatype of source object
+    :param target_datatype: linkml datatype of target object
+    :param source_value: value of source object
+    :param target_value: expected value of slot in target object
+    :param invertible: True if the transformation is invertible
     :return:
     """
     print(f"Mapping `{source_datatype}` => `{target_datatype}`\n\n")
     if source_datatype == target_datatype:
-        print("Isomorphic mapping: input should equal output\n")
+        print("Isomorphic mapping: **input must equal output**\n")
     else:
         print("Should coerce datatype\n")
     source_collection_type = (
@@ -458,6 +467,8 @@ def test_expr(invocation_tracker, expr, source_object, target_value):
     Limitations: At this time, the framework cannot generate a complete
     derived schema or inversion for expressions. This will be fixed
     in future.
+
+    - See also: [LinkML Expressions](https://linkml.io/linkml/schemas/expression-language.html)
 
     :param invocation_tracker: pytest fixture to emit metadata
     :param expr: pythonic expression
@@ -571,7 +582,7 @@ def test_simple_unit_conversion(
     can be used. We explicitly test for some known cases where UCUM uses non-standard units (e.g. Cel, mo),
     as well as UCUM-specific syntax (e.g. `m.s-1`) and extensions (e.g. using annotations like `{Cre}`).
 
-    Developers note: to run this test, the units extension should be installed:
+    *Developers note*: to run this test, the units extension should be installed:
 
     `poetry install -E units`
 
@@ -590,11 +601,11 @@ def test_simple_unit_conversion(
     if skip:
         pytest.skip(f"TODO: {skip}")
     print(
-        f"Unit Conversion: {source_value} `{source_unit}` => "
-        f"{target_value} `{target_unit} [with {source_slot}]`\n\n"
+        f"Unit Conversion: `{source_value}` `{source_unit}` => "
+        f"`{target_value}` `{target_unit}` [with {source_slot}]\n\n"
     )
     if source_unit == target_unit:
-        print("Isomorphic mapping: input should equal output")
+        print("Isomorphic mapping: **input must equal output**")
     classes = {
         "C": {
             "attributes": {
@@ -649,13 +660,18 @@ def test_complex_unit_conversion(
     """
     Test unit conversion, from complex object to simple scalar.
 
+    An example complex object would be an object with separate attributes for
+    representing magnitude (value) and unit.
+
+    For example `magnitude: 1.0, unit: "m"`
+
     :param invocation_tracker:
-    :param source_unit:
-    :param target_unit:
-    :param source_value:
-    :param target_value:
-    :param roundtrip_object:
-    :param err:
+    :param source_unit: unit of source slot
+    :param target_unit: unit of target slot
+    :param source_value: magnitude of source slot (to be converted)
+    :param target_value: expected magnitude of target slot (output of conversion)
+    :param roundtrip_object: expected value of passing target object back through inverted transformation
+    :param err: True if expected to raise an Error
     :return:
     """
     target_slot = f"q_in_{target_unit}"
@@ -736,6 +752,11 @@ def test_stringify(invocation_tracker, syntax, delimiter, source_value, target_v
 
     - flattening lists using an (internal) delimiter
     - flattening lists or more complex objects using JSON or YAML
+
+    For example, `["a", "b"]` => `"a,b"`
+
+    As a convention we use `s1_verbatim` as a slot/attribute name for the
+    stringified form.
 
     :param invocation_tracker: pytest fixture to emit metadata
     :param syntax: SerializationSyntaxType
@@ -1006,9 +1027,9 @@ def test_map_enum(invocation_tracker, source_value, mapping, target_value, mirro
     - boolean/branching logic
 
     :param invocation_tracker:
-    :param source_value:
-    :param mapping:
-    :param target_value:
+    :param source_value: source enum permissible value to be mapped
+    :param mapping: mapping from source to target enum permissible values
+    :param target_value: expected target enum permissible value
     :return:
     """
     classes = {
