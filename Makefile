@@ -81,7 +81,9 @@ serve: mkd-serve
 deploy: mkd-deploy
 
 # Deploy gh docs
-deploy-gh-doc: gendoc
+# https://github.com/linkml/linkml/issues/2193
+#deploy-gh-doc: gendoc
+deploy-gh-doc:
 	$(RUN) mkdocs gh-deploy
 
 
