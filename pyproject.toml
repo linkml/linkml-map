@@ -66,4 +66,4 @@ reverse_relative = true
 skip = '.git,*.pdf,*.svg,go.sum,*.lock'
 check-hidden = true
 ignore-regex = '(^\s*"image/\S+": ".*|\b(KEGG.BRITE|mor.nlm.nih.gov)\b)'
-ignore-words-list = 'infarction,amination'
+ignore-words-list = 'infarction,amination,assertIn'
