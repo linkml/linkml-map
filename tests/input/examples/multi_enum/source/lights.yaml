@@ -32,7 +32,7 @@ enums:
     permissible_values:
       purple:
       turquoise:
-      fuschia:
+      fuchsia:
   missingness:
     permissible_values:
       not_available:
