@@ -9,6 +9,7 @@ EXAMPLE_PROJECTS = [
     "personinfo_basic",
     "type_coercion",
     "biolink",
+    "multi_enum",
 ]
 
 
