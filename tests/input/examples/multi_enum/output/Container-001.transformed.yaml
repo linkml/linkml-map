@@ -10,6 +10,7 @@ lights_inventory:
   - green
   - blue
   light_main_color: green
+  mirror_test_slot: red
   SKU: a0001
 - light_sizes:
   - size_0
@@ -17,12 +18,14 @@ lights_inventory:
   light_colors:
   - green
   light_main_color: green
+  mirror_test_slot: magenta
   SKU: a0002
 - light_sizes:
   - size_1
   light_colors:
   - oth
   light_main_color: oth
+  mirror_test_slot: not_available
   SKU: a0003
 - light_sizes:
   - size_0
@@ -30,4 +33,5 @@ lights_inventory:
   light_colors:
   - blue
   light_main_color: blue
+  mirror_test_slot: red
   SKU: a0004

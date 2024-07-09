@@ -30,6 +30,7 @@ classes:
       - SKU
       - light_sizes
       - light_colors
+      - light_mirror_test_slot
   Container:
     tree_root: True
     attributes:
@@ -59,3 +60,5 @@ slots:
         - light_secondary_colors_enum
         - missingness_enum
       multivalued: False
+    light_mirror_test_slot:
+      range: string

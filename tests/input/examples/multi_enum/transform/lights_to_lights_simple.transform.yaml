@@ -12,6 +12,9 @@ class_derivations:
       light_main_color:
         name: light_main_color
         populated_from: main_color
+      light_mirror_test_slot:
+        name: mirror_test_slot
+        populated_from: mirror_test_slot
       SKU:
         name: SKU
         populated_from: sku
@@ -91,3 +94,10 @@ enum_derivations:
         sources:
         - light_yellow
         - dark_yellow
+  light_test_colors_enum:
+    # This derivation is for testing mirror_source in the line of transformations for ranges with multiple enums.
+    # When we reach an enum in the source range that has mirror_source=true, the mapper should stop immediately and return
+    # the mirrored value, ignoring any enum mappings that may occur in a later enum derivation.
+    name: light_test_colors_enum
+    mirror_source: true
+    populated_from: mirror_test_colors

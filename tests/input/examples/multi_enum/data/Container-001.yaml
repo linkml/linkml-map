@@ -4,6 +4,7 @@ lights:
     - dark_green
     - dark_blue
     main_color: dark_green
+    mirror_test_slot: light_red
     sizes:
     - xsmall
     - small
@@ -14,6 +15,7 @@ lights:
   - colors:
     - light_green
     main_color: light_green
+    mirror_test_slot: light_magenta
     sizes:
     - small
     - other
@@ -21,12 +23,14 @@ lights:
   - colors:
     - other
     main_color: other
+    mirror_test_slot: not_available
     sizes:
     - medium
     sku: a0003
   - colors:
     - light_blue
     main_color: light_blue
+    mirror_test_slot: light_red
     sizes:
     - xsmall
     - not_available

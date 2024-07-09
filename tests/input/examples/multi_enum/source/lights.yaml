@@ -28,6 +28,11 @@ enums:
       dark_magenta:
       light_yellow:
       dark_yellow:
+  mirror_test_colors:
+    permissible_values:
+      purple:
+      turquoise:
+      fuschia:
   missingness:
     permissible_values:
       not_available:
@@ -39,6 +44,7 @@ classes:
       - sizes
       - colors
       - main_color
+      - mirror_test_slot
   Container:
     tree_root: True
     attributes:
@@ -66,6 +72,12 @@ slots:
         - secondary_colors
         - missingness
       multivalued: False
+    mirror_test_slot:
+      range:
+        - primary_colors
+        - secondary_colors
+        - mirror_test_colors
+        - missingness
     sku:
       identifier: True
       range: string
