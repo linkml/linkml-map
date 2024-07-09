@@ -81,7 +81,9 @@ serve: mkd-serve
 deploy: mkd-deploy
 
 # Deploy gh docs
-deploy-gh-doc: gendoc
+# https://github.com/linkml/linkml/issues/2193
+#deploy-gh-doc: gendoc
+deploy-gh-doc:
 	$(RUN) mkdocs gh-deploy
 
 
@@ -94,9 +96,11 @@ $(PYMODEL):
 $(DOCDIR):
 	mkdir -p $@
 
+#docsync:
+#	cp -pr $(SRC)/docs/* $(DOCDIR)
+
 gendoc: $(DOCDIR)
-	cp -pr $(SRC)/docs/* $(DOCDIR) ; \
-	$(RUN) gen-doc -d $(DOCDIR) $(SOURCE_SCHEMA_PATH) --index-name datamodel
+	$(RUN) gen-doc -d $(DOCDIR)/schema $(SOURCE_SCHEMA_PATH) --index-name datamodel
 
 testdoc: gendoc serve
 
