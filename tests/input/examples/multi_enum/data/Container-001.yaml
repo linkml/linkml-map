@@ -3,35 +3,19 @@ lights:
     - light_red
     - dark_green
     - dark_blue
+    - light_magenta
+    - not_available
     main_color: dark_green
     mirror_test_slot: light_red
-    sizes:
-    - xsmall
-    - small
-    - medium
-    - large
-    - xlarge
-    sku: a0001
   - colors:
     - light_green
     main_color: light_green
     mirror_test_slot: light_magenta
-    sizes:
-    - small
-    - other
-    sku: a0002
   - colors:
     - other
     main_color: other
-    mirror_test_slot: not_available
-    sizes:
-    - medium
-    sku: a0003
+    mirror_test_slot: dark_purple
   - colors:
     - light_blue
     main_color: light_blue
-    mirror_test_slot: light_red
-    sizes:
-    - xsmall
-    - not_available
-    sku: a0004
+    mirror_test_slot: not_available

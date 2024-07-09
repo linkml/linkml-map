@@ -3,9 +3,6 @@ class_derivations:
     name: lights_inventory
     populated_from: lights
     slot_derivations:
-      light_sizes:
-        name: light_sizes
-        populated_from: sizes
       light_colors:
         name: light_colors
         populated_from: colors
@@ -15,9 +12,6 @@ class_derivations:
       light_mirror_test_slot:
         name: mirror_test_slot
         populated_from: mirror_test_slot
-      SKU:
-        name: SKU
-        populated_from: sku
   Container:
     name: Container
     slot_derivations:
@@ -25,24 +19,6 @@ class_derivations:
         populated_from: lights
         range: string
 enum_derivations:
-  light_size_enum:
-    name: light_size_enum
-    mirror_source: false
-    populated_from: size
-    permissible_value_derivations:
-      size_0:
-        name: size_0
-        sources:
-        - xsmall
-        - small
-      size_1:
-        name: size_1
-        populated_from: medium
-      size_2:
-        name: size_2
-        sources:
-        - large
-        - xlarge
   missingness_enum:
     name: missingness_enum
     mirror_source: false
@@ -95,9 +71,20 @@ enum_derivations:
         - light_yellow
         - dark_yellow
   light_test_colors_enum:
-    # This derivation is for testing mirror_source in the line of transformations for ranges with multiple enums.
-    # When we reach an enum in the source range that has mirror_source=true, the mapper should stop immediately and return
-    # the mirrored value, ignoring any enum mappings that may occur in a later enum derivation.
+    # This derivation is for testing mirror_source=True. When transforming a slot with multiple enumerations in the range,
+    # and we encounter an enum derivation with mirror_source=True, then if no permissible value derivation is matched we return
+    # the source value unchanged, and ignore any further enum derivations.
     name: light_test_colors_enum
     mirror_source: true
     populated_from: mirror_test_colors
+    permissible_value_derivations:
+      purple:
+        name: purple
+        populated_from: dark_purple
+      turquoise:
+        name: turquoise
+        populated_from: dark_turquoise
+      fuchsia:
+        name: fuchsia
+        populated_from: dark_fuchsia
+      

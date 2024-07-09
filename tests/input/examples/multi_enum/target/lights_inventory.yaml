@@ -27,7 +27,6 @@ enums:
 classes:
   lights_inventory:
     slots:
-      - SKU
       - light_sizes
       - light_colors
       - light_mirror_test_slot
@@ -39,8 +38,6 @@ classes:
         multivalued: True
         inlined_as_list: True
 slots:
-    SKU:
-      range: string
     light_sizes:
       range:
         - light_size_enum

@@ -5,13 +5,6 @@ imports:
 - linkml:types
 default_range: string
 enums:
-  size:
-    permissible_values:
-      xsmall:
-      small:
-      medium:
-      large:
-      xlarge:
   primary_colors:
     permissible_values:
       light_red:
@@ -30,9 +23,9 @@ enums:
       dark_yellow:
   mirror_test_colors:
     permissible_values:
-      purple:
-      turquoise:
-      fuchsia:
+      dark_purple:
+      dark_turquoise:
+      dark_fuchsia:
   missingness:
     permissible_values:
       not_available:
@@ -40,8 +33,6 @@ enums:
 classes:
   lights:
     slots:
-      - sku
-      - sizes
       - colors
       - main_color
       - mirror_test_slot
@@ -53,12 +44,6 @@ classes:
         multivalued: True
         inlined_as_list: True
 slots:
-    sizes:
-      range:
-        - size
-        - missingness
-      multivalued: True
-      inlined_as_list: True
     colors:
       range:
         - primary_colors
@@ -78,6 +63,3 @@ slots:
         - secondary_colors
         - mirror_test_colors
         - missingness
-    sku:
-      identifier: True
-      range: string
