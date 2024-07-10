@@ -58,10 +58,10 @@ class_derivations:
           delimiter: '|'
 ```
 
-The schema mapping (aka [TransformationSpecification](TransformationSpecification.md)) specifies how to transform the data model.
+The schema mapping (aka [TransformationSpecification](schema/TransformationSpecification.md)) specifies how to transform the data model.
 
-The schema mapping is a collection of one or more [ClassDerivation](ClassDerivation.md) objects,
-which themselves consist of one or more [SlotDerivation](SlotDerivation.md) objects.
+The schema mapping is a collection of one or more [ClassDerivation](schema/ClassDerivation.md) objects,
+which themselves consist of one or more [SlotDerivation](schema/SlotDerivation.md) objects.
 
 Transform the data:
 
@@ -106,7 +106,7 @@ The command line has subcommands for:
 
 This repo contains both:
 
-- A [data model](datamodel) for a data model *transformation language*
+- A [data model](schema/) for a data model *transformation language*
 - A reference python implementation
 
 The transformation language is specified in terms of [LinkML](https://linkml.io) schemas.
@@ -127,12 +127,12 @@ Use cases include:
 
 The data model for transformations mirrors the data model for schemas:
 
-- A top level [TransformationSpecification](TransformationSpecification.md) class contains:
-   - Zero or more [ClassDerivation](ClassDerivation.md) objects, specifying how to map to a class, containing
-       - Zero or more [SlotDerivation](SlotDerivation.md) objects, specifying how to map to a slot
-   - Zero or more [EnumDerivation](EnumDerivation.md) objects, specifying how to map to an enum
+- A top level [TransformationSpecification](schema/TransformationSpecification.md) class contains:
+   - Zero or more [ClassDerivation](schema/ClassDerivation.md) objects, specifying how to map to a class, containing
+       - Zero or more [SlotDerivation](schema/SlotDerivation.md) objects, specifying how to map to a slot
+   - Zero or more [EnumDerivation](schema/EnumDerivation.md) objects, specifying how to map to an enum
 
-See the [generated docs](datamodel.md)
+See the [generated docs](schema/index.md)
 
 ## Conformance Suite
 

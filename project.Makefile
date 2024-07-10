@@ -3,7 +3,7 @@ tests/model/%.py: tests/input/%.yaml
 
 specification: src/docs/specification/compliance.md
 
-src/docs/specification/compliance.md: tests/test_compliance/test_compliance_suite.py
+docs/specification/compliance.md: tests/test_compliance/test_compliance_suite.py
 	mkdir -p docs/specification
 	$(RUN) pytest $< -s -q --tb no --disable-warnings > $@.tmp && perl -pne 's@^\.#@#@' $@.tmp > $@.tmp.md && pandoc -f gfm --toc --toc-depth=2 -s $@.tmp.md -o $@ && rm $@.tmp && rm $@.tmp.md
 

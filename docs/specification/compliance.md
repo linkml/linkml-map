@@ -18,6 +18,11 @@ LinkML-Map Compliance Suite
 
 This is the output from running the full compliance test suite.
 
+``` {.yaml}
+Time_executed: 2024-07-03
+Package: /Users/cjm/repos/linkml-map/tests/test_compliance/test_compliance_suite.py
+```
+
 It is organized into **Feature Sets** that test a particular feature or
 group of features, and **combinations** of different schemas, input
 objects, and transformation specifications. This is intended to
@@ -843,17 +848,17 @@ Test mapping between collection data types (lists and dicts).
 
 This makes use of the `cast_collection_as` construct
 
--   **source\_datatype**:
--   **target\_datatype**:
--   **source\_value**:
--   **target\_value**:
--   **invertible**:
+-   **source\_datatype**: linkml datatype of source object
+-   **target\_datatype**: linkml datatype of target object
+-   **source\_value**: value of source object
+-   **target\_value**: expected value of slot in target object
+-   **invertible**: True if the transformation is invertible
 
 ### Combo: test\_map\_collections\[string-string-source\_value0-target\_value0-True\]
 
 Mapping `string` =\> `string`
 
-Isomorphic mapping: input should equal output
+Isomorphic mapping: **input must equal output**
 
 **Source Schema**:
 
@@ -877,8 +882,8 @@ classes:
     attributes:
       ds:
         name: ds
-        multivalued: true
         range: D
+        multivalued: true
         inlined: true
         inlined_as_list: true
     tree_root: true
@@ -964,10 +969,10 @@ classes:
     attributes:
       ds:
         name: ds
-        multivalued: true
         domain_of:
         - C
         range: D
+        multivalued: true
         inlined: true
         inlined_as_list: false
     tree_root: true
@@ -1018,7 +1023,7 @@ class_derivations:
 
 Mapping `string` =\> `string`
 
-Isomorphic mapping: input should equal output
+Isomorphic mapping: **input must equal output**
 
 **Source Schema**:
 
@@ -1042,8 +1047,8 @@ classes:
     attributes:
       ds:
         name: ds
-        multivalued: true
         range: D
+        multivalued: true
         inlined: true
         inlined_as_list: false
     tree_root: true
@@ -1128,10 +1133,10 @@ classes:
     attributes:
       ds:
         name: ds
-        multivalued: true
         domain_of:
         - C
         range: D
+        multivalued: true
         inlined: true
         inlined_as_list: true
     tree_root: true
@@ -1196,6 +1201,11 @@ forces the entire expression to be `None`
 Limitations: At this time, the framework cannot generate a complete
 derived schema or inversion for expressions. This will be fixed in
 future.
+
+-   See also: [LinkML
+    Expressions](https://linkml.io/linkml/schemas/expression-language.html)
+
+<!-- -->
 
 -   **expr**: pythonic expression
 -   **source\_object**: source object
@@ -1760,12 +1770,12 @@ classes:
     attributes:
       s1:
         name: s1
-        multivalued: true
         range: string
+        multivalued: true
       s2:
         name: s2
-        multivalued: true
         range: string
+        multivalued: true
     tree_root: true
 
 ```
@@ -1853,8 +1863,8 @@ classes:
     attributes:
       s1:
         name: s1
-        multivalued: true
         range: string
+        multivalued: true
     tree_root: true
 
 ```
@@ -2017,7 +2027,7 @@ cases where UCUM uses non-standard units (e.g. Cel, mo), as well as
 UCUM-specific syntax (e.g. `m.s-1`) and extensions (e.g. using
 annotations like `{Cre}`).
 
-Developers note: to run this test, the units extension should be
+*Developers note*: to run this test, the units extension should be
 installed:
 
 `poetry install -E units`
@@ -2035,7 +2045,7 @@ This installs the `pint` framework.
 
 ### Combo: test\_simple\_unit\_conversion\[s1-s1-m-cm-ucum\_code-1.0-100.0-None-None\] {#combo-test_simple_unit_conversions1-s1-m-cm-ucum_code-10-1000-none-none}
 
-Unit Conversion: 1.0 `m` =\> 100.0 `cm [with s1]`
+Unit Conversion: `1.0` `m` =\> `100.0` `cm` \[with s1\]
 
 **Source Schema**:
 
@@ -2144,7 +2154,7 @@ class_derivations:
 
 ### Combo: test\_simple\_unit\_conversion\[s1-s1-m-cm-symbol-1.0-100.0-None-None\] {#combo-test_simple_unit_conversions1-s1-m-cm-symbol-10-1000-none-none}
 
-Unit Conversion: 1.0 `m` =\> 100.0 `cm [with s1]`
+Unit Conversion: `1.0` `m` =\> `100.0` `cm` \[with s1\]
 
 **Source Schema**:
 
@@ -2253,9 +2263,9 @@ class_derivations:
 
 ### Combo: test\_simple\_unit\_conversion\[s1-s1-m-m-ucum\_code-1.0-1.0-None-None\] {#combo-test_simple_unit_conversions1-s1-m-m-ucum_code-10-10-none-none}
 
-Unit Conversion: 1.0 `m` =\> 1.0 `m [with s1]`
+Unit Conversion: `1.0` `m` =\> `1.0` `m` \[with s1\]
 
-Isomorphic mapping: input should equal output **Source Schema**:
+Isomorphic mapping: **input must equal output** **Source Schema**:
 
 ``` {.yaml}
 name: types
@@ -2362,7 +2372,7 @@ class_derivations:
 
 ### Combo: test\_simple\_unit\_conversion\[s1-s1-a-mo-ucum\_code-10.0-120.0-None-None\] {#combo-test_simple_unit_conversions1-s1-a-mo-ucum_code-100-1200-none-none}
 
-Unit Conversion: 10.0 `a` =\> 120.0 `mo [with s1]`
+Unit Conversion: `10.0` `a` =\> `120.0` `mo` \[with s1\]
 
 **Source Schema**:
 
@@ -2471,7 +2481,7 @@ class_derivations:
 
 ### Combo: test\_simple\_unit\_conversion\[s1-s1-a-mo-symbol-10.0-None-UndefinedUnitError-None\] {#combo-test_simple_unit_conversions1-s1-a-mo-symbol-100-none-undefineduniterror-none}
 
-Unit Conversion: 10.0 `a` =\> None `mo [with s1]`
+Unit Conversion: `10.0` `a` =\> `None` `mo` \[with s1\]
 
 **Source Schema**:
 
@@ -2565,7 +2575,7 @@ classes:
 
 ### Combo: test\_simple\_unit\_conversion\[s1-s1-m-ml-ucum\_code-1.0-None-DimensionalityError-None\] {#combo-test_simple_unit_conversions1-s1-m-ml-ucum_code-10-none-dimensionalityerror-none}
 
-Unit Conversion: 1.0 `m` =\> None `ml [with s1]`
+Unit Conversion: `1.0` `m` =\> `None` `ml` \[with s1\]
 
 **Source Schema**:
 
@@ -2659,7 +2669,7 @@ classes:
 
 ### Combo: test\_simple\_unit\_conversion\[s1-s1-m-pinknoodles-ucum\_code-1.0-None-UndefinedUnitError-None\] {#combo-test_simple_unit_conversions1-s1-m-pinknoodles-ucum_code-10-none-undefineduniterror-none}
 
-Unit Conversion: 1.0 `m` =\> None `pinknoodles [with s1]`
+Unit Conversion: `1.0` `m` =\> `None` `pinknoodles` \[with s1\]
 
 **Source Schema**:
 
@@ -2753,7 +2763,7 @@ classes:
 
 ### Combo: test\_simple\_unit\_conversion\[s1-s1-ml-m-ucum\_code-1.0-None-DimensionalityError-None\] {#combo-test_simple_unit_conversions1-s1-ml-m-ucum_code-10-none-dimensionalityerror-none}
 
-Unit Conversion: 1.0 `ml` =\> None `m [with s1]`
+Unit Conversion: `1.0` `ml` =\> `None` `m` \[with s1\]
 
 **Source Schema**:
 
@@ -2847,7 +2857,7 @@ classes:
 
 ### Combo: test\_simple\_unit\_conversion\[s1-s1-pinknoodles-m-ucum\_code-1.0-None-UndefinedUnitError-None\] {#combo-test_simple_unit_conversions1-s1-pinknoodles-m-ucum_code-10-none-undefineduniterror-none}
 
-Unit Conversion: 1.0 `pinknoodles` =\> None `m [with s1]`
+Unit Conversion: `1.0` `pinknoodles` =\> `None` `m` \[with s1\]
 
 **Source Schema**:
 
@@ -2941,7 +2951,7 @@ classes:
 
 ### Combo: test\_simple\_unit\_conversion\[s1-s1-m/s-cm/s-ucum\_code-1.0-100.0-None-None\] {#combo-test_simple_unit_conversions1-s1-ms-cms-ucum_code-10-1000-none-none}
 
-Unit Conversion: 1.0 `m/s` =\> 100.0 `cm/s [with s1]`
+Unit Conversion: `1.0` `m/s` =\> `100.0` `cm/s` \[with s1\]
 
 **Source Schema**:
 
@@ -3050,7 +3060,7 @@ class_derivations:
 
 ### Combo: test\_simple\_unit\_conversion\[s1-s1-m.s-1-cm.s-1-ucum\_code-1.0-100.0-None-None\] {#combo-test_simple_unit_conversions1-s1-ms-1-cms-1-ucum_code-10-1000-none-none}
 
-Unit Conversion: 1.0 `m.s-1` =\> 100.0 `cm.s-1 [with s1]`
+Unit Conversion: `1.0` `m.s-1` =\> `100.0` `cm.s-1` \[with s1\]
 
 **Source Schema**:
 
@@ -3162,7 +3172,7 @@ class_derivations:
 s\#\#\# Combo:
 test\_simple\_unit\_conversion\[height\_in\_m-height\_in\_cm-m-cm-ucum\_code-1.0-100.0-None-None\]
 
-Unit Conversion: 1.0 `m` =\> 100.0 `cm [with height_in_m]`
+Unit Conversion: `1.0` `m` =\> `100.0` `cm` \[with height\_in\_m\]
 
 **Source Schema**:
 
@@ -3271,9 +3281,10 @@ class_derivations:
 
 ### Combo: test\_simple\_unit\_conversion\[s1-s1-m\[H2O\]{35Cel}-m\[H2O\]{35Cel}-ucum\_code-1.0-1.0-None-None\] {#combo-test_simple_unit_conversions1-s1-mh2o35cel-mh2o35cel-ucum_code-10-10-none-none}
 
-Unit Conversion: 1.0 `m[H2O]{35Cel}` =\> 1.0 `m[H2O]{35Cel} [with s1]`
+Unit Conversion: `1.0` `m[H2O]{35Cel}` =\> `1.0` `m[H2O]{35Cel}` \[with
+s1\]
 
-Isomorphic mapping: input should equal output **Source Schema**:
+Isomorphic mapping: **input must equal output** **Source Schema**:
 
 ``` {.yaml}
 name: types
@@ -3383,12 +3394,19 @@ Feature Set: test\_complex\_unit\_conversion
 
 Test unit conversion, from complex object to simple scalar.
 
--   **source\_unit**:
--   **target\_unit**:
--   **source\_value**:
--   **target\_value**:
--   **roundtrip\_object**:
--   **err**:
+An example complex object would be an object with separate attributes
+for representing magnitude (value) and unit.
+
+For example `magnitude: 1.0, unit: "m"`
+
+-   **source\_unit**: unit of source slot
+-   **target\_unit**: unit of target slot
+-   **source\_value**: magnitude of source slot (to be converted)
+-   **target\_value**: expected magnitude of target slot (output of
+    conversion)
+-   **roundtrip\_object**: expected value of passing target object back
+    through inverted transformation
+-   **err**: True if expected to raise an Error
 
 ### Combo: test\_complex\_unit\_conversion\[m-cm-1.0-100.0-roundtrip\_object0-None\] {#combo-test_complex_unit_conversionm-cm-10-1000-roundtrip_object0-none}
 
@@ -3856,7 +3874,10 @@ methodologies can be used:
 -   flattening lists using an (internal) delimiter
 -   flattening lists or more complex objects using JSON or YAML
 
-<!-- -->
+For example, `["a", "b"]` =\> `"a,b"`
+
+As a convention we use `s1_verbatim` as a slot/attribute name for the
+stringified form.
 
 -   **syntax**: SerializationSyntaxType
 -   **delimiter**: delimiter to use in stringification
@@ -3887,8 +3908,8 @@ classes:
     attributes:
       s1:
         name: s1
-        multivalued: true
         range: string
+        multivalued: true
 
 ```
 
@@ -3947,10 +3968,10 @@ classes:
     attributes:
       s1_verbatim:
         name: s1_verbatim
-        multivalued: false
         domain_of:
         - C
         range: string
+        multivalued: false
 
 ```
 
@@ -3998,8 +4019,8 @@ classes:
     attributes:
       s1:
         name: s1
-        multivalued: true
         range: string
+        multivalued: true
 
 ```
 
@@ -4058,10 +4079,10 @@ classes:
     attributes:
       s1_verbatim:
         name: s1_verbatim
-        multivalued: false
         domain_of:
         - C
         range: string
+        multivalued: false
 
 ```
 
@@ -4109,8 +4130,8 @@ classes:
     attributes:
       s1:
         name: s1
-        multivalued: true
         range: string
+        multivalued: true
 
 ```
 
@@ -4168,10 +4189,10 @@ classes:
     attributes:
       s1_verbatim:
         name: s1_verbatim
-        multivalued: false
         domain_of:
         - C
         range: string
+        multivalued: false
 
 ```
 
@@ -4219,8 +4240,8 @@ classes:
     attributes:
       s1:
         name: s1
-        multivalued: true
         range: string
+        multivalued: true
 
 ```
 
@@ -4277,10 +4298,10 @@ classes:
     attributes:
       s1_verbatim:
         name: s1_verbatim
-        multivalued: false
         domain_of:
         - C
         range: string
+        multivalued: false
 
 ```
 
@@ -4328,8 +4349,8 @@ classes:
     attributes:
       s1:
         name: s1
-        multivalued: true
         range: string
+        multivalued: true
 
 ```
 
@@ -4388,10 +4409,10 @@ classes:
     attributes:
       s1_verbatim:
         name: s1_verbatim
-        multivalued: false
         domain_of:
         - C
         range: string
+        multivalued: false
 
 ```
 
@@ -4439,8 +4460,8 @@ classes:
     attributes:
       s1:
         name: s1
-        multivalued: true
         range: string
+        multivalued: true
 
 ```
 
@@ -4497,10 +4518,10 @@ classes:
     attributes:
       s1_verbatim:
         name: s1_verbatim
-        multivalued: false
         domain_of:
         - C
         range: string
+        multivalued: false
 
 ```
 
@@ -4548,8 +4569,8 @@ classes:
     attributes:
       s1:
         name: s1
-        multivalued: true
         range: string
+        multivalued: true
 
 ```
 
@@ -4608,10 +4629,10 @@ classes:
     attributes:
       s1_verbatim:
         name: s1_verbatim
-        multivalued: false
         domain_of:
         - C
         range: string
+        multivalued: false
 
 ```
 
@@ -4671,8 +4692,8 @@ classes:
     attributes:
       c_list:
         name: c_list
-        multivalued: true
         range: C
+        multivalued: true
       d:
         name: d
         range: D
@@ -4780,10 +4801,10 @@ classes:
     attributes:
       c_list:
         name: c_list
-        multivalued: true
         domain_of:
         - Container
         range: C
+        multivalued: true
       d:
         name: d
         domain_of:
@@ -4873,8 +4894,8 @@ classes:
     attributes:
       c_list:
         name: c_list
-        multivalued: true
         range: C
+        multivalued: true
       d:
         name: d
         range: D
@@ -4982,10 +5003,10 @@ classes:
     attributes:
       c_list:
         name: c_list
-        multivalued: true
         domain_of:
         - Container
         range: C
+        multivalued: true
       d:
         name: d
         domain_of:
@@ -5227,12 +5248,12 @@ classes:
     attributes:
       r_list:
         name: r_list
-        multivalued: true
         range: R
+        multivalued: true
       e_list:
         name: e_list
-        multivalued: true
         range: E
+        multivalued: true
         inlined_as_list: true
     tree_root: true
 
@@ -5328,10 +5349,10 @@ classes:
     attributes:
       r_list:
         name: r_list
-        multivalued: true
         domain_of:
         - Container
         range: R
+        multivalued: true
     tree_root: true
 
 ```
@@ -5350,9 +5371,9 @@ will be supported, including:
 
 <!-- -->
 
--   **source\_value**:
--   **mapping**:
--   **target\_value**:
+-   **source\_value**: source enum permissible value to be mapped
+-   **mapping**: mapping from source to target enum permissible values
+-   **target\_value**: expected target enum permissible value
 
 ### Combo: test\_map\_enum\[A-mapping0-B-False\]
 
@@ -6332,4 +6353,4 @@ classes:
 
 ```
 
-. 55 passed, 2 skipped, 83 warnings in 3.98s
+. 55 passed, 2 skipped, 83 warnings in 4.60s

@@ -66,8 +66,6 @@ class SQLCompiler(Compiler):
         if not col_trs:
             return
         stmt += ", \n".join(col_trs)
-        if self.new_table_when_transforming:
-            stmt += ");"
         stmt += f" FROM {cd.name}"
         compiled.serialization += f"{stmt};\n"
 
@@ -113,6 +111,10 @@ class SQLCompiler(Compiler):
             ddl.append(",\n".join(col_strs))
             ddl.append(");")
         return "\n".join(ddl)
+
+    def create_target_ddl(self, specification: TransformationSpecification) -> str:
+        target_sv = self.derived_target_schemaview(specification)
+        return self.create_ddl(target_sv)
 
     def sql_type(self, slot: SlotDefinition, schemaview: SchemaView) -> str:
         """

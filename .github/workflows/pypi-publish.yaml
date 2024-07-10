@@ -29,6 +29,9 @@ jobs:
       - name: Install dependencies
         run: poetry install --no-interaction
 
+      - name: Add dynamic versioning plugin
+        run: poetry self add "poetry-dynamic-versioning[plugin]"
+
       - name: Build source and wheel archives
         run: poetry build
 

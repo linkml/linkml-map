@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "linkml-map"
-version = "0.1.0"
-description = ""
+version = "0.0.0"
+description = "a framework for specifying and executing mappings between data models"
 authors = ["cmungall <cjm@berkeleybop.org>"]
 readme = "README.md"
 
@@ -10,7 +10,7 @@ python = "^3.9"
 linkml-runtime = ">=1.7.2"
 asteval = "^0.9.29"
 deepdiff = "^6.7.1"
-pydantic = "^2.5.3"
+pydantic = ">=2.0.0"
 ucumvert = "^0.1.1"
 jupyter = "^1.0.0"
 
@@ -19,9 +19,15 @@ pytest = "^7.3.1"
 pytest-cov = "^4.0.0"
 linkml = ">=1.7.0"
 mkdocs-mermaid2-plugin = "^0.6.0"
+mkdocstrings = {extras = ["crystal", "python"], version = "*"}
 mknotebooks = "^0.8.0"
 mkdocs-windmill = "*"
 tox = "*"
+
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "pep440"
 
 [tool.poetry.scripts]
 linkml-map = "linkml_map.cli.cli:main"
@@ -43,8 +49,8 @@ graphviz = "^0.20.1"
 duckdb = "^0.10.1"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
+build-backend = "poetry_dynamic_versioning.backend"
 
 [tool.black]
 line-length = 100
@@ -61,4 +67,4 @@ reverse_relative = true
 skip = '.git,*.pdf,*.svg,go.sum,*.lock'
 check-hidden = true
 ignore-regex = '(^\s*"image/\S+": ".*|\b(KEGG.BRITE|mor.nlm.nih.gov)\b)'
-ignore-words-list = 'infarction,amination'
+ignore-words-list = 'infarction,amination,assertIn'
