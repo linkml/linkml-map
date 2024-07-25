@@ -26,7 +26,36 @@ Not all parts of the model are implemented in the reference Python framework.
 
 ## Basic idea
 
-Given an object that conforms to a LinkML schema,e.g.:
+Given the LinkML schema 
+
+```yaml
+id: https://w3id.org/linkml/examples/personinfo
+name: personinfo
+prefixes:
+  linkml: https://w3id.org/linkml/
+  personinfo: https://w3id.org/linkml/examples/personinfo
+imports:
+  - linkml:types
+default_range: string
+default_prefix: personinfo
+
+classes:
+  Person:
+    attributes:
+      id:
+      given_name:
+      family_name:
+      aliases:
+        multivalued: true
+      height_in_cm:
+        range: float
+        unit:
+          ucum_code: cm
+      age_in_years:
+        range: integer
+```
+
+and an object that conforms to it, e.g.:
 
 ```yaml
 given_name: Jane
