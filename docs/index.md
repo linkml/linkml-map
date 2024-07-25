@@ -66,7 +66,7 @@ which themselves consist of one or more [SlotDerivation](schema/SlotDerivation.m
 Transform the data:
 
 ```bash
-linkml-tr map-data -T tr.yaml -s schema.yaml my-data.yaml
+linkml-map map-data -T tr.yaml -s schema.yaml my-data.yaml
 ```
 
 Giving:
@@ -84,7 +84,7 @@ Installation and command line usage:
 ```bash
 pip[x] install linkml-map
 cd tests/input/examples/personinfo_basic
-linkml-tr map-data \
+linkml-map map-data \
   -T transform/personinfo-to-agent.transform.yaml \
   -s source/personinfo.yaml \
    data/Container-001.yaml \
@@ -146,8 +146,8 @@ See:
 ## Running the code
 
 ```bash
-linkml-tr --help
-Usage: linkml-tr [OPTIONS] COMMAND [ARGS]...
+linkml-map --help
+Usage: linkml-map [OPTIONS] COMMAND [ARGS]...
 
   CLI for linkml-map.
 
@@ -168,13 +168,13 @@ through to a complex mappings.
 
 ```
 cd tests/input/examples/personinfo_basic
-linkml-tr map-data -T transform/personinfo-to-agent.transform.yaml -s source/personinfo.yaml  data/Container-001.yaml
+linkml-map map-data -T transform/personinfo-to-agent.transform.yaml -s source/personinfo.yaml  data/Container-001.yaml
 ```
 
 ### derive-schema
 
 ```
 cd tests/input/examples/personinfo_basic
-linkml-tr derive-schema -T transform/personinfo-to-agent.transform.yaml source/personinfo.yaml
+linkml-map derive-schema -T transform/personinfo-to-agent.transform.yaml source/personinfo.yaml
 ```
 
