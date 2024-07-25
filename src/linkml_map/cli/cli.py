@@ -1,4 +1,4 @@
-"""Command line interface for linkml-transformer."""
+"""Command line interface for linkml-map."""
 
 import logging
 import sys
@@ -45,7 +45,7 @@ output_format_options = click.option(
 @click.option("-q", "--quiet")
 # @click.version_option(__version__)
 def main(verbose: int, quiet: bool):
-    """CLI for linkml-transformer."""
+    """CLI for linkml-map."""
     logger = logging.getLogger()
     if verbose >= 2:
         logger.setLevel(level=logging.DEBUG)
@@ -85,7 +85,7 @@ def map_data(
 
     Example:
 
-        linkml-tr map-data -T X-to-Y-tr.yaml -s X.yaml  X-data.yaml
+        linkml-map map-data -T X-to-Y-tr.yaml -s X.yaml  X-data.yaml
     """
     logging.info(f"Transforming {input} conforming to {schema} using {transformer_specification}")
     tr = ObjectTransformer(**kwargs)
@@ -121,7 +121,7 @@ def compile(
 
     Example:
 
-        linkml-tr compile -T X-to-Y-tr.yaml -s X.yaml
+        linkml-map compile -T X-to-Y-tr.yaml -s X.yaml
     """
     logging.info(f"Compiling {transformer_specification} with {schema}")
     compiler_args = {}
@@ -158,7 +158,7 @@ def derive_schema(schema, transformer_specification, output, output_format, **kw
 
     Example:
 
-        linkml-tr derive-schema -T transform/personinfo-to-agent.transform.yaml source/personinfo.yaml
+        linkml-map derive-schema -T transform/personinfo-to-agent.transform.yaml source/personinfo.yaml
     """
     logging.info(f"Transforming {schema} using {transformer_specification}")
     tr = ObjectTransformer()
@@ -184,7 +184,7 @@ def invert(schema, transformer_specification, output, output_format, **kwargs):
 
     Example:
 
-        linkml-tr invert -T transform/personinfo-to-agent.transform.yaml source/personinfo.yaml
+        linkml-map invert -T transform/personinfo-to-agent.transform.yaml source/personinfo.yaml
     """
     logging.info(f"Inverting {transformer_specification} using {schema} as source")
     tr = ObjectTransformer()
