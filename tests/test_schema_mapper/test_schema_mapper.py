@@ -12,7 +12,6 @@ from linkml_map.datamodel.transformer_model import (
 from linkml_map.inference.schema_mapper import SchemaMapper
 from linkml_map.transformer.object_transformer import ObjectTransformer
 from tests import SCHEMA1, SPECIFICATION
-from tests.input.examples.personinfo_basic.model.personinfo_model import slots
 
 
 class SchemaMapperTestCase(unittest.TestCase):
@@ -50,13 +49,13 @@ class SchemaMapperTestCase(unittest.TestCase):
             ),
             ("FamilialRelationship", ["related_to", "type"]),
         ]
-        for cn, slots in cases:
+        for cn, ex_slots in cases:
             self.assertIn(cn, target_schema.classes)
             c = target_schema.classes[cn]
             atts = c.attributes
-            for s in slots:
+            for s in ex_slots:
                 self.assertIn(s, atts)
-            # self.assertCountEqual(slots, list(atts))
+            # self.assertCountEqual(ex_slots, list(atts))
         agent = target_schema.classes["Agent"]
         self.assertEqual(agent.is_a, "Entity")
 
