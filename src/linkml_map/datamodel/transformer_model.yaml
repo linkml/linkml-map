@@ -17,12 +17,13 @@ description: |-
   - translation into another specification language, such as R2RML
 prefixes:
   linkml: https://w3id.org/linkml/
-  linkmltr: https://w3id.org/linkml/transformer/
+  linkmlmap: https://w3id.org/linkml/transformer/
   dcterms: http://purl.org/dc/terms/
   schema: http://schema.org/
   rdfs: http://www.w3.org/2000/01/rdf-schema#
   sh: http://www.w3.org/ns/shacl#
-default_prefix: linkmltr
+  STATO: http://purl.obolibrary.org/obo/STATO_
+default_prefix: linkmlmap
 
 imports:
   - linkml:types
@@ -178,6 +179,12 @@ classes:
         range: SlotDerivation
         multivalued: true
         inlined: true
+      target_definition:
+        range: Any
+        description: >-
+          LinkML class definition object for this slot.
+        comments:
+          - currently defined as Any to avoid coupling with metamodel
 
   AliasedClass:
     description: alias-class key value pairs for classes
@@ -228,12 +235,20 @@ classes:
         description: True if this is suppressed
       type_designator:
         range: boolean
+      target_definition:
+        range: Any
+        description: >-
+          LinkML definition object for this slot.
+        comments:
+          - currently defined as Any to avoid coupling with metamodel
       cast_collection_as:
         range: CollectionType
       dictionary_key:
         range: string
       stringification:
         range: StringificationConfiguration
+      aggregation_operation:
+        range: AggregationOperation
 
   EnumDerivation:
     is_a: ElementDerivation
@@ -330,6 +345,57 @@ classes:
       slot_name:
       class_name:
 
+  TransformationOperation:
+    abstract: true
+
+  AggregationOperation:
+    is_a: TransformationOperation
+    attributes:
+      operator:
+        range: AggregationType
+        required: true
+      null_handling:
+        range: InvalidValueHandlingStrategy
+      invalid_value_handling:
+        range: InvalidValueHandlingStrategy
+
+  GroupingOperation:
+    is_a: TransformationOperation
+    attributes:
+      null_handling:
+        range: InvalidValueHandlingStrategy
+
+  PivotOperation:
+    aliases:
+      - melt/unmelt
+      - reification/dereification
+    is_a: TransformationOperation
+    attributes:
+      direction:
+        range: PivotDirectionType
+        required: true
+      variable_slot:
+        aliases:
+          - var_name
+        range: SlotReference
+        ifabsent: string(variable)
+        description: Slot to use for the variable column in the melted/long representation.
+          In EAV this is the name of the 'A' variable
+      value_slot:
+        aliases:
+          - value_name
+        range: SlotReference
+        ifabsent: string(value)
+        description: Slot to use for the value column in the melted/long representation.
+          In EAV this is the name of the 'V' variable
+      unmelt_to_class:
+        description: In an unmelt operation, attributes (which are values in the long/melted/EAV
+          representation) must conform to valid attributes in this class
+        range: ClassReference
+      unmelt_to_slots:
+        range: SlotReference
+        multivalued: true
+
   KeyVal:
     attributes:
       key:
@@ -394,3 +460,46 @@ enums:
       JSON:
       YAML:
       TURTLE:
+  AggregationType:
+    permissible_values:
+      SUM:
+      AVERAGE:
+        aliases:
+          - mean
+          - avg
+        exact_mappings:
+          - STATO:0000230
+      COUNT:
+        exact_mappings:
+          - STATO:0000047
+      MIN:
+      MAX:
+      STD_DEV:
+        exact_mappings:
+          - STATO:0000237
+      VARIANCE:
+      MEDIAN:
+        exact_mappings:
+          - STATO:0000674
+      MODE:
+        exact_mappings:
+          - STATO:0000033
+      CUSTOM:
+      SET:
+      LIST:
+      ARRAY:
+  InvalidValueHandlingStrategy:
+    permissible_values:
+      IGNORE:
+      TREAT_AS_ZERO:
+      ERROR_OUT:
+  PivotDirectionType:
+    permissible_values:
+      MELT:
+        aliases:
+          - unpivot
+          - wide to long
+      UNMELT:
+        aliases:
+          - pivot
+          - long to wide

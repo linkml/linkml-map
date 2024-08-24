@@ -63,11 +63,8 @@ class LinkMLMeta(RootModel):
     def __setitem__(self, key:str, value):
         self.root[key] = value
 
-    def __contains__(self, key:str) -> bool:
-        return key in self.root
 
-
-linkml_meta = LinkMLMeta({'default_prefix': 'linkmltr',
+linkml_meta = LinkMLMeta({'default_prefix': 'https://w3id.org/linkml/transformer/',
      'description': 'Datamodel for LinkML schema mappings and transformations.\n'
                     '\n'
                     'A mapper generates instances of a *target* data model from\n'
@@ -87,31 +84,7 @@ linkml_meta = LinkMLMeta({'default_prefix': 'linkmltr',
                     '- translation into another specification language, such as '
                     'R2RML',
      'id': 'https://w3id.org/linkml/transformer',
-     'imports': ['linkml:types'],
-     'name': 'linkml-map',
-     'prefixes': {'dcterms': {'prefix_prefix': 'dcterms',
-                              'prefix_reference': 'http://purl.org/dc/terms/'},
-                  'linkml': {'prefix_prefix': 'linkml',
-                             'prefix_reference': 'https://w3id.org/linkml/'},
-                  'linkmltr': {'prefix_prefix': 'linkmltr',
-                               'prefix_reference': 'https://w3id.org/linkml/transformer/'},
-                  'rdfs': {'prefix_prefix': 'rdfs',
-                           'prefix_reference': 'http://www.w3.org/2000/01/rdf-schema#'},
-                  'schema': {'prefix_prefix': 'schema',
-                             'prefix_reference': 'http://schema.org/'},
-                  'sh': {'prefix_prefix': 'sh',
-                         'prefix_reference': 'http://www.w3.org/ns/shacl#'}},
-     'source_file': 'src/linkml_map/datamodel/transformer_model.yaml',
-     'title': 'LinkML Map Data Model',
-     'types': {'ClassReference': {'from_schema': 'https://w3id.org/linkml/transformer',
-                                  'name': 'ClassReference',
-                                  'typeof': 'string'},
-               'EnumReference': {'from_schema': 'https://w3id.org/linkml/transformer',
-                                 'name': 'EnumReference',
-                                 'typeof': 'string'},
-               'SlotReference': {'from_schema': 'https://w3id.org/linkml/transformer',
-                                 'name': 'SlotReference',
-                                 'typeof': 'string'}}} )
+     'name': 'linkml-map'} )
 
 class CollectionType(str, Enum):
     SingleValued = "SingleValued"
@@ -124,6 +97,33 @@ class SerializationSyntaxType(str, Enum):
     JSON = "JSON"
     YAML = "YAML"
     TURTLE = "TURTLE"
+
+
+class AggregationType(str, Enum):
+    SUM = "SUM"
+    AVERAGE = "AVERAGE"
+    COUNT = "COUNT"
+    MIN = "MIN"
+    MAX = "MAX"
+    STD_DEV = "STD_DEV"
+    VARIANCE = "VARIANCE"
+    MEDIAN = "MEDIAN"
+    MODE = "MODE"
+    CUSTOM = "CUSTOM"
+    SET = "SET"
+    LIST = "LIST"
+    ARRAY = "ARRAY"
+
+
+class InvalidValueHandlingStrategy(str, Enum):
+    IGNORE = "IGNORE"
+    TREAT_AS_ZERO = "TREAT_AS_ZERO"
+    ERROR_OUT = "ERROR_OUT"
+
+
+class PivotDirectionType(str, Enum):
+    MELT = "MELT"
+    UNMELT = "UNMELT"
 
 
 
@@ -221,6 +221,9 @@ class ClassDerivation(ElementDerivation):
          'domain_of': ['ClassDerivation']} })
     slot_derivations: Optional[Dict[str, SlotDerivation]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'alias': 'slot_derivations',
          'domain_of': ['TransformationSpecification', 'ClassDerivation']} })
+    target_definition: Optional[Any] = Field(None, description="""LinkML class definition object for this slot.""", json_schema_extra = { "linkml_meta": {'alias': 'target_definition',
+         'comments': ['currently defined as Any to avoid coupling with metamodel'],
+         'domain_of': ['ClassDerivation', 'SlotDerivation']} })
     name: str = Field(..., description="""Name of the element in the target schema""", json_schema_extra = { "linkml_meta": {'alias': 'name',
          'domain_of': ['ElementDerivation',
                        'SlotDerivation',
@@ -290,9 +293,13 @@ class SlotDerivation(ElementDerivation):
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
     type_designator: Optional[bool] = Field(None, json_schema_extra = { "linkml_meta": {'alias': 'type_designator', 'domain_of': ['SlotDerivation']} })
+    target_definition: Optional[Any] = Field(None, description="""LinkML definition object for this slot.""", json_schema_extra = { "linkml_meta": {'alias': 'target_definition',
+         'comments': ['currently defined as Any to avoid coupling with metamodel'],
+         'domain_of': ['ClassDerivation', 'SlotDerivation']} })
     cast_collection_as: Optional[CollectionType] = Field(None, json_schema_extra = { "linkml_meta": {'alias': 'cast_collection_as', 'domain_of': ['SlotDerivation']} })
     dictionary_key: Optional[str] = Field(None, json_schema_extra = { "linkml_meta": {'alias': 'dictionary_key', 'domain_of': ['SlotDerivation']} })
     stringification: Optional[StringificationConfiguration] = Field(None, json_schema_extra = { "linkml_meta": {'alias': 'stringification', 'domain_of': ['SlotDerivation']} })
+    aggregation_operation: Optional[AggregationOperation] = Field(None, json_schema_extra = { "linkml_meta": {'alias': 'aggregation_operation', 'domain_of': ['SlotDerivation']} })
     copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives', 'domain_of': ['ElementDerivation']} })
     overrides: Optional[Any] = Field(None, description="""overrides source schema slots""", json_schema_extra = { "linkml_meta": {'alias': 'overrides', 'domain_of': ['ElementDerivation']} })
     is_a: Optional[str] = Field(None, json_schema_extra = { "linkml_meta": {'alias': 'is_a', 'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:is_a'} })
@@ -483,6 +490,45 @@ class Inverse(ConfiguredBaseModel):
     class_name: Optional[str] = Field(None, json_schema_extra = { "linkml_meta": {'alias': 'class_name', 'domain_of': ['Inverse']} })
 
 
+class TransformationOperation(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True, 'from_schema': 'https://w3id.org/linkml/transformer'})
+
+    pass
+
+
+class AggregationOperation(TransformationOperation):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/linkml/transformer'})
+
+    operator: AggregationType = Field(..., json_schema_extra = { "linkml_meta": {'alias': 'operator', 'domain_of': ['AggregationOperation']} })
+    null_handling: Optional[InvalidValueHandlingStrategy] = Field(None, json_schema_extra = { "linkml_meta": {'alias': 'null_handling',
+         'domain_of': ['AggregationOperation', 'GroupingOperation']} })
+    invalid_value_handling: Optional[InvalidValueHandlingStrategy] = Field(None, json_schema_extra = { "linkml_meta": {'alias': 'invalid_value_handling', 'domain_of': ['AggregationOperation']} })
+
+
+class GroupingOperation(TransformationOperation):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/linkml/transformer'})
+
+    null_handling: Optional[InvalidValueHandlingStrategy] = Field(None, json_schema_extra = { "linkml_meta": {'alias': 'null_handling',
+         'domain_of': ['AggregationOperation', 'GroupingOperation']} })
+
+
+class PivotOperation(TransformationOperation):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'aliases': ['melt/unmelt', 'reification/dereification'],
+         'from_schema': 'https://w3id.org/linkml/transformer'})
+
+    direction: PivotDirectionType = Field(..., json_schema_extra = { "linkml_meta": {'alias': 'direction', 'domain_of': ['PivotOperation']} })
+    variable_slot: Optional[str] = Field("variable", description="""Slot to use for the variable column in the melted/long representation. In EAV this is the name of the 'A' variable""", json_schema_extra = { "linkml_meta": {'alias': 'variable_slot',
+         'aliases': ['var_name'],
+         'domain_of': ['PivotOperation'],
+         'ifabsent': 'string(variable)'} })
+    value_slot: Optional[str] = Field("value", description="""Slot to use for the value column in the melted/long representation. In EAV this is the name of the 'V' variable""", json_schema_extra = { "linkml_meta": {'alias': 'value_slot',
+         'aliases': ['value_name'],
+         'domain_of': ['PivotOperation'],
+         'ifabsent': 'string(value)'} })
+    unmelt_to_class: Optional[str] = Field(None, description="""In an unmelt operation, attributes (which are values in the long/melted/EAV representation) must conform to valid attributes in this class""", json_schema_extra = { "linkml_meta": {'alias': 'unmelt_to_class', 'domain_of': ['PivotOperation']} })
+    unmelt_to_slots: Optional[List[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'alias': 'unmelt_to_slots', 'domain_of': ['PivotOperation']} })
+
+
 class KeyVal(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/linkml/transformer'})
 
@@ -524,6 +570,10 @@ PrefixDerivation.model_rebuild()
 UnitConversionConfiguration.model_rebuild()
 StringificationConfiguration.model_rebuild()
 Inverse.model_rebuild()
+TransformationOperation.model_rebuild()
+AggregationOperation.model_rebuild()
+GroupingOperation.model_rebuild()
+PivotOperation.model_rebuild()
 KeyVal.model_rebuild()
 CopyDirective.model_rebuild()
 
