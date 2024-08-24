@@ -115,6 +115,18 @@ class SchemaMapper:
         for slot_derivation in class_derivation.slot_derivations.values():
             slot_definition = self._derive_slot(slot_derivation)
             target_class.attributes[slot_definition.name] = slot_definition
+        if class_derivation.is_a:
+            target_class.is_a = class_derivation.is_a
+        if class_derivation.mixins:
+            target_class.mixins = class_derivation.mixins
+        if class_derivation.target_definition:
+            spec_defn = ClassDefinition(
+                **{"name": target_class.name}, **class_derivation.target_definition
+            )
+            for k, v in vars(spec_defn).items():
+                curr_v = getattr(target_class, k, None)
+                if curr_v is None or curr_v == [] or curr_v == {}:
+                    setattr(target_class, k, v)
         self.source_to_target_class_mappings[populated_from].append(target_class.name)
         if class_derivation.overrides:
             curr = json_dumper.to_dict(target_class)
@@ -178,6 +190,12 @@ class SchemaMapper:
             target_slot.name = slot_derivation.name
         if slot_derivation.range:
             target_slot.range = slot_derivation.range
+        if slot_derivation.target_definition:
+            spec_defn = SlotDefinition(
+                **{"name": target_slot.name}, **slot_derivation.target_definition
+            )
+            for k, v in vars(spec_defn).items():
+                setattr(target_slot, k, v)
         if slot_derivation.unit_conversion:
             target_slot.unit = UnitOfMeasure(ucum_code=slot_derivation.unit_conversion.target_unit)
         if slot_derivation.stringification:
