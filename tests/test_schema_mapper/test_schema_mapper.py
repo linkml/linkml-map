@@ -6,7 +6,8 @@ from linkml_runtime.utils.schema_builder import SchemaBuilder
 
 from linkml_map.datamodel.transformer_model import (
     ClassDerivation,
-    TransformationSpecification, SlotDerivation,
+    SlotDerivation,
+    TransformationSpecification,
 )
 from linkml_map.inference.schema_mapper import SchemaMapper
 from linkml_map.transformer.object_transformer import ObjectTransformer
@@ -94,29 +95,22 @@ class SchemaMapperTestCase(unittest.TestCase):
                 "Thing": ClassDerivation(
                     name="Thing",
                     slot_derivations={
-                        "id": SlotDerivation(name="id",
-                                             target_definition={
-                                                 "identifier": "true",
-                                                 "range": "uriorcurie"
-                                             },
-                                             ),
+                        "id": SlotDerivation(
+                            name="id",
+                            target_definition={"identifier": "true", "range": "uriorcurie"},
+                        ),
                     },
                 ),
                 "Agent": ClassDerivation(
                     name="Agent",
                     slot_derivations={
-                        "age": SlotDerivation(name="role",
-                                              target_definition={
-                                                       "range": "integer"
-                                              }
-                                             ),
+                        "age": SlotDerivation(name="role", target_definition={"range": "integer"}),
                     },
                     target_definition={
                         "description": "A person or organization.",
                         "is_a": "Thing",
-                    }
-                )
-
+                    },
+                ),
             },
         )
         target_schema = tr.derive_schema(specification)
@@ -192,8 +186,6 @@ class SchemaMapperTestCase(unittest.TestCase):
         emp = target_schema.classes["TrEmployee"]
         self.assertEqual(["tr_salary"], list(emp.attributes.keys()))
         # self.assertEqual("Person", emp.is_a)
-
-
 
 
 if __name__ == "__main__":

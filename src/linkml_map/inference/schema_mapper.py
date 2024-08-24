@@ -120,7 +120,9 @@ class SchemaMapper:
         if class_derivation.mixins:
             target_class.mixins = class_derivation.mixins
         if class_derivation.target_definition:
-            spec_defn = ClassDefinition(**{"name": target_class.name}, **class_derivation.target_definition)
+            spec_defn = ClassDefinition(
+                **{"name": target_class.name}, **class_derivation.target_definition
+            )
             for k, v in vars(spec_defn).items():
                 curr_v = getattr(target_class, k, None)
                 if curr_v is None or curr_v == [] or curr_v == {}:
@@ -189,7 +191,9 @@ class SchemaMapper:
         if slot_derivation.range:
             target_slot.range = slot_derivation.range
         if slot_derivation.target_definition:
-            spec_defn = SlotDefinition(**{"name": target_slot.name}, **slot_derivation.target_definition)
+            spec_defn = SlotDefinition(
+                **{"name": target_slot.name}, **slot_derivation.target_definition
+            )
             for k, v in vars(spec_defn).items():
                 setattr(target_slot, k, v)
         if slot_derivation.unit_conversion:
