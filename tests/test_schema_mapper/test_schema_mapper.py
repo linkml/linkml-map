@@ -6,6 +6,7 @@ from linkml_runtime.utils.schema_builder import SchemaBuilder
 
 from linkml_map.datamodel.transformer_model import (
     ClassDerivation,
+    CopyDirective,
     SlotDerivation,
     TransformationSpecification,
 )
@@ -185,6 +186,200 @@ class SchemaMapperTestCase(unittest.TestCase):
         emp = target_schema.classes["TrEmployee"]
         self.assertEqual(["tr_salary"], list(emp.attributes.keys()))
         # self.assertEqual("Person", emp.is_a)
+
+    def test_full_copy_specification(self):
+        """tests copy isomorphism"""
+        tr = self.mapper
+        copy_all_directive = {"*": CopyDirective(element_name="*", copy_all=True)}
+        specification = TransformationSpecification(id="test", copy_directives=copy_all_directive)
+        source_schema = tr.source_schemaview.schema
+
+        target_schema = tr.derive_schema(specification)
+        # classes, slots and enums must be exactly the same
+        self.assertEqual(
+            yaml_dumper.dumps(source_schema.classes), yaml_dumper.dumps(target_schema.classes)
+        )
+        self.assertEqual(
+            yaml_dumper.dumps(source_schema.slots), yaml_dumper.dumps(target_schema.slots)
+        )
+        self.assertEqual(
+            yaml_dumper.dumps(source_schema.enums), yaml_dumper.dumps(target_schema.enums)
+        )
+
+    def test_partial_copy_specification(self):
+        """tests copy isomorphism excluding derivations"""
+        tr = self.mapper
+        copy_all_directive = {"*": CopyDirective(element_name="*", copy_all=True)}
+        specification = TransformationSpecification(id="test", copy_directives=copy_all_directive)
+        source_schema = tr.source_schemaview.schema
+
+        derivations = [
+            ClassDerivation(name="Agent", populated_from="Person"),
+        ]
+        for derivation in derivations:
+            specification.class_derivations[derivation.name] = derivation
+        target_schema = tr.derive_schema(specification)
+        # classes must be the same with addition
+        for schema_class in source_schema.classes.keys():
+            self.assertIn(
+                schema_class,
+                target_schema.classes.keys(),
+                f"Class '{schema_class}' is missing in target",
+            )
+        self.assertIn(
+            "Agent", target_schema.classes.keys(), "Derived class 'Agent' is missing in target"
+        )
+        # slots and enums must be exactly the same
+        self.assertEqual(
+            yaml_dumper.dumps(source_schema.slots), yaml_dumper.dumps(target_schema.slots)
+        )
+        self.assertEqual(
+            yaml_dumper.dumps(source_schema.enums), yaml_dumper.dumps(target_schema.enums)
+        )
+
+    def test_full_copy_class(self):
+        """tests copy isomorphism with class derivation"""
+        tr = self.mapper
+        copy_all_directive = {"*": CopyDirective(element_name="*", copy_all=True)}
+        specification = TransformationSpecification(id="test", copy_directives=copy_all_directive)
+        source_schema = tr.source_schemaview.schema
+
+        derivations = [
+            ClassDerivation(
+                name="Agent", populated_from="Person", copy_directives=copy_all_directive
+            ),
+        ]
+        for derivation in derivations:
+            specification.class_derivations[derivation.name] = derivation
+        target_schema = tr.derive_schema(specification)
+        # classes must be the same with addition
+        for schema_class in source_schema.classes.keys():
+            self.assertIn(
+                schema_class,
+                target_schema.classes.keys(),
+                f"Class '{schema_class}' is missing in target",
+            )
+        self.assertIn(
+            "Agent", target_schema.classes.keys(), "Derived class 'Agent' is missing in target"
+        )
+        self.assertEqual(
+            yaml_dumper.dumps(source_schema.classes["Person"].slots),
+            yaml_dumper.dumps(target_schema.classes["Agent"].slots),
+        )
+        self.assertEqual(
+            yaml_dumper.dumps(source_schema.classes["Person"].attributes),
+            yaml_dumper.dumps(target_schema.classes["Agent"].attributes),
+        )
+        # slots and enums must be exactly the same
+        self.assertEqual(
+            yaml_dumper.dumps(source_schema.slots), yaml_dumper.dumps(target_schema.slots)
+        )
+        self.assertEqual(
+            yaml_dumper.dumps(source_schema.enums), yaml_dumper.dumps(target_schema.enums)
+        )
+
+    def test_copy_blacklisting(self):
+        """tests copy on a blacklist approach"""
+        tr = self.mapper
+        blacklist = ["Person"]
+        copy_all_directive = {
+            "*": CopyDirective(element_name="*", copy_all=True, exclude=blacklist)
+        }
+        specification = TransformationSpecification(id="test", copy_directives=copy_all_directive)
+        source_schema = tr.source_schemaview.schema
+
+        derivations = [
+            ClassDerivation(name="Agent", populated_from="Person"),
+        ]
+        for derivation in derivations:
+            specification.class_derivations[derivation.name] = derivation
+        target_schema = tr.derive_schema(specification)
+        # classes must be the same with addition
+        for schema_class in source_schema.classes.keys():
+            if schema_class in blacklist:
+                self.assertNotIn(
+                    schema_class,
+                    target_schema.classes.keys(),
+                    f"Class '{schema_class}' is missing in target",
+                )
+            else:
+                self.assertIn(
+                    schema_class,
+                    target_schema.classes.keys(),
+                    f"Class '{schema_class}' is missing in target",
+                )
+        self.assertIn(
+            "Agent", target_schema.classes.keys(), "Derived class 'Agent' is missing in target"
+        )
+        # slots and enums must be exactly the same
+        self.assertEqual(
+            yaml_dumper.dumps(source_schema.slots), yaml_dumper.dumps(target_schema.slots)
+        )
+        self.assertEqual(
+            yaml_dumper.dumps(source_schema.enums), yaml_dumper.dumps(target_schema.enums)
+        )
+
+    def test_copy_whitelisting(self):
+        """tests copy on a whitelist approach"""
+        tr = self.mapper
+        whitelist = ["NamedThing"]
+        whitelist_directive = {
+            "Whitelist": CopyDirective(
+                element_name="*", copy_all=True, exclude_all=True, include=whitelist
+            )
+        }
+        specification = TransformationSpecification(id="test", copy_directives=whitelist_directive)
+        source_schema = tr.source_schemaview.schema
+
+        derivations = [
+            ClassDerivation(name="Agent", populated_from="Person"),
+        ]
+        for derivation in derivations:
+            specification.class_derivations[derivation.name] = derivation
+        target_schema = tr.derive_schema(specification)
+        # classes, slots and enums must have only what explicitly included
+        for schema_class in source_schema.classes.keys():
+            if schema_class in whitelist:
+                self.assertIn(
+                    schema_class,
+                    target_schema.classes.keys(),
+                    f"Class '{schema_class}' is missing in target",
+                )
+            else:
+                self.assertNotIn(
+                    schema_class,
+                    target_schema.classes.keys(),
+                    f"Class '{schema_class}' is missing in target",
+                )
+        self.assertIn(
+            "Agent", target_schema.classes.keys(), "Derived class 'Agent' is missing in target"
+        )
+        for schema_slot in source_schema.slots.keys():
+            if schema_slot in whitelist:
+                self.assertIn(
+                    schema_slot,
+                    target_schema.slots.keys(),
+                    f"Slot '{schema_slot}' is missing in target",
+                )
+            else:
+                self.assertNotIn(
+                    schema_slot,
+                    target_schema.slots.keys(),
+                    f"Slot '{schema_slot}' is missing in target",
+                )
+        for schema_enum in source_schema.enums.keys():
+            if schema_enum in whitelist:
+                self.assertIn(
+                    schema_enum,
+                    target_schema.enums.keys(),
+                    f"Enum '{schema_enum}' is missing in target",
+                )
+            else:
+                self.assertNotIn(
+                    schema_enum,
+                    target_schema.enums.keys(),
+                    f"Enum '{schema_enum}' is missing in target",
+                )
 
 
 if __name__ == "__main__":
