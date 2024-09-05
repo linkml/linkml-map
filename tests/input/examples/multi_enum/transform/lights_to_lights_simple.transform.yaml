@@ -1,0 +1,90 @@
+class_derivations:
+  lights_inventory:
+    name: lights_inventory
+    populated_from: lights
+    slot_derivations:
+      light_colors:
+        name: light_colors
+        populated_from: colors
+      light_main_color:
+        name: light_main_color
+        populated_from: main_color
+      light_mirror_test_slot:
+        name: mirror_test_slot
+        populated_from: mirror_test_slot
+  Container:
+    name: Container
+    slot_derivations:
+      lights_inventory:
+        populated_from: lights
+        range: string
+enum_derivations:
+  missingness_enum:
+    name: missingness_enum
+    mirror_source: false
+    populated_from: missingness
+    permissible_value_derivations:
+      na:
+        name: na
+        populated_from: not_available
+      oth:
+        name: oth
+        populated_from: other
+  light_primary_colors_enum:
+    name: light_primary_colors_enum
+    mirror_source: false
+    populated_from: primary_colors
+    permissible_value_derivations:
+      red:
+        name: red
+        sources:
+        - light_red
+        - dark_red
+      green:
+        name: green
+        sources:
+        - light_green
+        - dark_green
+      blue:
+        name: blue
+        sources:
+        - light_blue
+        - dark_blue
+  light_secondary_colors_enum:
+    name: light_secondary_colors_enum
+    mirror_source: false
+    populated_from: secondary_colors
+    permissible_value_derivations:
+      cyan:
+        name: cyan
+        sources:
+        - light_cyan
+        - dark_cyan
+      magenta:
+        name: magenta
+        sources:
+        - light_magenta
+        - dark_magenta
+      yellow:
+        name: yellow
+        sources:
+        - light_yellow
+        - dark_yellow
+  light_test_colors_enum:
+    # This derivation is for testing mirror_source=True. When transforming a slot with multiple enumerations in the range,
+    # and we encounter an enum derivation with mirror_source=True, then if no permissible value derivation is matched we return
+    # the source value unchanged, and ignore any further enum derivations.
+    name: light_test_colors_enum
+    mirror_source: true
+    populated_from: mirror_test_colors
+    permissible_value_derivations:
+      purple:
+        name: purple
+        populated_from: dark_purple
+      turquoise:
+        name: turquoise
+        populated_from: dark_turquoise
+      fuchsia:
+        name: fuchsia
+        populated_from: dark_fuchsia
+      
