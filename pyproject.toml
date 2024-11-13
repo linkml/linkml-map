@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "linkml-map"
-version = "0.0.0"
+version = "0.3.8.post1.dev0+aed82cf"
 description = "a framework for specifying and executing mappings between data models"
 authors = ["cmungall <cjm@berkeleybop.org>"]
 readme = "README.md"
@@ -12,6 +12,7 @@ asteval = "^0.9.29"
 deepdiff = "^6.7.1"
 pydantic = ">=2.0.0"
 ucumvert = "^0.1.1"
+linkml-model = "^1.8.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.3.1"
@@ -24,7 +25,7 @@ mkdocs-windmill = "*"
 tox = "*"
 
 [tool.poetry-dynamic-versioning]
-enable = true
+enable = false
 vcs = "git"
 style = "pep440"
 
