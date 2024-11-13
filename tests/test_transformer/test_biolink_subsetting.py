@@ -8,6 +8,7 @@ from linkml_map.session import Session
 from linkml_runtime.utils.schemaview import SchemaView
 from src.linkml_map.utils.loaders import load_specification
 from linkml_runtime.utils.formatutils import camelcase
+from pprint import pprint
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -99,6 +100,8 @@ def test_biolink_subset_auto(biolink_schema):
 
     class_derivations = get_biolink_class_derivations(biolink_schema, SUBSET_CLASSES)
 
+    pprint(class_derivations)
+
     ts = TransformationSpecification(class_derivations=class_derivations)
 
     mapper = SchemaMapper()
@@ -108,11 +111,13 @@ def test_biolink_subset_auto(biolink_schema):
                                              target_schema_id="biolink-profile",
                                              target_schema_name="BiolinkProfile")
 
-    yaml_dumper.dump(target_schema_obj, str("biolink-profile.yaml"))
+    yaml_dumper.dump(target_schema_obj, str("biolink-subset.yaml"))
 
     transformed_sv = SchemaView("biolink-profile.yaml")
 
     for class_name in transformed_sv.all_classes():
         print(class_name)
+    for slot_name in transformed_sv.all_slots():
+        print(slot_name)
 
 
