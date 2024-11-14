@@ -1,5 +1,4 @@
 from pathlib import Path
-from pprint import pprint
 
 from linkml_runtime.dumpers import yaml_dumper
 from linkml_runtime.utils.formatutils import camelcase, underscore
@@ -8,9 +7,9 @@ from pytest import fixture
 
 from linkml_map.datamodel.transformer_model import (
     ClassDerivation,
+    CopyDirective,
     SlotDerivation,
     TransformationSpecification,
-    CopyDirective
 )
 from linkml_map.inference.schema_mapper import SchemaMapper
 from linkml_map.session import Session
@@ -121,7 +120,9 @@ def test_biolink_subset_auto(biolink_schema):
     # Print the type names
     for type_name in copy_type_directives:
         print(type_name)
-    ts = TransformationSpecification(class_derivations=class_derivations, copy_directives=copy_type_directives)
+    ts = TransformationSpecification(
+        class_derivations=class_derivations, copy_directives=copy_type_directives
+    )
 
     mapper = SchemaMapper()
     mapper.source_schemaview = biolink_schema
