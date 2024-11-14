@@ -81,6 +81,10 @@ classes:
         multivalued: true
         inlined: true
         slot_uri: sh:declare
+      copy_directives:
+        range: CopyDirective
+        multivalued: true
+        inlined: true
       source_schema:
         description: name of the schema that describes the source (input) objects
       target_schema:
