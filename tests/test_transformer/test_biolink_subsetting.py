@@ -1,10 +1,8 @@
 from pathlib import Path
-from pprint import pprint
 
 from linkml_runtime.dumpers import yaml_dumper
 from linkml_runtime.utils.formatutils import camelcase, underscore
 from linkml_runtime.utils.schemaview import SchemaView
-from linkml.utils.schema_builder import SchemaBuilder
 from pytest import fixture
 
 from linkml_map.datamodel.transformer_model import (
@@ -110,7 +108,7 @@ def test_biolink_subset_auto(biolink_schema):
         "gene to disease association",
         "gene to phenotypic feature association",
         "case",
-        "phenotypic feature"
+        "phenotypic feature",
     ]
 
     class_derivations = get_biolink_class_derivations(biolink_schema, subset_classes)
@@ -143,3 +141,6 @@ def test_biolink_subset_auto(biolink_schema):
         print(slot_name)
     for type_name in transformed_sv.all_types():
         print(type_name)
+
+    for slot in transformed_sv.get_class("Gene").slots:
+        print(slot)
