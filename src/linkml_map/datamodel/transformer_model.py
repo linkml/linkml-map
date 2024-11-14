@@ -233,6 +233,7 @@ class TransformationSpecification(SpecificationComponent):
             }
         },
     )
+    copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict)
     description: Optional[str] = Field(
         None,
         description="""description of the specification component""",

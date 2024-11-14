@@ -51,6 +51,93 @@ class SchemaMapper:
 
     slot_info: Dict[Tuple[str, str], Any] = field(default_factory=lambda: {})
 
+    def _copy_dict(
+        self,
+        copy_directive: CopyDirective,
+        src_elements,
+        tgt_elements,
+    ):
+        if copy_directive.copy_all:
+            for element in src_elements.keys():
+                tgt_elements[element] = src_elements[element]
+        if copy_directive.exclude:
+            for element in src_elements.keys():
+                if element in copy_directive.exclude:
+                    del tgt_elements[element]
+        if copy_directive.exclude_all:
+            elements_to_delete = [key for key in tgt_elements]
+            for element in elements_to_delete:
+                del tgt_elements[element]
+        if copy_directive.include:
+            for element in copy_directive.include:
+                if element in src_elements.keys():
+                    tgt_elements[element] = src_elements[element]
+
+    def _copy_list(
+        self,
+        copy_directive: CopyDirective,
+        src_elements,
+        tgt_elements,
+    ):
+        if copy_directive.copy_all:
+            for element in src_elements:
+                tgt_elements.append(element)
+        if copy_directive.exclude:
+            for element in src_elements:
+                if copy_directive.exclude:
+                    tgt_elements.remove(element)
+        if copy_directive.exclude_all:
+            for element in tgt_elements:
+                tgt_elements.remove(element)
+        if copy_directive.include:
+            for element in copy_directive.include:
+                if element in src_elements:
+                    tgt_elements.append(element)
+
+    def _copy_schema(
+        self,
+        copy_directives: list[CopyDirective],
+        source: SchemaDefinition,
+        target: SchemaDefinition,
+    ) -> SchemaDefinition:
+        if type(copy_directives) is dict:
+            copy_directives_list = copy_directives.values()
+        else:
+            copy_directives_list = copy_directives
+
+        for copy_directive in copy_directives_list:
+            for element_type in ["classes", "slots", "enums"]:
+                if not hasattr(source, element_type):
+                    continue
+                src_elements = getattr(source, element_type)
+                tgt_elements = getattr(target, element_type)
+                self._copy_dict(copy_directive, src_elements, tgt_elements)
+        return target
+
+    def _copy_class(
+        self,
+        copy_directives: list[CopyDirective],
+        source: ClassDefinition,
+        target: ClassDefinition,
+    ) -> ClassDefinition:
+        if type(copy_directives) is dict:
+            copy_directives_list = copy_directives.values()
+        else:
+            copy_directives_list = copy_directives
+
+        for copy_directive in copy_directives_list:
+            if hasattr(source, "attributes"):
+                # copy attributes (which is a dict)
+                src_elements = source.attributes
+                tgt_elements = target.attributes
+                self._copy_dict(copy_directive, src_elements, tgt_elements)
+            if hasattr(source, "slots"):
+                # copy slots (which is a list)
+                src_elements = source.slots
+                tgt_elements = target.slots
+                self._copy_list(copy_directive, src_elements, tgt_elements)
+        return target
+
     def derive_schema(
         self,
         specification: Optional[TransformationSpecification] = None,
@@ -73,6 +160,12 @@ class SchemaMapper:
         if target_schema_name is None:
             target_schema_name = source_schema.name + suffix
         target_schema = SchemaDefinition(id=target_schema_id, name=target_schema_name)
+        if hasattr(specification, "copy_directives"):
+            target_schema = self._copy_schema(
+                specification.copy_directives,
+                source_schema,
+                target_schema,
+            )
         for im in source_schema.imports:
             target_schema.imports.append(im)
         for prefix in source_schema.prefixes.values():
@@ -112,6 +205,12 @@ class SchemaMapper:
             target_class.slots = []
             target_class.attributes = {}
             target_class.slot_usage = {}
+            if hasattr(class_derivation, "copy_directives"):
+                target_class = self._copy_class(
+                    class_derivation.copy_directives,
+                    source_class,
+                    target_class,
+                )
         for slot_derivation in class_derivation.slot_derivations.values():
             slot_definition = self._derive_slot(slot_derivation)
             target_class.attributes[slot_definition.name] = slot_definition
