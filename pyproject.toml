@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "linkml-map"
-version = "0.3.8.post1.dev0+aed82cf"
+version = "0.0.0"
 description = "a framework for specifying and executing mappings between data models"
 authors = ["cmungall <cjm@berkeleybop.org>"]
 readme = "README.md"
@@ -25,7 +25,7 @@ mkdocs-windmill = "*"
 tox = "*"
 
 [tool.poetry-dynamic-versioning]
-enable = false
+enable = true
 vcs = "git"
 style = "pep440"
 
