@@ -9,6 +9,7 @@ from linkml_map.datamodel.transformer_model import (
     ClassDerivation,
     SlotDerivation,
     TransformationSpecification,
+    CopyDirective
 )
 from linkml_map.inference.schema_mapper import SchemaMapper
 from linkml_map.session import Session
@@ -111,8 +112,11 @@ def test_biolink_subset_auto(biolink_schema):
     ]
 
     class_derivations = get_biolink_class_derivations(biolink_schema, subset_classes)
-
-    ts = TransformationSpecification(class_derivations=class_derivations)
+    copy_type_directive = {
+        type_name: CopyDirective(element_name=type_name, copy_all=True)
+        for type_name, type_def in biolink_schema.all_types().items()
+    }
+    ts = TransformationSpecification(class_derivations=class_derivations, )
 
     mapper = SchemaMapper()
     mapper.source_schemaview = biolink_schema

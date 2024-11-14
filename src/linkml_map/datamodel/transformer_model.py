@@ -1553,10 +1553,18 @@ class KeyVal(ConfiguredBaseModel):
 class CopyDirective(ConfiguredBaseModel):
     """
     Instructs a Schema Mapper in how to map to a target schema. Not used for data transformation.
-    This is the process to process a directive: 1. If `copy_all`, add all sub-elements to the list of sub-elements to be copied. 2. If `exclude`, remove the specified sub-elements from the above list. 3. If `exclude_all`, clean-up the above list. Effectively making previous steps useless. 4. If `include`, add the specified sub-elements from the list result of previous steps.
-    Implementations might decide to somehow report (error, warning,...) meaningless combinations (like specifying `copy_all` and `exclude_all`).
-    Validation on the correctness of the resulting derived schema might be done optionally by the implementation. For example, removing a slot but keeping a class that requires it would invalidate the derived-schema. It is always possible to validate the schema with the LinkML linter after derivation.
-    What are the considered sub-elements depends on the calls of Element to be transformed. For example, for a class they are `slots` and `attributes`.
+    This is the process to process a directive:
+    1. If `copy_all`, add all sub-elements to the list of sub-elements to be copied.
+    2. If `exclude`, remove the specified sub-elements from the above list.
+    3. If `exclude_all`, clean-up the above list. Effectively making previous steps useless.
+    4. If `include`, add the specified sub-elements from the list result of previous steps.
+    Implementations might decide to somehow report (error, warning,...) meaningless combinations
+    (like specifying `copy_all` and `exclude_all`).
+    Validation on the correctness of the resulting derived schema might be done optionally by the implementation.
+    For example, removing a slot but keeping a class that requires it would invalidate the derived-schema.
+    It is always possible to validate the schema with the LinkML linter after derivation.
+    What are the considered sub-elements depends on the calls of Element to be transformed.
+    For example, for a class they are `slots` and `attributes`.
     """
 
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta(
