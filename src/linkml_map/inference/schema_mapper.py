@@ -106,7 +106,7 @@ class SchemaMapper:
             copy_directives_list = copy_directives
 
         for copy_directive in copy_directives_list:
-            for element_type in ["classes", "slots", "enums"]:
+            for element_type in ["classes", "slots", "enums", "types"]:
                 if not hasattr(source, element_type):
                     continue
                 src_elements = getattr(source, element_type)
