@@ -1,6 +1,4 @@
 from pathlib import Path
-from pprint import pprint
-from typing import List
 
 from linkml_runtime.dumpers import yaml_dumper
 from linkml_runtime.utils.formatutils import camelcase, underscore
@@ -102,7 +100,7 @@ def test_biolink_subset_auto(biolink_schema):
     # Set the source schema in the session
     session.set_source_schema(biolink_schema)
 
-    SUBSET_CLASSES = [
+    subset_classes = [
         "gene",
         "disease",
         "case to phenotypic feature association",
@@ -112,7 +110,7 @@ def test_biolink_subset_auto(biolink_schema):
         "phenotypic feature",
     ]
 
-    class_derivations = get_biolink_class_derivations(biolink_schema, SUBSET_CLASSES)
+    class_derivations = get_biolink_class_derivations(biolink_schema, subset_classes)
 
     ts = TransformationSpecification(class_derivations=class_derivations)
 
