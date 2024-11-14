@@ -1,4 +1,5 @@
 from pathlib import Path
+from pprint import pprint
 
 from linkml_runtime.dumpers import yaml_dumper
 from linkml_runtime.utils.formatutils import camelcase, underscore
@@ -112,17 +113,21 @@ def test_biolink_subset_auto(biolink_schema):
     ]
 
     class_derivations = get_biolink_class_derivations(biolink_schema, subset_classes)
-    copy_type_directive = {
+    copy_type_directives = {
         type_name: CopyDirective(element_name=type_name, copy_all=True)
         for type_name, type_def in biolink_schema.all_types().items()
     }
-    ts = TransformationSpecification(class_derivations=class_derivations, )
+
+    # Print the type names
+    for type_name in copy_type_directives:
+        print(type_name)
+    ts = TransformationSpecification(class_derivations=class_derivations, copy_directives=copy_type_directives)
 
     mapper = SchemaMapper()
     mapper.source_schemaview = biolink_schema
 
     target_schema_obj = mapper.derive_schema(
-        specification=ts, target_schema_id="biolink-profile", target_schema_name="BiolinkProfile"
+        specification=ts, target_schema_id="biolink-subset", target_schema_name="BiolinkSubset"
     )
 
     yaml_dumper.dump(target_schema_obj, str("biolink-subset.yaml"))
@@ -131,6 +136,7 @@ def test_biolink_subset_auto(biolink_schema):
 
     for class_name in transformed_sv.all_classes():
         print(class_name)
-    print()
     for slot_name in transformed_sv.all_slots():
         print(slot_name)
+    for type_name in transformed_sv.all_types():
+        print(type_name)
