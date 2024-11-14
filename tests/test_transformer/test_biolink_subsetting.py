@@ -113,7 +113,7 @@ def test_biolink_subset_auto(biolink_schema):
 
     class_derivations = get_biolink_class_derivations(biolink_schema, subset_classes)
     copy_type_directives = {
-        type_name: CopyDirective(element_name=type_name, copy_all=True)
+        type_name: CopyDirective(element_name=type_name, copy_all=False)
         for type_name, type_def in biolink_schema.all_types().items()
     }
 
