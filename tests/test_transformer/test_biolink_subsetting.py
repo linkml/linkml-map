@@ -1,8 +1,10 @@
 from pathlib import Path
+from pprint import pprint
 
 from linkml_runtime.dumpers import yaml_dumper
 from linkml_runtime.utils.formatutils import camelcase, underscore
 from linkml_runtime.utils.schemaview import SchemaView
+from linkml.utils.schema_builder import SchemaBuilder
 from pytest import fixture
 
 from linkml_map.datamodel.transformer_model import (
@@ -108,7 +110,7 @@ def test_biolink_subset_auto(biolink_schema):
         "gene to disease association",
         "gene to phenotypic feature association",
         "case",
-        "phenotypic feature",
+        "phenotypic feature"
     ]
 
     class_derivations = get_biolink_class_derivations(biolink_schema, subset_classes)
@@ -117,9 +119,6 @@ def test_biolink_subset_auto(biolink_schema):
         for type_name, type_def in biolink_schema.all_types().items()
     }
 
-    # Print the type names
-    for type_name in copy_type_directives:
-        print(type_name)
     ts = TransformationSpecification(
         class_derivations=class_derivations, copy_directives=copy_type_directives
     )
@@ -131,7 +130,10 @@ def test_biolink_subset_auto(biolink_schema):
         specification=ts, target_schema_id="biolink-subset", target_schema_name="BiolinkSubset"
     )
 
-    yaml_dumper.dump(target_schema_obj, str("biolink-subset.yaml"))
+    # ugly bit of hacking to demonstrate end-to-end functionality
+    target_schema_obj.types = biolink_schema.all_types()
+
+    yaml_dumper.dump(target_schema_obj, "biolink-subset.yaml")
 
     transformed_sv = SchemaView("biolink-subset.yaml")
 
