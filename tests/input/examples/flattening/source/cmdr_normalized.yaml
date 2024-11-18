@@ -1,0 +1,22 @@
+id: https://w3id.org/linkml/examples/cmdr-normalized
+name: cmdr_normalized
+description: |-
+  Normalized CMDR model
+license: https://creativecommons.org/publicdomain/zero/1.0/
+default_curi_maps:
+  - semweb_context
+imports:
+  - linkml:types
+prefixes:
+  mappings: https://w3id.org/linkml/examples/cmdr-normalized/
+  linkml: https://w3id.org/linkml/
+default_prefix: cmdrnormalized
+default_range: string
+
+emit_prefixes:
+  - rdf
+  - rdfs
+  - xsd
+  - skos
+
+classes:
