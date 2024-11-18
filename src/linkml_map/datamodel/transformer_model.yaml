@@ -17,12 +17,13 @@ description: |-
   - translation into another specification language, such as R2RML
 prefixes:
   linkml: https://w3id.org/linkml/
-  linkmltr: https://w3id.org/linkml/transformer/
+  linkmlmap: https://w3id.org/linkml/transformer/
   dcterms: http://purl.org/dc/terms/
   schema: http://schema.org/
   rdfs: http://www.w3.org/2000/01/rdf-schema#
   sh: http://www.w3.org/ns/shacl#
-default_prefix: linkmltr
+  STATO: http://purl.obolibrary.org/obo/STATO_
+default_prefix: linkmlmap
 
 imports:
   - linkml:types
@@ -80,6 +81,10 @@ classes:
         multivalued: true
         inlined: true
         slot_uri: sh:declare
+      copy_directives:
+        range: CopyDirective
+        multivalued: true
+        inlined: true
       source_schema:
         description: name of the schema that describes the source (input) objects
       target_schema:
@@ -178,6 +183,12 @@ classes:
         range: SlotDerivation
         multivalued: true
         inlined: true
+      target_definition:
+        range: Any
+        description: >-
+          LinkML class definition object for this slot.
+        comments:
+          - currently defined as Any to avoid coupling with metamodel
 
   AliasedClass:
     description: alias-class key value pairs for classes
@@ -228,12 +239,20 @@ classes:
         description: True if this is suppressed
       type_designator:
         range: boolean
+      target_definition:
+        range: Any
+        description: >-
+          LinkML definition object for this slot.
+        comments:
+          - currently defined as Any to avoid coupling with metamodel
       cast_collection_as:
         range: CollectionType
       dictionary_key:
         range: string
       stringification:
         range: StringificationConfiguration
+      aggregation_operation:
+        range: AggregationOperation
 
   EnumDerivation:
     is_a: ElementDerivation
@@ -330,6 +349,57 @@ classes:
       slot_name:
       class_name:
 
+  TransformationOperation:
+    abstract: true
+
+  AggregationOperation:
+    is_a: TransformationOperation
+    attributes:
+      operator:
+        range: AggregationType
+        required: true
+      null_handling:
+        range: InvalidValueHandlingStrategy
+      invalid_value_handling:
+        range: InvalidValueHandlingStrategy
+
+  GroupingOperation:
+    is_a: TransformationOperation
+    attributes:
+      null_handling:
+        range: InvalidValueHandlingStrategy
+
+  PivotOperation:
+    aliases:
+      - melt/unmelt
+      - reification/dereification
+    is_a: TransformationOperation
+    attributes:
+      direction:
+        range: PivotDirectionType
+        required: true
+      variable_slot:
+        aliases:
+          - var_name
+        range: SlotReference
+        ifabsent: string(variable)
+        description: Slot to use for the variable column in the melted/long representation.
+          In EAV this is the name of the 'A' variable
+      value_slot:
+        aliases:
+          - value_name
+        range: SlotReference
+        ifabsent: string(value)
+        description: Slot to use for the value column in the melted/long representation.
+          In EAV this is the name of the 'V' variable
+      unmelt_to_class:
+        description: In an unmelt operation, attributes (which are values in the long/melted/EAV
+          representation) must conform to valid attributes in this class
+        range: ClassReference
+      unmelt_to_slots:
+        range: SlotReference
+        multivalued: true
+
   KeyVal:
     attributes:
       key:
@@ -340,18 +410,45 @@ classes:
   CopyDirective:
     description: >-
       Instructs a Schema Mapper in how to map to a target schema. Not used for data transformation.
+
+      This is the process to process a directive:
+      1. If `copy_all`, add all sub-elements to the list of sub-elements to be copied.
+      2. If `exclude`, remove the specified sub-elements from the above list.
+      3. If `exclude_all`, clean-up the above list. Effectively making previous steps useless.
+      4. If `include`, add the specified sub-elements from the list result of previous steps.
+
+      Implementations might decide to somehow report (error, warning,...) meaningless combinations (like specifying `copy_all` and `exclude_all`). 
+
+      Validation on the correctness of the resulting derived schema might be done optionally by the implementation.
+      For example, removing a slot but keeping a class that requires it would invalidate the derived-schema.
+      It is always possible to validate the schema with the LinkML linter after derivation.
+
+      What are the considered sub-elements depends on the calls of Element to be transformed.
+      For example, for a class they are `slots` and `attributes`.
     status: testing
     attributes:
       element_name:
         key: true
       copy_all:
         range: boolean
+        description: Copy all sub-elements of the Element being derived.
       exclude_all:
         range: boolean
+        description: Do not copy any of the sub-elements of the Element being derived.
       exclude:
         range: Any
+        description: >-
+          Remove certain sub-elements from the list of sub-elements to be copied.
+
+          As of now there it is under-specified, how to specify the sub-elements to exclude.
+          One possible implementation would be a list where all element types can be mixed, since there might not be name conflicts across element types.
       include:
         range: Any
+        description: >-
+          Add certain sub-elements to the list of sub-elements to be copied.
+
+          As of now there it is under-specified, how to specify the sub-elements to include.
+          One possible implementation would be a list where all element types can be mixed, since there might not be name conflicts across element types.
       add:
         range: Any
 
@@ -367,3 +464,46 @@ enums:
       JSON:
       YAML:
       TURTLE:
+  AggregationType:
+    permissible_values:
+      SUM:
+      AVERAGE:
+        aliases:
+          - mean
+          - avg
+        exact_mappings:
+          - STATO:0000230
+      COUNT:
+        exact_mappings:
+          - STATO:0000047
+      MIN:
+      MAX:
+      STD_DEV:
+        exact_mappings:
+          - STATO:0000237
+      VARIANCE:
+      MEDIAN:
+        exact_mappings:
+          - STATO:0000674
+      MODE:
+        exact_mappings:
+          - STATO:0000033
+      CUSTOM:
+      SET:
+      LIST:
+      ARRAY:
+  InvalidValueHandlingStrategy:
+    permissible_values:
+      IGNORE:
+      TREAT_AS_ZERO:
+      ERROR_OUT:
+  PivotDirectionType:
+    permissible_values:
+      MELT:
+        aliases:
+          - unpivot
+          - wide to long
+      UNMELT:
+        aliases:
+          - pivot
+          - long to wide
