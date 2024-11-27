@@ -1,0 +1,21 @@
+lights_inventory:
+- light_colors:
+  - red
+  - green
+  - blue
+  - magenta
+  - na
+  light_main_color: green
+  mirror_test_slot: red
+- light_colors:
+  - green
+  light_main_color: green
+  mirror_test_slot: magenta
+- light_colors:
+  - oth
+  light_main_color: oth
+  mirror_test_slot: purple
+- light_colors:
+  - blue
+  light_main_color: blue
+  mirror_test_slot: not_available

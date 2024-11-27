@@ -1,0 +1,61 @@
+name: light_bulbs_simple
+id: light_bulbs_simple
+description: Light Bulbs (Simplified)
+imports:
+- linkml:types
+default_range: string
+enums:
+  light_size_enum:
+    permissible_values:
+      size_0:
+      size_1:
+      size_2:
+  light_primary_colors_enum:
+    permissible_values:
+      red:
+      green:
+      blue:
+  light_secondary_colors_enum:
+    permissible_values:
+      cyan:
+      magenta:
+      yellow:
+  missingness_enum:
+    permissible_values:
+      na:
+      oth:
+classes:
+  lights_inventory:
+    slots:
+      - light_sizes
+      - light_colors
+      - light_mirror_test_slot
+  Container:
+    tree_root: True
+    attributes:
+      all_lights:
+        range: lights_inventory
+        multivalued: True
+        inlined_as_list: True
+slots:
+    light_sizes:
+      range:
+        - light_size_enum
+        - missingness_enum
+      multivalued: True
+      inlined_as_list: True
+    light_colors:
+      range: 
+        - light_primary_colors_enum
+        - light_secondary_colors_enum
+        - missingness_enum
+      multivalued: True
+      inlined_as_list: True
+    light_main_color:
+      range: 
+        - light_primary_colors_enum
+        - light_secondary_colors_enum
+        - missingness_enum
+      multivalued: False
+    light_mirror_test_slot:
+      range: string
