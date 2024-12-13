@@ -52,7 +52,7 @@ def biolink_schema():
     return sv
 
 
-def test_biolink_subsetting_manual(biolink_schema):
+def test_biolink_subsetting_manual(biolink_schema, tmp_path):
     """
     Test to subset the Biolink schema manually
 
@@ -77,9 +77,10 @@ def test_biolink_subsetting_manual(biolink_schema):
         target_schema_name="BiolinkProfile",
     )
 
-    yaml_dumper.dump(target_schema_obj, str("biolink-profile.yaml"))
+    dump_output = str(tmp_path / "biolink-profile.yaml")
+    yaml_dumper.dump(target_schema_obj, dump_output)
 
-    transformed_sv = SchemaView("biolink-profile.yaml")
+    transformed_sv = SchemaView(dump_output)
 
     for class_name in transformed_sv.all_classes():
         print(class_name)
@@ -88,7 +89,7 @@ def test_biolink_subsetting_manual(biolink_schema):
         print(slot_name)
 
 
-def test_biolink_subset_auto(biolink_schema):
+def test_biolink_subset_auto(biolink_schema, tmp_path):
     """
     Test to subset the Biolink schema automatically by deriving the class definitions from biolink
     via a collection of class names to subset.
@@ -131,9 +132,10 @@ def test_biolink_subset_auto(biolink_schema):
     # ugly bit of hacking to demonstrate end-to-end functionality
     target_schema_obj.types = biolink_schema.all_types()
 
-    yaml_dumper.dump(target_schema_obj, "biolink-subset.yaml")
+    dump_output = str(tmp_path / "biolink-subset.yaml")
+    yaml_dumper.dump(target_schema_obj, dump_output)
 
-    transformed_sv = SchemaView("biolink-subset.yaml")
+    transformed_sv = SchemaView(dump_output)
 
     for class_name in transformed_sv.all_classes():
         print(class_name)

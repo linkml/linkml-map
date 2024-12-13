@@ -10,7 +10,7 @@ from src.linkml_map.utils.loaders import load_specification
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
-def test_denormalizingl():
+def test_denormalizingl(tmp_path):
     """
     Test to convert a normalized mapping set schema to a denormalized one
 
@@ -38,9 +38,10 @@ def test_denormalizingl():
         target_schema_name="DenormalizedView",
     )
 
-    yaml_dumper.dump(target_schema_obj, str("denormalized_view.yaml"))
+    dump_output = str(tmp_path / "denormalized_view.yaml")
+    yaml_dumper.dump(target_schema_obj, dump_output)
 
-    transformed_sv = SchemaView("denormalized_view.yaml")
+    transformed_sv = SchemaView(dump_output)
 
     for class_name in transformed_sv.all_classes():
         print(class_name)
