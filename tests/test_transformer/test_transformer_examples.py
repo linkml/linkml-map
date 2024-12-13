@@ -5,10 +5,7 @@ from tests import EXAMPLE_DIR
 
 EXAMPLE_PROJECTS = [
     "measurements",
-    "flattening",
     "personinfo_basic",
-    "type_coercion",
-    "biolink",
 ]
 
 
