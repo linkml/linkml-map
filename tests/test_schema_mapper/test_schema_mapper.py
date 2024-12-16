@@ -348,9 +348,9 @@ def test_overrides_in_class_derivation(mapper):
                 overrides={
                     "description": "Like Person, but not in a subset",
                     "in_subset": None,
-                }
+                },
             )
-        }
+        },
     )
     target_schema = mapper.derive_schema(specification)
     agent = target_schema.classes["Agent"]
@@ -373,11 +373,11 @@ def test_overrides_in_slot_derivation(mapper):
                             "required": True,
                             "maximum_value": 120,
                             "description": "Age in years, but required and more realistic",
-                        }
+                        },
                     )
-                }
+                },
             )
-        }
+        },
     )
     target_schema = mapper.derive_schema(specification)
     agent = target_schema.classes["Agent"]
@@ -396,11 +396,9 @@ def test_overrides_errors_with_unknown_attribute(mapper):
             "Agent": ClassDerivation(
                 name="Agent",
                 populated_from="Person",
-                overrides={
-                    "unknown_attribute": "This should raise an error"
-                }
+                overrides={"unknown_attribute": "This should raise an error"},
             )
-        }
+        },
     )
     with pytest.raises(ValueError):
         mapper.derive_schema(specification)
@@ -414,13 +412,11 @@ def test_overrides_errors_with_unknown_attribute(mapper):
                 slot_derivations={
                     "age_in_years": SlotDerivation(
                         name="age_in_years",
-                        overrides={
-                           "unknown_attribute": "This should raise an error"
-                        }
+                        overrides={"unknown_attribute": "This should raise an error"},
                     )
-                }
+                },
             )
-        }
+        },
     )
     with pytest.raises(ValueError):
         mapper.derive_schema(specification)
