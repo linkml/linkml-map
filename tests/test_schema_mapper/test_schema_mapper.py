@@ -335,3 +335,92 @@ def test_copy_whitelisting(mapper):
             assert (
                 schema_enum not in target_schema.enums.keys()
             ), f"Enum '{schema_enum}' is missing in target"
+
+
+def test_overrides_in_class_derivation(mapper):
+    """Test that overrides in ClassDerivation are applied"""
+    specification = TransformationSpecification(
+        id="test",
+        class_derivations={
+            "Agent": ClassDerivation(
+                name="Agent",
+                populated_from="Person",
+                overrides={
+                    "description": "Like Person, but not in a subset",
+                    "in_subset": None,
+                }
+            )
+        }
+    )
+    target_schema = mapper.derive_schema(specification)
+    agent = target_schema.classes["Agent"]
+    assert agent.description == "Like Person, but not in a subset"
+    assert agent.class_uri == "schema:Person"
+
+
+def test_overrides_in_slot_derivation(mapper):
+    """Test that overrides in SlotDerivation are applied"""
+    specification = TransformationSpecification(
+        id="test",
+        class_derivations={
+            "Agent": ClassDerivation(
+                name="Agent",
+                populated_from="Person",
+                slot_derivations={
+                    "age_in_years": SlotDerivation(
+                        name="age_in_years",
+                        overrides={
+                            "required": True,
+                            "maximum_value": 120,
+                            "description": "Age in years, but required and more realistic",
+                        }
+                    )
+                }
+            )
+        }
+    )
+    target_schema = mapper.derive_schema(specification)
+    agent = target_schema.classes["Agent"]
+    age = agent.attributes["age_in_years"]
+    assert age.required is True
+    assert age.minimum_value == 0
+    assert age.maximum_value == 120
+    assert age.description == "Age in years, but required and more realistic"
+
+
+def test_overrides_errors_with_unknown_attribute(mapper):
+    """Test that an error is raised if overrides contains attributes not part of the metamodel"""
+    specification = TransformationSpecification(
+        id="test",
+        class_derivations={
+            "Agent": ClassDerivation(
+                name="Agent",
+                populated_from="Person",
+                overrides={
+                    "unknown_attribute": "This should raise an error"
+                }
+            )
+        }
+    )
+    with pytest.raises(ValueError):
+        mapper.derive_schema(specification)
+
+    specification = TransformationSpecification(
+        id="test",
+        class_derivations={
+            "Agent": ClassDerivation(
+                name="Agent",
+                populated_from="Person",
+                slot_derivations={
+                    "age_in_years": SlotDerivation(
+                        name="age_in_years",
+                        overrides={
+                           "unknown_attribute": "This should raise an error"
+                        }
+                    )
+                }
+            )
+        }
+    )
+    with pytest.raises(ValueError):
+        mapper.derive_schema(specification)
