@@ -2,8 +2,6 @@
 Tests engine for deriving schemas (profiling) from a specification and a source
 """
 
-import unittest
-
 import pytest
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper
@@ -320,7 +318,7 @@ def test_copy_whitelisting(mapper):
     for schema_slot in source_schema.slots.keys():
         if schema_slot in whitelist:
             assert (
-                schema_slot in target_schema.slots.keys(),
+                schema_slot in target_schema.slots.keys()
             ), f"Slot '{schema_slot}' is missing in target"
         else:
             assert (
