@@ -106,7 +106,7 @@ def get_unit_registry(system: Optional[UnitSystem] = None) -> Any:
 
     >>> ureg = get_unit_registry(UnitSystem.UCUM)
     >>> ureg.from_ucum("m/s2.kg")
-    <Quantity(1.0, 'kilogram * meter / second ** 2')>
+    <Quantity(1.0, 'meter * kilogram / second ** 2')>
     >>> str(_)
     '1.0 kilogram * meter / second ** 2'
     >>> ureg.from_ucum("m[H2O]{35Cel}")  # UCUM code with annotation
