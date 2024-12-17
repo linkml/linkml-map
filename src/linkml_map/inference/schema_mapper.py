@@ -316,6 +316,11 @@ class SchemaMapper:
             elif slot_derivation.cast_collection_as == CollectionType.MultiValuedDict:
                 target_slot.inlined = True
                 target_slot.inlined_as_list = False
+        if slot_derivation.overrides:
+            curr = json_dumper.to_dict(target_slot)
+            for k, v in slot_derivation.overrides.items():
+                curr[k] = v
+            target_slot = SlotDefinition(**curr)
         return target_slot
 
     def _rewire_class(self, class_definition: ClassDefinition):
