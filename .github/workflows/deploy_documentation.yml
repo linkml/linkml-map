@@ -17,37 +17,24 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    #----------------------------------------------
-    #       check-out repo and set-up python
-    #----------------------------------------------
     - name: Check out repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
-        # persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
-        fetch-depth: 0 # otherwise, you will failed to push refs to dest repo
+        fetch-depth: 0
+
+    - name: Install Poetry
+      run: pipx install poetry
 
     - name: Set up Python3
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v5
       with:
         python-version: 3.9
+        cache: 'poetry'
 
-    #----------------------------------------------
-    #          install & configure poetry
-    #----------------------------------------------
-    - name: Install Poetry
-      uses: snok/install-poetry@v1.3
-
-    #----------------------------------------------
-    # install dependencies if cache does not exist
-    #----------------------------------------------
     - name: Install dependencies
-      # if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-      run: poetry install --no-interaction
+      run: poetry install
 
-    #----------------------------------------------
-    #  Create documentation and deploy.
-    #----------------------------------------------
-    - name: Create local docs
+    - name: Generate and deploy docs
       run: |
         mkdir docs
         touch docs/.nojekyll
