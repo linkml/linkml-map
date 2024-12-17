@@ -7,22 +7,34 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.9"
+asteval = "^0"
+click = "^8"
+curies = "*"
+duckdb = { version = "^0", optional = true }
+graphviz = { version = "^0.20.1", optional = true }
+jinja2 = "^3"
+lark = { version = "^1", optional = true }
 linkml-runtime = ">=1.7.2"
-asteval = "^0.9.29"
-deepdiff = "^6.7.1"
+pint = { version = "^0", optional = true }
 pydantic = ">=2.0.0"
-ucumvert = "^0.1.1"
-jupyter = "^1.0.0"
-linkml-model = "^1.8.0"
+pyyaml = "*"
+ucumvert = { version = "^0", optional = true }
 
-[tool.poetry.dev-dependencies]
-pytest = "^7.3.1"
-pytest-cov = "^4.0.0"
+[tool.poetry.extras]
+duckdb = ["duckdb"]
+graphviz = ["graphviz"]
+units = ["lark", "pint", "ucumvert"]
+
+[tool.poetry.group.dev.dependencies]
+deepdiff = "^6.7.1"
+deptry = "^0.21.1"
+jupyter = "^1.0.0"
 linkml = ">=1.7.0"
 mkdocs-mermaid2-plugin = "^0.6.0"
+mkdocs-windmill = "*"
 mkdocstrings = {extras = ["crystal", "python"], version = "*"}
 mknotebooks = "^0.8.0"
-mkdocs-windmill = "*"
+pytest = "^7.3.1"
 tox = "*"
 
 [tool.poetry-dynamic-versioning]
@@ -33,21 +45,9 @@ style = "pep440"
 [tool.poetry.scripts]
 linkml-map = "linkml_map.cli.cli:main"
 
-[tool.poetry.group.dev.dependencies]
-jupyter = "^1.0.0"
-linkml = "^1.6.7"
-
-
-[tool.poetry.group.units.dependencies]
-pint = "^0.23"
-
-
-[tool.poetry.group.graphviz.dependencies]
-graphviz = "^0.20.1"
-
-
-[tool.poetry.group.duckdb.dependencies]
-duckdb = "^0.10.1"
+[tool.deptry]
+known_first_party = ["linkml_map"]
+extend_exclude = ["docs"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
