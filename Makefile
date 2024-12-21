@@ -37,7 +37,7 @@ status: check-config
 setup: install gen-project gendoc git-init-add
 
 install:
-	poetry install
+	poetry install --all-extras
 .PHONY: install
 
 all: gen-project gendoc
