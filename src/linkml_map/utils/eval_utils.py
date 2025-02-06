@@ -1,3 +1,4 @@
+#%%
 """
 meta-circular interpreter for evaluating python expressions
 
@@ -144,7 +145,7 @@ def eval_(node, bindings=None):
 
         # lookup attribute, potentially distributing the results over collections
         def _get(obj: Any, k: str, recurse=True) -> Any:
-            if isinstance(obj, dict):
+            if isinstance(obj, (dict, Mapping)):
                 # dicts are treated as collections; distribute results
                 if recurse:
                     return [_get(e, k, False) for e in obj.values()]
@@ -158,7 +159,7 @@ def eval_(node, bindings=None):
             else:
                 return getattr(obj, k)
 
-        return _get(v, node.attr)
+        return _get(v, node.attr, recurse=False)
     elif isinstance(node, ast.List):
         return [eval_(x, bindings) for x in node.elts]
     elif isinstance(node, ast.Set):
@@ -211,5 +212,10 @@ def eval_(node, bindings=None):
                 else:
                     return func(*args)
         raise NotImplementedError(f"Call {node.func} not implemented. node = {node}")
+    elif isinstance(node, ast.Slice):
+        lower = node.lower.value if node.lower else None
+        upper = node.upper.value if node.upper else None
+        step = node.step.value if node.step else None
+        return slice(lower, upper, step)
     else:
         raise TypeError(node)
