@@ -42,7 +42,10 @@ class Session:
     _target_schemaview: Optional[SchemaView] = None
 
     def set_transformer_specification(
-        self, specification: Optional[Union[TransformationSpecification, dict, str, Path]] = None
+        self,
+        specification: Optional[
+            Union[TransformationSpecification, dict, str, Path]
+        ] = None,
     ):
         if isinstance(specification, Path):
             specification = str(specification)
@@ -55,7 +58,9 @@ class Session:
             )
             normalizer.expand_all = True
             specification = normalizer.normalize(specification)
-            self.transformer_specification = TransformationSpecification(**specification)
+            self.transformer_specification = TransformationSpecification(
+                **specification
+            )
         elif isinstance(specification, str):
             if "\n" in specification:
                 obj = yaml.safe_load(specification)
@@ -63,7 +68,9 @@ class Session:
                 obj = yaml.safe_load(open(specification))
             self.set_transformer_specification(obj)
 
-    def set_source_schema(self, schema: Union[str, Path, dict, SchemaView, SchemaDefinition]):
+    def set_source_schema(
+        self, schema: Union[str, Path, dict, SchemaView, SchemaDefinition]
+    ):
         """
         Sets the schema from a path or SchemaView object.
         """
@@ -118,8 +125,12 @@ class Session:
     def target_schema(self) -> SchemaDefinition:
         if self._target_schema is None:
             if not self.schema_mapper:
-                self.schema_mapper = SchemaMapper(source_schemaview=self.source_schemaview)
-            self._target_schema = self.schema_mapper.derive_schema(self.transformer_specification)
+                self.schema_mapper = SchemaMapper(
+                    source_schemaview=self.source_schemaview
+                )
+            self._target_schema = self.schema_mapper.derive_schema(
+                self.transformer_specification
+            )
         return self._target_schema
 
     @property
@@ -140,7 +151,9 @@ class Session:
         inv_spec = self.invert()
         reverse_transformer = ObjectTransformer()
         reverse_transformer.specification = inv_spec
-        reverse_transformer.source_schemaview = SchemaView(yaml_dumper.dumps(self.target_schema))
+        reverse_transformer.source_schemaview = SchemaView(
+            yaml_dumper.dumps(self.target_schema)
+        )
         return reverse_transformer.map_object(obj, **kwargs)
 
     def invert(self, in_place=False) -> TransformationSpecification:

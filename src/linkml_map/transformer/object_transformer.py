@@ -50,7 +50,9 @@ class Bindings(Mapping):
         if bindings:
             self.bindings.update(bindings)
 
-    def get_ctxt_obj_and_dict(self, source_obj: OBJECT_TYPE = None) -> Tuple[DynObj, OBJECT_TYPE]:
+    def get_ctxt_obj_and_dict(
+        self, source_obj: OBJECT_TYPE = None
+    ) -> Tuple[DynObj, OBJECT_TYPE]:
         """
         Transform a source object into a typed context object and dictionary, and cache results.
 
@@ -75,7 +77,9 @@ class Bindings(Mapping):
 
             ctxt_obj = self.object_transformer.object_index.bless(source_obj_dyn)
             ctxt_dict = {
-                k: getattr(ctxt_obj, k) for k in ctxt_obj._attributes() if not k.startswith("_")
+                k: getattr(ctxt_obj, k)
+                for k in ctxt_obj._attributes()
+                if not k.startswith("_")
             }
         else:
             do = dynamic_object(source_obj, self.sv, self.source_type)
@@ -106,7 +110,9 @@ class Bindings(Mapping):
 
     def __setitem__(self, name: Any, value: Any):
         del name, value
-        raise RuntimeError(f"__setitem__ not allowed on class {self.__class__.__name__}")
+        raise RuntimeError(
+            f"__setitem__ not allowed on class {self.__class__.__name__}"
+        )
 
 
 @dataclass
@@ -129,14 +135,24 @@ class ObjectTransformer(Transformer):
         if isinstance(source_obj, dict):
             if target is None:
                 [target] = [
-                    c.name for c in self.source_schemaview.all_classes().values() if c.tree_root
+                    c.name
+                    for c in self.source_schemaview.all_classes().values()
+                    if c.tree_root
                 ]
             if target is None:
-                raise ValueError(f"target must be passed if source_obj is dict: {source_obj}")
-            source_obj_typed = dynamic_object(source_obj, self.source_schemaview, target)
-            self.object_index = ObjectIndex(source_obj_typed, schemaview=self.source_schemaview)
+                raise ValueError(
+                    f"target must be passed if source_obj is dict: {source_obj}"
+                )
+            source_obj_typed = dynamic_object(
+                source_obj, self.source_schemaview, target
+            )
+            self.object_index = ObjectIndex(
+                source_obj_typed, schemaview=self.source_schemaview
+            )
         else:
-            self.object_index = ObjectIndex(source_obj, schemaview=self.source_schemaview)
+            self.object_index = ObjectIndex(
+                source_obj, schemaview=self.source_schemaview
+            )
 
     def map_object(
         self,
@@ -161,12 +177,16 @@ class ObjectTransformer(Transformer):
             if len(source_types) == 1:
                 source_type = source_types[0]
             elif len(source_types) > 1:
-                raise ValueError("No source type specified and multiple root classes found")
+                raise ValueError(
+                    "No source type specified and multiple root classes found"
+                )
             elif len(source_types) == 0:
                 if len(sv.all_classes()) == 1:
                     source_type = list(sv.all_classes().keys())[0]
                 else:
-                    raise ValueError("No source type specified and no root classes found")
+                    raise ValueError(
+                        "No source type specified and no root classes found"
+                    )
 
         if source_type in sv.all_types():
             if target_type:
@@ -186,7 +206,9 @@ class ObjectTransformer(Transformer):
         source_type_enums = yaml.safe_load(source_type)
         if not isinstance(source_type_enums, list):
             source_type_enums = [source_type_enums]
-        source_type_enums = [enum for enum in source_type_enums if enum in sv.all_enums()]
+        source_type_enums = [
+            enum for enum in source_type_enums if enum in sv.all_enums()
+        ]
         if len(source_type_enums) > 0:
             return self.transform_enum(source_obj, source_type_enums, source_obj)
 
@@ -206,7 +228,9 @@ class ObjectTransformer(Transformer):
             v = None
             source_class_slot = None
             if slot_derivation.unit_conversion:
-                v = self._perform_unit_conversion(slot_derivation, source_obj, sv, source_type)
+                v = self._perform_unit_conversion(
+                    slot_derivation, source_obj, sv, source_type
+                )
             elif slot_derivation.expr:
                 if bindings is None:
                     bindings = Bindings(
@@ -222,14 +246,18 @@ class ObjectTransformer(Transformer):
                     v = eval_expr_with_mapping(slot_derivation.expr, bindings)
                 except Exception:
                     if not self.unrestricted_eval:
-                        raise RuntimeError(f"Expression not in safe subset: {slot_derivation.expr}")
+                        raise RuntimeError(
+                            f"Expression not in safe subset: {slot_derivation.expr}"
+                        )
                     ctxt_obj, _ = bindings.get_ctxt_obj_and_dict()
                     aeval = Interpreter(usersyms={"src": ctxt_obj, "target": None})
                     aeval(slot_derivation.expr)
                     v = aeval.symtable["target"]
             elif slot_derivation.populated_from:
                 v = source_obj.get(slot_derivation.populated_from, None)
-                source_class_slot = sv.induced_slot(slot_derivation.populated_from, source_type)
+                source_class_slot = sv.induced_slot(
+                    slot_derivation.populated_from, source_type
+                )
                 logger.debug(
                     f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {source_obj}"
                 )
@@ -237,11 +265,15 @@ class ObjectTransformer(Transformer):
                 vmap = {s: source_obj.get(s, None) for s in slot_derivation.sources}
                 vmap = {k: v for k, v in vmap.items() if v is not None}
                 if len(vmap.keys()) > 1:
-                    raise ValueError(f"Multiple sources for {slot_derivation.name}: {vmap}")
+                    raise ValueError(
+                        f"Multiple sources for {slot_derivation.name}: {vmap}"
+                    )
                 elif len(vmap.keys()) == 1:
                     v = list(vmap.values())[0]
                     source_class_slot_name = list(vmap.keys())[0]
-                    source_class_slot = sv.induced_slot(source_class_slot_name, source_type)
+                    source_class_slot = sv.induced_slot(
+                        source_class_slot_name, source_type
+                    )
                 else:
                     v = None
                     source_class_slot = None
@@ -258,10 +290,15 @@ class ObjectTransformer(Transformer):
                 source_class_slot_range = source_class_slot.range
                 if source_class_slot.multivalued:
                     if isinstance(v, list):
-                        v = [self.map_object(v1, source_class_slot_range, target_range) for v1 in v]
+                        v = [
+                            self.map_object(v1, source_class_slot_range, target_range)
+                            for v1 in v
+                        ]
                     elif isinstance(v, dict):
                         v = {
-                            k1: self.map_object(v1, source_class_slot_range, target_range)
+                            k1: self.map_object(
+                                v1, source_class_slot_range, target_range
+                            )
                             for k1, v1 in v.items()
                         }
                     else:
@@ -274,9 +311,9 @@ class ObjectTransformer(Transformer):
                     and not isinstance(v, list)
                 ):
                     v = self._singlevalued_to_multivalued(v, slot_derivation)
-                if self._is_coerce_to_singlevalued(slot_derivation, class_deriv) and isinstance(
-                    v, list
-                ):
+                if self._is_coerce_to_singlevalued(
+                    slot_derivation, class_deriv
+                ) and isinstance(v, list):
                     v = self._multivalued_to_singlevalued(v, slot_derivation)
                 v = self._coerce_datatype(v, target_range)
                 if slot_derivation.dictionary_key and isinstance(v, list):
@@ -286,7 +323,8 @@ class ObjectTransformer(Transformer):
                         del v1[slot_derivation.dictionary_key]
                 elif (
                     slot_derivation.cast_collection_as
-                    and slot_derivation.cast_collection_as == CollectionType.MultiValuedList
+                    and slot_derivation.cast_collection_as
+                    == CollectionType.MultiValuedList
                     and isinstance(v, dict)
                 ):
                     # CompactDict to List
@@ -302,7 +340,11 @@ class ObjectTransformer(Transformer):
         return tgt_attrs
 
     def _perform_unit_conversion(
-        self, slot_derivation: SlotDerivation, source_obj: Any, sv: SchemaView, source_type: str
+        self,
+        slot_derivation: SlotDerivation,
+        source_obj: Any,
+        sv: SchemaView,
+        source_type: str,
     ) -> Union[float, Dict]:
         uc = slot_derivation.unit_conversion
         curr_v = source_obj.get(slot_derivation.populated_from, None)
@@ -314,7 +356,8 @@ class ObjectTransformer(Transformer):
                 from_unit = curr_v.get(uc.source_unit_slot, None)
                 if from_unit is None:
                     raise ValueError(
-                        f"Could not determine unit from {curr_v}" f" using {uc.source_unit_slot}"
+                        f"Could not determine unit from {curr_v}"
+                        f" using {uc.source_unit_slot}"
                     )
                 magnitude = curr_v.get(uc.source_magnitude_slot, None)
                 if magnitude is None:
@@ -337,7 +380,9 @@ class ObjectTransformer(Transformer):
                     elif slot.unit.descriptive_name:
                         from_unit = slot.unit.descriptive_name
                     else:
-                        raise NotImplementedError(f"Cannot determine unit system for {slot.unit}")
+                        raise NotImplementedError(
+                            f"Cannot determine unit system for {slot.unit}"
+                        )
                 magnitude = curr_v
             if not from_unit:
                 raise ValueError(f"Could not determine from_unit for {slot_derivation}")
@@ -357,7 +402,9 @@ class ObjectTransformer(Transformer):
                 v = {uc.target_magnitude_slot: v, uc.target_unit_slot: to_unit}
             return v
 
-    def _multivalued_to_singlevalued(self, vs: List[Any], slot_derivation: SlotDerivation) -> Any:
+    def _multivalued_to_singlevalued(
+        self, vs: List[Any], slot_derivation: SlotDerivation
+    ) -> Any:
         if slot_derivation.stringification:
             stringification = slot_derivation.stringification
             delimiter = stringification.delimiter
@@ -371,7 +418,9 @@ class ObjectTransformer(Transformer):
                 else:
                     raise ValueError(f"Unknown syntax: {stringification.syntax}")
             else:
-                raise ValueError(f"Cannot convert multivalued to single valued: {vs}; no delimiter")
+                raise ValueError(
+                    f"Cannot convert multivalued to single valued: {vs}; no delimiter"
+                )
         if len(vs) > 1:
             raise ValueError(f"Cannot coerce multiple values {vs}")
         if len(vs) == 0:
@@ -379,7 +428,9 @@ class ObjectTransformer(Transformer):
         else:
             return vs[0]
 
-    def _singlevalued_to_multivalued(self, v: Any, slot_derivation: SlotDerivation) -> List[Any]:
+    def _singlevalued_to_multivalued(
+        self, v: Any, slot_derivation: SlotDerivation
+    ) -> List[Any]:
         stringification = slot_derivation.stringification
         if stringification:
             delimiter = stringification.delimiter
@@ -396,7 +447,9 @@ class ObjectTransformer(Transformer):
                 else:
                     raise ValueError(f"Unknown syntax: {syntax}")
             else:
-                raise ValueError(f"Cannot convert single valued to multivalued: {v}; no delimiter")
+                raise ValueError(
+                    f"Cannot convert single valued to multivalued: {v}; no delimiter"
+                )
             return vs
         return [v]
 

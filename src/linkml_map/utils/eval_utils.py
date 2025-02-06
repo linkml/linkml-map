@@ -1,4 +1,4 @@
-#%%
+# %%
 """
 meta-circular interpreter for evaluating python expressions
 
@@ -23,7 +23,13 @@ operators = {
     ast.BitXor: op.xor,
     ast.USub: op.neg,
 }
-compare_operators = {ast.Eq: op.eq, ast.Lt: op.lt, ast.LtE: op.le, ast.Gt: op.gt, ast.GtE: op.ge}
+compare_operators = {
+    ast.Eq: op.eq,
+    ast.Lt: op.lt,
+    ast.LtE: op.le,
+    ast.Gt: op.gt,
+    ast.GtE: op.ge,
+}
 
 
 def eval_conditional(*conds: List[Tuple[bool, Any]]) -> Any:
@@ -177,7 +183,10 @@ def eval_(node, bindings=None):
     elif isinstance(node, ast.Tuple):
         return tuple([eval_(x, bindings) for x in node.elts])
     elif isinstance(node, ast.Dict):
-        return {eval_(k, bindings): eval_(v, bindings) for k, v in zip(node.keys, node.values)}
+        return {
+            eval_(k, bindings): eval_(v, bindings)
+            for k, v in zip(node.keys, node.values)
+        }
     elif isinstance(node, ast.Compare):  # <left> <operator> <right>
         if len(node.ops) != 1:
             raise ValueError(f"Must be exactly one op in {node}")
@@ -189,7 +198,9 @@ def eval_(node, bindings=None):
         right = node.comparators[0]
         return py_op(eval_(node.left, bindings), eval_(right, bindings))
     elif isinstance(node, ast.BinOp):  # <left> <operator> <right>
-        return operators[type(node.op)](eval_(node.left, bindings), eval_(node.right, bindings))
+        return operators[type(node.op)](
+            eval_(node.left, bindings), eval_(node.right, bindings)
+        )
     elif isinstance(node, ast.UnaryOp):  # <operator> <operand> e.g., -1
         return operators[type(node.op)](eval_(node.operand, bindings))
     # elif isinstance(node, ast.Match):
