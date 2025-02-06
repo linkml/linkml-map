@@ -265,7 +265,7 @@ class ObjectTransformer(Transformer):
                             for k1, v1 in v.items()
                         }
                     else:
-                        v = [v]
+                        v = [self.map_object(v, source_class_slot_range, target_range)]
                 else:
                     v = self.map_object(v, source_class_slot_range, target_range)
                 if (
