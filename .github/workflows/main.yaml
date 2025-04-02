@@ -26,7 +26,7 @@ jobs:
           pip install tox
 
       - name: Check code quality with flake8
-        run: tox -e flake8
+        run: tox -e lint
 
   test:
     runs-on: ubuntu-latest
