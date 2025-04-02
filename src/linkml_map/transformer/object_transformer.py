@@ -1,8 +1,8 @@
 import json
 import logging
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
-from typing import Any, Dict, Iterator, List, Optional, Tuple, Type, Union
+from typing import Any, Optional, Union
 
 import yaml
 from asteval import Interpreter
@@ -39,18 +39,20 @@ class Bindings(Mapping):
         source_obj_typed: OBJECT_TYPE,
         source_type: str,
         sv: SchemaView,
-        bindings: Dict,
+        bindings: dict,
     ):
-        self.object_transformer: "ObjectTransformer" = object_transformer
+        self.object_transformer: ObjectTransformer = object_transformer
         self.source_obj: OBJECT_TYPE = source_obj
         self.source_obj_typed: OBJECT_TYPE = source_obj_typed
         self.source_type: str = source_type
         self.sv: SchemaView = sv
-        self.bindings: Dict = {}
+        self.bindings: dict = {}
         if bindings:
             self.bindings.update(bindings)
 
-    def get_ctxt_obj_and_dict(self, source_obj: OBJECT_TYPE = None) -> Tuple[DynObj, OBJECT_TYPE]:
+    def get_ctxt_obj_and_dict(
+        self, source_obj: Optional[OBJECT_TYPE] = None
+    ) -> tuple[DynObj, OBJECT_TYPE]:
         """
         Transform a source object into a typed context object and dictionary, and cache results.
 
@@ -86,7 +88,7 @@ class Bindings(Mapping):
 
         return ctxt_obj, ctxt_dict
 
-    def _all_keys(self) -> List[Any]:
+    def _all_keys(self) -> list[Any]:
         keys = list(self.source_obj.keys()) + list(self.bindings.keys())
         # Remove duplicate keys (ie. found in both source_obj and bindings), and retain original order
         keys = list(dict.fromkeys(keys).keys())
@@ -119,7 +121,7 @@ class ObjectTransformer(Transformer):
 
     object_index: ObjectIndex = None
 
-    def index(self, source_obj: Any, target: str = None):
+    def index(self, source_obj: Any, target: Optional[str] = None):
         """
         Create an index over a container object.
 
@@ -141,8 +143,8 @@ class ObjectTransformer(Transformer):
     def map_object(
         self,
         source_obj: OBJECT_TYPE,
-        source_type: str = None,
-        target_type: str = None,
+        source_type: Optional[str] = None,
+        target_type: Optional[str] = None,
     ) -> Union[DICT_OBJ, Any]:
         """
         Transform a source object into a target object.
@@ -172,13 +174,13 @@ class ObjectTransformer(Transformer):
             if target_type:
                 if target_type == "string":
                     return str(source_obj)
-                elif target_type == "integer":
+                if target_type == "integer":
                     return int(source_obj)
-                elif target_type == "float" or target_type == "double":
+                if target_type in {"float", "double"}:
                     return float(source_obj)
-                elif target_type == "uri":
+                if target_type == "uri":
                     return self.expand_curie(source_obj)
-                elif target_type == "curie":
+                if target_type == "curie":
                     return self.compress_uri(source_obj)
             return source_obj
         if source_type in sv.all_enums():
@@ -233,7 +235,7 @@ class ObjectTransformer(Transformer):
                 vmap = {k: v for k, v in vmap.items() if v is not None}
                 if len(vmap.keys()) > 1:
                     raise ValueError(f"Multiple sources for {slot_derivation.name}: {vmap}")
-                elif len(vmap.keys()) == 1:
+                if len(vmap.keys()) == 1:
                     v = list(vmap.values())[0]
                     source_class_slot_name = list(vmap.keys())[0]
                     source_class_slot = sv.induced_slot(source_class_slot_name, source_type)
@@ -302,7 +304,7 @@ class ObjectTransformer(Transformer):
         source_obj: Any,
         sv: SchemaView,
         source_type: str,
-    ) -> Union[float, Dict]:
+    ) -> Union[float, dict]:
         uc = slot_derivation.unit_conversion
         curr_v = source_obj.get(slot_derivation.populated_from, None)
         system = UnitSystem.UCUM
@@ -355,7 +357,7 @@ class ObjectTransformer(Transformer):
                 v = {uc.target_magnitude_slot: v, uc.target_unit_slot: to_unit}
             return v
 
-    def _multivalued_to_singlevalued(self, vs: List[Any], slot_derivation: SlotDerivation) -> Any:
+    def _multivalued_to_singlevalued(self, vs: list[Any], slot_derivation: SlotDerivation) -> Any:
         if slot_derivation.stringification:
             stringification = slot_derivation.stringification
             delimiter = stringification.delimiter
@@ -374,7 +376,7 @@ class ObjectTransformer(Transformer):
             return None
         return vs[0]
 
-    def _singlevalued_to_multivalued(self, v: Any, slot_derivation: SlotDerivation) -> List[Any]:
+    def _singlevalued_to_multivalued(self, v: Any, slot_derivation: SlotDerivation) -> list[Any]:
         stringification = slot_derivation.stringification
         if stringification:
             delimiter = stringification.delimiter
@@ -398,7 +400,7 @@ class ObjectTransformer(Transformer):
     def transform_object(
         self,
         source_obj: Union[YAMLRoot, BaseModel],
-        target_class: Optional[Union[Type[YAMLRoot], Type[BaseModel]]] = None,
+        target_class: Optional[Union[type[YAMLRoot], type[BaseModel]]] = None,
     ) -> Union[YAMLRoot, BaseModel]:
         """
         Transform an object into an object of class target_class.

@@ -86,20 +86,20 @@ def convert_units(
     to_unit = normalize_unit(to_unit, system)
     try:
         from_unit_q = ureg.parse_units(from_unit)
-    except lark.exceptions.UnexpectedCharacters:
-        raise UndefinedUnitError(f"Cannot parse unit: {from_unit}")
-    except pint.errors.UndefinedUnitError:
-        raise UndefinedUnitError(f"Unknown source unit: {from_unit}")
+    except lark.exceptions.UnexpectedCharacters as err:
+        raise UndefinedUnitError(f"Cannot parse unit: {from_unit}") from err
+    except pint.errors.UndefinedUnitError as err:
+        raise UndefinedUnitError(f"Unknown source unit: {from_unit}") from err
     quantity = magnitude * from_unit_q
     try:
         return quantity.to(to_unit).magnitude
-    except pint.errors.UndefinedUnitError:
-        raise UndefinedUnitError(f"Unknown target unit: {from_unit}")
-    except pint.errors.DimensionalityError:
-        raise DimensionalityError(f"Cannot convert from {from_unit} to {to_unit}")
+    except pint.errors.UndefinedUnitError as err:
+        raise UndefinedUnitError(f"Unknown target unit: {from_unit}") from err
+    except pint.errors.DimensionalityError as err:
+        raise DimensionalityError(f"Cannot convert from {from_unit} to {to_unit}") from err
 
 
-@lru_cache()
+@lru_cache
 def get_unit_registry(system: Optional[UnitSystem] = None) -> Any:
     """
     Get a unit registry.

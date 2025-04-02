@@ -40,7 +40,7 @@ class TransformationSpecificationInverter:
 
     strict: bool = field(default=True)
 
-    def invert(self, spec: TransformationSpecification):
+    def invert(self, spec: TransformationSpecification) -> TransformationSpecification:
         """
         Invert a transformation specification.
 
@@ -57,7 +57,9 @@ class TransformationSpecificationInverter:
             inverted_spec.enum_derivations[inverted_ed.name] = inverted_ed
         return inverted_spec
 
-    def invert_class_derivation(self, cd: ClassDerivation, spec: TransformationSpecification):
+    def invert_class_derivation(
+        self, cd: ClassDerivation, spec: TransformationSpecification
+    ) -> ClassDerivation:
         """
         Invert a class derivation.
 
@@ -72,12 +74,13 @@ class TransformationSpecificationInverter:
             inverted_sd = self.invert_slot_derivation(sd, cd, spec)
             if inverted_sd:
                 inverted_cd.slot_derivations[inverted_sd.name] = inverted_sd
-            else:
-                if self.strict:
-                    raise NonInvertibleSpecification(f"Cannot invert slot derivation: {sd.name}")
+            elif self.strict:
+                raise NonInvertibleSpecification(f"Cannot invert slot derivation: {sd.name}")
         return inverted_cd
 
-    def invert_enum_derivation(self, ed: EnumDerivation, spec: TransformationSpecification):
+    def invert_enum_derivation(
+        self, ed: EnumDerivation, spec: TransformationSpecification
+    ) -> EnumDerivation:
         """
         Invert an enum derivation.
 
@@ -145,14 +148,13 @@ class TransformationSpecificationInverter:
         if source_slot and source_slot.multivalued:
             if source_slot.inlined_as_list:
                 inverted_sd.cast_collection_as = CollectionType.MultiValuedList
-            elif source_slot.inlined:
-                if source_slot.range in self.source_schemaview.all_classes():
-                    id_slot = self.source_schemaview.get_identifier_slot(
-                        source_slot.range, use_key=True
-                    )
-                    if id_slot:
-                        inverted_sd.cast_collection_as = CollectionType.MultiValuedDict
-                        inverted_sd.dictionary_key = id_slot.name
+            elif source_slot.inlined and source_slot.range in self.source_schemaview.all_classes():
+                id_slot = self.source_schemaview.get_identifier_slot(
+                    source_slot.range, use_key=True
+                )
+                if id_slot:
+                    inverted_sd.cast_collection_as = CollectionType.MultiValuedDict
+                    inverted_sd.dictionary_key = id_slot.name
         if sd.unit_conversion:
             source_slot = self.source_schemaview.induced_slot(sd.populated_from, source_cls_name)
             target_unit = None

@@ -4,9 +4,10 @@ import glob
 import logging
 import os
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Mapping, Optional, Union
+from typing import Optional, Union
 
 import yaml
 from linkml_runtime import SchemaView
@@ -29,12 +30,12 @@ class Transformation(BaseModel):
     source_schema: str = None
     target_schema: str = None
     transformation_specification: str = None
-    steps: List[Step] = None
+    steps: list[Step] = None
 
 
 class Instructions(BaseModel):
     description: Optional[str] = None
-    transformations: List[Transformation] = []
+    transformations: list[Transformation] = []
 
 
 @dataclass
@@ -57,10 +58,10 @@ class MultiFileTransformer:
     target_schema_directory_base: str = field(default_factory=lambda: "target")
     target_data_directory_base: str = field(default_factory=lambda: "output")
 
-    input_formats: Optional[List[str]] = field(default_factory=lambda: ["yaml"])
+    input_formats: Optional[list[str]] = field(default_factory=lambda: ["yaml"])
     """Expected formats for input data"""
 
-    output_formats: Optional[List[str]] = field(default_factory=lambda: ["yaml"])
+    output_formats: Optional[list[str]] = field(default_factory=lambda: ["yaml"])
 
     prefix_map: Optional[Mapping[str, str]] = None
     """Custom prefix map, for emitting RDF/turtle."""
@@ -203,8 +204,7 @@ class MultiFileTransformer:
                                     raise ValueError(
                                         f"Output different than expected: {compare_obj}"
                                     )
-                                else:
-                                    logging.warning(f"Different: {compare_obj}")
+                                logging.warning(f"Different: {compare_obj}")
                     with open(str(out_path), "w", encoding="utf-8") as f:
                         yaml_str = yaml.dump(target_obj, sort_keys=False)
                         f.write(yaml_str)

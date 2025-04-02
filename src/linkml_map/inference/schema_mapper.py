@@ -8,7 +8,7 @@ import logging
 from collections import defaultdict
 from copy import copy
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import json_dumper
@@ -45,11 +45,11 @@ class SchemaMapper:
 
     transformer: Transformer = None
 
-    source_to_target_class_mappings: Dict[str, List[str]] = field(
+    source_to_target_class_mappings: dict[str, list[str]] = field(
         default_factory=lambda: defaultdict(list)
     )
 
-    slot_info: Dict[Tuple[str, str], Any] = field(default_factory=lambda: {})
+    slot_info: dict[tuple[str, str], Any] = field(default_factory=lambda: {})
 
     def _copy_dict(
         self,
@@ -58,19 +58,19 @@ class SchemaMapper:
         tgt_elements,
     ):
         if copy_directive.copy_all:
-            for element in src_elements.keys():
+            for element in src_elements:
                 tgt_elements[element] = src_elements[element]
         if copy_directive.exclude:
-            for element in src_elements.keys():
+            for element in src_elements:
                 if element in copy_directive.exclude:
                     del tgt_elements[element]
         if copy_directive.exclude_all:
-            elements_to_delete = [key for key in tgt_elements]
+            elements_to_delete = list(tgt_elements)
             for element in elements_to_delete:
                 del tgt_elements[element]
         if copy_directive.include:
             for element in copy_directive.include:
-                if element in src_elements.keys():
+                if element in src_elements:
                     tgt_elements[element] = src_elements[element]
 
     def _copy_list(
@@ -143,7 +143,7 @@ class SchemaMapper:
         specification: Optional[TransformationSpecification] = None,
         target_schema_id: Optional[str] = None,
         target_schema_name: Optional[str] = None,
-        suffix="-derived",
+        suffix: str = "-derived",
     ) -> SchemaDefinition:
         """
         Use a transformation specification to generate a target/profile schema from a source schema.
@@ -220,7 +220,7 @@ class SchemaMapper:
             target_class.mixins = class_derivation.mixins
         if class_derivation.target_definition:
             spec_defn = ClassDefinition(
-                **{"name": target_class.name}, **class_derivation.target_definition
+                name=target_class.name, **class_derivation.target_definition
             )
             for k, v in vars(spec_defn).items():
                 curr_v = getattr(target_class, k, None)
@@ -290,9 +290,7 @@ class SchemaMapper:
         if slot_derivation.range:
             target_slot.range = slot_derivation.range
         if slot_derivation.target_definition:
-            spec_defn = SlotDefinition(
-                **{"name": target_slot.name}, **slot_derivation.target_definition
-            )
+            spec_defn = SlotDefinition(name=target_slot.name, **slot_derivation.target_definition)
             for k, v in vars(spec_defn).items():
                 setattr(target_slot, k, v)
         if slot_derivation.unit_conversion:
@@ -323,7 +321,7 @@ class SchemaMapper:
             target_slot = SlotDefinition(**curr)
         return target_slot
 
-    def _rewire_class(self, class_definition: ClassDefinition):
+    def _rewire_class(self, class_definition: ClassDefinition) -> None:
         if class_definition.is_a:
             class_definition.is_a = self._rewire_parent(class_definition, class_definition.is_a)
         mixins = [self._rewire_parent(class_definition, m) for m in class_definition.mixins]
@@ -331,7 +329,7 @@ class SchemaMapper:
 
     def _rewire_parent(
         self, class_definition: ClassDefinition, parent: ClassDefinitionName
-    ) -> Optional[str]:
+    ) -> str | None:
         if parent in self.source_to_target_class_mappings:
             new_parents = self.source_to_target_class_mappings[parent]
             if len(new_parents) > 1:
@@ -361,9 +359,7 @@ class SchemaMapper:
         """
         for k, v in vars(source_element).items():
             included = False
-            if copy_directive.include_all:
-                included = True
-            if k in copy_directive.include:
+            if copy_directive.include_all or k in copy_directive.include:
                 included = True
             if k in copy_directive.exclude:
                 included = False

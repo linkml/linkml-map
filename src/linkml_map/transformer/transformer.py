@@ -8,7 +8,7 @@ from abc import ABC
 from copy import deepcopy
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Optional, Union
 
 import yaml
 from curies import Converter
@@ -30,7 +30,7 @@ from linkml_map.inference.inference import induce_missing_values
 logger = logging.getLogger(__name__)
 
 
-OBJECT_TYPE = Union[Dict[str, Any], BaseModel, YAMLRoot]
+OBJECT_TYPE = Union[dict[str, Any], BaseModel, YAMLRoot]
 """An object can be a plain python dict, a pydantic object, or a linkml YAMLRoot"""
 
 
@@ -63,7 +63,9 @@ class Transformer(ABC):
 
     _curie_converter: Converter = None
 
-    def map_object(self, obj: OBJECT_TYPE, source_type: str = None, **kwargs) -> OBJECT_TYPE:
+    def map_object(
+        self, obj: OBJECT_TYPE, source_type: Optional[str] = None, **kwargs
+    ) -> OBJECT_TYPE:
         """
         Transform source object into an instance of the target class.
 
@@ -115,7 +117,7 @@ class Transformer(ABC):
             obj = normalizer.normalize(obj)
             self.specification = TransformationSpecification(**obj)
 
-    def create_transformer_specification(self, obj: Dict[str, Any]):
+    def create_transformer_specification(self, obj: dict[str, Any]):
         """
         Creates specification from a dict.
 
@@ -165,12 +167,11 @@ class Transformer(ABC):
                             curr_v.extend(v)
                         elif isinstance(curr_v, dict):
                             curr_v.update({**v, **curr_v})
-                        else:
-                            if curr_v is None:
-                                setattr(cd, k, v)
+                        elif curr_v is None:
+                            setattr(cd, k, v)
         return cd
 
-    def _class_derivation_ancestors(self, cd: ClassDerivation) -> Dict[str, ClassDerivation]:
+    def _class_derivation_ancestors(self, cd: ClassDerivation) -> dict[str, ClassDerivation]:
         """
         Returns a map of all class derivations that are ancestors of the given class derivation.
         :param cd:
@@ -199,7 +200,7 @@ class Transformer(ABC):
 
     def _is_coerce_to_multivalued(
         self, slot_derivation: SlotDerivation, class_derivation: ClassDerivation
-    ):
+    ) -> bool:
         cast_as = slot_derivation.cast_collection_as
         if cast_as and cast_as in [
             CollectionType.MultiValued,
@@ -218,7 +219,7 @@ class Transformer(ABC):
 
     def _is_coerce_to_singlevalued(
         self, slot_derivation: SlotDerivation, class_derivation: ClassDerivation
-    ):
+    ) -> bool:
         cast_as = slot_derivation.cast_collection_as
         if cast_as and cast_as == CollectionType(CollectionType.SingleValued):
             return True
@@ -244,7 +245,7 @@ class Transformer(ABC):
             "string": str,
             "boolean": bool,
         }
-        cls = cmap.get(target_range, None)
+        cls = cmap.get(target_range)
         if not cls:
             logger.warning(f"Unknown target range {target_range}")
             return v

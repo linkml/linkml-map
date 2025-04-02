@@ -1,7 +1,7 @@
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional, Type, Union
+from typing import Any, Optional, Union
 
 import yaml
 from linkml_runtime import SchemaView
@@ -84,10 +84,10 @@ class Session:
 
     def set_transformer(
         self,
-        transformer: Optional[Union[Transformer, Type[Transformer]]],
+        transformer: Optional[Union[Transformer, type[Transformer]]],
         **kwargs,
     ):
-        if isinstance(transformer, Type):
+        if isinstance(transformer, type):
             transformer = transformer()
         transformer.specification = self.transformer_specification
         self.transformer = transformer
@@ -101,10 +101,9 @@ class Session:
         if transformer is None:
             if self.object_transformer is not None:
                 logger.info("No change")
-                return
             else:
                 logger.warning("No transformer specified")
-                return
+            return
         if transformer is not None:
             if isinstance(transformer, ObjectTransformer):
                 self.object_transformer = transformer
@@ -143,7 +142,7 @@ class Session:
         reverse_transformer.source_schemaview = SchemaView(yaml_dumper.dumps(self.target_schema))
         return reverse_transformer.map_object(obj, **kwargs)
 
-    def invert(self, in_place=False) -> TransformationSpecification:
+    def invert(self, in_place: bool = False) -> TransformationSpecification:
         """
         Invert the transformer specification.
         """

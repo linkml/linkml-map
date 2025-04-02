@@ -78,12 +78,11 @@ class SQLCompiler(Compiler):
             delimiter = sd.stringification.delimiter
             if sd.stringification.reversed:
                 pass
-            else:
-                # duckdb specific?
-                if syntax == SerializationSyntaxType.JSON:
-                    expr = f"CAST({expr} AS TEXT)"
-                elif delimiter:
-                    expr = f"STRING_AGG({expr}, '{delimiter}')"
+            # duckdb specific?
+            elif syntax == SerializationSyntaxType.JSON:
+                expr = f"CAST({expr} AS TEXT)"
+            elif delimiter:
+                expr = f"STRING_AGG({expr}, '{delimiter}')"
         return f"  {sd.name} AS {expr}"
 
     def create_ddl(self, schemaview: SchemaView) -> str:
@@ -102,9 +101,10 @@ class SQLCompiler(Compiler):
         for c in schemaview.all_classes().values():
             if c.mixin or c.abstract:
                 continue
-            col_strs = []
-            for s in schemaview.class_induced_slots(c.name):
-                col_strs.append(f"  {s.name} {self.sql_type(s, schemaview)}")
+            col_strs = [
+                f"  {s.name} {self.sql_type(s, schemaview)}"
+                for s in schemaview.class_induced_slots(c.name)
+            ]
             if not col_strs:
                 continue
             ddl.append(f"CREATE TABLE IF NOT EXISTS {c.name} (")
@@ -128,12 +128,9 @@ class SQLCompiler(Compiler):
         if slot.range:
             if slot.range in LINKML_TO_SQL_TYPE_MAP:
                 typ = LINKML_TO_SQL_TYPE_MAP.get(slot.range, typ)
-            elif slot.range in schemaview.all_classes():
-                if slot.inlined:
-                    typ = "TEXT"
-                else:
-                    # TODO: consider structs
-                    typ = "JSON"
+            elif slot.range in schemaview.all_classes() and not slot.inlined:
+                # TODO: consider structs
+                typ = "JSON"
 
         if slot.multivalued:
             typ = f"{typ}[]"

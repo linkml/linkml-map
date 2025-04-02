@@ -1,6 +1,7 @@
 """Tests ObjectTransformer using examples."""
 
 import pytest
+
 from linkml_map.utils.multi_file_transformer import MultiFileTransformer
 from tests import EXAMPLE_DIR
 
@@ -24,7 +25,7 @@ Assumes folder structures:
 """
 
 
-def test_all():
+def test_all() -> None:
     """
     Iterates through all examples.
 
@@ -39,7 +40,7 @@ def test_all():
 
 
 @pytest.mark.skip("Uncomment this to regenerate examples")
-def test_regenerate():
+def test_regenerate() -> None:
     """
     Use this to regenerate test examples.
     """
