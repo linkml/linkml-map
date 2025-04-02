@@ -1,6 +1,5 @@
 """Test the object transformer."""
 
-import itertools
 from typing import Any
 
 import pytest
@@ -93,12 +92,8 @@ def test_transform_multiple_dicts_in_container(obj_tr: ObjectTransformer) -> Non
     Tests transforming several Person data dicts in a Container
     into Agent data dicts in a Container dicts
     """
-    container_dict: dict[str, Any] = yaml.safe_load(
-        open(str(PERSONINFO_CONTAINER_DATA))
-    )
-    target_dict: dict[str, Any] = obj_tr.map_object(
-        container_dict, source_type="Container"
-    )
+    container_dict: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_CONTAINER_DATA)))
+    target_dict: dict[str, Any] = obj_tr.map_object(container_dict, source_type="Container")
     assert target_dict == CONTAINER_DATA
 
 
@@ -125,9 +120,7 @@ def test_transform_simple_object(obj_tr: ObjectTransformer):
     Tests transforming a Person object
     into an Agent object
     """
-    person_obj: src_dm.Person = yaml_loader.load(
-        str(PERSONINFO_DATA), target_class=src_dm.Person
-    )
+    person_obj: src_dm.Person = yaml_loader.load(str(PERSONINFO_DATA), target_class=src_dm.Person)
     assert isinstance(person_obj, src_dm.Person)
     assert person_obj.age_in_years == AGE_INT
 
@@ -181,9 +174,7 @@ def test_transform_container_object(obj_tr: ObjectTransformer):
     """
     person = yaml_loader.load(str(PERSONINFO_DATA), target_class=src_dm.Person)
     container_obj = src_dm.Container(persons=[person])
-    result: tgt_dm.Container = obj_tr.transform_object(
-        container_obj, target_class=tgt_dm.Container
-    )
+    result: tgt_dm.Container = obj_tr.transform_object(container_obj, target_class=tgt_dm.Container)
     assert isinstance(result, tgt_dm.Container)
     agents = result.agents
     agent = agents[0]
@@ -201,9 +192,7 @@ def test_transform_object_container(obj_tr: ObjectTransformer):
     Tests transforming a Container object holding several Person objects
     into Container object holding several Agent objects
     """
-    container_obj = yaml_loader.load(
-        str(PERSONINFO_CONTAINER_DATA), target_class=src_dm.Container
-    )
+    container_obj = yaml_loader.load(str(PERSONINFO_CONTAINER_DATA), target_class=src_dm.Container)
     target_obj = obj_tr.transform_object(container_obj, target_class=tgt_dm.Container)
     assert target_obj.agents[0] == TARGET_OBJECT
     assert target_obj == CONTAINER_OBJECT
@@ -361,50 +350,53 @@ def test_denormalized_object_transform():
     assert mapping.object_name == "y1"
 
 
-def test_cardinalities():
+@pytest.mark.parametrize("source_multivalued", [True, False])
+@pytest.mark.parametrize("target_multivalued", [True, False])
+@pytest.mark.parametrize("explicit", [True, False])
+def test_cardinalities(source_multivalued: bool, target_multivalued: bool, explicit: bool) -> None:
     """
-    Tests enforcing cardinality
+    Tests enforcing cardinality.
     """
-    tf = [True, False]
     class_name = "MyClass"
     att_name = "my_att"
     val = "v1"
-    for source_multivalued, target_multivalued, explicit in itertools.product(
-        tf, tf, tf
-    ):
 
-        def mk(mv: bool, explicit: bool = False):
-            cls = ClassDefinition(class_name)
-            # TODO: it should not be necessary to set this if present in Transformation
-            # att = SlotDefinition(att_name, multivalued=mv and not explicit)
-            att = SlotDefinition(att_name, multivalued=mv)
-            cls.attributes[att.name] = att
-            schema = SchemaDefinition(
-                name="test", id="test", classes=[cls], default_range="string"
-            )
-            return schema
+    def mk(mv: bool, ex: bool = False) -> SchemaDefinition:
+        """Generate a schema with a class with an attribute.
 
-        source_schema = mk(source_multivalued)
-        target_schema = mk(target_multivalued, explicit)
-        specification = TransformationSpecification(id="test")
-        cd = ClassDerivation(name=class_name, populated_from=class_name)
-        specification.class_derivations[class_name] = cd
-        sd = SlotDerivation(name=att_name, populated_from=att_name)
-        if explicit:
-            sd.cast_collection_as = (
-                CollectionType.MultiValued
-                if target_multivalued
-                else CollectionType.SingleValued
-            )
-        cd.slot_derivations[att_name] = sd
-        source_instance = {att_name: [val] if source_multivalued else val}
-        tr = ObjectTransformer(
-            specification=specification,
-            source_schemaview=SchemaView(source_schema),
-            target_schemaview=SchemaView(target_schema),
+        :param mv: whether or not the attribute is multivalued
+        :type mv: bool
+        :param ex: whether or not the attribute is explicitly defined as multivalued, defaults to False
+        :type ex: bool, optional
+        :return: _description_
+        :rtype: _type_
+        """
+        cls = ClassDefinition(class_name)
+        # TODO: it should not be necessary to set this if present in Transformation
+        # att = SlotDefinition(att_name, multivalued=mv and not ex)
+        att = SlotDefinition(att_name, multivalued=mv)
+        cls.attributes[att.name] = att
+        return SchemaDefinition(name="test", id="test", classes=[cls], default_range="string")
+
+    source_schema = mk(source_multivalued)
+    target_schema = mk(target_multivalued, explicit)
+    specification = TransformationSpecification(id="test")
+    cd = ClassDerivation(name=class_name, populated_from=class_name)
+    sd = SlotDerivation(name=att_name, populated_from=att_name)
+    if explicit:
+        sd.cast_collection_as = (
+            CollectionType.MultiValued if target_multivalued else CollectionType.SingleValued
         )
-        target_instance = tr.map_object(source_instance, class_name)
-        assert [val] if target_multivalued else val == target_instance[att_name]
+    specification.class_derivations[class_name] = cd
+    cd.slot_derivations[att_name] = sd
+    source_instance = {att_name: [val] if source_multivalued else val}
+    tr = ObjectTransformer(
+        specification=specification,
+        source_schemaview=SchemaView(source_schema),
+        target_schemaview=SchemaView(target_schema),
+    )
+    target_instance = tr.map_object(source_instance, class_name)
+    assert [val] if target_multivalued else val == target_instance[att_name]
 
 
 def test_self_transform():
@@ -412,9 +404,7 @@ def test_self_transform():
     tr.source_schemaview = SchemaView(str(TR_SCHEMA))
     tr.load_transformer_specification(TR_TO_MAPPING_TABLES)
     source_object = yaml.safe_load(open(str(PERSONINFO_TR)))
-    normalizer = ReferenceValidator(
-        package_schemaview("linkml_map.datamodel.transformer_model")
-    )
+    normalizer = ReferenceValidator(package_schemaview("linkml_map.datamodel.transformer_model"))
     normalizer.expand_all = True
     source_object = normalizer.normalize(source_object)
     derived = tr.map_object(source_object)
