@@ -7,8 +7,13 @@ name: Build and test
 on:
   push:
     branches: [ main ]
+
   pull_request:
-    branches: [ main ]
+      types:
+          - opened
+          - reopened
+          - synchronize
+          - ready_for_review
 
 jobs:
   lint:
@@ -26,7 +31,7 @@ jobs:
           pip install tox
 
       - name: Check code quality with flake8
-        run: tox -e flake8
+        run: tox -e lint
 
   test:
     runs-on: ubuntu-latest
