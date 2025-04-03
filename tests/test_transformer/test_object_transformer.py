@@ -76,7 +76,7 @@ def test_transform_dict(obj_tr: ObjectTransformer) -> None:
     assert target_dict == TARGET_DATA
 
 
-def test_transform_dict_in_container(obj_tr: ObjectTransformer):
+def test_transform_dict_in_container(obj_tr: ObjectTransformer) -> None:
     """
     Tests transforming a Person data dict in a Container
     into an Agent data dict in a Container dict
@@ -97,7 +97,7 @@ def test_transform_multiple_dicts_in_container(obj_tr: ObjectTransformer) -> Non
     assert target_dict == CONTAINER_DATA
 
 
-def check_familial_relationships(obj, data_model, expected):
+def check_familial_relationships(obj, data_model, expected) -> None:
     assert len(expected) == len(obj.has_familial_relationships)
     for n in range(len(expected)):
         fr = obj.has_familial_relationships[n]
@@ -106,16 +106,18 @@ def check_familial_relationships(obj, data_model, expected):
         assert expected[n]["type"] == str(fr.type)
 
 
-def test_coerce(obj_tr: ObjectTransformer):
-    x = obj_tr._coerce_datatype("5", "integer")
-    assert x == 5
-    x = obj_tr._coerce_datatype(5, "string")
-    assert "5" == x
-    x = obj_tr._coerce_datatype(5, "integer")
-    assert 5 == x
+def test_coerce(obj_tr: ObjectTransformer) -> None:
+    five_int = 5
+    five_str = "5"
+    x = obj_tr._coerce_datatype(five_str, "integer")  # noqa: SLF001
+    assert x == five_int
+    x = obj_tr._coerce_datatype(five_int, "string")  # noqa: SLF001
+    assert x == five_str
+    x = obj_tr._coerce_datatype(five_int, "integer")  # noqa: SLF001
+    assert x == five_int
 
 
-def test_transform_simple_object(obj_tr: ObjectTransformer):
+def test_transform_simple_object(obj_tr: ObjectTransformer) -> None:
     """
     Tests transforming a Person object
     into an Agent object
@@ -146,7 +148,7 @@ def test_transform_simple_object(obj_tr: ObjectTransformer):
     target_obj = obj_tr.transform_object(person_obj, target_class=tgt_dm.Agent)
     assert isinstance(target_obj, tgt_dm.Agent)
     assert person_obj.name == target_obj.label
-    assert AGE_STRING == target_obj.age
+    assert target_obj.age == AGE_STRING
     assert target_obj.gender is None
 
     expected = [
@@ -167,7 +169,7 @@ def test_transform_simple_object(obj_tr: ObjectTransformer):
     assert target_obj == TARGET_OBJECT
 
 
-def test_transform_container_object(obj_tr: ObjectTransformer):
+def test_transform_container_object(obj_tr: ObjectTransformer) -> None:
     """
     Tests transforming a Container object holding a Person object
     into Container object holding an Agent object
@@ -187,7 +189,7 @@ def test_transform_container_object(obj_tr: ObjectTransformer):
         assert person_fr1.related_to == agent_fr1.related_to
 
 
-def test_transform_object_container(obj_tr: ObjectTransformer):
+def test_transform_object_container(obj_tr: ObjectTransformer) -> None:
     """
     Tests transforming a Container object holding several Person objects
     into Container object holding several Agent objects
@@ -201,7 +203,7 @@ def test_transform_object_container(obj_tr: ObjectTransformer):
 def check_subject_object_predicate(
     obj,
     expected,
-):
+) -> None:
     assert expected["subject_id"] == obj.subject.id
     assert expected["subject_name"] == obj.subject.name
     assert expected["object_id"] == obj.object.id
@@ -209,7 +211,7 @@ def check_subject_object_predicate(
     assert expected["predicate"] == obj.predicate
 
 
-def test_index_dict():
+def test_index_dict() -> None:
     sv = SchemaView(NORM_SCHEMA)
     container = yaml.safe_load(open(str(FLATTENING_DATA)))
     dynobj = dynamic_object(container, sv, "MappingSet")
@@ -233,13 +235,13 @@ def test_index_dict():
     tr.index(container, "MappingSet")
     dynobj = dynamic_object(container, sv, "MappingSet")
     mset = ix.bless(dynobj)
-    assert "U:1" == mset.mappings[0].subject
-    assert "Y:1" == mset.mappings[0].object.id
-    assert "y1" == mset.mappings[0].object.name
-    assert "P:1" == mset.mappings[0].predicate
+    assert mset.mappings[0].subject == "U:1"
+    assert mset.mappings[0].object.id == "Y:1"
+    assert mset.mappings[0].object.name == "y1"
+    assert mset.mappings[0].predicate == "P:1"
 
 
-def test_index_obj():
+def test_index_obj() -> None:
     sv = SchemaView(NORM_SCHEMA)
     mset: sssom_src_dm.MappingSet = yaml_loader.load(
         str(FLATTENING_DATA), target_class=sssom_src_dm.MappingSet
@@ -274,7 +276,7 @@ def test_index_obj():
     check_subject_object_predicate(mset.mappings[0], expected)
 
 
-def test_denormalized_transform_dict():
+def test_denormalized_transform_dict() -> None:
     """
     Tests denormalizing transformation.
 
@@ -302,7 +304,7 @@ def test_denormalized_transform_dict():
     }
 
 
-def test_denormalized_object_transform():
+def test_denormalized_object_transform() -> None:
     """
     Tests denormalizing transformation.
 
@@ -399,7 +401,7 @@ def test_cardinalities(source_multivalued: bool, target_multivalued: bool, expli
     assert [val] if target_multivalued else val == target_instance[att_name]
 
 
-def test_self_transform():
+def test_self_transform() -> None:
     tr = ObjectTransformer()
     tr.source_schemaview = SchemaView(str(TR_SCHEMA))
     tr.load_transformer_specification(TR_TO_MAPPING_TABLES)
