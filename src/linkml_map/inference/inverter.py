@@ -19,7 +19,7 @@ from linkml_map.datamodel.transformer_model import (
 logger = logging.getLogger(__name__)
 
 
-class NonInvertibleSpecification(ValueError):
+class NonInvertibleSpecificationError(ValueError):
     pass
 
 
@@ -75,7 +75,8 @@ class TransformationSpecificationInverter:
             if inverted_sd:
                 inverted_cd.slot_derivations[inverted_sd.name] = inverted_sd
             elif self.strict:
-                raise NonInvertibleSpecification(f"Cannot invert slot derivation: {sd.name}")
+                msg = f"Cannot invert slot derivation: {sd.name}"
+                raise NonInvertibleSpecificationError(msg)
         return inverted_cd
 
     def invert_enum_derivation(
@@ -92,7 +93,8 @@ class TransformationSpecificationInverter:
             name=ed.populated_from if ed.populated_from else ed.name, populated_from=ed.name
         )
         if inverted_ed.expr:
-            raise NonInvertibleSpecification("TODO: invert enum derivation with expression")
+            msg = "TODO: invert enum derivation with expression"
+            raise NonInvertibleSpecificationError(msg)
         for pv_deriv in ed.permissible_value_derivations.values():
             inverted_pv_deriv = PermissibleValueDerivation(
                 name=pv_deriv.populated_from if pv_deriv.populated_from else pv_deriv.name,
@@ -120,13 +122,12 @@ class TransformationSpecificationInverter:
                 if not self.strict:
                     return None
                 # TODO: add logic for reversible expressions
-                raise NonInvertibleSpecification(
-                    f"Cannot invert expression {sd.expr} in slot derivation: {sd.name}"
-                )
+                msg = f"Cannot invert expression {sd.expr} in slot derivation: {sd.name}"
+                raise NonInvertibleSpecificationError(msg)
         if not populated_from:
             # use defaults. TODO: decide on semantics of defaults
             populated_from = sd.name
-            # raise NonInvertibleSpecification(f"No populate_from or expr in slot derivation: {sd.name}")
+            # raise NonInvertibleSpecificationError(f"No populate_from or expr in slot derivation: {sd.name}")
         inverted_sd = SlotDerivation(name=populated_from, populated_from=sd.name)
         # source_cls_name = spec.class_derivations[cd.populated_from].name
         source_cls_name = cd.populated_from

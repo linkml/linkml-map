@@ -64,7 +64,7 @@ class Transformer(ABC):
     _curie_converter: Converter = None
 
     def map_object(
-        self, obj: OBJECT_TYPE, source_type: Optional[str] = None, **kwargs
+        self, obj: OBJECT_TYPE, source_type: Optional[str] = None, **kwargs: dict[str, Any]
     ) -> OBJECT_TYPE:
         """
         Transform source object into an instance of the target class.
@@ -76,7 +76,7 @@ class Transformer(ABC):
         raise NotImplementedError
 
     def map_database(
-        self, source_database: Any, target_database: Optional[Any] = None, **kwargs
+        self, source_database: Any, target_database: Optional[Any] = None, **kwargs: dict[str, Any]
     ) -> OBJECT_TYPE:
         """
         Transform source resource.
@@ -88,7 +88,7 @@ class Transformer(ABC):
         """
         raise NotImplementedError
 
-    def load_source_schema(self, path: Union[str, Path, dict]):
+    def load_source_schema(self, path: Union[str, Path, dict]) -> None:
         """
         Sets source_schemaview from a schema path.
 
@@ -99,7 +99,7 @@ class Transformer(ABC):
             path = str(path)
         self.source_schemaview = SchemaView(path)
 
-    def load_transformer_specification(self, path: Union[str, Path]):
+    def load_transformer_specification(self, path: Union[str, Path]) -> None:
         """
         Sets specification from a schema path.
 
@@ -117,7 +117,7 @@ class Transformer(ABC):
             obj = normalizer.normalize(obj)
             self.specification = TransformationSpecification(**obj)
 
-    def create_transformer_specification(self, obj: dict[str, Any]):
+    def create_transformer_specification(self, obj: dict[str, Any]) -> None:
         """
         Creates specification from a dict.
 
@@ -152,9 +152,8 @@ class Transformer(ABC):
         ]
         logger.debug(f"Target class derivations={matching_tgt_class_derivs}")
         if len(matching_tgt_class_derivs) != 1:
-            raise ValueError(
-                f"Could not find class derivation for {target_class_name} (results={len(matching_tgt_class_derivs)})"
-            )
+            msg = f"Could not find class derivation for {target_class_name} (results={len(matching_tgt_class_derivs)})"
+            raise ValueError(msg)
         cd = matching_tgt_class_derivs[0]
         ancmap = self._class_derivation_ancestors(cd)
         if ancmap:
@@ -195,7 +194,8 @@ class Transformer(ABC):
         ]
         logger.debug(f"Target enum derivations={matching_tgt_enum_derivs}")
         if len(matching_tgt_enum_derivs) != 1:
-            raise ValueError(f"Could not find what to derive from a source {target_enum_name}")
+            msg = f"Could not find what to derive from a source {target_enum_name}"
+            raise ValueError(msg)
         return matching_tgt_enum_derivs[0]
 
     def _is_coerce_to_multivalued(

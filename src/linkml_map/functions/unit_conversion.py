@@ -87,16 +87,20 @@ def convert_units(
     try:
         from_unit_q = ureg.parse_units(from_unit)
     except lark.exceptions.UnexpectedCharacters as err:
-        raise UndefinedUnitError(f"Cannot parse unit: {from_unit}") from err
+        msg = f"Cannot parse unit: {from_unit}"
+        raise UndefinedUnitError(msg) from err
     except pint.errors.UndefinedUnitError as err:
-        raise UndefinedUnitError(f"Unknown source unit: {from_unit}") from err
+        msg = f"Unknown source unit: {from_unit}"
+        raise UndefinedUnitError(msg) from err
     quantity = magnitude * from_unit_q
     try:
         return quantity.to(to_unit).magnitude
     except pint.errors.UndefinedUnitError as err:
-        raise UndefinedUnitError(f"Unknown target unit: {from_unit}") from err
+        msg = f"Unknown target unit: {from_unit}"
+        raise UndefinedUnitError(msg) from err
     except pint.errors.DimensionalityError as err:
-        raise DimensionalityError(f"Cannot convert from {from_unit} to {to_unit}") from err
+        msg = f"Cannot convert from {from_unit} to {to_unit}"
+        raise DimensionalityError(msg) from err
 
 
 @lru_cache
@@ -140,7 +144,8 @@ def get_unit_registry(system: Optional[UnitSystem] = None) -> Any:
     if system.value in dir(ureg.sys):
         ureg.default_system = system.value
         return ureg
-    raise NotImplementedError(f"Unknown unit system: {system}")
+    msg = f"Unknown unit system: {system}"
+    raise NotImplementedError(msg)
 
 
 def normalize_unit(unit: str, system: Optional[UnitSystem] = None) -> str:
@@ -149,9 +154,11 @@ def normalize_unit(unit: str, system: Optional[UnitSystem] = None) -> str:
     if system == UnitSystem.UCUM:
         try:
             return str(get_unit_registry(system).from_ucum(unit))
-        except pint.errors.UndefinedUnitError:
-            raise UndefinedUnitError(f"Unknown unit: {unit}")
-        except lark.exceptions.UnexpectedCharacters:
-            raise UndefinedUnitError(f"Cannot parse unit: {unit}")
+        except pint.errors.UndefinedUnitError as err:
+            msg = f"Unknown unit: {unit}"
+            raise UndefinedUnitError(msg) from err
+        except lark.exceptions.UnexpectedCharacters as err:
+            msg = f"Cannot parse unit: {unit}"
+            raise UndefinedUnitError(msg) from err
     else:
         return unit

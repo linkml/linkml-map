@@ -28,6 +28,7 @@ from linkml_map.datamodel.transformer_model import (
     CollectionType,
     CopyDirective,
     EnumDerivation,
+    SlotDerivation,
     TransformationSpecification,
 )
 from linkml_map.transformer.transformer import Transformer
@@ -49,14 +50,14 @@ class SchemaMapper:
         default_factory=lambda: defaultdict(list)
     )
 
-    slot_info: dict[tuple[str, str], Any] = field(default_factory=lambda: {})
+    slot_info: dict[tuple[str, str], Any] = field(default_factory=dict)
 
     def _copy_dict(
         self,
         copy_directive: CopyDirective,
         src_elements,
         tgt_elements,
-    ):
+    ) -> None:
         if copy_directive.copy_all:
             for element in src_elements:
                 tgt_elements[element] = src_elements[element]
@@ -78,7 +79,7 @@ class SchemaMapper:
         copy_directive: CopyDirective,
         src_elements,
         tgt_elements,
-    ):
+    ) -> None:
         if copy_directive.copy_all:
             for element in src_elements:
                 tgt_elements.append(element)
@@ -264,7 +265,8 @@ class SchemaMapper:
                     pv = PermissibleValue(text=source)
                     target_enum.permissible_values[pv.text] = pv
             else:
-                raise ValueError(f"Missing populated_from or sources for {pv_derivation}")
+                msg = f"Missing populated_from or sources for {pv_derivation}"
+                raise ValueError(msg)
         if enum_derivation.mirror_source:
             for pv in source_enum.permissible_values.values():
                 if pv.text not in target_enum.permissible_values:
@@ -272,7 +274,7 @@ class SchemaMapper:
         self.source_to_target_class_mappings[populated_from].append(target_enum.name)
         return target_enum
 
-    def _derive_slot(self, slot_derivation) -> SlotDefinition:
+    def _derive_slot(self, slot_derivation: SlotDerivation) -> SlotDefinition:
         """
         Derive a slot from a slot derivation.
         """
@@ -329,13 +331,12 @@ class SchemaMapper:
 
     def _rewire_parent(
         self, class_definition: ClassDefinition, parent: ClassDefinitionName
-    ) -> str | None:
+    ) -> Optional[str]:
         if parent in self.source_to_target_class_mappings:
             new_parents = self.source_to_target_class_mappings[parent]
             if len(new_parents) > 1:
-                raise ValueError(
-                    f"Cannot rewire to non-isomorphic mappings {parent} => {new_parents}"
-                )
+                msg = f"Cannot rewire to non-isomorphic mappings {parent} => {new_parents}"
+                raise ValueError(msg)
             if len(new_parents) == 1:
                 return new_parents[0]
         parent_cls = self.source_schemaview.get_class(parent)

@@ -69,7 +69,7 @@ class SQLCompiler(Compiler):
         stmt += f" FROM {cd.name}"
         compiled.serialization += f"{stmt};\n"
 
-    def compile_slot_derivation(self, sd) -> str:
+    def compile_slot_derivation(self, sd: SlotDerivation) -> str:
         expr = sd.populated_from
         if expr is None:
             expr = sd.name

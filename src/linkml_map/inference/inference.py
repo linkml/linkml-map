@@ -5,7 +5,7 @@ from linkml_map.datamodel.transformer_model import TransformationSpecification
 
 def induce_missing_values(
     specification: TransformationSpecification, source_schemaview: SchemaView
-):
+) -> None:
     """
     Infer missing values in a specification.
 

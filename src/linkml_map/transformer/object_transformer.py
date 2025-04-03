@@ -40,7 +40,7 @@ class Bindings(Mapping):
         source_type: str,
         sv: SchemaView,
         bindings: dict,
-    ):
+    ) -> None:
         self.object_transformer: ObjectTransformer = object_transformer
         self.source_obj: OBJECT_TYPE = source_obj
         self.source_obj_typed: OBJECT_TYPE = source_obj_typed
@@ -106,9 +106,10 @@ class Bindings(Mapping):
 
         return self.bindings.get(name)
 
-    def __setitem__(self, name: Any, value: Any):
+    def __setitem__(self, name: Any, value: Any) -> None:
         del name, value
-        raise RuntimeError(f"__setitem__ not allowed on class {self.__class__.__name__}")
+        msg = f"__setitem__ not allowed on class {self.__class__.__name__}"
+        raise RuntimeError(msg)
 
 
 @dataclass
@@ -121,7 +122,7 @@ class ObjectTransformer(Transformer):
 
     object_index: ObjectIndex = None
 
-    def index(self, source_obj: Any, target: Optional[str] = None):
+    def index(self, source_obj: Any, target: Optional[str] = None) -> None:
         """
         Create an index over a container object.
 
@@ -134,7 +135,8 @@ class ObjectTransformer(Transformer):
                     c.name for c in self.source_schemaview.all_classes().values() if c.tree_root
                 ]
             if target is None:
-                raise ValueError(f"target must be passed if source_obj is dict: {source_obj}")
+                msg = f"target must be passed if source_obj is dict: {source_obj}"
+                raise ValueError(msg)
             source_obj_typed = dynamic_object(source_obj, self.source_schemaview, target)
             self.object_index = ObjectIndex(source_obj_typed, schemaview=self.source_schemaview)
         else:
@@ -163,12 +165,14 @@ class ObjectTransformer(Transformer):
             if len(source_types) == 1:
                 source_type = source_types[0]
             elif len(source_types) > 1:
-                raise ValueError("No source type specified and multiple root classes found")
+                msg = "No source type specified and multiple root classes found"
+                raise ValueError(msg)
             elif len(source_types) == 0:
                 if len(sv.all_classes()) == 1:
                     source_type = list(sv.all_classes().keys())[0]
                 else:
-                    raise ValueError("No source type specified and no root classes found")
+                    msg = "No source type specified and no root classes found"
+                    raise ValueError(msg)
 
         if source_type in sv.all_types():
             if target_type:
@@ -217,9 +221,10 @@ class ObjectTransformer(Transformer):
 
                 try:
                     v = eval_expr_with_mapping(slot_derivation.expr, bindings)
-                except Exception:
+                except Exception as err:
                     if not self.unrestricted_eval:
-                        raise RuntimeError(f"Expression not in safe subset: {slot_derivation.expr}")
+                        msg = f"Expression not in safe subset: {slot_derivation.expr}"
+                        raise RuntimeError(msg) from err
                     ctxt_obj, _ = bindings.get_ctxt_obj_and_dict()
                     aeval = Interpreter(usersyms={"src": ctxt_obj, "target": None})
                     aeval(slot_derivation.expr)
@@ -234,7 +239,8 @@ class ObjectTransformer(Transformer):
                 vmap = {s: source_obj.get(s, None) for s in slot_derivation.sources}
                 vmap = {k: v for k, v in vmap.items() if v is not None}
                 if len(vmap.keys()) > 1:
-                    raise ValueError(f"Multiple sources for {slot_derivation.name}: {vmap}")
+                    msg = f"Multiple sources for {slot_derivation.name}: {vmap}"
+                    raise ValueError(msg)
                 if len(vmap.keys()) == 1:
                     v = list(vmap.values())[0]
                     source_class_slot_name = list(vmap.keys())[0]
@@ -314,14 +320,12 @@ class ObjectTransformer(Transformer):
             if uc.source_unit_slot:
                 from_unit = curr_v.get(uc.source_unit_slot, None)
                 if from_unit is None:
-                    raise ValueError(
-                        f"Could not determine unit from {curr_v} using {uc.source_unit_slot}"
-                    )
+                    msg = f"Could not determine unit from {curr_v} using {uc.source_unit_slot}"
+                    raise ValueError(msg)
                 magnitude = curr_v.get(uc.source_magnitude_slot, None)
                 if magnitude is None:
-                    raise ValueError(
-                        f"Could not determine magnitude from {curr_v} using {uc.source_magnitude_slot}"
-                    )
+                    msg = f"Could not determine magnitude from {curr_v} using {uc.source_magnitude_slot}"
+                    raise ValueError(msg)
             else:
                 if slot.unit.ucum_code:
                     from_unit = slot.unit.ucum_code
@@ -337,10 +341,12 @@ class ObjectTransformer(Transformer):
                     elif slot.unit.descriptive_name:
                         from_unit = slot.unit.descriptive_name
                     else:
-                        raise NotImplementedError(f"Cannot determine unit system for {slot.unit}")
+                        msg = f"Cannot determine unit system for {slot.unit}"
+                        raise NotImplementedError(msg)
                 magnitude = curr_v
             if not from_unit:
-                raise ValueError(f"Could not determine from_unit for {slot_derivation}")
+                msg = f"Could not determine from_unit for {slot_derivation}"
+                raise ValueError(msg)
             if not to_unit:
                 to_unit = from_unit
                 # raise ValueError(f"Could not determine to_unit for {slot_derivation}")
@@ -368,10 +374,13 @@ class ObjectTransformer(Transformer):
                     return json.dumps(vs)
                 if stringification.syntax == SerializationSyntaxType.YAML:
                     return yaml.dump(vs, default_flow_style=True).strip()
-                raise ValueError(f"Unknown syntax: {stringification.syntax}")
-            raise ValueError(f"Cannot convert multivalued to single valued: {vs}; no delimiter")
+                msg = f"Unknown syntax: {stringification.syntax}"
+                raise ValueError(msg)
+            msg = f"Cannot convert multivalued to single valued: {vs}; no delimiter"
+            raise ValueError(msg)
         if len(vs) > 1:
-            raise ValueError(f"Cannot coerce multiple values {vs}")
+            msg = f"Cannot coerce multiple values {vs}"
+            raise ValueError(msg)
         if len(vs) == 0:
             return None
         return vs[0]
@@ -391,9 +400,11 @@ class ObjectTransformer(Transformer):
                 elif syntax == SerializationSyntaxType.YAML:
                     vs = yaml.safe_load(v)
                 else:
-                    raise ValueError(f"Unknown syntax: {syntax}")
+                    msg = f"Unknown syntax: {syntax}"
+                    raise ValueError(msg)
             else:
-                raise ValueError(f"Cannot convert single valued to multivalued: {v}; no delimiter")
+                msg = f"Cannot convert single valued to multivalued: {v}; no delimiter"
+                raise ValueError(msg)
             return vs
         return [v]
 
@@ -413,7 +424,8 @@ class ObjectTransformer(Transformer):
         :rtype: Union[YAMLRoot, BaseModel]
         """
         if not target_class:
-            raise ValueError("No target_class specified for transform_object")
+            msg = "No target_class specified for transform_object"
+            raise ValueError(msg)
 
         source_type = type(source_obj)
         source_type_name = source_type.__name__

@@ -69,7 +69,7 @@ def eval_expr_with_mapping(expr: str, mapping: Mapping) -> Any:
         return None
 
 
-def eval_expr(expr: str, **kwargs) -> Any:
+def eval_expr(expr: str, **kwargs: dict[str, Any]) -> Any:
     """
     Evaluates a given expression, with restricted syntax
 
@@ -143,7 +143,7 @@ def eval_(node, bindings=None):
         v = eval_(node.value, bindings)
 
         # lookup attribute, potentially distributing the results over collections
-        def _get(obj: Any, k: str, recurse=True) -> Any:
+        def _get(obj: Any, k: str, recurse: bool = True) -> Any:
             if isinstance(obj, dict):
                 # dicts are treated as collections; distribute results
                 if recurse:
@@ -162,13 +162,16 @@ def eval_(node, bindings=None):
     if isinstance(node, ast.Set):
         # sets are not part of the language; we use {x} as notation for x
         if len(node.elts) != 1:
-            raise ValueError("The {} must enclose a single variable")
+            msg = "The {} must enclose a single variable"
+            raise ValueError(msg)
         e = node.elts[0]
         if not isinstance(e, ast.Name):
-            raise ValueError("The {} must enclose a variable")
+            msg = "The {} must enclose a variable"
+            raise ValueError(msg)
         v = eval_(e, bindings)
         if v is None:
-            raise UnsetValueError(f"{e} is not set")
+            msg = f"{e} is not set"
+            raise UnsetValueError(msg)
         return v
     if isinstance(node, ast.Tuple):
         return tuple([eval_(x, bindings) for x in node.elts])
@@ -179,12 +182,15 @@ def eval_(node, bindings=None):
         }
     if isinstance(node, ast.Compare):  # <left> <operator> <right>
         if len(node.ops) != 1:
-            raise ValueError(f"Must be exactly one op in {node}")
+            msg = f"Must be exactly one op in {node}"
+            raise ValueError(msg)
         if type(node.ops[0]) not in compare_operators:
-            raise NotImplementedError(f"Not implemented: {node.ops[0]} in {node}")
+            msg = f"Not implemented: {node.ops[0]} in {node}"
+            raise NotImplementedError(msg)
         py_op = compare_operators[type(node.ops[0])]
         if len(node.comparators) != 1:
-            raise ValueError(f"Must be exactly one comparator in {node}")
+            msg = f"Must be exactly one comparator in {node}"
+            raise ValueError(msg)
         right = node.comparators[0]
         return py_op(eval_(node.left, bindings), eval_(right, bindings))
     if isinstance(node, ast.BinOp):  # <left> <operator> <right>
@@ -208,5 +214,6 @@ def eval_(node, bindings=None):
                 if isinstance(args[0], list) and not takes_list:
                     return [func(*[x] + args[1:]) for x in args[0]]
                 return func(*args)
-        raise NotImplementedError(f"Call {node.func} not implemented. node = {node}")
+        msg = f"Call {node.func} not implemented. node = {node}"
+        raise NotImplementedError(msg)
     raise TypeError(node)
