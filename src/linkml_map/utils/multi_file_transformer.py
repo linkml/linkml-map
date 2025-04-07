@@ -4,9 +4,10 @@ import glob
 import logging
 import os
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Mapping, Optional, Union
+from typing import Any, Optional, Union
 
 import yaml
 from linkml_runtime import SchemaView
@@ -29,12 +30,12 @@ class Transformation(BaseModel):
     source_schema: str = None
     target_schema: str = None
     transformation_specification: str = None
-    steps: List[Step] = None
+    steps: list[Step] = None
 
 
 class Instructions(BaseModel):
     description: Optional[str] = None
-    transformations: List[Transformation] = []
+    transformations: list[Transformation] = []
 
 
 @dataclass
@@ -57,15 +58,15 @@ class MultiFileTransformer:
     target_schema_directory_base: str = field(default_factory=lambda: "target")
     target_data_directory_base: str = field(default_factory=lambda: "output")
 
-    input_formats: Optional[List[str]] = field(default_factory=lambda: ["yaml"])
+    input_formats: Optional[list[str]] = field(default_factory=lambda: ["yaml"])
     """Expected formats for input data"""
 
-    output_formats: Optional[List[str]] = field(default_factory=lambda: ["yaml"])
+    output_formats: Optional[list[str]] = field(default_factory=lambda: ["yaml"])
 
     prefix_map: Optional[Mapping[str, str]] = None
     """Custom prefix map, for emitting RDF/turtle."""
 
-    def process_directory(self, root_directory: Union[str, Path], **kwargs):
+    def process_directory(self, root_directory: Union[str, Path], **kwargs: dict[str, Any]) -> None:
         """
         Process all transformations in a directory.
 
@@ -82,23 +83,27 @@ class MultiFileTransformer:
         if isinstance(root_directory, str):
             root_directory = Path(root_directory)
         if not root_directory.exists():
-            raise ValueError(f"No such directory {root_directory}")
+            msg = f"No such directory {root_directory}"
+            raise ValueError(msg)
         instructions_file = root_directory / "instructions.yaml"
         if instructions_file.exists():
             with open(instructions_file) as file:
                 return Instructions(**yaml.safe_load(file))
         source_schema_directory = root_directory / self.source_schema_directory_base
         if not source_schema_directory.exists():
-            raise ValueError(f"Expected {source_schema_directory}")
+            msg = f"Expected {source_schema_directory}"
+            raise ValueError(msg)
         transform_specification_directory = (
             root_directory / self.transform_specification_directory_base
         )
         if not transform_specification_directory.exists():
-            raise ValueError(f"Expected {transform_specification_directory}")
+            msg = f"Expected {transform_specification_directory}"
+            raise ValueError(msg)
         target_schema_directory = root_directory / self.target_schema_directory_base
         input_schemas = glob.glob(os.path.join(str(source_schema_directory), "*.yaml"))
         if not input_schemas:
-            raise ValueError(f"Expected schemas in {source_schema_directory}")
+            msg = f"Expected schemas in {source_schema_directory}"
+            raise ValueError(msg)
         transform_files = glob.glob(
             os.path.join(str(transform_specification_directory), "*.transform.yaml")
         )
@@ -115,7 +120,8 @@ class MultiFileTransformer:
                     # resolve which schema the transform applies to
                     matches = re.match(r"^(\w+)-to-(\w+)\.", transform_file)
                     if not matches:
-                        raise ValueError(f"Ambiguous: {transform_file}")
+                        msg = f"Ambiguous: {transform_file}"
+                        raise ValueError(msg)
                     src, target_schema_base = matches.group(1, 2)
                     if src not in input_schema:
                         continue
@@ -135,26 +141,27 @@ class MultiFileTransformer:
                 if len(target_schemas) > 1:
                     target_schemas = [s for s in target_schemas if target_schema_base in s]
                     if len(target_schemas) != 1:
-                        raise ValueError(
-                            f"Could not determine target schema from: {target_schemas}"
-                        )
+                        msg = f"Could not determine target schema from: {target_schemas}"
+                        raise ValueError(msg)
                 if target_schemas:
                     tr.target_schema = target_schemas[0]
                 else:
                     tr.target_schema = str(Path(target_schema_directory) / "target.yaml")
                 if not tr.steps:
-                    raise ValueError(f"Could not infer steps from {data_files}")
+                    msg = f"Could not infer steps from {data_files}"
+                    raise ValueError(msg)
                 if not tr.transformation_specification:
-                    raise ValueError(f"No spec {tr}")
+                    msg = f"No spec {tr}"
+                    raise ValueError(msg)
         return instructions
 
     def process_instructions(
         self,
         instructions: Instructions,
         root_directory: Optional[Union[str, Path]],
-        output_directory=None,
-        test_mode=False,
-    ):
+        output_directory: Optional[Union[str, Path]] = None,
+        test_mode: bool = False,
+    ) -> None:
         """
         Process a set of instructions to transform one or more files.
 
@@ -200,11 +207,9 @@ class MultiFileTransformer:
                             compare_obj = yaml.safe_load(f)
                             if compare_obj != target_obj:
                                 if test_mode and not overwrite:
-                                    raise ValueError(
-                                        f"Output different than expected: {compare_obj}"
-                                    )
-                                else:
-                                    logging.warning(f"Different: {compare_obj}")
+                                    msg = f"Output different than expected: {compare_obj}"
+                                    raise ValueError(msg)
+                                logging.warning(f"Different: {compare_obj}")
                     with open(str(out_path), "w", encoding="utf-8") as f:
                         yaml_str = yaml.dump(target_obj, sort_keys=False)
                         f.write(yaml_str)

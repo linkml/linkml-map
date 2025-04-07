@@ -8,7 +8,7 @@ from abc import ABC
 from copy import deepcopy
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Optional, Union
 
 import yaml
 from curies import Converter
@@ -30,7 +30,7 @@ from linkml_map.inference.inference import induce_missing_values
 logger = logging.getLogger(__name__)
 
 
-OBJECT_TYPE = Union[Dict[str, Any], BaseModel, YAMLRoot]
+OBJECT_TYPE = Union[dict[str, Any], BaseModel, YAMLRoot]
 """An object can be a plain python dict, a pydantic object, or a linkml YAMLRoot"""
 
 
@@ -63,7 +63,9 @@ class Transformer(ABC):
 
     _curie_converter: Converter = None
 
-    def map_object(self, obj: OBJECT_TYPE, source_type: str = None, **kwargs) -> OBJECT_TYPE:
+    def map_object(
+        self, obj: OBJECT_TYPE, source_type: Optional[str] = None, **kwargs: dict[str, Any]
+    ) -> OBJECT_TYPE:
         """
         Transform source object into an instance of the target class.
 
@@ -74,7 +76,7 @@ class Transformer(ABC):
         raise NotImplementedError
 
     def map_database(
-        self, source_database: Any, target_database: Optional[Any] = None, **kwargs
+        self, source_database: Any, target_database: Optional[Any] = None, **kwargs: dict[str, Any]
     ) -> OBJECT_TYPE:
         """
         Transform source resource.
@@ -86,7 +88,7 @@ class Transformer(ABC):
         """
         raise NotImplementedError
 
-    def load_source_schema(self, path: Union[str, Path, dict]):
+    def load_source_schema(self, path: Union[str, Path, dict]) -> None:
         """
         Sets source_schemaview from a schema path.
 
@@ -97,7 +99,7 @@ class Transformer(ABC):
             path = str(path)
         self.source_schemaview = SchemaView(path)
 
-    def load_transformer_specification(self, path: Union[str, Path]):
+    def load_transformer_specification(self, path: Union[str, Path]) -> None:
         """
         Sets specification from a schema path.
 
@@ -115,7 +117,7 @@ class Transformer(ABC):
             obj = normalizer.normalize(obj)
             self.specification = TransformationSpecification(**obj)
 
-    def create_transformer_specification(self, obj: Dict[str, Any]):
+    def create_transformer_specification(self, obj: dict[str, Any]) -> None:
         """
         Creates specification from a dict.
 
@@ -150,9 +152,8 @@ class Transformer(ABC):
         ]
         logger.debug(f"Target class derivations={matching_tgt_class_derivs}")
         if len(matching_tgt_class_derivs) != 1:
-            raise ValueError(
-                f"Could not find class derivation for {target_class_name} (results={len(matching_tgt_class_derivs)})"
-            )
+            msg = f"Could not find class derivation for {target_class_name} (results={len(matching_tgt_class_derivs)})"
+            raise ValueError(msg)
         cd = matching_tgt_class_derivs[0]
         ancmap = self._class_derivation_ancestors(cd)
         if ancmap:
@@ -165,12 +166,11 @@ class Transformer(ABC):
                             curr_v.extend(v)
                         elif isinstance(curr_v, dict):
                             curr_v.update({**v, **curr_v})
-                        else:
-                            if curr_v is None:
-                                setattr(cd, k, v)
+                        elif curr_v is None:
+                            setattr(cd, k, v)
         return cd
 
-    def _class_derivation_ancestors(self, cd: ClassDerivation) -> Dict[str, ClassDerivation]:
+    def _class_derivation_ancestors(self, cd: ClassDerivation) -> dict[str, ClassDerivation]:
         """
         Returns a map of all class derivations that are ancestors of the given class derivation.
         :param cd:
@@ -194,12 +194,13 @@ class Transformer(ABC):
         ]
         logger.debug(f"Target enum derivations={matching_tgt_enum_derivs}")
         if len(matching_tgt_enum_derivs) != 1:
-            raise ValueError(f"Could not find what to derive from a source {target_enum_name}")
+            msg = f"Could not find what to derive from a source {target_enum_name}"
+            raise ValueError(msg)
         return matching_tgt_enum_derivs[0]
 
     def _is_coerce_to_multivalued(
         self, slot_derivation: SlotDerivation, class_derivation: ClassDerivation
-    ):
+    ) -> bool:
         cast_as = slot_derivation.cast_collection_as
         if cast_as and cast_as in [
             CollectionType.MultiValued,
@@ -218,7 +219,7 @@ class Transformer(ABC):
 
     def _is_coerce_to_singlevalued(
         self, slot_derivation: SlotDerivation, class_derivation: ClassDerivation
-    ):
+    ) -> bool:
         cast_as = slot_derivation.cast_collection_as
         if cast_as and cast_as == CollectionType(CollectionType.SingleValued):
             return True
@@ -244,7 +245,7 @@ class Transformer(ABC):
             "string": str,
             "boolean": bool,
         }
-        cls = cmap.get(target_range, None)
+        cls = cmap.get(target_range)
         if not cls:
             logger.warning(f"Unknown target range {target_range}")
             return v

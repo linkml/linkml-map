@@ -44,7 +44,7 @@ output_format_options = click.option(
 @click.option("-v", "--verbose", count=True)
 @click.option("-q", "--quiet")
 # @click.version_option(__version__)
-def main(verbose: int, quiet: bool):
+def main(verbose: int, quiet: bool) -> None:
     """CLI for linkml-map."""
     logger = logging.getLogger()
     if verbose >= 2:
@@ -79,7 +79,7 @@ def map_data(
     output,
     output_format,
     **kwargs,
-):
+) -> None:
     """
     Map data from a source schema to a target schema using a transformation specification.
 
@@ -95,10 +95,7 @@ def map_data(
         input_obj = yaml.safe_load(file)
     tr.index(input_obj, source_type)
     tr_obj = tr.map_object(input_obj, source_type)
-    if output:
-        outfile = open(output, "w", encoding="utf-8")
-    else:
-        outfile = sys.stdout
+    outfile = open(output, "w", encoding="utf-8") if output else sys.stdout
     outfile.write(yaml_dumper.dumps(tr_obj))
 
 
@@ -115,7 +112,7 @@ def compile(
     target,
     output,
     **kwargs,
-):
+) -> None:
     """
     Compiles a schema to another representation.
 
@@ -132,7 +129,8 @@ def compile(
     elif target == "markdown":
         compiler = MarkdownCompiler(**compiler_args)
     else:
-        raise NotImplementedError(f"Compiler {target} not implemented")
+        msg = f"Compiler {target} not implemented"
+        raise NotImplementedError(msg)
     tr = ObjectTransformer()
     tr.source_schemaview = SchemaView(schema)
     tr.load_transformer_specification(transformer_specification)
@@ -145,7 +143,7 @@ def compile(
 @transformer_specification_option
 @output_format_options
 @click.argument("schema")
-def derive_schema(schema, transformer_specification, output, output_format, **kwargs):
+def derive_schema(schema, transformer_specification, output, output_format, **kwargs) -> None:
     """Derive a schema from a source schema and a transformation specification.
 
     This can be thought of as "copying" the source to a target, using the transformation
@@ -166,10 +164,7 @@ def derive_schema(schema, transformer_specification, output, output_format, **kw
     mapper = SchemaMapper(transformer=tr)
     mapper.source_schemaview = SchemaView(schema)
     target_schema = mapper.derive_schema()
-    if output:
-        outfile = open(output, "w", encoding="utf-8")
-    else:
-        outfile = sys.stdout
+    outfile = open(output, "w", encoding="utf-8") if output else sys.stdout
     outfile.write(yaml_dumper.dumps(target_schema))
 
 
@@ -179,7 +174,7 @@ def derive_schema(schema, transformer_specification, output, output_format, **kw
 @output_format_options
 @click.option("--strict/--no-strict", default=True, show_default=True, help="Strict mode.")
 @click.argument("schema")
-def invert(schema, transformer_specification, output, output_format, **kwargs):
+def invert(schema, transformer_specification, output, output_format, **kwargs) -> None:
     """Invert a transformation specification.
 
     Example:
@@ -194,10 +189,7 @@ def invert(schema, transformer_specification, output, output_format, **kwargs):
         **kwargs,
     )
     inverted_spec = inverter.invert(tr.specification)
-    if output:
-        outfile = open(output, "w", encoding="utf-8")
-    else:
-        outfile = sys.stdout
+    outfile = open(output, "w", encoding="utf-8") if output else sys.stdout
     outfile.write(yaml_dumper.dumps(inverted_spec))
 
 

@@ -1,9 +1,10 @@
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional, Type, Union
+from typing import Any, Optional, Union
 
 import yaml
+from graphviz import Digraph
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper
 from linkml_runtime.linkml_model import SchemaDefinition
@@ -43,7 +44,7 @@ class Session:
 
     def set_transformer_specification(
         self, specification: Optional[Union[TransformationSpecification, dict, str, Path]] = None
-    ):
+    ) -> None:
         if isinstance(specification, Path):
             specification = str(specification)
         if isinstance(specification, TransformationSpecification):
@@ -63,7 +64,9 @@ class Session:
                 obj = yaml.safe_load(open(specification))
             self.set_transformer_specification(obj)
 
-    def set_source_schema(self, schema: Union[str, Path, dict, SchemaView, SchemaDefinition]):
+    def set_source_schema(
+        self, schema: Union[str, Path, dict, SchemaView, SchemaDefinition]
+    ) -> None:
         """
         Sets the schema from a path or SchemaView object.
         """
@@ -78,16 +81,17 @@ class Session:
         elif isinstance(schema, SchemaDefinition):
             sv = SchemaView(schema)
         else:
-            raise ValueError(f"Unsupported schema type: {type(schema)}")
+            msg = f"Unsupported schema type: {type(schema)}"
+            raise ValueError(msg)
         self.source_schemaview = sv
         self._target_schema = None
 
     def set_transformer(
         self,
-        transformer: Optional[Union[Transformer, Type[Transformer]]],
-        **kwargs,
-    ):
-        if isinstance(transformer, Type):
+        transformer: Optional[Union[Transformer, type[Transformer]]],
+        **kwargs: dict[str, Any],
+    ) -> None:
+        if isinstance(transformer, type):
             transformer = transformer()
         transformer.specification = self.transformer_specification
         self.transformer = transformer
@@ -97,14 +101,13 @@ class Session:
         transformer: Optional[
             Union[ObjectTransformer, TransformationSpecification, dict, str, Path]
         ] = None,
-    ):
+    ) -> None:
         if transformer is None:
             if self.object_transformer is not None:
                 logger.info("No change")
-                return
             else:
                 logger.warning("No transformer specified")
-                return
+            return
         if transformer is not None:
             if isinstance(transformer, ObjectTransformer):
                 self.object_transformer = transformer
@@ -129,21 +132,22 @@ class Session:
             self._target_schemaview = SchemaView(yaml_dumper.dumps(self.target_schema))
         return self._target_schemaview
 
-    def transform(self, obj: dict, **kwargs) -> dict:
+    def transform(self, obj: dict, **kwargs: dict[str, Any]) -> dict:
         if self.object_transformer is None:
-            raise ValueError("No transformer specified")
+            msg = "No transformer specified"
+            raise ValueError(msg)
         if not self.object_transformer.source_schemaview:
             self.object_transformer.source_schemaview = self.source_schemaview
         return self.object_transformer.map_object(obj, **kwargs)
 
-    def reverse_transform(self, obj: dict, **kwargs) -> dict:
+    def reverse_transform(self, obj: dict, **kwargs: dict[str, Any]) -> dict:
         inv_spec = self.invert()
         reverse_transformer = ObjectTransformer()
         reverse_transformer.specification = inv_spec
         reverse_transformer.source_schemaview = SchemaView(yaml_dumper.dumps(self.target_schema))
         return reverse_transformer.map_object(obj, **kwargs)
 
-    def invert(self, in_place=False) -> TransformationSpecification:
+    def invert(self, in_place: bool = False) -> TransformationSpecification:
         """
         Invert the transformer specification.
         """
@@ -156,7 +160,7 @@ class Session:
             raise NotImplementedError
         return inv_spec
 
-    def graphviz(self, **kwargs) -> Any:
+    def graphviz(self, **kwargs: dict[str, Any]) -> Digraph:
         """
         Return a graphviz representation of the schema.
         """

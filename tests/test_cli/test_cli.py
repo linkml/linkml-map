@@ -1,7 +1,6 @@
 """Tests all command-line subcommands."""
 
 import pytest
-
 import yaml
 from click.testing import CliRunner
 from linkml_runtime import SchemaView
@@ -58,7 +57,7 @@ def test_map_data(runner: CliRunner) -> None:
     assert result.exit_code == 0
     out = result.stdout
     tr_data = yaml.safe_load(out)
-    assert "fred bloggs" == tr_data["agents"][0]["label"]
+    assert tr_data["agents"][0]["label"] == "fred bloggs"
 
 
 def test_map_data2(runner: CliRunner) -> None:

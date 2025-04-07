@@ -24,11 +24,13 @@ class J2BasedCompiler(Compiler):
         if not template_dir:
             template_dir = TEMPLATE_DIR
         if not template_dir:
-            raise ValueError("template_dir must be set")
+            msg = "template_dir must be set"
+            raise ValueError(msg)
         loader = FileSystemLoader(template_dir)
         env = Environment(loader=loader, autoescape=True)
         if not self.template_name:
-            raise ValueError("template_name must be set")
+            msg = "template_name must be set"
+            raise ValueError(msg)
         template = env.get_template(self.template_name)
         rendered = template.render(
             spec=specification,

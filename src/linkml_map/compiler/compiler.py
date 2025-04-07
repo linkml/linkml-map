@@ -14,9 +14,10 @@ For example:
 """
 
 from abc import ABC
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from types import ModuleType
-from typing import Iterator, Optional
+from typing import Optional
 
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper
@@ -80,7 +81,7 @@ class Compiler(ABC):
     def _compile_iterator(self, specification: TransformationSpecification) -> Iterator[str]:
         raise NotImplementedError
 
-    def derived_target_schemaview(self, specification: TransformationSpecification):
+    def derived_target_schemaview(self, specification: TransformationSpecification) -> SchemaView:
         """
         Returns a view over the target schema, including any derived classes.
         """

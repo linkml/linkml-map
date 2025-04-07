@@ -11,7 +11,7 @@ import operator as op
 from collections.abc import Mapping
 
 # supported operators
-from typing import Any, List, Tuple
+from typing import Any
 
 operators = {
     ast.Add: op.add,
@@ -25,7 +25,7 @@ operators = {
 compare_operators = {ast.Eq: op.eq, ast.Lt: op.lt, ast.LtE: op.le, ast.Gt: op.gt, ast.GtE: op.ge}
 
 
-def eval_conditional(*conds: List[Tuple[bool, Any]]) -> Any:
+def eval_conditional(*conds: list[tuple[bool, Any]]) -> Any:
     """
     >>> x = 10
     >>> eval_conditional((x < 25, 'low'), (x > 25, 'high'), (True, 'low'))
@@ -37,6 +37,7 @@ def eval_conditional(*conds: List[Tuple[bool, Any]]) -> Any:
     for is_true, val in conds:
         if is_true:
             return val
+    return None
 
 
 funcs = {
@@ -68,7 +69,7 @@ def eval_expr_with_mapping(expr: str, mapping: Mapping) -> Any:
         return None
 
 
-def eval_expr(expr: str, **kwargs) -> Any:
+def eval_expr(expr: str, **kwargs: dict[str, Any]) -> Any:
     """
     Evaluates a given expression, with restricted syntax
 
@@ -116,21 +117,20 @@ def eval_expr(expr: str, **kwargs) -> Any:
 def eval_(node, bindings=None):
     if isinstance(node, ast.Num):
         return node.n
-    elif isinstance(node, ast.Str):
+    if isinstance(node, ast.Str):
         if "s" in vars(node):
             return node.s
-        else:
-            return node.value
-    elif isinstance(node, ast.Constant):
         return node.value
-    elif isinstance(node, ast.NameConstant):
+    if isinstance(node, ast.Constant):
+        return node.value
+    if isinstance(node, ast.NameConstant):
         # can be removed when python 3.7 is no longer supported
         return node.value
-    elif isinstance(node, ast.Name):
+    if isinstance(node, ast.Name):
         if not bindings:
             bindings = {}
         return bindings.get(node.id)
-    elif isinstance(node, ast.Subscript):
+    if isinstance(node, ast.Subscript):
         if isinstance(node.slice, ast.Index):
             # required for python 3.7
             k = eval_(node.slice.value, bindings)
@@ -138,69 +138,74 @@ def eval_(node, bindings=None):
             k = eval_(node.slice, bindings)
         v = eval_(node.value, bindings)
         return v[k]
-    elif isinstance(node, ast.Attribute):
+    if isinstance(node, ast.Attribute):
         # e.g. for person.name, this returns the val of person
         v = eval_(node.value, bindings)
 
         # lookup attribute, potentially distributing the results over collections
-        def _get(obj: Any, k: str, recurse=True) -> Any:
+        def _get(obj: Any, k: str, recurse: bool = True) -> Any:
             if isinstance(obj, dict):
                 # dicts are treated as collections; distribute results
                 if recurse:
                     return [_get(e, k, False) for e in obj.values()]
-                else:
-                    return obj.get(k)
-            elif isinstance(obj, list):
+                return obj.get(k)
+            if isinstance(obj, list):
                 # attributes are distributed over lists
                 return [_get(e, k, False) for e in obj]
-            elif obj is None:
+            if obj is None:
                 return None
-            else:
-                return getattr(obj, k)
+            return getattr(obj, k)
 
         return _get(v, node.attr)
-    elif isinstance(node, ast.List):
+    if isinstance(node, ast.List):
         return [eval_(x, bindings) for x in node.elts]
-    elif isinstance(node, ast.Set):
+    if isinstance(node, ast.Set):
         # sets are not part of the language; we use {x} as notation for x
         if len(node.elts) != 1:
-            raise ValueError("The {} must enclose a single variable")
+            msg = "The {} must enclose a single variable"
+            raise ValueError(msg)
         e = node.elts[0]
         if not isinstance(e, ast.Name):
-            raise ValueError("The {} must enclose a variable")
+            msg = "The {} must enclose a variable"
+            raise ValueError(msg)
         v = eval_(e, bindings)
         if v is None:
-            raise UnsetValueError(f"{e} is not set")
-        else:
-            return v
-    elif isinstance(node, ast.Tuple):
+            msg = f"{e} is not set"
+            raise UnsetValueError(msg)
+        return v
+    if isinstance(node, ast.Tuple):
         return tuple([eval_(x, bindings) for x in node.elts])
-    elif isinstance(node, ast.Dict):
-        return {eval_(k, bindings): eval_(v, bindings) for k, v in zip(node.keys, node.values)}
-    elif isinstance(node, ast.Compare):  # <left> <operator> <right>
+    if isinstance(node, ast.Dict):
+        return {
+            eval_(k, bindings): eval_(v, bindings)
+            for k, v in zip(node.keys, node.values, strict=False)
+        }
+    if isinstance(node, ast.Compare):  # <left> <operator> <right>
         if len(node.ops) != 1:
-            raise ValueError(f"Must be exactly one op in {node}")
+            msg = f"Must be exactly one op in {node}"
+            raise ValueError(msg)
         if type(node.ops[0]) not in compare_operators:
-            raise NotImplementedError(f"Not implemented: {node.ops[0]} in {node}")
+            msg = f"Not implemented: {node.ops[0]} in {node}"
+            raise NotImplementedError(msg)
         py_op = compare_operators[type(node.ops[0])]
         if len(node.comparators) != 1:
-            raise ValueError(f"Must be exactly one comparator in {node}")
+            msg = f"Must be exactly one comparator in {node}"
+            raise ValueError(msg)
         right = node.comparators[0]
         return py_op(eval_(node.left, bindings), eval_(right, bindings))
-    elif isinstance(node, ast.BinOp):  # <left> <operator> <right>
+    if isinstance(node, ast.BinOp):  # <left> <operator> <right>
         return operators[type(node.op)](eval_(node.left, bindings), eval_(node.right, bindings))
-    elif isinstance(node, ast.UnaryOp):  # <operator> <operand> e.g., -1
+    if isinstance(node, ast.UnaryOp):  # <operator> <operand> e.g., -1
         return operators[type(node.op)](eval_(node.operand, bindings))
     # elif isinstance(node, ast.Match):
     #    # implementing this would restrict python version to 3.10
     #    # https://stackoverflow.com/questions/60208/replacements-for-switch-statement-in-python
     #    raise NotImplementedError(f'Not supported')
-    elif isinstance(node, ast.IfExp):
+    if isinstance(node, ast.IfExp):
         if eval_(node.test, bindings):
             return eval_(node.body, bindings)
-        else:
-            return eval_(node.orelse, bindings)
-    elif isinstance(node, ast.Call):
+        return eval_(node.orelse, bindings)
+    if isinstance(node, ast.Call):
         if isinstance(node.func, ast.Name):
             fn = node.func.id
             if fn in funcs:
@@ -208,8 +213,7 @@ def eval_(node, bindings=None):
                 args = [eval_(x, bindings) for x in node.args]
                 if isinstance(args[0], list) and not takes_list:
                     return [func(*[x] + args[1:]) for x in args[0]]
-                else:
-                    return func(*args)
-        raise NotImplementedError(f"Call {node.func} not implemented. node = {node}")
-    else:
-        raise TypeError(node)
+                return func(*args)
+        msg = f"Call {node.func} not implemented. node = {node}"
+        raise NotImplementedError(msg)
+    raise TypeError(node)

@@ -1,13 +1,13 @@
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Union
+from typing import Any, Optional, Union
 
 from duckdb import DuckDBPyConnection
 
 from linkml_map.compiler.sql_compiler import SQLCompiler
 from linkml_map.transformer.transformer import OBJECT_TYPE, Transformer
 
-DICT_OBJ = Dict[str, Any]
+DICT_OBJ = dict[str, Any]
 DATABASE = Union[str, DuckDBPyConnection]
 
 
@@ -23,9 +23,9 @@ class DuckDBTransformer(Transformer):
     def map_object(
         self,
         source_obj: OBJECT_TYPE,
-        source_type: str = None,
-        target_type: str = None,
-        **kwargs,
+        source_type: Optional[str] = None,
+        target_type: Optional[str] = None,
+        **kwargs: dict[str, Any],
     ) -> OBJECT_TYPE:
         """
         Transform a source object into a target object.
@@ -36,10 +36,14 @@ class DuckDBTransformer(Transformer):
         :return: transformed data, either as type target_type or a dictionary
         """
         # sv = self.source_schemaview
-        raise NotImplementedError("DuckDBTransformer.transform")
+        msg = "DuckDBTransformer.transform"
+        raise NotImplementedError(msg)
 
     def map_database(
-        self, source_database: DATABASE, target_database: Optional[DATABASE] = None, **kwargs
+        self,
+        source_database: DATABASE,
+        target_database: Optional[DATABASE] = None,
+        **kwargs: dict[str, Any],
     ) -> OBJECT_TYPE:
         """
         Transform source resource.
@@ -65,6 +69,7 @@ class DuckDBTransformer(Transformer):
         source_connection.sql(sql_compiler.create_ddl(self.source_schemaview))
         target_connection.sql(sql_compiler.create_ddl(self.target_schemaview))
         if not self.specification:
-            raise ValueError("No specification provided.")
+            msg = "No specification provided."
+            raise ValueError(msg)
         compiled = sql_compiler.compile(self.specification)
         source_connection.execute(compiled.serialization)
