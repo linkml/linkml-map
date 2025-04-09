@@ -178,9 +178,9 @@ def map_object(
         target_object = None
     else:
         target_object = mapper.map_object(source_object)
-    assert (
-        target_object == expected_target_object
-    ), f"failed to map {source_object} to {expected_target_object}"
+    assert target_object == expected_target_object, (
+        f"failed to map {source_object} to {expected_target_object}"
+    )
     assert not DeepDiff(target_object, expected_target_object), "unexpected differences"
     print("**Object Transformation**:\n")
     if raises_error:
@@ -207,9 +207,9 @@ def map_object(
         inv_target_object = inv_mapper.map_object(target_object)
         if roundtrip_object is None:
             roundtrip_object = source_object
-        assert (
-            inv_target_object == roundtrip_object
-        ), f"failed to invert {target_object} to {source_object}"
+        assert inv_target_object == roundtrip_object, (
+            f"failed to invert {target_object} to {source_object}"
+        )
     return State(
         schema_mapper=schema_mapper,
         object_transformer=mapper,
@@ -221,9 +221,9 @@ def ensure_validates(target_schema: SchemaDefinition, target_object: Any):
     target_validator = Validator(
         yaml_dumper.dumps(target_schema), validation_plugins=[JsonschemaValidationPlugin()]
     )
-    assert (
-        list(target_validator.iter_results(target_object)) == []
-    ), f"failed to validate {target_object}"
+    assert list(target_validator.iter_results(target_object)) == [], (
+        f"failed to validate {target_object}"
+    )
 
 
 @pytest.fixture(scope="function")

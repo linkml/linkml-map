@@ -219,9 +219,9 @@ def test_partial_copy_specification(mapper):
     target_schema = mapper.derive_schema(specification)
     # classes must be the same with addition
     for schema_class in source_schema.classes.keys():
-        assert (
-            schema_class in target_schema.classes.keys()
-        ), f"Class '{schema_class}' is missing in target"
+        assert schema_class in target_schema.classes.keys(), (
+            f"Class '{schema_class}' is missing in target"
+        )
     assert "Agent" in target_schema.classes.keys(), "Derived class 'Agent' is missing in target"
     # slots and enums must be exactly the same
     assert yaml_dumper.dumps(source_schema.slots) == yaml_dumper.dumps(target_schema.slots)
@@ -242,9 +242,9 @@ def test_full_copy_class(mapper):
     target_schema = mapper.derive_schema(specification)
     # classes must be the same with addition
     for schema_class in source_schema.classes.keys():
-        assert (
-            schema_class in target_schema.classes.keys()
-        ), f"Class '{schema_class}' is missing in target"
+        assert schema_class in target_schema.classes.keys(), (
+            f"Class '{schema_class}' is missing in target"
+        )
     assert "Agent" in target_schema.classes.keys(), "Derived class 'Agent' is missing in target"
     assert yaml_dumper.dumps(source_schema.classes["Person"].slots) == yaml_dumper.dumps(
         target_schema.classes["Agent"].slots
@@ -273,13 +273,13 @@ def test_copy_blacklisting(mapper):
     # classes must be the same with addition
     for schema_class in source_schema.classes.keys():
         if schema_class in blacklist:
-            assert (
-                schema_class not in target_schema.classes.keys()
-            ), f"Class '{schema_class}' is missing in target"
+            assert schema_class not in target_schema.classes.keys(), (
+                f"Class '{schema_class}' is missing in target"
+            )
         else:
-            assert (
-                schema_class in target_schema.classes.keys()
-            ), f"Class '{schema_class}' is missing in target"
+            assert schema_class in target_schema.classes.keys(), (
+                f"Class '{schema_class}' is missing in target"
+            )
     assert "Agent" in target_schema.classes.keys(), "Derived class 'Agent' is missing in target"
 
     # slots and enums must be exactly the same
@@ -307,32 +307,32 @@ def test_copy_whitelisting(mapper):
     # classes, slots and enums must have only what explicitly included
     for schema_class in source_schema.classes.keys():
         if schema_class in whitelist:
-            assert (
-                schema_class in target_schema.classes.keys()
-            ), f"Class '{schema_class}' is missing in target"
+            assert schema_class in target_schema.classes.keys(), (
+                f"Class '{schema_class}' is missing in target"
+            )
         else:
-            assert (
-                schema_class not in target_schema.classes.keys()
-            ), f"Class '{schema_class}' is missing in target"
+            assert schema_class not in target_schema.classes.keys(), (
+                f"Class '{schema_class}' is missing in target"
+            )
     assert "Agent" in target_schema.classes.keys(), "Derived class 'Agent' is missing in target"
     for schema_slot in source_schema.slots.keys():
         if schema_slot in whitelist:
-            assert (
-                schema_slot in target_schema.slots.keys()
-            ), f"Slot '{schema_slot}' is missing in target"
+            assert schema_slot in target_schema.slots.keys(), (
+                f"Slot '{schema_slot}' is missing in target"
+            )
         else:
-            assert (
-                schema_slot not in target_schema.slots.keys()
-            ), f"Slot '{schema_slot}' is missing in target"
+            assert schema_slot not in target_schema.slots.keys(), (
+                f"Slot '{schema_slot}' is missing in target"
+            )
     for schema_enum in source_schema.enums.keys():
         if schema_enum in whitelist:
-            assert (
-                schema_enum in target_schema.enums.keys()
-            ), f"Enum '{schema_enum}' is missing in target"
+            assert schema_enum in target_schema.enums.keys(), (
+                f"Enum '{schema_enum}' is missing in target"
+            )
         else:
-            assert (
-                schema_enum not in target_schema.enums.keys()
-            ), f"Enum '{schema_enum}' is missing in target"
+            assert schema_enum not in target_schema.enums.keys(), (
+                f"Enum '{schema_enum}' is missing in target"
+            )
 
 
 def test_overrides_in_class_derivation(mapper):

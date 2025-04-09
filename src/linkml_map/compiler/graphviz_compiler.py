@@ -45,8 +45,7 @@ class GraphvizObject(CompiledSpecification):
     digraph: Digraph = None
 
     def render(self, file_path: str, format="png", view=False) -> None:
-        """
-        Renders a graphviz graph to a file.
+        """Render a graphviz graph to a file.
         :param file_path:
         :return:
         """
@@ -55,7 +54,7 @@ class GraphvizObject(CompiledSpecification):
 
 class GraphvizCompiler(Compiler):
     """
-    Compiles a Transformation Specification to GraphViz.
+    Compile a Transformation Specification to GraphViz.
     """
 
     def compile(

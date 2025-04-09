@@ -5,7 +5,7 @@ from tests import PERSONINFO_TR
 
 
 def test_datamodel():
-    """checks loading/retrieval"""
+    """Check loading/retrieval."""
     tr = ObjectTransformer()
     tr.load_transformer_specification(PERSONINFO_TR)
     # print(tr_spec.json())
@@ -57,7 +57,5 @@ def test_datamodel():
         == "FamilialRelationshipType"
     )
     assert {"SIBLING_OF", "CHILD_OF"} == set(
-        trs.enum_derivations[
-            "MyFamilialRelationshipType"
-        ].permissible_value_derivations.keys()
+        trs.enum_derivations["MyFamilialRelationshipType"].permissible_value_derivations.keys()
     )
