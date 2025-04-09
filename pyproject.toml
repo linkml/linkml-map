@@ -7,6 +7,7 @@ authors = [
     {name = "cmungall", email = "cjm@berkeleybop.org"},
 ]
 requires-python = "<=3.13,>=3.9"
+dynamic = [ "version" ]
 
 dependencies = [
     "asteval<1,>=0",
@@ -47,6 +48,13 @@ dev = [
 [project.scripts]
 linkml-map = "linkml_map.cli.cli:main"
 
+[tool.poetry]
+requires-poetry = ">=2.0"
+version = "0.0.0"
+
+[tool.poetry.requires-plugins]
+poetry-dynamic-versioning = { version = ">=1.0.0,<2.0.0", extras = ["plugin"] }
+
 [tool.poetry-dynamic-versioning]
 enable = true
 vcs = "git"
@@ -74,12 +82,14 @@ target-version = "py312"
 
 [tool.ruff.format]
 exclude = [
+  "docs/",
   "src/linkml_map/datamodel",
   "tests/input"
 ]
 
 [tool.ruff.lint]
 exclude = [
+  "docs/",
   "src/linkml_map/datamodel",
   "tests/input"
 ]
@@ -130,16 +140,16 @@ select = [
     "TCH", # flake8-type-checking
     "INT", # flake8-gettext
     "ARG", # flake8-unused-arguments
-    "PTH", # flake8-use-pathlib
-    "TD", # flake8-todos
-    "FIX", # flake8-fixme
+    # "PTH", # flake8-use-pathlib
+    # "TD", # flake8-todos
+    # "FIX", # flake8-fixme
     "ERA", # eradicate
-    # "PD", # pandas-vet
+    "PD", # pandas-vet
     "PGH", # pygrep-hooks
     "PL", # Pylint
     "TRY", # tryceratops
     "FLY", # flynt
-    # "NPY", # NumPy-specific rules
+    "NPY", # NumPy-specific rules
     "AIR", # Airflow
     "PERF", # Perflint
     "FURB", # refurb
@@ -167,7 +177,9 @@ ignore = [
     # E731: lambda-assignment - needs code change
     "E731",
     # B024: abstract-base-class-without-abstract-method
-    "B024"
+    "B024",
+    # T201: print
+    "T201"
 ]
 
 [tool.ruff.lint.per-file-ignores]
