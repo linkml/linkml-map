@@ -7,8 +7,13 @@ name: Build and test
 on:
   push:
     branches: [ main ]
+
   pull_request:
-    branches: [ main ]
+      types:
+          - opened
+          - reopened
+          - synchronize
+          - ready_for_review
 
 jobs:
   lint:
@@ -25,14 +30,14 @@ jobs:
         run: |
           pip install tox
 
-      - name: Check code quality with flake8
-        run: tox -e flake8
+      - name: Check code quality with ruff
+        run: tox -e lint_stats
 
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ '3.9', '3.10', '3.11', '3.12' ]
+        python-version: [ '3.9', '3.10', '3.11', '3.12', '3.13' ]
 
     steps:
       - uses: actions/checkout@v4

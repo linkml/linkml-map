@@ -21,7 +21,7 @@ from linkml_map.transformer.transformer import OBJECT_TYPE, Transformer
 from linkml_map.utils.dynamic_object import DynObj, dynamic_object
 from linkml_map.utils.eval_utils import eval_expr, eval_expr_with_mapping
 
-DICT_OBJ = Dict[str, Any]
+DICT_OBJ = dict[str, Any]
 
 
 logger = logging.getLogger(__name__)
@@ -297,7 +297,11 @@ class ObjectTransformer(Transformer):
         return tgt_attrs
 
     def _perform_unit_conversion(
-        self, slot_derivation: SlotDerivation, source_obj: Any, sv: SchemaView, source_type: str
+        self,
+        slot_derivation: SlotDerivation,
+        source_obj: Any,
+        sv: SchemaView,
+        source_type: str,
     ) -> Union[float, Dict]:
         uc = slot_derivation.unit_conversion
         curr_v = source_obj.get(slot_derivation.populated_from, None)
@@ -309,13 +313,12 @@ class ObjectTransformer(Transformer):
                 from_unit = curr_v.get(uc.source_unit_slot, None)
                 if from_unit is None:
                     raise ValueError(
-                        f"Could not determine unit from {curr_v}" f" using {uc.source_unit_slot}"
+                        f"Could not determine unit from {curr_v} using {uc.source_unit_slot}"
                     )
                 magnitude = curr_v.get(uc.source_magnitude_slot, None)
                 if magnitude is None:
                     raise ValueError(
-                        f"Could not determine magnitude from {curr_v}"
-                        f" using {uc.source_magnitude_slot}"
+                        f"Could not determine magnitude from {curr_v} using {uc.source_magnitude_slot}"
                     )
             else:
                 if slot.unit.ucum_code:
@@ -358,21 +361,18 @@ class ObjectTransformer(Transformer):
             delimiter = stringification.delimiter
             if delimiter:
                 return delimiter.join(vs)
-            elif stringification.syntax:
+            if stringification.syntax:
                 if stringification.syntax == SerializationSyntaxType.JSON:
                     return json.dumps(vs)
-                elif stringification.syntax == SerializationSyntaxType.YAML:
+                if stringification.syntax == SerializationSyntaxType.YAML:
                     return yaml.dump(vs, default_flow_style=True).strip()
-                else:
-                    raise ValueError(f"Unknown syntax: {stringification.syntax}")
-            else:
-                raise ValueError(f"Cannot convert multivalued to single valued: {vs}; no delimiter")
+                raise ValueError(f"Unknown syntax: {stringification.syntax}")
+            raise ValueError(f"Cannot convert multivalued to single valued: {vs}; no delimiter")
         if len(vs) > 1:
             raise ValueError(f"Cannot coerce multiple values {vs}")
         if len(vs) == 0:
             return None
-        else:
-            return vs[0]
+        return vs[0]
 
     def _singlevalued_to_multivalued(self, v: Any, slot_derivation: SlotDerivation) -> List[Any]:
         stringification = slot_derivation.stringification
@@ -443,5 +443,4 @@ class ObjectTransformer(Transformer):
                 return pv_deriv.name
         if enum_deriv.mirror_source:
             return str(source_value)
-        else:
-            return None
+        return None
