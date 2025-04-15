@@ -12,6 +12,8 @@ dependencies = [
     "asteval<1,>=0",
     "click<9,>=8",
     "curies",
+    "duckdb<1,>=0",
+    "graphviz<1.0.0,>=0.20.3",
     "jinja2<4,>=3",
     "lark<2,>=1",
     "linkml-runtime>=1.9.1",
@@ -22,12 +24,6 @@ dependencies = [
 ]
 
 [dependency-groups]
-duckdb = [
-    "duckdb<1,>=0",
-]
-graphviz = [
-    "graphviz<1.0.0,>=0.20.3",
-]
 dev = [
     "deepdiff<7.0.0,>=6.7.1",
     "deptry<1.0.0,>=0.23.0",

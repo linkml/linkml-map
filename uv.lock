@@ -1439,6 +1439,8 @@ dependencies = [
     { name = "asteval" },
     { name = "click" },
     { name = "curies" },
+    { name = "duckdb" },
+    { name = "graphviz" },
     { name = "jinja2" },
     { name = "lark" },
     { name = "linkml-runtime" },
@@ -1462,18 +1464,14 @@ dev = [
     { name = "ruff" },
     { name = "tox" },
 ]
-duckdb = [
-    { name = "duckdb" },
-]
-graphviz = [
-    { name = "graphviz" },
-]
 
 [package.metadata]
 requires-dist = [
     { name = "asteval", specifier = ">=0,<1" },
     { name = "click", specifier = ">=8,<9" },
     { name = "curies" },
+    { name = "duckdb", specifier = ">=0,<1" },
+    { name = "graphviz", specifier = ">=0.20.3,<1.0.0" },
     { name = "jinja2", specifier = ">=3,<4" },
     { name = "lark", specifier = ">=1,<2" },
     { name = "linkml-runtime", specifier = ">=1.9.1" },
@@ -1497,8 +1495,6 @@ dev = [
     { name = "ruff", specifier = ">=0.11.5" },
     { name = "tox", specifier = ">=4.25.0" },
 ]
-duckdb = [{ name = "duckdb", specifier = ">=0,<1" }]
-graphviz = [{ name = "graphviz", specifier = ">=0.20.3,<1.0.0" }]
 
 [[package]]
 name = "linkml-runtime"
