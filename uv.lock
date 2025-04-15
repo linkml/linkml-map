@@ -834,7 +834,7 @@ name = "importlib-metadata"
 version = "8.6.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "zipp" },
+    { name = "zipp", marker = "python_full_version < '3.10'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/33/08/c1395a292bb23fd03bdf572a1357c5a733d3eecbab877641ceacab23db6e/importlib_metadata-8.6.1.tar.gz", hash = "sha256:310b41d755445d74569f993ccfc22838295d9fe005425094fad953d7f15c8580", size = 55767 }
 wheels = [
@@ -1440,9 +1440,12 @@ dependencies = [
     { name = "click" },
     { name = "curies" },
     { name = "jinja2" },
+    { name = "lark" },
     { name = "linkml-runtime" },
+    { name = "pint" },
     { name = "pydantic" },
     { name = "pyyaml" },
+    { name = "ucumvert" },
 ]
 
 [package.dev-dependencies]
@@ -1465,11 +1468,6 @@ duckdb = [
 graphviz = [
     { name = "graphviz" },
 ]
-units = [
-    { name = "lark" },
-    { name = "pint" },
-    { name = "ucumvert" },
-]
 
 [package.metadata]
 requires-dist = [
@@ -1477,32 +1475,30 @@ requires-dist = [
     { name = "click", specifier = ">=8,<9" },
     { name = "curies" },
     { name = "jinja2", specifier = ">=3,<4" },
-    { name = "linkml-runtime", specifier = ">=1.7.2" },
-    { name = "pydantic", specifier = ">=2.0.0" },
+    { name = "lark", specifier = ">=1,<2" },
+    { name = "linkml-runtime", specifier = ">=1.9.1" },
+    { name = "pint", specifier = ">=0,<1" },
+    { name = "pydantic", specifier = ">=2.11.3" },
     { name = "pyyaml" },
+    { name = "ucumvert", specifier = ">=0,<1" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "deepdiff", specifier = ">=6.7.1,<7.0.0" },
-    { name = "deptry", specifier = ">=0.21.1,<1.0.0" },
-    { name = "jupyter", specifier = ">=1.0.0,<2.0.0" },
-    { name = "linkml", specifier = ">=1.7.0" },
+    { name = "deptry", specifier = ">=0.23.0,<1.0.0" },
+    { name = "jupyter", specifier = ">=1.1.1,<2.0.0" },
+    { name = "linkml", specifier = ">=1.8.7" },
     { name = "mkdocs-mermaid2-plugin", specifier = ">=0.6.0,<1.0.0" },
     { name = "mkdocs-windmill" },
     { name = "mkdocstrings", extras = ["crystal", "python"] },
     { name = "mknotebooks", specifier = ">=0.8.0,<1.0.0" },
-    { name = "pytest", specifier = ">=7.3.1" },
-    { name = "ruff", specifier = ">=0.11.2" },
-    { name = "tox", specifier = ">=4.24.2" },
+    { name = "pytest", specifier = ">=8.3.5" },
+    { name = "ruff", specifier = ">=0.11.5" },
+    { name = "tox", specifier = ">=4.25.0" },
 ]
 duckdb = [{ name = "duckdb", specifier = ">=0,<1" }]
-graphviz = [{ name = "graphviz", specifier = ">=0.20.1,<1.0.0" }]
-units = [
-    { name = "lark", specifier = ">=1,<2" },
-    { name = "pint", specifier = ">=0,<1" },
-    { name = "ucumvert", specifier = ">=0,<1" },
-]
+graphviz = [{ name = "graphviz", specifier = ">=0.20.3,<1.0.0" }]
 
 [[package]]
 name = "linkml-runtime"

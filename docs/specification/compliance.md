@@ -2027,15 +2027,6 @@ cases where UCUM uses non-standard units (e.g. Cel, mo), as well as
 UCUM-specific syntax (e.g. `m.s-1`) and extensions (e.g. using
 annotations like `{Cre}`).
 
-*Developers note*: to run this test, the units extension should be installed
-in addition to the dev dependencies:
-
-```sh
-uv sync --inexact --group units --group dev
-```
-
-This installs the `pint` framework.
-
 -   **source\_slot**: name of slot in source schema
 -   **target\_slot**: name of slot in target schema
 -   **source\_unit**: unit of source slot

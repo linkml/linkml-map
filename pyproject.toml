@@ -13,9 +13,12 @@ dependencies = [
     "click<9,>=8",
     "curies",
     "jinja2<4,>=3",
+    "lark<2,>=1",
     "linkml-runtime>=1.9.1",
+    "pint<1,>=0",
     "pydantic>=2.11.3",
     "pyyaml",
+    "ucumvert<1,>=0",
 ]
 
 [dependency-groups]
@@ -24,11 +27,6 @@ duckdb = [
 ]
 graphviz = [
     "graphviz<1.0.0,>=0.20.3",
-]
-units = [
-    "lark<2,>=1",
-    "pint<1,>=0",
-    "ucumvert<1,>=0",
 ]
 dev = [
     "deepdiff<7.0.0,>=6.7.1",
