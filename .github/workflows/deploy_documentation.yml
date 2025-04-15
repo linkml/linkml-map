@@ -22,17 +22,16 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Install Poetry
-      run: pipx install poetry
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
 
     - name: Set up Python3
       uses: actions/setup-python@v5
       with:
         python-version: 3.12
-        cache: 'poetry'
 
     - name: Install dependencies
-      run: poetry install
+      run: uv sync
 
     - name: Generate and deploy docs
       run: |
