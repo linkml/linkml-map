@@ -1,6 +1,5 @@
 [project]
 name = "linkml-map"
-version = "0.0.0"
 description = "a framework for specifying and executing mappings between data models"
 readme = "README.md"
 authors = [
@@ -13,60 +12,53 @@ dependencies = [
     "asteval<1,>=0",
     "click<9,>=8",
     "curies",
-    "jinja2<4,>=3",
-    "linkml-runtime>=1.7.2",
-    "pydantic>=2.0.0",
-    "pyyaml",
-]
-
-[project.optional-dependencies]
-duckdb = [
     "duckdb<1,>=0",
-]
-graphviz = [
-    "graphviz<1.0.0,>=0.20.1",
-]
-units = [
+    "graphviz<1.0.0,>=0.20.3",
+    "jinja2<4,>=3",
     "lark<2,>=1",
+    "linkml-runtime>=1.9.1",
     "pint<1,>=0",
+    "pydantic>=2.11.3",
+    "pyyaml",
     "ucumvert<1,>=0",
 ]
+
+[dependency-groups]
 dev = [
     "deepdiff<7.0.0,>=6.7.1",
-    "deptry<1.0.0,>=0.21.1",
-    "jupyter<2.0.0,>=1.0.0",
-    "linkml>=1.7.0",
+    "deptry<1.0.0,>=0.23.0",
+    "jupyter<2.0.0,>=1.1.1",
+    "linkml>=1.8.7",
     "mkdocs-mermaid2-plugin<1.0.0,>=0.6.0",
     "mkdocs-windmill",
     "mkdocstrings[crystal,python]",
     "mknotebooks<1.0.0,>=0.8.0",
-    "pytest>=7.3.1",
-    "ruff>=0.11.2",
-    "tox>=4.24.2",
+    "pytest>=8.3.5",
+    "ruff>=0.11.5",
+    "tox>=4.25.0",
 ]
 
 [project.scripts]
 linkml-map = "linkml_map.cli.cli:main"
 
-[tool.poetry]
-requires-poetry = ">=2.0"
-version = "0.0.0"
-
-[tool.poetry.requires-plugins]
-poetry-dynamic-versioning = { version = ">=1.0.0,<2.0.0", extras = ["plugin"] }
-
-[tool.poetry-dynamic-versioning]
-enable = true
-vcs = "git"
-style = "pep440"
-
 [tool.deptry]
 known_first_party = ["linkml_map"]
 extend_exclude = ["docs"]
 
+# See https://hatch.pypa.io/latest/config/build/#file-selection for how to
+# explicitly include files other than default into the build distributions.
 [build-system]
-requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
-build-backend = "poetry_dynamic_versioning.backend"
+requires = ["hatchling", "uv-dynamic-versioning"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
+
+# Ref.: https://github.com/ninoseki/uv-dynamic-versioning/
+[tool.uv-dynamic-versioning]
+vcs = "git"
+style = "pep440"
+fallback-version = "0.0.0"
 
 
 # Ref: https://github.com/codespell-project/codespell#using-a-config-file

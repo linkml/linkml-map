@@ -6,7 +6,7 @@ SHELL := bash
 .SUFFIXES:
 .SECONDARY:
 
-RUN = poetry run
+RUN = uv run
 # get values from about.yaml file
 SCHEMA_NAME = $(shell sh ./utils/get-value.sh name)
 SOURCE_SCHEMA_PATH = $(shell sh ./utils/get-value.sh source_schema_path)
@@ -26,7 +26,7 @@ help: status
 	@echo "make test -- runs tests"
 	@echo "make testdoc -- builds docs and runs local test server"
 	@echo "make deploy -- deploys site"
-	@echo "make update -- updates linkml version"
+	@echo "make update-packages -- updates dependencies"
 	@echo "make help -- show this help"
 	@echo ""
 
@@ -37,7 +37,7 @@ status: check-config
 setup: install gen-project gendoc git-init-add
 
 install:
-	poetry install --all-extras
+	uv sync
 .PHONY: install
 
 all: gen-project gendoc
@@ -57,13 +57,13 @@ test: test-python doctest
 test-python:
 	$(RUN) pytest
 test-project:
-	$(RUN) gen-project -d tmp $(SOURCE_SCHEMA_PATH) 
+	$(RUN) gen-project -d tmp $(SOURCE_SCHEMA_PATH)
 
 check-config:
 	@(grep my-datamodel about.yaml > /dev/null && printf "\n**Project not configured**:\n\n  - Remember to edit 'about.yaml'\n\n" || exit 0)
 
 convert-examples-to-%:
-	$(patsubst %, $(RUN) linkml-convert  % -s $(SOURCE_SCHEMA_PATH) -C Person, $(shell find src/data/examples -name "*.yaml")) 
+	$(patsubst %, $(RUN) linkml-convert  % -s $(SOURCE_SCHEMA_PATH) -C Person, $(shell find src/data/examples -name "*.yaml"))
 
 examples/%.yaml: src/data/examples/%.yaml
 	$(RUN) linkml-convert -s $(SOURCE_SCHEMA_PATH) -C Person $< -o $@
@@ -72,8 +72,11 @@ examples/%.json: src/data/examples/%.yaml
 examples/%.ttl: src/data/examples/%.yaml
 	$(RUN) linkml-convert -P EXAMPLE=http://example.org/ -s $(SOURCE_SCHEMA_PATH) -C Person $< -o $@
 
-upgrade:
-	poetry add -D linkml@latest
+# N.b. this does not update pyproject.toml
+# as of Apr 2025, uv does not have this feature
+# see https://github.com/astral-sh/uv/issues/6794
+update-packages:
+	uv sync -U
 
 # Test documentation locally
 serve: mkd-serve
@@ -92,12 +95,9 @@ deploy-gh-doc:
 $(PYMODEL):
 	mkdir -p $@
 
-
+# docs directory
 $(DOCDIR):
 	mkdir -p $@
-
-#docsync:
-#	cp -pr $(SRC)/docs/* $(DOCDIR)
 
 gendoc: $(DOCDIR)
 	$(RUN) gen-doc -d $(DOCDIR)/schema $(SOURCE_SCHEMA_PATH) --index-name datamodel
@@ -113,7 +113,7 @@ git-init-add: git-init git-add git-commit git-status
 git-init:
 	git init
 git-add:
-	git add .gitignore .github Makefile LICENSE *.md examples utils about.yaml mkdocs.yml poetry.lock project.Makefile pyproject.toml src/linkml/*yaml src/*/datamodel/*py src/data
+	git add .gitignore .github Makefile LICENSE *.md examples utils about.yaml mkdocs.yml uv.lock project.Makefile pyproject.toml src/linkml/*yaml src/*/datamodel/*py src/data
 	git add $(patsubst %, project/%, $(PROJECT_FOLDERS))
 git-commit:
 	git commit -m 'Initial commit' -a

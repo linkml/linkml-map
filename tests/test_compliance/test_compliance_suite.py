@@ -582,12 +582,6 @@ def test_simple_unit_conversion(
     can be used. We explicitly test for some known cases where UCUM uses non-standard units (e.g. Cel, mo),
     as well as UCUM-specific syntax (e.g. `m.s-1`) and extensions (e.g. using annotations like `{Cre}`).
 
-    *Developers note*: to run this test, the units extension should be installed:
-
-    `poetry install -E units`
-
-    This installs the `pint` framework.
-
     :param invocation_tracker: pytest fixture to emit metadata
     :param source_slot: name of slot in source schema
     :param target_slot: name of slot in target schema

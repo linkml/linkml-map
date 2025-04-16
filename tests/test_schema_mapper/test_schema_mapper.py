@@ -387,7 +387,7 @@ def test_overrides_in_slot_derivation(mapper):
 
 
 def test_overrides_errors_with_unknown_attribute(mapper):
-    """Test that an error is raised if overrides contains attributes not part of the metamodel"""
+    """Test that an error is raised if overrides contains attributes not part of the metamodel."""
     specification = TransformationSpecification(
         id="test",
         class_derivations={
@@ -398,7 +398,7 @@ def test_overrides_errors_with_unknown_attribute(mapper):
             )
         },
     )
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError, match="got an unexpected keyword argument 'unknown_attribute'"):
         mapper.derive_schema(specification)
 
     specification = TransformationSpecification(
@@ -416,5 +416,5 @@ def test_overrides_errors_with_unknown_attribute(mapper):
             )
         },
     )
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError, match="got an unexpected keyword argument 'unknown_attribute'"):
         mapper.derive_schema(specification)
