@@ -90,7 +90,7 @@ def eval_expr(expr: str, **kwargs) -> Any:
 
     - If a variable is enclosed in {}s then entire expression will eval to None if variable is unset
 
-    >>> eval_expr('{x} + {y}', x=None, y=2)
+    >>> print(eval_expr('{x} + {y}', x=None, y=2))
     None
 
 
