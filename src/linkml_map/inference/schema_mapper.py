@@ -8,7 +8,7 @@ import logging
 from collections import defaultdict
 from copy import copy
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import json_dumper
@@ -45,11 +45,11 @@ class SchemaMapper:
 
     transformer: Transformer = None
 
-    source_to_target_class_mappings: Dict[str, List[str]] = field(
+    source_to_target_class_mappings: dict[str, list[str]] = field(
         default_factory=lambda: defaultdict(list)
     )
 
-    slot_info: Dict[Tuple[str, str], Any] = field(default_factory=lambda: {})
+    slot_info: dict[tuple[str, str], Any] = field(default_factory=dict)
 
     def _copy_dict(
         self,
@@ -220,7 +220,7 @@ class SchemaMapper:
             target_class.mixins = class_derivation.mixins
         if class_derivation.target_definition:
             spec_defn = ClassDefinition(
-                **{"name": target_class.name}, **class_derivation.target_definition
+                name=target_class.name, **class_derivation.target_definition
             )
             for k, v in vars(spec_defn).items():
                 curr_v = getattr(target_class, k, None)
@@ -291,7 +291,7 @@ class SchemaMapper:
             target_slot.range = slot_derivation.range
         if slot_derivation.target_definition:
             spec_defn = SlotDefinition(
-                **{"name": target_slot.name}, **slot_derivation.target_definition
+                name=target_slot.name, **slot_derivation.target_definition
             )
             for k, v in vars(spec_defn).items():
                 setattr(target_slot, k, v)

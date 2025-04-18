@@ -72,9 +72,8 @@ class TransformationSpecificationInverter:
             inverted_sd = self.invert_slot_derivation(sd, cd, spec)
             if inverted_sd:
                 inverted_cd.slot_derivations[inverted_sd.name] = inverted_sd
-            else:
-                if self.strict:
-                    raise NonInvertibleSpecification(f"Cannot invert slot derivation: {sd.name}")
+            elif self.strict:
+                raise NonInvertibleSpecification(f"Cannot invert slot derivation: {sd.name}")
         return inverted_cd
 
     def invert_enum_derivation(self, ed: EnumDerivation, spec: TransformationSpecification):

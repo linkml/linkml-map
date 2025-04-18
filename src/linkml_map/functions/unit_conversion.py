@@ -99,7 +99,7 @@ def convert_units(
         raise DimensionalityError(f"Cannot convert from {from_unit} to {to_unit}")
 
 
-@lru_cache()
+@lru_cache
 def get_unit_registry(system: Optional[UnitSystem] = None) -> Any:
     """
     Get a unit registry.

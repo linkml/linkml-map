@@ -1,7 +1,7 @@
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional, Type, Union
+from typing import Any, Optional, Union
 
 import yaml
 from linkml_runtime import SchemaView
@@ -24,13 +24,13 @@ class Session:
     """
     A wrapper object for a transformer session.
 
-    TODO:
-
+    Todo:
     - rename to Manager?
     - consolidate configuration
     - include source and target database
 
         - current spec, src_sv, tgt_sv all live in both this class and transformer
+
     """
 
     transformer_specification: Optional[TransformationSpecification] = None
@@ -84,10 +84,10 @@ class Session:
 
     def set_transformer(
         self,
-        transformer: Optional[Union[Transformer, Type[Transformer]]],
+        transformer: Optional[Union[Transformer, type[Transformer]]],
         **kwargs,
     ):
-        if isinstance(transformer, Type):
+        if isinstance(transformer, type):
             transformer = transformer()
         transformer.specification = self.transformer_specification
         self.transformer = transformer
@@ -102,9 +102,8 @@ class Session:
             if self.object_transformer is not None:
                 logger.info("No change")
                 return
-            else:
-                logger.warning("No transformer specified")
-                return
+            logger.warning("No transformer specified")
+            return
         if transformer is not None:
             if isinstance(transformer, ObjectTransformer):
                 self.object_transformer = transformer

@@ -78,12 +78,11 @@ class SQLCompiler(Compiler):
             delimiter = sd.stringification.delimiter
             if sd.stringification.reversed:
                 pass
-            else:
-                # duckdb specific?
-                if syntax == SerializationSyntaxType.JSON:
-                    expr = f"CAST({expr} AS TEXT)"
-                elif delimiter:
-                    expr = f"STRING_AGG({expr}, '{delimiter}')"
+            # duckdb specific?
+            elif syntax == SerializationSyntaxType.JSON:
+                expr = f"CAST({expr} AS TEXT)"
+            elif delimiter:
+                expr = f"STRING_AGG({expr}, '{delimiter}')"
         return f"  {sd.name} AS {expr}"
 
     def create_ddl(self, schemaview: SchemaView) -> str:

@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import Optional
 
 from graphviz import Digraph
 from linkml_runtime import SchemaView
@@ -17,7 +17,7 @@ class Record(BaseModel):
 
     name: str
     source: str
-    fields: List[Tuple[str, str]] = []
+    fields: list[tuple[str, str]] = []
 
     @property
     def id(self):
@@ -45,7 +45,8 @@ class GraphvizObject(CompiledSpecification):
     digraph: Digraph = None
 
     def render(self, file_path: str, format="png", view=False) -> None:
-        """Render a graphviz graph to a file.
+        """
+        Render a graphviz graph to a file.
         :param file_path:
         :return:
         """
@@ -58,7 +59,7 @@ class GraphvizCompiler(Compiler):
     """
 
     def compile(
-        self, specification: TransformationSpecification, elements: Optional[List[str]] = None
+        self, specification: TransformationSpecification, elements: Optional[list[str]] = None
     ) -> GraphvizObject:
         dg = Digraph(comment="UML Class Diagram", format="png")
         dg.attr(rankdir="LR")  # Set graph direction from left to right
@@ -98,7 +99,7 @@ class GraphvizCompiler(Compiler):
                         dg.edge(f"{source_record.id}:{token}", target_id, style="dashed")
         return GraphvizObject(digraph=dg, serialization=dg.source)
 
-    def add_records(self, schemaview: SchemaView, source: str) -> List[Record]:
+    def add_records(self, schemaview: SchemaView, source: str) -> list[Record]:
         records = []
         for cn in schemaview.all_classes():
             record = Record(name=cn, source=source)

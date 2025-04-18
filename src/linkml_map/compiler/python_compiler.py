@@ -1,6 +1,6 @@
+from collections.abc import Iterator
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import Iterator
 
 from jinja2 import Template
 

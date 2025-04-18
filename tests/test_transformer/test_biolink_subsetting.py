@@ -46,7 +46,6 @@ def biolink_schema():
 
     :return: SchemaView object named `biolink-schema`
     """
-
     schema_url = "https://raw.githubusercontent.com/biolink/biolink-model/master/biolink-model.yaml"
     sv = SchemaView(schema_url)
     return sv
