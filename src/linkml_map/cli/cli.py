@@ -84,8 +84,8 @@ def map_data(
     Map data from a source schema to a target schema using a transformation specification.
 
     Example:
-
         linkml-map map-data -T X-to-Y-tr.yaml -s X.yaml  X-data.yaml
+
     """
     logging.info(f"Transforming {input} conforming to {schema} using {transformer_specification}")
     tr = ObjectTransformer(**kwargs)
@@ -120,8 +120,8 @@ def compile(
     Compiles a schema to another representation.
 
     Example:
-
         linkml-map compile -T X-to-Y-tr.yaml -s X.yaml
+
     """
     logging.info(f"Compiling {transformer_specification} with {schema}")
     compiler_args = {}
@@ -137,7 +137,7 @@ def compile(
     tr.source_schemaview = SchemaView(schema)
     tr.load_transformer_specification(transformer_specification)
     result = compiler.compile(tr.specification)
-    print(result.serialization)
+    print(result.serialization)  # noqa: T201
 
 
 @main.command()
@@ -146,19 +146,19 @@ def compile(
 @output_format_options
 @click.argument("schema")
 def derive_schema(schema, transformer_specification, output, output_format, **kwargs):
-    """Derive a schema from a source schema and a transformation specification.
+    """
+    Derive a schema from a source schema and a transformation specification.
 
     This can be thought of as "copying" the source to a target, using the transformation
     specification as a "patch"
 
     Notes:
-
         the implementation is currently incomplete; the derived schema may not be valid
         linkml, e.g. there may be "dangling" references.
 
     Example:
-
         linkml-map derive-schema -T transform/personinfo-to-agent.transform.yaml source/personinfo.yaml
+
     """
     logging.info(f"Transforming {schema} using {transformer_specification}")
     tr = ObjectTransformer()
@@ -180,11 +180,12 @@ def derive_schema(schema, transformer_specification, output, output_format, **kw
 @click.option("--strict/--no-strict", default=True, show_default=True, help="Strict mode.")
 @click.argument("schema")
 def invert(schema, transformer_specification, output, output_format, **kwargs):
-    """Invert a transformation specification.
+    """
+    Invert a transformation specification.
 
     Example:
-
         linkml-map invert -T transform/personinfo-to-agent.transform.yaml source/personinfo.yaml
+
     """
     logging.info(f"Inverting {transformer_specification} using {schema} as source")
     tr = ObjectTransformer()

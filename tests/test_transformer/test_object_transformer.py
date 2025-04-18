@@ -110,9 +110,9 @@ def test_coerce(obj_tr: ObjectTransformer):
     x = obj_tr._coerce_datatype("5", "integer")
     assert x == 5
     x = obj_tr._coerce_datatype(5, "string")
-    assert "5" == x
+    assert x == "5"
     x = obj_tr._coerce_datatype(5, "integer")
-    assert 5 == x
+    assert x == 5
 
 
 def test_transform_simple_object(obj_tr: ObjectTransformer):
@@ -146,7 +146,7 @@ def test_transform_simple_object(obj_tr: ObjectTransformer):
     target_obj = obj_tr.transform_object(person_obj, target_class=tgt_dm.Agent)
     assert isinstance(target_obj, tgt_dm.Agent)
     assert person_obj.name == target_obj.label
-    assert AGE_STRING == target_obj.age
+    assert target_obj.age == AGE_STRING
     assert target_obj.gender is None
 
     expected = [
@@ -233,10 +233,10 @@ def test_index_dict():
     tr.index(container, "MappingSet")
     dynobj = dynamic_object(container, sv, "MappingSet")
     mset = ix.bless(dynobj)
-    assert "U:1" == mset.mappings[0].subject
-    assert "Y:1" == mset.mappings[0].object.id
-    assert "y1" == mset.mappings[0].object.name
-    assert "P:1" == mset.mappings[0].predicate
+    assert mset.mappings[0].subject == "U:1"
+    assert mset.mappings[0].object.id == "Y:1"
+    assert mset.mappings[0].object.name == "y1"
+    assert mset.mappings[0].predicate == "P:1"
 
 
 def test_index_obj():
@@ -362,7 +362,8 @@ def test_cardinalities(source_multivalued: bool, target_multivalued: bool, expli
     val = "v1"
 
     def mk(mv: bool, ex: bool = False) -> SchemaDefinition:
-        """Generate a schema with a class with an attribute.
+        """
+        Generate a schema with a class with an attribute.
 
         :param mv: whether or not the attribute is multivalued
         :type mv: bool

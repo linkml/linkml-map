@@ -1,13 +1,13 @@
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Union
+from typing import Any, Optional, Union
 
 from duckdb import DuckDBPyConnection
 
 from linkml_map.compiler.sql_compiler import SQLCompiler
 from linkml_map.transformer.transformer import OBJECT_TYPE, Transformer
 
-DICT_OBJ = Dict[str, Any]
+DICT_OBJ = dict[str, Any]
 DATABASE = Union[str, DuckDBPyConnection]
 
 

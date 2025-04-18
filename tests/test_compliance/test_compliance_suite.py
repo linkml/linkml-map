@@ -22,7 +22,7 @@ import re
 from dataclasses import dataclass
 from datetime import date
 from types import ModuleType
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 import pytest
 from deepdiff import DeepDiff
@@ -100,7 +100,7 @@ def build_transformer(**kwargs) -> TransformationSpecification:
     return mapper.specification
 
 
-def create_compilers(spec: TransformationSpecification, expected_map: [Dict[ModuleType, str]]):
+def create_compilers(spec: TransformationSpecification, expected_map: [dict[ModuleType, str]]):
     """
     Test compilation of transformation specifications to other languages.
 
@@ -128,8 +128,8 @@ class State:
 
 def map_object(
     spec: TransformationSpecification,
-    source_object: Dict[str, Any],
-    expected_target_object: Dict[str, Any],
+    source_object: dict[str, Any],
+    expected_target_object: dict[str, Any],
     source_sv: SchemaView,
     invertible: bool = False,
     index: bool = False,
@@ -493,19 +493,18 @@ def test_expr(invocation_tracker, expr, source_object, target_value):
                     r = {"range": r}
                 classes[typ]["attributes"][k1] = r
             return typ
-        elif isinstance(v, list):
+        if isinstance(v, list):
             r = infer_range(v[0])
             return {"range": r, "multivalued": True}
-        elif isinstance(v, int):
+        if isinstance(v, int):
             return "integer"
-        elif isinstance(v, float):
+        if isinstance(v, float):
             return "float"
-        elif isinstance(v, bool):
+        if isinstance(v, bool):
             return "boolean"
-        elif isinstance(v, str):
+        if isinstance(v, str):
             return "string"
-        else:
-            raise ValueError(f"Unknown type {type(v)}")
+        raise ValueError(f"Unknown type {type(v)}")
 
     infer_range(source_object, typ="C")
     schema = build_schema("expr", classes=classes)
@@ -1139,11 +1138,10 @@ def test_inheritance(invocation_tracker, is_a, flatten):
             "expr": "s2 + 1",
         }
         del cds["D"]
+    elif is_a:
+        cds["C"]["is_a"] = "D"
     else:
-        if is_a:
-            cds["C"]["is_a"] = "D"
-        else:
-            cds["C"]["mixins"] = ["D"]
+        cds["C"]["mixins"] = ["D"]
     spec = build_transformer(class_derivations=cds)
     source_object = {"s1": 1, "s2": 2}
     target_object = {"s1": 2, "s2": 3}

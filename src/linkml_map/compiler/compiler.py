@@ -14,9 +14,10 @@ For example:
 """
 
 from abc import ABC
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from types import ModuleType
-from typing import Iterator, Optional
+from typing import Optional
 
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper

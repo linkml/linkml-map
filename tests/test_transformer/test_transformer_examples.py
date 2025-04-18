@@ -1,6 +1,7 @@
 """Tests ObjectTransformer using examples."""
 
 import pytest
+
 from linkml_map.utils.multi_file_transformer import MultiFileTransformer
 from tests import EXAMPLE_DIR
 

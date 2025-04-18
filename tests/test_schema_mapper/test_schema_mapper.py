@@ -31,7 +31,7 @@ def mapper(source_schemaview):
 
 
 def test_derive_schema(mapper, source_schemaview):
-    """tests deriving a schema from a specification and a source"""
+    """Tests deriving a schema from a specification and a source"""
     tr = ObjectTransformer()
     tr.source_schemaview = source_schemaview
     tr.load_transformer_specification(SPECIFICATION)
@@ -64,18 +64,18 @@ def test_derive_schema(mapper, source_schemaview):
 
 def test_null_specification(mapper):
     """
-    tests empty spec limit case.
+    Tests empty spec limit case.
 
     An empty spec should return an empty schema.
     """
     specification = TransformationSpecification(id="test")
     target_schema = mapper.derive_schema(specification)
-    assert [] == list(target_schema.classes.values())
+    assert list(target_schema.classes.values()) == []
 
 
 def test_null_specification_and_source():
     """
-    tests empty spec and source schema limit case.
+    Tests empty spec and source schema limit case.
 
     An empty spec and source schema should return an empty schema.
     """
@@ -83,12 +83,12 @@ def test_null_specification_and_source():
     tr.source_schemaview = SchemaView(SCHEMA1)
     specification = TransformationSpecification(id="test")
     target_schema = tr.derive_schema(specification)
-    assert [] == list(target_schema.classes.values())
+    assert list(target_schema.classes.values()) == []
 
 
 def test_definition_in_derivation():
     """
-    test where the derived schema is entirely specified by the spec.
+    Test where the derived schema is entirely specified by the spec.
     """
     tr = SchemaMapper()
     tr.source_schemaview = SchemaView(SCHEMA1)
@@ -121,9 +121,9 @@ def test_definition_in_derivation():
 
     thing = target_schema.classes["Thing"]
     atts = thing.attributes
-    assert ["id"] == list(atts.keys())
+    assert list(atts.keys()) == ["id"]
     id_att = atts["id"]
-    assert "uriorcurie" == id_att.range
+    assert id_att.range == "uriorcurie"
     assert id_att.identifier
     agent = target_schema.classes["Agent"]
     assert agent.is_a == "Thing"
@@ -131,7 +131,7 @@ def test_definition_in_derivation():
 
 def test_derive_partial(mapper):
     """
-    tests partial spec limit case.
+    Tests partial spec limit case.
     """
     specification = TransformationSpecification(id="test")
     derivations = [
@@ -141,12 +141,12 @@ def test_derive_partial(mapper):
         specification.class_derivations[derivation.name] = derivation
     target_schema = mapper.derive_schema(specification)
     print(yaml_dumper.dumps(target_schema))
-    assert ["Agent"] == list(target_schema.classes.keys())
+    assert list(target_schema.classes.keys()) == ["Agent"]
 
 
 def test_rewire():
     """
-    tests rewire
+    Tests rewire
 
     An empty spec and source schema should return an empty schema.
     """
@@ -165,7 +165,7 @@ def test_rewire():
         id="test",
     )
     target_schema = tr.derive_schema(specification)
-    assert [] == list(target_schema.classes.values())
+    assert list(target_schema.classes.values()) == []
     specification = TransformationSpecification(
         id="test",
         class_derivations={
@@ -181,19 +181,19 @@ def test_rewire():
         },
     )
     target_schema = tr.derive_schema(specification)
-    assert ["TrEmployee"] == list(target_schema.classes.keys())
+    assert list(target_schema.classes.keys()) == ["TrEmployee"]
     emp = target_schema.classes["TrEmployee"]
-    assert ["tr_salary"] == list(emp.attributes.keys())
+    assert list(emp.attributes.keys()) == ["tr_salary"]
     specification.class_derivations["TrEmployee"].is_a = "Person"
     target_schema = tr.derive_schema(specification)
-    assert ["TrEmployee"] == list(target_schema.classes.keys())
+    assert list(target_schema.classes.keys()) == ["TrEmployee"]
     emp = target_schema.classes["TrEmployee"]
-    assert ["tr_salary"] == list(emp.attributes.keys())
+    assert list(emp.attributes.keys()) == ["tr_salary"]
     # self.assertEqual("Person", emp.is_a)
 
 
 def test_full_copy_specification(mapper):
-    """tests copy isomorphism"""
+    """Tests copy isomorphism"""
     copy_all_directive = {"*": CopyDirective(element_name="*", copy_all=True)}
     specification = TransformationSpecification(id="test", copy_directives=copy_all_directive)
     source_schema = mapper.source_schemaview.schema
@@ -206,7 +206,7 @@ def test_full_copy_specification(mapper):
 
 
 def test_partial_copy_specification(mapper):
-    """tests copy isomorphism excluding derivations"""
+    """Tests copy isomorphism excluding derivations"""
     copy_all_directive = {"*": CopyDirective(element_name="*", copy_all=True)}
     specification = TransformationSpecification(id="test", copy_directives=copy_all_directive)
     source_schema = mapper.source_schemaview.schema
@@ -229,7 +229,7 @@ def test_partial_copy_specification(mapper):
 
 
 def test_full_copy_class(mapper):
-    """tests copy isomorphism with class derivation"""
+    """Tests copy isomorphism with class derivation"""
     copy_all_directive = {"*": CopyDirective(element_name="*", copy_all=True)}
     specification = TransformationSpecification(id="test", copy_directives=copy_all_directive)
     source_schema = mapper.source_schemaview.schema
@@ -258,7 +258,7 @@ def test_full_copy_class(mapper):
 
 
 def test_copy_blacklisting(mapper):
-    """tests copy on a blacklist approach"""
+    """Tests copy on a blacklist approach"""
     blacklist = ["Person"]
     copy_all_directive = {"*": CopyDirective(element_name="*", copy_all=True, exclude=blacklist)}
     specification = TransformationSpecification(id="test", copy_directives=copy_all_directive)
@@ -288,7 +288,7 @@ def test_copy_blacklisting(mapper):
 
 
 def test_copy_whitelisting(mapper):
-    """tests copy on a whitelist approach"""
+    """Tests copy on a whitelist approach"""
     whitelist = ["NamedThing"]
     whitelist_directive = {
         "Whitelist": CopyDirective(
