@@ -1,10 +1,12 @@
+"""Generate an object from a dict."""
+
 from typing import Any
 
 from linkml_runtime import SchemaView
 
 
 class DynObj:
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         for k, v in kwargs.items():
             setattr(self, k, v)
 

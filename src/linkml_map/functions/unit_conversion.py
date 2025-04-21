@@ -9,7 +9,7 @@ see `<https://github.com/dalito/ucumvert>`_.
 
 from enum import Enum
 from functools import lru_cache
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import lark
 import pint
@@ -55,7 +55,7 @@ class DimensionalityError(Exception):
 
 def convert_units(
     magnitude: float, from_unit: str, to_unit: str, system: Optional[UnitSystem] = None
-):
+) -> Any:
     """
     Convert a quantity between units.
 
@@ -79,28 +79,32 @@ def convert_units(
     :param to_unit:
     :return: converted magnitude
     """
-    import pint
-
     ureg: pint.UnitRegistry = get_unit_registry(system)
     from_unit = normalize_unit(from_unit, system)
     to_unit = normalize_unit(to_unit, system)
     try:
         from_unit_q = ureg.parse_units(from_unit)
-    except lark.exceptions.UnexpectedCharacters:
-        raise UndefinedUnitError(f"Cannot parse unit: {from_unit}")
-    except pint.errors.UndefinedUnitError:
-        raise UndefinedUnitError(f"Unknown source unit: {from_unit}")
+    except lark.exceptions.UnexpectedCharacters as err:
+        msg = f"Cannot parse unit: {from_unit}"
+        raise UndefinedUnitError(msg) from err
+    except pint.errors.UndefinedUnitError as err:
+        msg = f"Unknown source unit: {from_unit}"
+        raise UndefinedUnitError(msg) from err
     quantity = magnitude * from_unit_q
     try:
         return quantity.to(to_unit).magnitude
-    except pint.errors.UndefinedUnitError:
-        raise UndefinedUnitError(f"Unknown target unit: {from_unit}")
-    except pint.errors.DimensionalityError:
-        raise DimensionalityError(f"Cannot convert from {from_unit} to {to_unit}")
+    except pint.errors.UndefinedUnitError as err:
+        msg = f"Unknown target unit: {from_unit}"
+        raise UndefinedUnitError(msg) from err
+    except pint.errors.DimensionalityError as err:
+        msg = f"Cannot convert from {from_unit} to {to_unit}"
+        raise DimensionalityError(msg) from err
 
 
 @lru_cache
-def get_unit_registry(system: Optional[UnitSystem] = None) -> Any:
+def get_unit_registry(
+    system: Optional[UnitSystem] = None,
+) -> Union[pint.UnitRegistry, PintUcumRegistry]:
     """
     Get a unit registry.
 
@@ -140,18 +144,21 @@ def get_unit_registry(system: Optional[UnitSystem] = None) -> Any:
     if system.value in dir(ureg.sys):
         ureg.default_system = system.value
         return ureg
-    raise NotImplementedError(f"Unknown unit system: {system}")
+    msg = f"Unknown unit system: {system}"
+    raise NotImplementedError(msg)
 
 
 def normalize_unit(unit: str, system: Optional[UnitSystem] = None) -> str:
-    if system is None:
+    """Normalize the unit to UnitSystem.UCUM, if possible."""
+    if system is None or system != UnitSystem.UCUM:
         return unit
-    if system == UnitSystem.UCUM:
-        try:
-            return str(get_unit_registry(system).from_ucum(unit))
-        except pint.errors.UndefinedUnitError:
-            raise UndefinedUnitError(f"Unknown unit: {unit}")
-        except lark.exceptions.UnexpectedCharacters:
-            raise UndefinedUnitError(f"Cannot parse unit: {unit}")
-    else:
-        return unit
+
+    # this is UnitSystem.UCUM
+    try:
+        return str(get_unit_registry(system).from_ucum(unit))
+    except pint.errors.UndefinedUnitError as err:
+        msg = f"Unknown unit: {unit}"
+        raise UndefinedUnitError(msg) from err
+    except lark.exceptions.UnexpectedCharacters as err:
+        msg = f"Cannot parse unit: {unit}"
+        raise UndefinedUnitError(msg) from err

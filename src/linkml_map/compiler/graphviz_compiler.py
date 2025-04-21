@@ -20,10 +20,10 @@ class Record(BaseModel):
     fields: list[tuple[str, str]] = []
 
     @property
-    def id(self):
+    def id(self) -> str:
         return f"{self.source}{self.name}"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             f"""<
         <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
@@ -47,6 +47,7 @@ class GraphvizObject(CompiledSpecification):
     def render(self, file_path: str, format="png", view=False) -> None:
         """
         Render a graphviz graph to a file.
+
         :param file_path:
         :return:
         """

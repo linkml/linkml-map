@@ -1,3 +1,5 @@
+"""Infer missing values in a specification."""
+
 from linkml_runtime import SchemaView
 
 from linkml_map.datamodel.transformer_model import TransformationSpecification
@@ -5,7 +7,7 @@ from linkml_map.datamodel.transformer_model import TransformationSpecification
 
 def induce_missing_values(
     specification: TransformationSpecification, source_schemaview: SchemaView
-):
+) -> None:
     """
     Infer missing values in a specification.
 
@@ -24,15 +26,14 @@ def induce_missing_values(
             # TODO: decide if this is the desired behavior
             if sd.populated_from is None and sd.expr is None:
                 sd.populated_from = sd.name
-            if not sd.range:
+            if not sd.range and sd.populated_from:
                 # auto-populate range field
-                if sd.populated_from:
-                    if cd.populated_from not in source_schemaview.all_classes():
-                        continue
-                    source_induced_slot = source_schemaview.induced_slot(
-                        sd.populated_from, cd.populated_from
-                    )
-                    source_induced_slot_range = source_induced_slot.range
-                    for range_cd in specification.class_derivations.values():
-                        if range_cd.populated_from == source_induced_slot_range:
-                            sd.range = range_cd.name
+                if cd.populated_from not in source_schemaview.all_classes():
+                    continue
+                source_induced_slot = source_schemaview.induced_slot(
+                    sd.populated_from, cd.populated_from
+                )
+                source_induced_slot_range = source_induced_slot.range
+                for range_cd in specification.class_derivations.values():
+                    if range_cd.populated_from == source_induced_slot_range:
+                        sd.range = range_cd.name
