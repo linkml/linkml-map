@@ -291,9 +291,7 @@ class SchemaMapper:
         if slot_derivation.range:
             target_slot.range = slot_derivation.range
         if slot_derivation.target_definition:
-            spec_defn = SlotDefinition(
-                name=target_slot.name, **slot_derivation.target_definition
-            )
+            spec_defn = SlotDefinition(name=target_slot.name, **slot_derivation.target_definition)
             for k, v in vars(spec_defn).items():
                 setattr(target_slot, k, v)
         if slot_derivation.unit_conversion:
@@ -337,9 +335,7 @@ class SchemaMapper:
             new_parents = self.source_to_target_class_mappings[parent]
             if len(new_parents) > 1:
                 msg = f"Cannot rewire to non-isomorphic mappings {parent} => {new_parents}"
-                raise ValueError(
-                    msg
-                )
+                raise ValueError(msg)
             if len(new_parents) == 1:
                 return new_parents[0]
         parent_cls = self.source_schemaview.get_class(parent)
