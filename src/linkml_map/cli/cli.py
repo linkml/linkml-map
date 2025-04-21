@@ -28,6 +28,8 @@ transformer_specification_option = click.option(
     "-T", "--transformer-specification", help="Path to transformer specification."
 )
 
+logger = logging.getLogger(__name__)
+
 
 @click.group()
 @click.option("-v", "--verbose", count=True)
@@ -74,7 +76,7 @@ def map_data(
         linkml-map map-data -T X-to-Y-tr.yaml -s X.yaml  X-data.yaml
 
     """
-    logging.info(
+    logger.info(
         f"Transforming {input_data} conforming to {schema} using {transformer_specification}"
     )
     tr = ObjectTransformer(**kwargs)
@@ -106,7 +108,7 @@ def compile(
         linkml-map compile -T X-to-Y-tr.yaml -s X.yaml
 
     """
-    logging.info(f"Compiling {transformer_specification} with {schema}")
+    logger.info(f"Compiling {transformer_specification} with {schema}")
     sv = SchemaView(schema)
     compiler_args = {"source_schemaview": sv}
     if target == "python":
@@ -148,7 +150,7 @@ def derive_schema(
         linkml-map derive-schema -T transform/personinfo-to-agent.transform.yaml source/personinfo.yaml
 
     """
-    logging.info(f"Transforming {schema} using {transformer_specification}")
+    logger.info(f"Transforming {schema} using {transformer_specification}")
     tr = ObjectTransformer()
     tr.load_transformer_specification(transformer_specification)
     mapper = SchemaMapper(transformer=tr)
@@ -175,7 +177,7 @@ def invert(
         linkml-map invert -T transform/personinfo-to-agent.transform.yaml source/personinfo.yaml
 
     """
-    logging.info(f"Inverting {transformer_specification} using {schema} as source")
+    logger.info(f"Inverting {transformer_specification} using {schema} as source")
     tr = ObjectTransformer()
     tr.load_transformer_specification(transformer_specification)
     inverter = TransformationSpecificationInverter(
@@ -187,7 +189,7 @@ def invert(
 
 
 def dump_output(
-    output_data: Union[dict[str, Any], list[Any]],
+    output_data: Union[dict[str, Any], list[Any], str],
     output_format: Optional[str] = None,
     file_path: Optional[str] = None,
 ) -> None:
@@ -195,15 +197,24 @@ def dump_output(
     Dump output as YAML to a file or stdout.
 
     :param output_data: data to dump
-    :type output_data: dict[str, Any] | list[Any]
+    :type output_data: dict[str, Any] | list[Any] | str
     :param output_format: format for dumped data, defaults to None
     :type output_format: Optional[str], optional
     :param file_path: path to an output file, defaults to None
     :type file_path: Optional[str], optional
     """
+    if output_data is None:
+        # this should already have been caught...
+        msg = "No output to be printed"
+        raise ValueError(msg)
+
     text_dump = output_data
     if output_format == "yaml":
         text_dump = yaml_dumper.dumps(output_data)
+    elif output_format:
+        # some other defined output format
+        msg = f"Output format {output_format} is not supported"
+        raise NotImplementedError(msg)
 
     if not file_path:
         sys.stdout.write(text_dump)

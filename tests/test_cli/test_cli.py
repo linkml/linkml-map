@@ -2,14 +2,15 @@
 
 from collections.abc import Generator
 from pathlib import Path
-from typing import Optional
+import re
+from typing import Any, Optional, Union
 
 import pytest
 import yaml
 from click.testing import CliRunner, Result
 from linkml_runtime import SchemaView
 
-from linkml_map.cli.cli import main
+from linkml_map.cli.cli import dump_output, main
 from tests import (
     DENORM_SPECIFICATION,
     FLATTENING_DATA,
@@ -181,3 +182,69 @@ def test_map_data_norm_denorm(runner: CliRunner) -> None:
     m = tr_data["mappings"][0]
     assert m["subject_id"] == "X:1"
     assert m["subject_name"] == "x1"
+
+
+EXPECTED_OUTPUT = {
+    "dict": {"input": {"that": "this"}, "yaml": "that: this\n"},
+    "list": {
+        "input": ["this", "that", "the other"],
+        "yaml": "- this\n- that\n- the other\n",
+    },
+    "string": {
+        "input": "But how long is it?",
+        "yaml": "But how long is it?\n...\n",  # eh??
+        None: "But how long is it?",
+    },
+}
+
+
+@pytest.mark.parametrize("file_path", [None, "output.txt"])
+@pytest.mark.parametrize("output_format", [None, "yaml"])
+@pytest.mark.parametrize("output_data", EXPECTED_OUTPUT.keys())
+def test_dump_output(
+    capsys: Generator[pytest.CaptureFixture, None, None],
+    tmp_path: Generator[Path, None, None],
+    file_path: Optional[str],
+    output_format: Optional[str],
+    output_data: Union[dict, list],
+) -> None:
+    """Ensure that the dump_output function does what it says."""
+    if file_path:
+        file_path = str(tmp_path / file_path)
+
+    # if there is no `output_format` key, this data cannot be dumped
+    if output_format not in EXPECTED_OUTPUT[output_data]:
+        with pytest.raises(
+            TypeError, match=re.escape(f"write() argument must be str, not {output_data}")
+        ):
+            dump_output(EXPECTED_OUTPUT[output_data]["input"], output_format, file_path)
+        return
+
+    dump_output(EXPECTED_OUTPUT[output_data]["input"], output_format, file_path)
+    expected_text = EXPECTED_OUTPUT[output_data][output_format]
+    if not file_path:
+        captured = capsys.readouterr()
+        assert captured.err == ""
+        assert captured.out == expected_text
+        return
+
+    with Path(file_path).open() as f:
+        assert f.read() == expected_text
+
+
+@pytest.mark.parametrize(
+    ("param", "value", "error", "message"),
+    [
+        ("output_format", "json", NotImplementedError, "Output format json is not supported"),
+        ("output_data", None, ValueError, "No output to be printed"),
+        ("file_path", "path/to/a/dir", FileNotFoundError, "No such file or directory"),
+    ],
+)
+def test_dump_output_fail(param: str, value: Optional[str], error: Exception, message: str) -> None:
+    """
+    Ensure that invalid input causes dump_output to fail.
+    """
+    default_params = {"output_data": {"this": "that"}, "output_format": "yaml", "file_path": None}
+    test_params = {**default_params, param: value}
+    with pytest.raises(error, match=message):
+        dump_output(**test_params)
