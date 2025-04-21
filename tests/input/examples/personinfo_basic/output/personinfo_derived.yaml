@@ -1,0 +1,163 @@
+name: personinfo-derived
+id: https://w3id.org/linkml/examples/personinfo-derived
+imports:
+- linkml:types
+prefixes:
+  personinfo:
+    prefix_prefix: personinfo
+    prefix_reference: https://w3id.org/linkml/examples/personinfo/
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  schema:
+    prefix_prefix: schema
+    prefix_reference: http://schema.org/
+  rdfs:
+    prefix_prefix: rdfs
+    prefix_reference: http://www.w3.org/2000/01/rdf-schema#
+  prov:
+    prefix_prefix: prov
+    prefix_reference: http://www.w3.org/ns/prov#
+  GSSO:
+    prefix_prefix: GSSO
+    prefix_reference: http://purl.obolibrary.org/obo/GSSO_
+  famrel:
+    prefix_prefix: famrel
+    prefix_reference: https://example.org/FamilialRelations#
+  P:
+    prefix_prefix: P
+    prefix_reference: http://example.org/P/
+  ROR:
+    prefix_prefix: ROR
+    prefix_reference: http://example.org/ror/
+  CODE:
+    prefix_prefix: CODE
+    prefix_reference: http://example.org/code/
+  GEO:
+    prefix_prefix: GEO
+    prefix_reference: http://example.org/geoloc/
+default_prefix: https://w3id.org/linkml/examples/personinfo-derived/
+default_range: string
+enums:
+  MyFamilialRelationshipType:
+    name: MyFamilialRelationshipType
+    is_a: RelationshipType
+    permissible_values:
+      SIBLING_OF:
+        text: SIBLING_OF
+      PARENT_OF:
+        text: PARENT_OF
+        meaning: famrel:02
+      CHILD_OF:
+        text: CHILD_OF
+      FATHER_OF:
+        text: FATHER_OF
+        meaning: famrel:11
+classes:
+  Container:
+    name: Container
+    attributes:
+      agents:
+        name: agents
+        range: Person
+        multivalued: true
+        inlined: true
+        inlined_as_list: true
+    tree_root: true
+  Entity:
+    name: Entity
+  Agent:
+    name: Agent
+    description: A person (alive, dead, undead, or fictional).
+    in_subset:
+    - basic_subset
+    is_a: Entity
+    attributes:
+      id:
+        name: id
+        slot_uri: schema:identifier
+        identifier: true
+      label:
+        name: label
+        slot_uri: schema:name
+      age:
+        name: age
+      primary_email:
+        name: primary_email
+        slot_uri: schema:email
+      secondary_email:
+        name: secondary_email
+      gender:
+        name: gender
+        slot_uri: schema:gender
+        range: GenderType
+      driving_since:
+        name: driving_since
+      first_known_event:
+        name: first_known_event
+      death_date:
+        name: death_date
+      current_address:
+        name: current_address
+        description: The address at which a person currently lives
+        range: Address
+      has_familial_relationships:
+        name: has_familial_relationships
+        range: FamilialRelationship
+        multivalued: true
+        inlined_as_list: true
+    class_uri: schema:Person
+  Job:
+    name: Job
+    attributes:
+      type:
+        name: type
+        range: RelationshipType
+      current:
+        name: current
+  Address:
+    name: Address
+    attributes:
+      address_of:
+        name: address_of
+      street:
+        name: street
+      city:
+        name: city
+    class_uri: schema:PostalAddress
+  FamilialRelationship:
+    name: FamilialRelationship
+    attributes:
+      type:
+        name: type
+        range: RelationshipType
+      related_to:
+        name: related_to
+  SequenceFeature:
+    name: SequenceFeature
+    attributes:
+      type:
+        name: type
+  DenormMapping:
+    name: DenormMapping
+    attributes:
+      id:
+        name: id
+        slot_uri: schema:identifier
+        identifier: true
+      creator:
+        name: creator
+      license:
+        name: license
+      subject_id:
+        name: subject_id
+      subject_name:
+        name: subject_name
+      object_id:
+        name: object_id
+      object_name:
+        name: object_name
+      predicate_id:
+        name: predicate_id
+      predicate_label:
+        name: predicate_label

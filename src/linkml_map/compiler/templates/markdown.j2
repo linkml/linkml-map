@@ -1,4 +1,4 @@
-# {{ spec.name }}
+# {{ spec.title }}
 
 ## Class Mappings
 {% for cd in spec.class_derivations.values() %}
@@ -18,7 +18,8 @@
 ### Target enum {{ ed.name }}
 
 | Target | Source | Info |
-    {% for pvd in ed.permissible_value_derivations.values() %}
+| ------ | ------ | ---- |
+    {%- for pvd in ed.permissible_value_derivations.values() %}
 | {{ pvd.name }} | {{ pvd.populated_from }} | . |
-    {% endfor %}
+    {%- endfor -%}
 {%  endfor %}
