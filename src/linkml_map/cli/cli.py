@@ -9,7 +9,7 @@ __all__ = [
     "main",
 ]
 
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import yaml
 from linkml_runtime import SchemaView
@@ -187,7 +187,7 @@ def invert(
 
 
 def dump_output(
-    output_data: dict[str, Any] | list[Any],
+    output_data: Union[dict[str, Any], list[Any]],
     output_format: Optional[str] = None,
     file_path: Optional[str] = None,
 ) -> None:
