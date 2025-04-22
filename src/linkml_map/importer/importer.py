@@ -27,7 +27,7 @@ class Importer(ABC):
     @abstractmethod
     def import_specification(self, input: Any) -> TransformationSpecification:
         """
-        Import into a specification
+        Import into a specification.
 
         :param specification:
         :return:

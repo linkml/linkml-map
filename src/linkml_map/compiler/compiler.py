@@ -81,9 +81,9 @@ class Compiler(ABC):
     def _compile_iterator(self, specification: TransformationSpecification) -> Iterator[str]:
         raise NotImplementedError
 
-    def derived_target_schemaview(self, specification: TransformationSpecification):
+    def derived_target_schemaview(self, specification: TransformationSpecification) -> SchemaView:
         """
-        Returns a view over the target schema, including any derived classes.
+        Return a view over the target schema, including any derived classes.
         """
         mapper = SchemaMapper(source_schemaview=self.source_schemaview)
         return SchemaView(yaml_dumper.dumps(mapper.derive_schema(specification)))

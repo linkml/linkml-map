@@ -43,7 +43,7 @@ class Session:
 
     def set_transformer_specification(
         self, specification: Optional[Union[TransformationSpecification, dict, str, Path]] = None
-    ):
+    ) -> None:
         if isinstance(specification, Path):
             specification = str(specification)
         if isinstance(specification, TransformationSpecification):
@@ -63,9 +63,11 @@ class Session:
                 obj = yaml.safe_load(open(specification))
             self.set_transformer_specification(obj)
 
-    def set_source_schema(self, schema: Union[str, Path, dict, SchemaView, SchemaDefinition]):
+    def set_source_schema(
+        self, schema: Union[str, Path, dict, SchemaView, SchemaDefinition]
+    ) -> None:
         """
-        Sets the schema from a path or SchemaView object.
+        Set the schema from a path or SchemaView object.
         """
         if isinstance(schema, str):
             sv = SchemaView(schema)
@@ -78,7 +80,8 @@ class Session:
         elif isinstance(schema, SchemaDefinition):
             sv = SchemaView(schema)
         else:
-            raise ValueError(f"Unsupported schema type: {type(schema)}")
+            msg = f"Unsupported schema type: {type(schema)}"
+            raise ValueError(msg)
         self.source_schemaview = sv
         self._target_schema = None
 
@@ -86,7 +89,7 @@ class Session:
         self,
         transformer: Optional[Union[Transformer, type[Transformer]]],
         **kwargs,
-    ):
+    ) -> None:
         if isinstance(transformer, type):
             transformer = transformer()
         transformer.specification = self.transformer_specification
@@ -97,7 +100,7 @@ class Session:
         transformer: Optional[
             Union[ObjectTransformer, TransformationSpecification, dict, str, Path]
         ] = None,
-    ):
+    ) -> None:
         if transformer is None:
             if self.object_transformer is not None:
                 logger.info("No change")
@@ -130,7 +133,8 @@ class Session:
 
     def transform(self, obj: dict, **kwargs) -> dict:
         if self.object_transformer is None:
-            raise ValueError("No transformer specified")
+            msg = "No transformer specified"
+            raise ValueError(msg)
         if not self.object_transformer.source_schemaview:
             self.object_transformer.source_schemaview = self.source_schemaview
         return self.object_transformer.map_object(obj, **kwargs)

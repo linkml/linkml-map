@@ -149,9 +149,8 @@ class Transformer(ABC):
         ]
         logger.debug(f"Target class derivations={matching_tgt_class_derivs}")
         if len(matching_tgt_class_derivs) != 1:
-            raise ValueError(
-                f"Could not find class derivation for {target_class_name} (results={len(matching_tgt_class_derivs)})"
-            )
+            msg = f"Could not find class derivation for {target_class_name} (results={len(matching_tgt_class_derivs)})"
+            raise ValueError(msg)
         cd = matching_tgt_class_derivs[0]
         ancmap = self._class_derivation_ancestors(cd)
         if ancmap:
@@ -193,7 +192,8 @@ class Transformer(ABC):
         ]
         logger.debug(f"Target enum derivations={matching_tgt_enum_derivs}")
         if len(matching_tgt_enum_derivs) != 1:
-            raise ValueError(f"Could not find what to derive from a source {target_enum_name}")
+            msg = f"Could not find what to derive from a source {target_enum_name}"
+            raise ValueError(msg)
         return matching_tgt_enum_derivs[0]
 
     def _is_coerce_to_multivalued(

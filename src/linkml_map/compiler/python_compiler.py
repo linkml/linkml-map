@@ -95,10 +95,7 @@ class PythonCompiler(Compiler):
 
     def _compiled_class_derivations_iter(self, cd: ClassDerivation) -> Iterator[str]:
         sv = self.source_schemaview
-        if cd.populated_from:
-            populated_from = cd.populated_from
-        else:
-            populated_from = cd.name
+        populated_from = cd.populated_from if cd.populated_from else cd.name
         if populated_from not in sv.all_classes():
             return
         induced_slots = {s.name: s for s in sv.class_induced_slots(populated_from)}

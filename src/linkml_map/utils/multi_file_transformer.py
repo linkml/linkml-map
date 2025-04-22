@@ -83,23 +83,27 @@ class MultiFileTransformer:
         if isinstance(root_directory, str):
             root_directory = Path(root_directory)
         if not root_directory.exists():
-            raise ValueError(f"No such directory {root_directory}")
+            msg = f"No such directory {root_directory}"
+            raise ValueError(msg)
         instructions_file = root_directory / "instructions.yaml"
         if instructions_file.exists():
             with open(instructions_file) as file:
                 return Instructions(**yaml.safe_load(file))
         source_schema_directory = root_directory / self.source_schema_directory_base
         if not source_schema_directory.exists():
-            raise ValueError(f"Expected {source_schema_directory}")
+            msg = f"Expected {source_schema_directory}"
+            raise ValueError(msg)
         transform_specification_directory = (
             root_directory / self.transform_specification_directory_base
         )
         if not transform_specification_directory.exists():
-            raise ValueError(f"Expected {transform_specification_directory}")
+            msg = f"Expected {transform_specification_directory}"
+            raise ValueError(msg)
         target_schema_directory = root_directory / self.target_schema_directory_base
         input_schemas = glob.glob(os.path.join(str(source_schema_directory), "*.yaml"))
         if not input_schemas:
-            raise ValueError(f"Expected schemas in {source_schema_directory}")
+            msg = f"Expected schemas in {source_schema_directory}"
+            raise ValueError(msg)
         transform_files = glob.glob(
             os.path.join(str(transform_specification_directory), "*.transform.yaml")
         )
@@ -116,7 +120,8 @@ class MultiFileTransformer:
                     # resolve which schema the transform applies to
                     matches = re.match(r"^(\w+)-to-(\w+)\.", transform_file)
                     if not matches:
-                        raise ValueError(f"Ambiguous: {transform_file}")
+                        msg = f"Ambiguous: {transform_file}"
+                        raise ValueError(msg)
                     src, target_schema_base = matches.group(1, 2)
                     if src not in input_schema:
                         continue
@@ -136,17 +141,18 @@ class MultiFileTransformer:
                 if len(target_schemas) > 1:
                     target_schemas = [s for s in target_schemas if target_schema_base in s]
                     if len(target_schemas) != 1:
-                        raise ValueError(
-                            f"Could not determine target schema from: {target_schemas}"
-                        )
+                        msg = f"Could not determine target schema from: {target_schemas}"
+                        raise ValueError(msg)
                 if target_schemas:
                     tr.target_schema = target_schemas[0]
                 else:
                     tr.target_schema = str(Path(target_schema_directory) / "target.yaml")
                 if not tr.steps:
-                    raise ValueError(f"Could not infer steps from {data_files}")
+                    msg = f"Could not infer steps from {data_files}"
+                    raise ValueError(msg)
                 if not tr.transformation_specification:
-                    raise ValueError(f"No spec {tr}")
+                    msg = f"No spec {tr}"
+                    raise ValueError(msg)
         return instructions
 
     def process_instructions(
@@ -155,7 +161,7 @@ class MultiFileTransformer:
         root_directory: Optional[Union[str, Path]],
         output_directory=None,
         test_mode=False,
-    ):
+    ) -> None:
         """
         Process a set of instructions to transform one or more files.
 
@@ -201,9 +207,8 @@ class MultiFileTransformer:
                             compare_obj = yaml.safe_load(f)
                             if compare_obj != target_obj:
                                 if test_mode and not overwrite:
-                                    raise ValueError(
-                                        f"Output different than expected: {compare_obj}"
-                                    )
+                                    msg = f"Output different than expected: {compare_obj}"
+                                    raise ValueError(msg)
                                 logging.warning(f"Different: {compare_obj}")
                     with open(str(out_path), "w", encoding="utf-8") as f:
                         yaml_str = yaml.dump(target_obj, sort_keys=False)
