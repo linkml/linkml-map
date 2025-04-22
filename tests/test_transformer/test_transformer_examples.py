@@ -25,7 +25,7 @@ Assumes folder structures:
 """
 
 
-def test_all():
+def test_all() -> None:
     """
     Iterates through all examples.
 
@@ -40,7 +40,7 @@ def test_all():
 
 
 @pytest.mark.skip("Uncomment this to regenerate examples")
-def test_regenerate():
+def test_regenerate() -> None:
     """
     Use this to regenerate test examples.
     """
@@ -49,5 +49,4 @@ def test_regenerate():
     for directory in dirs:
         full_dir = EXAMPLE_DIR / directory
         instructions = mft.infer_instructions(full_dir)
-        # print(yaml.dump(instructions.dict()))
         mft.process_instructions(instructions, full_dir, test_mode=False)

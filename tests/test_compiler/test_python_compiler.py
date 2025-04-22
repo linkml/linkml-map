@@ -1,5 +1,5 @@
 """
-Tests compilation of a specification to python
+Tests compilation of a specification to python.
 """
 
 import pytest
@@ -13,7 +13,8 @@ from tests import SCHEMA1, SPECIFICATION
 
 
 @pytest.fixture
-def compiler():
+def compiler() -> PythonCompiler:
+    """Instantiate a Python Compiler."""
     return PythonCompiler(
         source_schemaview=SchemaView(SCHEMA1),
         source_python_module="tests.input.examples.personinfo_basic.model.personinfo_model",
@@ -21,7 +22,8 @@ def compiler():
     )
 
 
-def test_compile(compiler):
+def test_compile(compiler: PythonCompiler) -> None:
+    """Basic test of Python Compiler functionality."""
     spec = load_specification(SPECIFICATION)
     pycode = compiler.compile(spec)
     # TODO: include imports so that code compiles

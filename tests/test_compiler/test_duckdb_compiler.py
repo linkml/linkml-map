@@ -1,7 +1,8 @@
 """
-Tests compilation of a specification to python
+Tests compilation of a specification to python.
 """
 
+import duckdb
 import pytest
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper
@@ -12,14 +13,16 @@ from tests import SCHEMA1, SPECIFICATION
 
 
 @pytest.fixture
-def session():
+def session() -> Session:
+    """LinkML transformer session with schema and spec set."""
     session = Session()
     session.set_source_schema(SCHEMA1)
     session.set_transformer_specification(SPECIFICATION)
     return session
 
 
-def test_compile(session):
+def test_compile(session: Session) -> None:
+    """Test the DuckDb compiler."""
     compiler = SQLCompiler()
     assert session.transformer_specification is not None
     compiled = compiler.compile(session.transformer_specification)
@@ -36,8 +39,6 @@ def test_compile(session):
     target_ddl = compiler.create_ddl(target_sv)
     print("Target DDL:")
     print(target_ddl)
-
-    import duckdb
 
     conn = duckdb.connect(":memory:")
     conn.execute(target_ddl)

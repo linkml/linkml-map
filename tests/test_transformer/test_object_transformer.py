@@ -56,6 +56,7 @@ CONTAINER_OBJECT = yaml_loader.load(
 
 @pytest.fixture
 def obj_tr() -> ObjectTransformer:
+    """Instantiate an object transformer."""
     obj_tr = ObjectTransformer(unrestricted_eval=True)
     obj_tr.source_schemaview = SchemaView(str(PERSONINFO_SRC_SCHEMA))
     obj_tr.target_schemaview = SchemaView(str(PERSONINFO_TGT_SCHEMA))
@@ -65,8 +66,7 @@ def obj_tr() -> ObjectTransformer:
 
 def test_transform_dict(obj_tr: ObjectTransformer) -> None:
     """
-    Tests transforming a dictionary of Person data
-    into a dictionary of Agent data
+    Tests transforming a dictionary of Person data into a dictionary of Agent data.
     """
     person_dict: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_DATA)))
     assert person_dict["age_in_years"] == AGE_INT
@@ -76,10 +76,9 @@ def test_transform_dict(obj_tr: ObjectTransformer) -> None:
     assert target_dict == TARGET_DATA
 
 
-def test_transform_dict_in_container(obj_tr: ObjectTransformer):
+def test_transform_dict_in_container(obj_tr: ObjectTransformer) -> None:
     """
-    Tests transforming a Person data dict in a Container
-    into an Agent data dict in a Container dict
+    Tests transforming a Person data dict in a Container into an Agent data dict in a Container dict.
     """
     person_dict: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_DATA)))
     container_dict = {"persons": [person_dict]}
@@ -89,15 +88,15 @@ def test_transform_dict_in_container(obj_tr: ObjectTransformer):
 
 def test_transform_multiple_dicts_in_container(obj_tr: ObjectTransformer) -> None:
     """
-    Tests transforming several Person data dicts in a Container
-    into Agent data dicts in a Container dicts
+    Tests transforming several Person data dicts in a Container into Agent data dicts in a Container dicts.
     """
     container_dict: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_CONTAINER_DATA)))
     target_dict: dict[str, Any] = obj_tr.map_object(container_dict, source_type="Container")
     assert target_dict == CONTAINER_DATA
 
 
-def check_familial_relationships(obj, data_model, expected):
+def check_familial_relationships(obj, data_model, expected) -> None:
+    """Check FamilialRelationships in a data model."""
     assert len(expected) == len(obj.has_familial_relationships)
     for n in range(len(expected)):
         fr = obj.has_familial_relationships[n]
@@ -106,19 +105,19 @@ def check_familial_relationships(obj, data_model, expected):
         assert expected[n]["type"] == str(fr.type)
 
 
-def test_coerce(obj_tr: ObjectTransformer):
-    x = obj_tr._coerce_datatype("5", "integer")
+def test_coerce(obj_tr: ObjectTransformer) -> None:
+    """Test datatype coercion."""
+    x = obj_tr._coerce_datatype("5", "integer")  # noqa: SLF001
     assert x == 5
-    x = obj_tr._coerce_datatype(5, "string")
+    x = obj_tr._coerce_datatype(5, "string")  # noqa: SLF001
     assert x == "5"
-    x = obj_tr._coerce_datatype(5, "integer")
+    x = obj_tr._coerce_datatype(5, "integer")  # noqa: SLF001
     assert x == 5
 
 
-def test_transform_simple_object(obj_tr: ObjectTransformer):
+def test_transform_simple_object(obj_tr: ObjectTransformer) -> None:
     """
-    Tests transforming a Person object
-    into an Agent object
+    Tests transforming a Person object into an Agent object.
     """
     person_obj: src_dm.Person = yaml_loader.load(str(PERSONINFO_DATA), target_class=src_dm.Person)
     assert isinstance(person_obj, src_dm.Person)
@@ -167,10 +166,9 @@ def test_transform_simple_object(obj_tr: ObjectTransformer):
     assert target_obj == TARGET_OBJECT
 
 
-def test_transform_container_object(obj_tr: ObjectTransformer):
+def test_transform_container_object(obj_tr: ObjectTransformer) -> None:
     """
-    Tests transforming a Container object holding a Person object
-    into Container object holding an Agent object
+    Tests transforming a Container object holding a Person object into Container object holding an Agent object.
     """
     person = yaml_loader.load(str(PERSONINFO_DATA), target_class=src_dm.Person)
     container_obj = src_dm.Container(persons=[person])
@@ -187,10 +185,9 @@ def test_transform_container_object(obj_tr: ObjectTransformer):
         assert person_fr1.related_to == agent_fr1.related_to
 
 
-def test_transform_object_container(obj_tr: ObjectTransformer):
+def test_transform_object_container(obj_tr: ObjectTransformer) -> None:
     """
-    Tests transforming a Container object holding several Person objects
-    into Container object holding several Agent objects
+    Tests transforming a Container object holding several Person objects into Container object holding several Agent objects.
     """
     container_obj = yaml_loader.load(str(PERSONINFO_CONTAINER_DATA), target_class=src_dm.Container)
     target_obj = obj_tr.transform_object(container_obj, target_class=tgt_dm.Container)
@@ -201,7 +198,7 @@ def test_transform_object_container(obj_tr: ObjectTransformer):
 def check_subject_object_predicate(
     obj,
     expected,
-):
+) -> None:
     assert expected["subject_id"] == obj.subject.id
     assert expected["subject_name"] == obj.subject.name
     assert expected["object_id"] == obj.object.id
@@ -209,7 +206,7 @@ def check_subject_object_predicate(
     assert expected["predicate"] == obj.predicate
 
 
-def test_index_dict():
+def test_index_dict() -> None:
     sv = SchemaView(NORM_SCHEMA)
     container = yaml.safe_load(open(str(FLATTENING_DATA)))
     dynobj = dynamic_object(container, sv, "MappingSet")
@@ -239,7 +236,7 @@ def test_index_dict():
     assert mset.mappings[0].predicate == "P:1"
 
 
-def test_index_obj():
+def test_index_obj() -> None:
     sv = SchemaView(NORM_SCHEMA)
     mset: sssom_src_dm.MappingSet = yaml_loader.load(
         str(FLATTENING_DATA), target_class=sssom_src_dm.MappingSet
@@ -274,7 +271,7 @@ def test_index_obj():
     check_subject_object_predicate(mset.mappings[0], expected)
 
 
-def test_denormalized_transform_dict():
+def test_denormalized_transform_dict() -> None:
     """
     Tests denormalizing transformation.
 
@@ -302,7 +299,7 @@ def test_denormalized_transform_dict():
     }
 
 
-def test_denormalized_object_transform():
+def test_denormalized_object_transform() -> None:
     """
     Tests denormalizing transformation.
 
@@ -353,7 +350,7 @@ def test_denormalized_object_transform():
 @pytest.mark.parametrize("source_multivalued", [True, False])
 @pytest.mark.parametrize("target_multivalued", [True, False])
 @pytest.mark.parametrize("explicit", [True, False])
-def test_cardinalities(source_multivalued: bool, target_multivalued: bool, explicit: bool) -> None:
+def test_cardinalities(source_multivalued: bool, target_multivalued: bool, explicit: bool) -> None:  # noqa: FBT001
     """
     Tests enforcing cardinality.
     """
@@ -400,7 +397,7 @@ def test_cardinalities(source_multivalued: bool, target_multivalued: bool, expli
     assert [val] if target_multivalued else val == target_instance[att_name]
 
 
-def test_self_transform():
+def test_self_transform() -> None:
     tr = ObjectTransformer()
     tr.source_schemaview = SchemaView(str(TR_SCHEMA))
     tr.load_transformer_specification(TR_TO_MAPPING_TABLES)

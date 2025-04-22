@@ -1,5 +1,5 @@
 """
-Tests compilation of a specification to graphviz
+Tests compilation of a specification to graphviz.
 """
 
 import pytest
@@ -11,16 +11,17 @@ from tests import OUTPUT_DIR, SCHEMA1, SPECIFICATION
 
 
 @pytest.fixture
-def compiler():
+def compiler() -> GraphvizCompiler:
+    """Instantiate a GraphvizCompiler."""
     return GraphvizCompiler(
         source_schemaview=SchemaView(SCHEMA1),
     )
 
 
-def test_compile(compiler):
+def test_compile(compiler: GraphvizCompiler) -> None:
+    """Basic test of the graphviz compiler functionality."""
     spec = load_specification(SPECIFICATION)
     compiled = compiler.compile(spec)
-    # print(compiled.serialization)
     assert (
         "sourceMapping:id -> targetDenormMapping:subject_id [style=dashed]"
         in compiled.serialization
