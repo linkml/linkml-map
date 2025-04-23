@@ -22,7 +22,7 @@ import re
 from dataclasses import dataclass
 from datetime import date
 from types import ModuleType
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import pytest
 from deepdiff import DeepDiff
@@ -75,13 +75,13 @@ Each test is designed to demonstrate:
 )
 
 
-def print_yaml(obj: Any):
+def print_yaml(obj: Any) -> None:
     print("```yaml")
     print(yaml_dumper.dumps(obj))
     print("```\n")
 
 
-def build_schema(name, **kwargs) -> SchemaDefinition:
+def build_schema(name: str, **kwargs: dict[str, Any]) -> SchemaDefinition:
     schema = SchemaDefinition(id=name, name=name, **kwargs)
     schema.imports.append("linkml:types")
     schema.default_prefix = "test"
@@ -92,7 +92,7 @@ def build_schema(name, **kwargs) -> SchemaDefinition:
     return schema
 
 
-def build_transformer(**kwargs) -> TransformationSpecification:
+def build_transformer(**kwargs: dict[str, Any]) -> TransformationSpecification:
     mapper = ObjectTransformer()
     mapper.create_transformer_specification(kwargs)
     print("**Transformer Specification**:\n\n")
@@ -100,7 +100,9 @@ def build_transformer(**kwargs) -> TransformationSpecification:
     return mapper.specification
 
 
-def create_compilers(spec: TransformationSpecification, expected_map: [dict[ModuleType, str]]):
+def create_compilers(
+    spec: TransformationSpecification, expected_map: dict[ModuleType, str]
+) -> None:
     """
     Test compilation of transformation specifications to other languages.
 
@@ -131,8 +133,8 @@ def map_object(
     source_object: dict[str, Any],
     expected_target_object: dict[str, Any],
     source_sv: SchemaView,
-    invertible: bool = False,
-    index: bool = False,
+    invertible: bool = False,  # noqa: FBT001, FBT002
+    index: bool = False,  # noqa: FBT001, FBT002
     source_root: Optional[str] = "Container",
     roundtrip_object: Optional[Any] = None,
     raises_error: Optional[Exception] = None,
@@ -174,6 +176,7 @@ def map_object(
     if raises_error:
         with pytest.raises(raises_error):
             target_object = mapper.map_object(source_object)
+            # FIXME: should only have a single line in a `pytest.raises` block
             logger.debug(f"Unexpected Target Object: {target_object}")
         target_object = None
     else:
@@ -217,7 +220,8 @@ def map_object(
     )
 
 
-def ensure_validates(target_schema: SchemaDefinition, target_object: Any):
+def ensure_validates(target_schema: SchemaDefinition, target_object: Any) -> None:
+    """Run the JsonSchema validator on a target_object."""
     target_validator = Validator(
         yaml_dumper.dumps(target_schema), validation_plugins=[JsonschemaValidationPlugin()]
     )
@@ -226,10 +230,10 @@ def ensure_validates(target_schema: SchemaDefinition, target_object: Any):
     )
 
 
-@pytest.fixture(scope="function")
-def invocation_tracker(request) -> bool:
+@pytest.fixture
+def invocation_tracker(request: pytest.FixtureRequest) -> bool:
     """
-    Emit metadata for each invocation a test function.
+    Emit metadata for each invocation of a test function.
 
     Also emits the docstring for the test function.
 
@@ -245,7 +249,8 @@ def invocation_tracker(request) -> bool:
         print(f"## Feature Set: {node.originalname}\n")
         docstring = test_function.__doc__
         if not docstring:
-            raise AssertionError(f"Test {node.originalname} has no docstring")
+            msg = f"Test {node.originalname} has no docstring"
+            raise AssertionError(msg)
         for line in docstring.split("\n"):
             line = line.strip()
             if line.startswith(":return:"):
@@ -258,14 +263,13 @@ def invocation_tracker(request) -> bool:
                 print(f"* **{pname}**: {pdesc}")
             else:
                 print(line)
-        # print("\n")
         first_invocation = True
     print(f"### Combo: {node.name}\n")
     return first_invocation
 
 
 @pytest.mark.parametrize(
-    "source_datatype,target_datatype,source_value,target_value,invertible",
+    ("source_datatype", "target_datatype", "source_value", "target_value", "invertible"),
     [
         ("string", "string", "foo", "foo", True),
         ("integer", "integer", 5, 5, True),
@@ -278,8 +282,13 @@ def invocation_tracker(request) -> bool:
     ],
 )
 def test_map_types(
-    invocation_tracker, source_datatype, target_datatype, source_value, target_value, invertible
-):
+    invocation_tracker,
+    source_datatype: str,
+    target_datatype: str,
+    source_value: Union[str, float],
+    target_value: Union[str, float, bool],
+    invertible: bool,  # noqa: FBT001
+) -> None:
     """
     Test mapping between basic data types.
 
@@ -312,7 +321,6 @@ def test_map_types(
     source_sv = SchemaView(schema)
     cds = {
         "C": {
-            # "populated_from": "C",
             "slot_derivations": {
                 "s1": {
                     "populated_from": "s1",
@@ -334,7 +342,7 @@ def test_map_types(
 
 
 @pytest.mark.parametrize(
-    "source_datatype,target_datatype,source_value,target_value,invertible",
+    ("source_datatype", "target_datatype", "source_value", "target_value", "invertible"),
     [
         (
             "string",
@@ -353,8 +361,13 @@ def test_map_types(
     ],
 )
 def test_map_collections(
-    invocation_tracker, source_datatype, target_datatype, source_value, target_value, invertible
-):
+    invocation_tracker,
+    source_datatype: str,
+    target_datatype: str,
+    source_value: Union[list[dict[str, Any]], dict[str, Any]],
+    target_value: Union[list[dict[str, Any]], dict[str, Any]],
+    invertible: bool,
+) -> None:
     """
     Test mapping between collection data types (lists and dicts).
 
@@ -438,7 +451,7 @@ def test_map_collections(
 
 
 @pytest.mark.parametrize(
-    "expr,source_object,target_value",
+    ("expr", "source_object", "target_value"),
     [
         ("s1 + s2", {"s1": 5, "s2": 6}, 11),
         ("{s1} + {s2}", {"s1": 5, "s2": 6}, 11),
@@ -451,7 +464,7 @@ def test_map_collections(
         ("s1 < s2", {"s1": 5, "s2": 6}, True),
     ],
 )
-def test_expr(invocation_tracker, expr, source_object, target_value):
+def test_expr(invocation_tracker, expr: str, source_object: Any, target_value: Any) -> None:
     """
     Test transformation using pythonic expressions.
 
@@ -478,13 +491,10 @@ def test_expr(invocation_tracker, expr, source_object, target_value):
     """
     classes = {"C": {"tree_root": True, "attributes": {}}}
 
-    def infer_range(v: Any, typ: Optional[str] = None):
+    def infer_range(v: Any, typ: Optional[str] = None) -> str:
         if isinstance(v, dict):
             if not typ:
-                if "type" in v:
-                    typ = v["type"]
-                else:
-                    typ = "D"
+                typ = v.get("type", "D")
             if typ not in classes:
                 classes[typ] = {"attributes": {}}
             for k1, v1 in v.items():
@@ -504,7 +514,8 @@ def test_expr(invocation_tracker, expr, source_object, target_value):
             return "boolean"
         if isinstance(v, str):
             return "string"
-        raise ValueError(f"Unknown type {type(v)}")
+        msg = f"Unknown type {type(v)}"
+        raise ValueError(msg)
 
     infer_range(source_object, typ="C")
     schema = build_schema("expr", classes=classes)
@@ -531,7 +542,17 @@ def test_expr(invocation_tracker, expr, source_object, target_value):
 
 
 @pytest.mark.parametrize(
-    "source_slot,target_slot,source_unit,target_unit,unit_metaslot,source_value,target_value,err,skip",
+    (
+        "source_slot",
+        "target_slot",
+        "source_unit",
+        "target_unit",
+        "unit_metaslot",
+        "source_value",
+        "target_value",
+        "err",
+        "skip",
+    ),
     [
         ("s1", "s1", "m", "cm", "ucum_code", 1.0, 100.0, None, None),
         ("s1", "s1", "m", "cm", "symbol", 1.0, 100.0, None, None),
@@ -561,16 +582,16 @@ def test_expr(invocation_tracker, expr, source_object, target_value):
 )
 def test_simple_unit_conversion(
     invocation_tracker,
-    source_slot,
-    target_slot,
-    source_unit,
-    target_unit,
-    unit_metaslot,
-    source_value,
-    target_value,
-    err,
-    skip,
-):
+    source_slot: str,
+    target_slot: str,
+    source_unit: str,
+    target_unit: str,
+    unit_metaslot: str,
+    source_value: float,
+    target_value: Optional[float],
+    err: Optional[Exception],
+    skip: Optional[str],
+) -> None:
     """
     Test unit conversion.
 
@@ -639,7 +660,7 @@ def test_simple_unit_conversion(
 
 
 @pytest.mark.parametrize(
-    "source_unit,target_unit,source_value,target_value,roundtrip_object,err",
+    ("source_unit", "target_unit", "source_value", "target_value", "roundtrip_object", "err"),
     [
         ("m", "cm", 1.0, 100.0, {"q": {"unit": "cm", "magnitude": 100.0}}, None),
         ("cm", "cm", 100.0, 100.0, {"q": {"unit": "cm", "magnitude": 100.0}}, None),
@@ -648,8 +669,14 @@ def test_simple_unit_conversion(
     ],
 )
 def test_complex_unit_conversion(
-    invocation_tracker, source_unit, target_unit, source_value, target_value, roundtrip_object, err
-):
+    invocation_tracker,
+    source_unit: str,
+    target_unit: str,
+    source_value: float,
+    target_value: Optional[float],
+    roundtrip_object: Optional[dict[str, Any]],
+    err: Optional[Exception],
+) -> None:
     """
     Test unit conversion, from complex object to simple scalar.
 
@@ -725,7 +752,7 @@ def test_complex_unit_conversion(
 
 
 @pytest.mark.parametrize(
-    "syntax,delimiter,source_value,target_value",
+    ("syntax", "delimiter", "source_value", "target_value"),
     [
         (None, ",", ["a", "b"], "a,b"),
         (None, "|", ["a", "b"], "a|b"),
@@ -736,7 +763,13 @@ def test_complex_unit_conversion(
         (SerializationSyntaxType.YAML, None, ["a", "b"], "[a, b]"),
     ],
 )
-def test_stringify(invocation_tracker, syntax, delimiter, source_value, target_value):
+def test_stringify(
+    invocation_tracker,
+    syntax: Optional[SerializationSyntaxType],
+    delimiter: Optional[str],
+    source_value: list[str],
+    target_value: str,
+) -> None:
     """
     Test compaction of multivalued slots into a string.
 
@@ -801,7 +834,12 @@ def test_stringify(invocation_tracker, syntax, delimiter, source_value, target_v
 )
 @pytest.mark.parametrize("use_expr", [True, False])
 @pytest.mark.parametrize("supply_source_schema", [True])  # TODO
-def test_isomorphic(invocation_tracker, source_object, use_expr, supply_source_schema):
+def test_isomorphic(
+    invocation_tracker,
+    source_object: dict[str, Any],
+    use_expr: bool,  # noqa: FBT001
+    supply_source_schema: bool,  # noqa: FBT001
+) -> None:
     """
     Test mapping a schema to an identical schema (i.e copy).
 
@@ -894,7 +932,7 @@ def test_isomorphic(invocation_tracker, source_object, use_expr, supply_source_s
 
 @pytest.mark.parametrize("inlined", [True, False])
 @pytest.mark.parametrize(
-    "source_object,target_object",
+    ("source_object", "target_object"),
     [
         (
             {"s1": {"id": "x1", "name": "foo"}, "s2": {"id": "x2", "name": "bar"}},
@@ -902,7 +940,12 @@ def test_isomorphic(invocation_tracker, source_object, use_expr, supply_source_s
         ),
     ],
 )
-def test_join(invocation_tracker, source_object, target_object, inlined):
+def test_join(
+    invocation_tracker,
+    source_object: dict[str, Any],
+    target_object: dict[str, Any],
+    inlined: bool,  # noqa: FBT001
+) -> None:
     """
     Test joining two objects into a single object, aka denormalization.
 
@@ -1000,7 +1043,7 @@ def test_join(invocation_tracker, source_object, target_object, inlined):
 
 
 @pytest.mark.parametrize(
-    "source_value,mapping,target_value,mirror_source",
+    ("source_value", "mapping", "target_value", "mirror_source"),
     [
         ("A", {"B": "A"}, "B", False),
         ("Z", {"B": "A"}, None, False),
@@ -1009,7 +1052,13 @@ def test_join(invocation_tracker, source_object, target_object, inlined):
         ("C", {"B": ["A", "C"]}, "B", False),
     ],
 )
-def test_map_enum(invocation_tracker, source_value, mapping, target_value, mirror_source):
+def test_map_enum(
+    invocation_tracker,
+    source_value: str,
+    mapping: dict[str, Any],
+    target_value: Optional[str],
+    mirror_source: bool,  # noqa: FBT001
+) -> None:
     """
     Test mapping between enum values.
 
@@ -1079,7 +1128,7 @@ def test_map_enum(invocation_tracker, source_value, mapping, target_value, mirro
 
 @pytest.mark.parametrize("is_a", [True, False])
 @pytest.mark.parametrize("flatten", [False, True])
-def test_inheritance(invocation_tracker, is_a, flatten):
+def test_inheritance(invocation_tracker, is_a: bool, flatten: bool) -> None:  # noqa: FBT001
     """
     Test inheritance.
 

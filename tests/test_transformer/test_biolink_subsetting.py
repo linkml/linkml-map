@@ -1,9 +1,12 @@
+"""Tests of biolink subsetting."""
+
+from collections.abc import Generator
 from pathlib import Path
 
+import pytest
 from linkml_runtime.dumpers import yaml_dumper
 from linkml_runtime.utils.formatutils import camelcase, underscore
 from linkml_runtime.utils.schemaview import SchemaView
-from pytest import fixture
 
 from linkml_map.datamodel.transformer_model import (
     ClassDerivation,
@@ -18,9 +21,9 @@ from src.linkml_map.utils.loaders import load_specification
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
-def get_biolink_class_derivations(sv, subset_classes) -> dict:
+def get_biolink_class_derivations(sv: SchemaView, subset_classes: list) -> dict:
     """
-    Function to get Biolink class definitions
+    Get Biolink class definitions.
 
     :param sv: SchemaView object
     :param subset_classes: List of classes to subset
@@ -39,21 +42,22 @@ def get_biolink_class_derivations(sv, subset_classes) -> dict:
     return class_derivations
 
 
-@fixture
-def biolink_schema():
+@pytest.fixture
+def biolink_schema() -> SchemaView:
     """
-    Fixture to load Biolink schema
+    Fixture to load Biolink schema.
 
     :return: SchemaView object named `biolink-schema`
     """
     schema_url = "https://raw.githubusercontent.com/biolink/biolink-model/master/biolink-model.yaml"
-    sv = SchemaView(schema_url)
-    return sv
+    return SchemaView(schema_url)
 
 
-def test_biolink_subsetting_manual(biolink_schema, tmp_path):
+def test_biolink_subsetting_manual(
+    biolink_schema: SchemaView, tmp_path: Generator[Path, None, None]
+) -> None:
     """
-    Test to subset the Biolink schema manually
+    Test to subset the Biolink schema manually.
 
     :param biolink_schema: Fixture to load Biolink schema
     """
@@ -88,10 +92,9 @@ def test_biolink_subsetting_manual(biolink_schema, tmp_path):
         print(slot_name)
 
 
-def test_biolink_subset_auto(biolink_schema, tmp_path):
+def test_biolink_subset_auto(biolink_schema: SchemaView, tmp_path: Path) -> None:
     """
-    Test to subset the Biolink schema automatically by deriving the class definitions from biolink
-    via a collection of class names to subset.
+    Test to subset the Biolink schema automatically by deriving the class definitions from biolink via a collection of class names to subset.
 
     :param biolink_schema: Fixture to load Biolink schema
     """

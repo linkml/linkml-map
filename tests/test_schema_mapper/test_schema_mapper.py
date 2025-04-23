@@ -1,5 +1,5 @@
 """
-Tests engine for deriving schemas (profiling) from a specification and a source
+Tests engine for deriving schemas (profiling) from a specification and a source.
 """
 
 import pytest
@@ -19,19 +19,21 @@ from tests import SCHEMA1, SPECIFICATION
 
 
 @pytest.fixture
-def source_schemaview():
+def source_schemaview() -> SchemaView:
+    """Instantiate a schemaview with Schema1."""
     return SchemaView(SCHEMA1)
 
 
 @pytest.fixture
-def mapper(source_schemaview):
+def mapper(source_schemaview: SchemaView) -> SchemaMapper:
+    """Instantiate a mapper with Schema1 as the source schema."""
     mapper = SchemaMapper()
     mapper.source_schemaview = source_schemaview
     return mapper
 
 
-def test_derive_schema(mapper, source_schemaview):
-    """Tests deriving a schema from a specification and a source"""
+def test_derive_schema(mapper: SchemaMapper, source_schemaview: SchemaView) -> None:
+    """Tests deriving a schema from a specification and a source."""
     tr = ObjectTransformer()
     tr.source_schemaview = source_schemaview
     tr.load_transformer_specification(SPECIFICATION)
@@ -57,12 +59,11 @@ def test_derive_schema(mapper, source_schemaview):
         atts = c.attributes
         for s in ex_slots:
             assert s in atts
-        # self.assertCountEqual(ex_slots, list(atts))
     agent = target_schema.classes["Agent"]
     assert agent.is_a == "Entity"
 
 
-def test_null_specification(mapper):
+def test_null_specification(mapper: SchemaMapper) -> None:
     """
     Tests empty spec limit case.
 
@@ -73,7 +74,7 @@ def test_null_specification(mapper):
     assert list(target_schema.classes.values()) == []
 
 
-def test_null_specification_and_source():
+def test_null_specification_and_source() -> None:
     """
     Tests empty spec and source schema limit case.
 
@@ -86,7 +87,7 @@ def test_null_specification_and_source():
     assert list(target_schema.classes.values()) == []
 
 
-def test_definition_in_derivation():
+def test_definition_in_derivation() -> None:
     """
     Test where the derived schema is entirely specified by the spec.
     """
@@ -129,7 +130,7 @@ def test_definition_in_derivation():
     assert agent.is_a == "Thing"
 
 
-def test_derive_partial(mapper):
+def test_derive_partial(mapper: SchemaMapper) -> None:
     """
     Tests partial spec limit case.
     """
@@ -144,9 +145,9 @@ def test_derive_partial(mapper):
     assert list(target_schema.classes.keys()) == ["Agent"]
 
 
-def test_rewire():
+def test_rewire() -> None:
     """
-    Tests rewire
+    Tests rewire.
 
     An empty spec and source schema should return an empty schema.
     """
@@ -189,11 +190,10 @@ def test_rewire():
     assert list(target_schema.classes.keys()) == ["TrEmployee"]
     emp = target_schema.classes["TrEmployee"]
     assert list(emp.attributes.keys()) == ["tr_salary"]
-    # self.assertEqual("Person", emp.is_a)
 
 
-def test_full_copy_specification(mapper):
-    """Tests copy isomorphism"""
+def test_full_copy_specification(mapper: SchemaMapper) -> None:
+    """Tests copy isomorphism."""
     copy_all_directive = {"*": CopyDirective(element_name="*", copy_all=True)}
     specification = TransformationSpecification(id="test", copy_directives=copy_all_directive)
     source_schema = mapper.source_schemaview.schema
@@ -205,8 +205,8 @@ def test_full_copy_specification(mapper):
     assert yaml_dumper.dumps(source_schema.enums) == yaml_dumper.dumps(target_schema.enums)
 
 
-def test_partial_copy_specification(mapper):
-    """Tests copy isomorphism excluding derivations"""
+def test_partial_copy_specification(mapper: SchemaMapper) -> None:
+    """Tests copy isomorphism excluding derivations."""
     copy_all_directive = {"*": CopyDirective(element_name="*", copy_all=True)}
     specification = TransformationSpecification(id="test", copy_directives=copy_all_directive)
     source_schema = mapper.source_schemaview.schema
@@ -218,18 +218,16 @@ def test_partial_copy_specification(mapper):
         specification.class_derivations[derivation.name] = derivation
     target_schema = mapper.derive_schema(specification)
     # classes must be the same with addition
-    for schema_class in source_schema.classes.keys():
-        assert schema_class in target_schema.classes.keys(), (
-            f"Class '{schema_class}' is missing in target"
-        )
-    assert "Agent" in target_schema.classes.keys(), "Derived class 'Agent' is missing in target"
+    for schema_class in source_schema.classes:
+        assert schema_class in target_schema.classes, f"Class '{schema_class}' is missing in target"
+    assert "Agent" in target_schema.classes, "Derived class 'Agent' is missing in target"
     # slots and enums must be exactly the same
     assert yaml_dumper.dumps(source_schema.slots) == yaml_dumper.dumps(target_schema.slots)
     assert yaml_dumper.dumps(source_schema.enums) == yaml_dumper.dumps(target_schema.enums)
 
 
-def test_full_copy_class(mapper):
-    """Tests copy isomorphism with class derivation"""
+def test_full_copy_class(mapper: SchemaMapper) -> None:
+    """Tests copy isomorphism with class derivation."""
     copy_all_directive = {"*": CopyDirective(element_name="*", copy_all=True)}
     specification = TransformationSpecification(id="test", copy_directives=copy_all_directive)
     source_schema = mapper.source_schemaview.schema
@@ -241,11 +239,9 @@ def test_full_copy_class(mapper):
         specification.class_derivations[derivation.name] = derivation
     target_schema = mapper.derive_schema(specification)
     # classes must be the same with addition
-    for schema_class in source_schema.classes.keys():
-        assert schema_class in target_schema.classes.keys(), (
-            f"Class '{schema_class}' is missing in target"
-        )
-    assert "Agent" in target_schema.classes.keys(), "Derived class 'Agent' is missing in target"
+    for schema_class in source_schema.classes:
+        assert schema_class in target_schema.classes, f"Class '{schema_class}' is missing in target"
+    assert "Agent" in target_schema.classes, "Derived class 'Agent' is missing in target"
     assert yaml_dumper.dumps(source_schema.classes["Person"].slots) == yaml_dumper.dumps(
         target_schema.classes["Agent"].slots
     )
@@ -257,8 +253,8 @@ def test_full_copy_class(mapper):
     assert yaml_dumper.dumps(source_schema.enums) == yaml_dumper.dumps(target_schema.enums)
 
 
-def test_copy_blacklisting(mapper):
-    """Tests copy on a blacklist approach"""
+def test_copy_blacklisting(mapper: SchemaMapper) -> None:
+    """Tests copy on a blacklist approach."""
     blacklist = ["Person"]
     copy_all_directive = {"*": CopyDirective(element_name="*", copy_all=True, exclude=blacklist)}
     specification = TransformationSpecification(id="test", copy_directives=copy_all_directive)
@@ -271,24 +267,24 @@ def test_copy_blacklisting(mapper):
         specification.class_derivations[derivation.name] = derivation
     target_schema = mapper.derive_schema(specification)
     # classes must be the same with addition
-    for schema_class in source_schema.classes.keys():
+    for schema_class in source_schema.classes:
         if schema_class in blacklist:
-            assert schema_class not in target_schema.classes.keys(), (
+            assert schema_class not in target_schema.classes, (
                 f"Class '{schema_class}' is missing in target"
             )
         else:
-            assert schema_class in target_schema.classes.keys(), (
+            assert schema_class in target_schema.classes, (
                 f"Class '{schema_class}' is missing in target"
             )
-    assert "Agent" in target_schema.classes.keys(), "Derived class 'Agent' is missing in target"
+    assert "Agent" in target_schema.classes, "Derived class 'Agent' is missing in target"
 
     # slots and enums must be exactly the same
     assert yaml_dumper.dumps(source_schema.slots) == yaml_dumper.dumps(target_schema.slots)
     assert yaml_dumper.dumps(source_schema.enums) == yaml_dumper.dumps(target_schema.enums)
 
 
-def test_copy_whitelisting(mapper):
-    """Tests copy on a whitelist approach"""
+def test_copy_whitelisting(mapper: SchemaMapper) -> None:
+    """Tests copy on a whitelist approach."""
     whitelist = ["NamedThing"]
     whitelist_directive = {
         "Whitelist": CopyDirective(
@@ -305,38 +301,34 @@ def test_copy_whitelisting(mapper):
         specification.class_derivations[derivation.name] = derivation
     target_schema = mapper.derive_schema(specification)
     # classes, slots and enums must have only what explicitly included
-    for schema_class in source_schema.classes.keys():
+    for schema_class in source_schema.classes:
         if schema_class in whitelist:
-            assert schema_class in target_schema.classes.keys(), (
+            assert schema_class in target_schema.classes, (
                 f"Class '{schema_class}' is missing in target"
             )
         else:
-            assert schema_class not in target_schema.classes.keys(), (
+            assert schema_class not in target_schema.classes, (
                 f"Class '{schema_class}' is missing in target"
             )
-    assert "Agent" in target_schema.classes.keys(), "Derived class 'Agent' is missing in target"
-    for schema_slot in source_schema.slots.keys():
+    assert "Agent" in target_schema.classes, "Derived class 'Agent' is missing in target"
+    for schema_slot in source_schema.slots:
         if schema_slot in whitelist:
-            assert schema_slot in target_schema.slots.keys(), (
-                f"Slot '{schema_slot}' is missing in target"
-            )
+            assert schema_slot in target_schema.slots, f"Slot '{schema_slot}' is missing in target"
         else:
-            assert schema_slot not in target_schema.slots.keys(), (
+            assert schema_slot not in target_schema.slots, (
                 f"Slot '{schema_slot}' is missing in target"
             )
-    for schema_enum in source_schema.enums.keys():
+    for schema_enum in source_schema.enums:
         if schema_enum in whitelist:
-            assert schema_enum in target_schema.enums.keys(), (
-                f"Enum '{schema_enum}' is missing in target"
-            )
+            assert schema_enum in target_schema.enums, f"Enum '{schema_enum}' is missing in target"
         else:
-            assert schema_enum not in target_schema.enums.keys(), (
+            assert schema_enum not in target_schema.enums, (
                 f"Enum '{schema_enum}' is missing in target"
             )
 
 
-def test_overrides_in_class_derivation(mapper):
-    """Test that overrides in ClassDerivation are applied"""
+def test_overrides_in_class_derivation(mapper: SchemaMapper) -> None:
+    """Test that overrides in ClassDerivation are applied."""
     specification = TransformationSpecification(
         id="test",
         class_derivations={
@@ -356,8 +348,8 @@ def test_overrides_in_class_derivation(mapper):
     assert agent.class_uri == "schema:Person"
 
 
-def test_overrides_in_slot_derivation(mapper):
-    """Test that overrides in SlotDerivation are applied"""
+def test_overrides_in_slot_derivation(mapper: SchemaMapper) -> None:
+    """Test that overrides in SlotDerivation are applied."""
     specification = TransformationSpecification(
         id="test",
         class_derivations={
@@ -386,7 +378,7 @@ def test_overrides_in_slot_derivation(mapper):
     assert age.description == "Age in years, but required and more realistic"
 
 
-def test_overrides_errors_with_unknown_attribute(mapper):
+def test_overrides_errors_with_unknown_attribute(mapper: SchemaMapper) -> None:
     """Test that an error is raised if overrides contains attributes not part of the metamodel."""
     specification = TransformationSpecification(
         id="test",

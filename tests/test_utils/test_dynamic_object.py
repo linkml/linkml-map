@@ -7,7 +7,8 @@ from linkml_map.utils.dynamic_object import dynamic_object
 from tests import FLATTENING_DATA, NORM_SCHEMA
 
 
-def test_dynamic_object():
+def test_dynamic_object() -> None:
+    """Basic test for generating a dynamic object."""
     sv = SchemaView(NORM_SCHEMA)
     container = yaml.safe_load(open(str(FLATTENING_DATA)))
     dynobj = dynamic_object(container, sv, "MappingSet")
@@ -16,5 +17,3 @@ def test_dynamic_object():
     assert isinstance(dynobj.entities, dict)
     m = dynobj.mappings[0]
     assert type(m).__name__ == "Mapping"
-    # container["mappings"][0].subject = "U:1"
-    # dynobj = dynamic_object(container, sv, "MappingSet")

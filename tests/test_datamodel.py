@@ -4,11 +4,10 @@ from linkml_map.transformer.object_transformer import ObjectTransformer
 from tests import PERSONINFO_TR
 
 
-def test_datamodel():
+def test_datamodel() -> None:
     """Check loading/retrieval."""
     tr = ObjectTransformer()
     tr.load_transformer_specification(PERSONINFO_TR)
-    # print(tr_spec.json())
     trs = tr.specification
     assert trs.model_dump_json() != ""
     assert trs.source_schema == "s1"

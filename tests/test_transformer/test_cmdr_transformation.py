@@ -1,3 +1,6 @@
+"""Test conversion of normalised to denormalised schema."""
+
+from collections.abc import Generator
 from pathlib import Path
 
 from linkml_runtime.dumpers import yaml_dumper
@@ -10,9 +13,9 @@ from src.linkml_map.utils.loaders import load_specification
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
-def test_denormalizingl(tmp_path):
+def test_denormalizingl(tmp_path: Generator[Path, None, None]) -> None:
     """
-    Test to convert a normalized mapping set schema to a denormalized one
+    Test to convert a normalized mapping set schema to a denormalized one.
 
     """
     input_schema = REPO_ROOT / "input/examples/flattening/source/normalized.yaml"

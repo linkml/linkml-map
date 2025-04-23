@@ -1,5 +1,5 @@
 """
-Tests compilation of a specification to markdown
+Tests compilation of a specification to markdown.
 """
 
 import pytest
@@ -11,13 +11,15 @@ from tests import SCHEMA1, SPECIFICATION
 
 
 @pytest.fixture
-def compiler():
+def compiler() -> MarkdownCompiler:
+    """Instantiate a MarkdownCompiler."""
     return MarkdownCompiler(
         source_schemaview=SchemaView(SCHEMA1),
     )
 
 
-def test_compile(compiler):
+def test_compile(compiler: MarkdownCompiler) -> None:
+    """Basic test of Markdown Compiler functioning."""
     assert compiler.template_name is not None
     spec = load_specification(SPECIFICATION)
     markdown = compiler.compile(spec).serialization
