@@ -199,7 +199,7 @@ EXPECTED_OUTPUT = {
 
 
 @pytest.mark.parametrize("file_path", [None, "output.txt"])
-@pytest.mark.parametrize("output_format", [None, "yaml"])
+@pytest.mark.parametrize("output_format", [None, "yaml", "tsv"])
 @pytest.mark.parametrize("output_data", EXPECTED_OUTPUT.keys())
 def test_dump_output(
     capsys: Generator[pytest.CaptureFixture, None, None],

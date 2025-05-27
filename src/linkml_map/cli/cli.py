@@ -20,6 +20,7 @@ from linkml_map.compiler.python_compiler import PythonCompiler
 from linkml_map.inference.inverter import TransformationSpecificationInverter
 from linkml_map.inference.schema_mapper import SchemaMapper
 from linkml_map.transformer.object_transformer import ObjectTransformer
+import csv
 
 # CLI options
 output_option = click.option("-o", "--output", help="Output file.")
@@ -27,6 +28,19 @@ schema_option = click.option("-s", "--schema", help="Path to source schema.")
 transformer_specification_option = click.option(
     "-T", "--transformer-specification", help="Path to transformer specification."
 )
+input_format_option = click.option(
+    "-f",
+    "--input-format",
+    default="yaml",
+    show_default=True,
+    help="Input format (yaml, tsv).",
+)
+output_format_option = click.option(
+    "-t",
+    "--output-format",
+    default="yaml",
+    show_default=True,
+    help="Output format (yaml, tsv).")
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +67,8 @@ def main(verbose: int, quiet: bool) -> None:
 @output_option
 @transformer_specification_option
 @schema_option
+@input_format_option
+@output_format_option
 @click.option("--source-type")
 @click.option(
     "--unrestricted-eval/--no-unrestricted-eval",
@@ -67,6 +83,8 @@ def map_data(
     source_type: Optional[str],
     transformer_specification: str,
     output: Optional[str],
+    input_format: str = "yaml",
+    output_format: str = "yaml",
     **kwargs: dict[str, Any],
 ) -> None:
     """
@@ -82,11 +100,19 @@ def map_data(
     tr = ObjectTransformer(**kwargs)
     tr.source_schemaview = SchemaView(schema)
     tr.load_transformer_specification(transformer_specification)
-    with open(input_data) as file:
-        input_obj = yaml.safe_load(file)
+
+    if input_format == "tsv":
+        with open(input_data, newline='', encoding="utf-8") as file:
+            reader = csv.DictReader(file, delimiter="\t")
+            input_obj = list(reader)
+    else:
+        with open(input_data, encoding="utf-8") as file:
+            input_obj = yaml.safe_load(file)
+
     tr.index(input_obj, source_type)
     tr_obj = tr.map_object(input_obj, source_type)
-    dump_output(tr_obj, "yaml", output)
+
+    dump_output(tr_obj, output_format, output)
 
 
 @main.command()
@@ -211,6 +237,18 @@ def dump_output(
     text_dump = output_data
     if output_format == "yaml":
         text_dump = yaml_dumper.dumps(output_data)
+    elif output_format == "tsv":
+        if isinstance(output_data, list):
+            if output_data and isinstance(output_data[0], dict):
+                # Convert list of dicts to TSV
+                output_data = [list(item.values()) for item in output_data]
+                text_dump = "\n".join(["\t".join(map(str, row)) for row in output_data])
+            else:
+                # If not a list of dicts, just join the items
+                text_dump = "\n".join(map(str, output_data))
+        else:
+            # If it's not a list, just convert to string
+            text_dump = str(output_data)
     elif output_format:
         # some other defined output format
         msg = f"Output format {output_format} is not supported"
