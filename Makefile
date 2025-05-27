@@ -37,7 +37,7 @@ status: check-config
 setup: install gen-project gendoc git-init-add
 
 install:
-	uv sync
+	uv sync --all-extras --dev
 .PHONY: install
 
 all: gen-project gendoc
