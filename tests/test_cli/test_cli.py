@@ -11,6 +11,8 @@ from click.testing import CliRunner, Result
 from linkml_runtime import SchemaView
 
 from linkml_map.cli.cli import dump_output, main
+from linkml_map.utils.file_formats import FileFormat, FORMAT_OPTION_STRING
+from linkml_map.utils.file_formats import FileFormat, FORMAT_OPTION_STRING
 from tests import (
     DENORM_SPECIFICATION,
     FLATTENING_DATA,
@@ -149,7 +151,8 @@ def test_derive_schema(
     assert "Agent" in sv.all_classes()
 
 
-def test_map_data(runner: CliRunner) -> None:
+@pytest.mark.parametrize("format_option", [None, "yaml", "json"])
+def test_map_data(runner: CliRunner, format_option: Optional[str], tmp_path: Generator[Path, None, None]) -> None:
     cmd = [
         "map-data",
         "--unrestricted-eval",
@@ -159,14 +162,36 @@ def test_map_data(runner: CliRunner) -> None:
         str(PERSONINFO_SRC_SCHEMA),
         str(PERSONINFO_CONTAINER_DATA),
     ]
-    result = runner.invoke(main, cmd)
-    assert result.exit_code == 0
-    out = result.stdout
-    tr_data = yaml.safe_load(out)
-    assert tr_data["agents"][0]["label"] == "fred bloggs"
+    
+    # Add the format option if specified
+    if format_option:
+        cmd.extend(["--format", format_option])
+    
+    # Test with both stdout and file output
+    for output_test in [None, "output_data.yaml"]:
+        test_cmd = cmd.copy()
+        output_path = None
+        
+        if output_test:
+            output_path = tmp_path / output_test
+            test_cmd.extend(["--output", str(output_path)])
+        
+        result = runner.invoke(main, test_cmd)
+        assert result.exit_code == 0
+        
+        if output_path:
+            with output_path.open() as fh:
+                out = fh.read()
+        else:
+            out = result.stdout
+            
+        # Output should be loadable regardless of format
+        tr_data = yaml.safe_load(out)
+        assert tr_data["agents"][0]["label"] == "fred bloggs"
 
 
-def test_map_data_norm_denorm(runner: CliRunner) -> None:
+@pytest.mark.parametrize("format_option", [None, "yaml", "json"])
+def test_map_data_norm_denorm(runner: CliRunner, format_option: Optional[str], tmp_path: Generator[Path, None, None]) -> None:
     cmd = [
         "map-data",
         "-T",
@@ -175,31 +200,58 @@ def test_map_data_norm_denorm(runner: CliRunner) -> None:
         str(NORM_SCHEMA),
         str(FLATTENING_DATA),
     ]
-    result = runner.invoke(main, cmd)
-    assert result.exit_code == 0
-    out = result.stdout
-    tr_data = yaml.safe_load(out)
-    m = tr_data["mappings"][0]
-    assert m["subject_id"] == "X:1"
-    assert m["subject_name"] == "x1"
+    
+    # Add the format option if specified
+    if format_option:
+        cmd.extend(["--format", format_option])
+    
+    # Test with both stdout and file output
+    for output_test in [None, "output_norm_data.yaml"]:
+        test_cmd = cmd.copy()
+        output_path = None
+        
+        if output_test:
+            output_path = tmp_path / output_test
+            test_cmd.extend(["--output", str(output_path)])
+        
+        result = runner.invoke(main, test_cmd)
+        assert result.exit_code == 0
+        
+        if output_path:
+            with output_path.open() as fh:
+                out = fh.read()
+        else:
+            out = result.stdout
+            
+        # Output should be loadable regardless of format
+        tr_data = yaml.safe_load(out)
+        m = tr_data["mappings"][0]
+        assert m["subject_id"] == "X:1"
+        assert m["subject_name"] == "x1"
 
 
 EXPECTED_OUTPUT = {
-    "dict": {"input": {"that": "this"}, "yaml": "that: this\n"},
+    "dict": {
+        "input": {"that": "this"}, 
+        "yaml": "that: this\n",
+        "json": '{"that": "this"}\n',
+    },
     "list": {
         "input": ["this", "that", "the other"],
         "yaml": "- this\n- that\n- the other\n",
+        "json": '["this", "that", "the other"]\n',
     },
     "string": {
         "input": "But how long is it?",
         "yaml": "But how long is it?\n...\n",  # eh??
+        "json": '"But how long is it?"\n',
         None: "But how long is it?",
     },
 }
 
 
 @pytest.mark.parametrize("file_path", [None, "output.txt"])
-@pytest.mark.parametrize("output_format", [None, "yaml"])
+@pytest.mark.parametrize("output_format", [None, "yaml", "json"])
 @pytest.mark.parametrize("output_data", EXPECTED_OUTPUT.keys())
 def test_dump_output(
     capsys: Generator[pytest.CaptureFixture, None, None],
@@ -235,7 +287,7 @@ def test_dump_output(
 @pytest.mark.parametrize(
     ("param", "value", "error", "message"),
     [
-        ("output_format", "json", NotImplementedError, "Output format json is not supported"),
+        ("output_format", "invalid_format", ValueError, f"Output format invalid_format is not supported. Use one of: {FORMAT_OPTION_STRING}"),
         ("output_data", None, ValueError, "No output to be printed"),
         ("file_path", "path/to/a/dir", FileNotFoundError, "No such file or directory"),
     ],
