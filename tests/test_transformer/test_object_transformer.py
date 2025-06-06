@@ -53,6 +53,13 @@ CONTAINER_OBJECT = yaml_loader.load(
     str(PERSONINFO_CONTAINER_TGT_DATA), target_class=tgt_dm.Container
 )
 
+def inject_slot(schema_dict: dict, class_name: str, slot_name: str, slot_def: dict):
+    schema_dict.setdefault("slots", {})[slot_name] = slot_def
+    schema_dict["classes"][class_name].setdefault("slots", []).append(slot_name)
+
+def inject_enum(schema: dict, enum_name: str, values: list[str]) -> None:
+    schema.setdefault("enums", {})
+    schema["enums"][enum_name] = { "permissible_values": {val: {} for val in values} }
 
 @pytest.fixture
 def obj_tr() -> ObjectTransformer:
@@ -114,6 +121,36 @@ def test_coerce(obj_tr: ObjectTransformer) -> None:
     x = obj_tr._coerce_datatype(5, "integer")  # noqa: SLF001
     assert x == 5
 
+def test_value_mappings() -> None:
+    """
+    Tests transforming a dictionary of Person data into a dictionary of Agent data.
+    """
+    source_schema: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_SRC_SCHEMA)))
+    work_int_dict = { "range": "integer", "minimum_value": 1, "maximum_value": 2}
+    inject_slot(source_schema, "Person", "work_type", work_int_dict)
+
+    target_schema: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TGT_SCHEMA)))
+    inject_enum(target_schema, "WorkEnum", ["Home", "Office", "None"])
+    work_enum_dict = {"range": "WorkEnum"}
+    inject_slot(target_schema, "Agent", "work_value", work_enum_dict)
+
+    transform_spec: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TR)))
+    transform_spec_dict = \
+        { "populated_from": "work_type", "value_mappings": { "1": "Home", "2": "Office" } }
+    transform_spec.setdefault("class_derivations", {}).setdefault("Agent", {}) \
+              .setdefault("slot_derivations", {})["work_value"] = transform_spec_dict
+
+    obj_tr = ObjectTransformer(unrestricted_eval=True)
+    obj_tr.source_schemaview = SchemaView(yaml.dump(source_schema))
+    obj_tr.target_schemaview = SchemaView(yaml.dump(target_schema))
+    obj_tr.create_transformer_specification(transform_spec)
+
+    person_dict: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_DATA)))
+    person_dict["work_type"] = 1
+    target_dict: dict[str, Any] = obj_tr.map_object(person_dict, source_type="Person")
+    assert target_dict["work_value"] == "Home"
+    TARGET_DATA["work_value"] = "Home"
+    assert target_dict == TARGET_DATA
 
 def test_transform_simple_object(obj_tr: ObjectTransformer) -> None:
     """
