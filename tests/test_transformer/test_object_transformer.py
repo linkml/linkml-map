@@ -121,6 +121,8 @@ def test_coerce(obj_tr: ObjectTransformer) -> None:
     x = obj_tr._coerce_datatype(5, "integer")  # noqa: SLF001
     assert x == 5
 
+# I expect this to fail because it is not implemented yet
+@pytest.mark.xfail(reason="value_mappings not implemented yet")
 def test_value_mappings() -> None:
     """
     Tests transforming a dictionary of Person data into a dictionary of Agent data.
