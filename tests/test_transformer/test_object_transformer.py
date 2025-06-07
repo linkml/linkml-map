@@ -58,7 +58,6 @@ def inject_slot(schema_dict: dict, class_name: str, slot_name: str, slot_def: di
     schema_dict["classes"][class_name].setdefault("slots", []).append(slot_name)
 
 def inject_enum(schema: dict, enum_name: str, values: list[str]) -> None:
-    schema.setdefault("enums", {})
     schema["enums"][enum_name] = { "permissible_values": {val: {} for val in values} }
 
 @pytest.fixture
@@ -123,7 +122,7 @@ def test_coerce(obj_tr: ObjectTransformer) -> None:
 
 def test_value_mappings() -> None:
     """
-    Tests transforming a dictionary of Person data into a dictionary of Agent data.
+    Tests transforming using value mappings.
     """
     source_schema: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_SRC_SCHEMA)))
     work_int_dict = { "range": "integer", "minimum_value": 1, "maximum_value": 2}
@@ -135,8 +134,10 @@ def test_value_mappings() -> None:
     inject_slot(target_schema, "Agent", "work_value", work_enum_dict)
 
     transform_spec: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TR)))
-    transform_spec_dict = \
-        { "populated_from": "work_type", "value_mappings": { "1": "Home", "2": "Office" } }
+    transform_spec_dict = {
+        "populated_from": "work_type",
+        "value_mappings": { "1": "Home", "2": "Office" }
+    }
     transform_spec.setdefault("class_derivations", {}).setdefault("Agent", {}) \
               .setdefault("slot_derivations", {})["work_value"] = transform_spec_dict
 
