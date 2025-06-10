@@ -1,294 +1,270 @@
-id: https://w3id.org/linkml/examples/personinfo
-name: personinfo
-description: |-
-  Information about people, based on [schema.org](http://schema.org)
-license: https://creativecommons.org/publicdomain/zero/1.0/
-default_curi_maps:
-  - semweb_context
-imports:
-  - linkml:types
-prefixes:
-  personinfo: https://w3id.org/linkml/examples/personinfo/
-  linkml: https://w3id.org/linkml/
-  schema: http://schema.org/
-  rdfs: http://www.w3.org/2000/01/rdf-schema#
-  prov: http://www.w3.org/ns/prov#
-  GSSO: http://purl.obolibrary.org/obo/GSSO_
-  famrel: https://example.org/FamilialRelations#
-  # DATA PREFIXES
-  P: http://example.org/P/
-  ROR: http://example.org/ror/
-  CODE: http://example.org/code/
-  GEO: http://example.org/geoloc/
-default_prefix: personinfo
-default_range: string
-
-emit_prefixes:
-  - rdf
-  - rdfs
-  - xsd
-  - skos
-
 classes:
-
-  NamedThing:
-    description: >-
-      A generic grouping for any identifiable entity
-    slots:
-      - id
-      - label
-      - description
-      - image
-    close_mappings:
-      - schema:Thing
-
-  Agent:
-    is_a: NamedThing
-    description: >-
-      A person (alive, dead, undead, or fictional).
-    class_uri: schema:Person
-    mixins:
-      - HasAliases
-    slots:
-      - primary_email
-      - secondary_email
-      - birth_date
-      - death_date
-      - age
-      - gender
-      - current_address
-      - has_employment_history
-      - has_familial_relationships
-      - has_medical_history
-      - parents
-      - driving_since
-      - first_known_event
-    slot_usage:
-      primary_email:
-        pattern: "^\\S+@[\\S+\\.]+\\S+"
-      secondary_email:
-        pattern: "^\\S+@[\\S+\\.]+\\S+"
-    in_subset:
-      - basic_subset
-
-  HasAliases:
-    description: >-
-      A mixin applied to any class that can have aliases/alternateNames
-    mixin: true
-    attributes:
-      aliases:
-        multivalued: true
-        exact_mappings:
-          - schema:alternateName
-
-
-  Organization:
-    description: >-
-      An organization such as a company or university
-    is_a: NamedThing
-    class_uri: schema:Organization
-    mixins:
-      - HasAliases
-    slots:
-      - mission_statement
-      - founding_date
-      - founding_location
-
-  Place:
-    mixins:
-      - HasAliases
-    slots:
-      - id
-      - label
-
   Address:
     class_uri: schema:PostalAddress
     slots:
-      - street
-      - city
-      - postal_code
-      - address_of
-
-  Event:
+    - street
+    - city
+    - postal_code
+    - address_of
+  Agent:
+    class_uri: schema:Person
+    description: A person (alive, dead, undead, or fictional).
+    in_subset:
+    - basic_subset
+    is_a: NamedThing
+    mixins:
+    - HasAliases
+    slot_usage:
+      primary_email:
+        pattern: ^\S+@[\S+\.]+\S+
+      secondary_email:
+        pattern: ^\S+@[\S+\.]+\S+
     slots:
-      - started_at_time
-      - ended_at_time
-      - duration
-      - is_current
-    close_mappings:
-      - schema:Event
-
+    - primary_email
+    - secondary_email
+    - birth_date
+    - death_date
+    - age
+    - gender
+    - current_address
+    - has_employment_history
+    - has_familial_relationships
+    - has_medical_history
+    - parents
+    - driving_since
+    - first_known_event
+    - work_value
   Concept:
     is_a: NamedThing
-
+  Container:
+    slots:
+    - agents
+    - organizations
+    tree_root: true
   DiagnosisConcept:
     is_a: Concept
-
-  ProcedureConcept:
-    is_a: Concept
-
-  Relationship:
-    slots:
-      - started_at_time
-      - ended_at_time
-      - related_to
-      - type
-
-  FamilialRelationship:
-    is_a: Relationship
-    slot_usage:
-      type:
-        range: FamilialRelationshipType
-        required: true
-      related_to:
-        range: Agent
-        required: true
-
   EmploymentEvent:
     is_a: Event
     slots:
-      - employed_at
-
+    - employed_at
+  Event:
+    close_mappings:
+    - schema:Event
+    slots:
+    - started_at_time
+    - ended_at_time
+    - duration
+    - is_current
+  FamilialRelationship:
+    is_a: Relationship
+    slot_usage:
+      related_to:
+        range: Agent
+        required: true
+      type:
+        range: FamilialRelationshipType
+        required: true
+  HasAliases:
+    attributes:
+      aliases:
+        exact_mappings:
+        - schema:alternateName
+        multivalued: true
+    description: A mixin applied to any class that can have aliases/alternateNames
+    mixin: true
   MedicalEvent:
     is_a: Event
     slots:
-      - in_location
-      - diagnosis
-      - procedure
-
+    - in_location
+    - diagnosis
+    - procedure
+  NamedThing:
+    close_mappings:
+    - schema:Thing
+    description: A generic grouping for any identifiable entity
+    slots:
+    - id
+    - label
+    - description
+    - image
+  Organization:
+    class_uri: schema:Organization
+    description: An organization such as a company or university
+    is_a: NamedThing
+    mixins:
+    - HasAliases
+    slots:
+    - mission_statement
+    - founding_date
+    - founding_location
+  Place:
+    mixins:
+    - HasAliases
+    slots:
+    - id
+    - label
+  ProcedureConcept:
+    is_a: Concept
+  Relationship:
+    slots:
+    - started_at_time
+    - ended_at_time
+    - related_to
+    - type
   WithLocation:
     mixin: true
     slots:
-      - in_location
-
-  # TODO: annotate that this is a container/root class
-  Container:
-    tree_root: true
-    slots:
-      - agents
-      - organizations
-
-slots:
-  id:
-    identifier: true
-    slot_uri: schema:identifier
-  label:
-    slot_uri: schema:name
-  description:
-    slot_uri: schema:description
-  image:
-    slot_uri: schema:image
-  gender:
-    slot_uri: schema:gender
-    range: GenderType
-  primary_email:
-    slot_uri: schema:email
-  secondary_email:
-    slot_uri: schema:email
-  birth_date:
-    slot_uri: schema:birthDate
-    range: date
-  death_date:
-    range: date
-  employed_at:
-    range: Organization
-  is_current:
-    range: boolean
-  has_employment_history:
-    range: EmploymentEvent
-    multivalued: true
-    inlined_as_list: true
-  has_medical_history:
-    range: MedicalEvent
-    multivalued: true
-    inlined_as_list: true
-  has_familial_relationships:
-    range: FamilialRelationship
-    multivalued: true
-    inlined_as_list: true
-  driving_since:
-    range: date
-  first_known_event:
-    range: date
-  parents:
-    range: string
-    multivalued: true
-    inlined_as_list: true
-  in_location:
-    range: Place
-  current_address:
-    description: >-
-      The address at which a Agent currently lives
-    range: Address
-  age:
-    range: string
-    pattern: "\\d+ \\S+"
-  related_to:
-  type:
-  street:
-  city:
-  mission_statement:
-  founding_date:
-  founding_location:
-    range: Place
-  postal_code:
-    range: string
-  address_of:
-    range: Agent
-  started_at_time:
-    slot_uri: prov:startedAtTime
-    range: date
-  duration:
-    range: float
-  diagnosis:
-    range: DiagnosisConcept
-    inlined: true
-  procedure:
-    range: ProcedureConcept
-    inlined: true
-
-  ended_at_time:
-    slot_uri: prov:endedAtTime
-    range: date
-
-  agents:
-    range: Agent
-    inlined: true
-    inlined_as_list: true
-    multivalued: true
-  organizations:
-    range: Organization
-    inlined_as_list: true
-    inlined: true
-    multivalued: true
-
+    - in_location
+default_curi_maps:
+- semweb_context
+default_prefix: personinfo
+default_range: string
+description: Information about people, based on [schema.org](http://schema.org)
+emit_prefixes:
+- rdf
+- rdfs
+- xsd
+- skos
 enums:
+  DiagnosisType: null
   FamilialRelationshipType:
     permissible_values:
-      SIBLING_OF:
-        meaning: famrel:01
-      PARENT_OF:
-        meaning: famrel:02
       CHILD_OF:
         meaning: famrel:05
+      PARENT_OF:
+        meaning: famrel:02
+      SIBLING_OF:
+        meaning: famrel:01
   GenderType:
     permissible_values:
-      nonbinary man:
-        meaning: GSSO:009254
-      nonbinary woman:
-        meaning: GSSO:009253
-      transgender woman:
-        meaning: GSSO:000384
-      transgender man:
-        meaning: GSSO:000372
+      None:
+        meaning: GSSO:000283
       cisgender man:
         meaning: GSSO:000371
       cisgender woman:
         meaning: GSSO:000385
-      None:
-        meaning: GSSO:000283
-  DiagnosisType:
-
+      nonbinary man:
+        meaning: GSSO:009254
+      nonbinary woman:
+        meaning: GSSO:009253
+      transgender man:
+        meaning: GSSO:000372
+      transgender woman:
+        meaning: GSSO:000384
+  WorkEnum:
+    permissible_values:
+      Home: {}
+      None: {}
+      Office: {}
+id: https://w3id.org/linkml/examples/personinfo
+imports:
+- linkml:types
+license: https://creativecommons.org/publicdomain/zero/1.0/
+name: personinfo
+prefixes:
+  CODE: http://example.org/code/
+  GEO: http://example.org/geoloc/
+  GSSO: http://purl.obolibrary.org/obo/GSSO_
+  P: http://example.org/P/
+  ROR: http://example.org/ror/
+  famrel: https://example.org/FamilialRelations#
+  linkml: https://w3id.org/linkml/
+  personinfo: https://w3id.org/linkml/examples/personinfo/
+  prov: http://www.w3.org/ns/prov#
+  rdfs: http://www.w3.org/2000/01/rdf-schema#
+  schema: http://schema.org/
+slots:
+  address_of:
+    range: Agent
+  age:
+    pattern: \d+ \S+
+    range: string
+  agents:
+    inlined: true
+    inlined_as_list: true
+    multivalued: true
+    range: Agent
+  birth_date:
+    range: date
+    slot_uri: schema:birthDate
+  city: null
+  current_address:
+    description: The address at which a Agent currently lives
+    range: Address
+  death_date:
+    range: date
+  description:
+    slot_uri: schema:description
+  diagnosis:
+    inlined: true
+    range: DiagnosisConcept
+  driving_since:
+    range: date
+  duration:
+    range: float
+  employed_at:
+    range: Organization
+  ended_at_time:
+    range: date
+    slot_uri: prov:endedAtTime
+  first_known_event:
+    range: date
+  founding_date: null
+  founding_location:
+    range: Place
+  gender:
+    range: GenderType
+    slot_uri: schema:gender
+  has_employment_history:
+    inlined_as_list: true
+    multivalued: true
+    range: EmploymentEvent
+  has_familial_relationships:
+    inlined_as_list: true
+    multivalued: true
+    range: FamilialRelationship
+  has_medical_history:
+    inlined_as_list: true
+    multivalued: true
+    range: MedicalEvent
+  id:
+    identifier: true
+    slot_uri: schema:identifier
+  image:
+    slot_uri: schema:image
+  in_location:
+    range: Place
+  is_current:
+    range: boolean
+  label:
+    slot_uri: schema:name
+  mission_statement: null
+  organizations:
+    inlined: true
+    inlined_as_list: true
+    multivalued: true
+    range: Organization
+  parents:
+    inlined_as_list: true
+    multivalued: true
+    range: string
+  postal_code:
+    range: string
+  primary_email:
+    slot_uri: schema:email
+  procedure:
+    inlined: true
+    range: ProcedureConcept
+  related_to: null
+  secondary_email:
+    slot_uri: schema:email
+  started_at_time:
+    range: date
+    slot_uri: prov:startedAtTime
+  street: null
+  type: null
+  work_value:
+    range: WorkEnum
 subsets:
   basic_subset:
     description: A subset of the schema that handles basic information
