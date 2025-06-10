@@ -4,6 +4,8 @@ from typing import Any
 
 import pytest
 import yaml
+
+from linkml.utils.schema_builder import SchemaBuilder
 from linkml_runtime import SchemaView
 from linkml_runtime.linkml_model import (
     ClassDefinition,
@@ -53,6 +55,12 @@ CONTAINER_OBJECT = yaml_loader.load(
     str(PERSONINFO_CONTAINER_TGT_DATA), target_class=tgt_dm.Container
 )
 
+def inject_slot(schema_dict: dict, class_name: str, slot_name: str, slot_def: dict):
+    schema_dict.setdefault("slots", {})[slot_name] = slot_def
+    schema_dict["classes"][class_name].setdefault("slots", []).append(slot_name)
+
+def inject_enum(schema: dict, enum_name: str, values: list[str]) -> None:
+    schema["enums"][enum_name] = { "permissible_values": {val: {} for val in values} }
 
 @pytest.fixture
 def obj_tr() -> ObjectTransformer:
@@ -62,6 +70,118 @@ def obj_tr() -> ObjectTransformer:
     obj_tr.target_schemaview = SchemaView(str(PERSONINFO_TGT_SCHEMA))
     obj_tr.load_transformer_specification(PERSONINFO_TR)
     return obj_tr
+
+def build_base_source_schema() -> SchemaBuilder:
+    sb = SchemaBuilder(name="SourceSchema", id="http://example.org/source-schema")
+    sb.add_class("Source")
+    sb.add_defaults()
+    return sb
+
+def build_base_target_schema() -> SchemaBuilder:
+    sb = SchemaBuilder(name="TargetSchema", id="http://example.org/target-schema")
+    sb.add_class("Target")
+    sb.add_defaults()
+    return sb
+
+def build_empty_transform_spec() -> TransformationSpecification:
+    return TransformationSpecification(class_derivations={})
+
+def build_transformer_specification(string: str) -> TransformationSpecification:
+    """
+    Build a TransformationSpecification from a YAML string.
+    
+    :param string: YAML string representing the transformation specification
+    :return: TransformationSpecification object
+    """
+    spec_dict = yaml.safe_load(string)
+    return TransformationSpecification(**spec_dict)
+
+def build_transformer_from_spec(
+    source_sb: SchemaBuilder,
+    target_sb: SchemaBuilder,
+    spec: TransformationSpecification
+) -> ObjectTransformer:
+    obj_tr = ObjectTransformer(unrestricted_eval=True)
+    obj_tr.source_schemaview = SchemaView(yaml.dump(source_sb.schema.to_dict()))
+    obj_tr.target_schemaview = SchemaView(yaml.dump(target_sb.schema.to_dict()))
+    obj_tr.create_transformer_specification(spec.model_dump())
+    return obj_tr
+
+class TransformationTestBuilder:
+    def __init__(self):
+        self.source_sb = build_base_source_schema()
+        self.target_sb = build_base_target_schema()
+        self.spec = build_empty_transform_spec()
+        self.input_data: dict = {}
+        self.expected_output: dict = {}
+
+    def set_input(self, obj: dict) -> None:
+        self.input_data = obj
+
+    def set_expected(self, obj: dict) -> None:
+        self.expected_output = obj
+
+    def transformer(self) -> ObjectTransformer:
+        return build_transformer_from_spec(
+            self.source_sb,
+            self.target_sb,
+            self.spec
+        )
+
+    def run(self) -> dict:
+        transformer = self.transformer()
+        return transformer.map_object(self.input_data, source_type="Person")
+    
+def add_dict_transformation(builder: TransformationTestBuilder):
+    # Source: Source.age_in_years: integer
+    builder.source_sb.add_slot(
+        "age_in_years", range="integer"
+    )
+    builder.source_sb.add_slot(
+        "id", range="string"
+    )
+    builder.source_sb.add_class(
+        "Person", slots=["id", "age_in_years"]
+    )
+
+    # Target: Target.age: string
+    builder.target_sb.add_slot(
+        "age", range="string"
+    )
+    builder.target_sb.add_slot(
+        "id", range="string"
+    )
+    builder.target_sb.add_class(
+        "Agent", slots=["id", "age"]
+    )
+
+    builder.spec = build_transformer_specification("""
+class_derivations:
+  Agent:
+    populated_from: Person
+    slot_derivations:
+      id:
+      age:
+        expr: "str({age_in_years}) + ' years'"                                                 
+    """)
+
+
+def test_transform_dict_2():
+    tb = TransformationTestBuilder()
+    add_dict_transformation(tb)
+
+    tb.set_input({
+        "id": "P:001",
+        "age_in_years": 33
+    })
+
+    tb.set_expected({
+        "id": "P:001",
+        "age": "33 years"
+    })
+
+    result = tb.run()
+    assert result == tb.expected_output
 
 
 def test_transform_dict(obj_tr: ObjectTransformer) -> None:
@@ -114,6 +234,38 @@ def test_coerce(obj_tr: ObjectTransformer) -> None:
     x = obj_tr._coerce_datatype(5, "integer")  # noqa: SLF001
     assert x == 5
 
+def test_value_mappings() -> None:
+    """
+    Tests transforming using value mappings.
+    """
+    source_schema: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_SRC_SCHEMA)))
+    work_int_dict = { "range": "integer", "minimum_value": 1, "maximum_value": 2}
+    inject_slot(source_schema, "Person", "work_type", work_int_dict)
+
+    target_schema: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TGT_SCHEMA)))
+    inject_enum(target_schema, "WorkEnum", ["Home", "Office", "None"])
+    work_enum_dict = {"range": "WorkEnum"}
+    inject_slot(target_schema, "Agent", "work_value", work_enum_dict)
+
+    transform_spec: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TR)))
+    transform_spec_dict = {
+        "populated_from": "work_type",
+        "value_mappings": { "1": "Home", "2": "Office" }
+    }
+    transform_spec.setdefault("class_derivations", {}).setdefault("Agent", {}) \
+              .setdefault("slot_derivations", {})["work_value"] = transform_spec_dict
+
+    obj_tr = ObjectTransformer(unrestricted_eval=True)
+    obj_tr.source_schemaview = SchemaView(yaml.dump(source_schema))
+    obj_tr.target_schemaview = SchemaView(yaml.dump(target_schema))
+    obj_tr.create_transformer_specification(transform_spec)
+
+    person_dict: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_DATA)))
+    person_dict["work_type"] = 1
+    target_dict: dict[str, Any] = obj_tr.map_object(person_dict, source_type="Person")
+    assert target_dict["work_value"] == "Home"
+    TARGET_DATA["work_value"] = "Home"
+    assert target_dict == TARGET_DATA
 
 def test_transform_simple_object(obj_tr: ObjectTransformer) -> None:
     """
