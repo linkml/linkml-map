@@ -127,11 +127,22 @@ def test_value_mappings() -> None:
     source_schema: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_SRC_SCHEMA)))
     work_int_dict = { "range": "integer", "minimum_value": 1, "maximum_value": 2}
     inject_slot(source_schema, "Person", "work_type", work_int_dict)
+    # check that created schema is the same as the source schema
+    # assert source_schema == yaml.safe_load(open(str(PERSONINFO_SRC_SCHEMA)))
+    # dump the source schema to a file
+    # with open(str(PERSONINFO_SRC_SCHEMA), "w") as f:
+    #     yaml.dump(source_schema, f)
 
     target_schema: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TGT_SCHEMA)))
     inject_enum(target_schema, "WorkEnum", ["Home", "Office", "None"])
     work_enum_dict = {"range": "WorkEnum"}
     inject_slot(target_schema, "Agent", "work_value", work_enum_dict)
+    # check that created schema is the same as the target schema
+    # assert target_schema == yaml.safe_load(open(str(PERSONINFO_TGT_SCHEMA)))
+    # dump the target schema to a file
+    # with open(str(PERSONINFO_TGT_SCHEMA), "w") as f:
+    #     yaml.dump(target_schema, f)
+
 
     transform_spec: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TR)))
     transform_spec_dict = {
@@ -140,6 +151,11 @@ def test_value_mappings() -> None:
     }
     transform_spec.setdefault("class_derivations", {}).setdefault("Agent", {}) \
               .setdefault("slot_derivations", {})["work_value"] = transform_spec_dict
+    # check that created transform spec is the same as the transform spec
+    # assert transform_spec == yaml.safe_load(open(str(PERSONINFO_TR)))
+    # dump the transform spec to a file
+    # with open(str(PERSONINFO_TR), "w") as f:
+    #     yaml.dump(transform_spec, f)
 
     obj_tr = ObjectTransformer(unrestricted_eval=True)
     obj_tr.source_schemaview = SchemaView(yaml.dump(source_schema))
@@ -148,6 +164,11 @@ def test_value_mappings() -> None:
 
     person_dict: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_DATA)))
     person_dict["work_type"] = 1
+    # check that created data is the same as the source data
+    # assert person_dict == yaml.safe_load(open(str(PERSONINFO_DATA)))
+    # dump the source data to a file
+    with open(str(PERSONINFO_DATA), "w") as f:
+        yaml.dump(person_dict, f)
     target_dict: dict[str, Any] = obj_tr.map_object(person_dict, source_type="Person")
     assert target_dict["work_value"] == "Home"
     TARGET_DATA["work_value"] = "Home"
