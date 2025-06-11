@@ -11,6 +11,7 @@ from linkml_runtime.linkml_model import (
     SlotDefinition,
 )
 from linkml_runtime.loaders import yaml_loader
+from linkml.utils.schema_builder import SchemaBuilder
 from linkml_runtime.processing.referencevalidator import ReferenceValidator
 from linkml_runtime.utils.introspection import package_schemaview
 
@@ -152,6 +153,121 @@ def test_value_mappings() -> None:
     assert target_dict["work_value"] == "Home"
     TARGET_DATA["work_value"] = "Home"
     assert target_dict == TARGET_DATA
+
+# def test_transform_slots_to_nested_list_of_dicts(obj_tr: ObjectTransformer) -> None:
+#     """
+#     Tests transforming a Person object with slots that should be transformed into a nested list of dicts.
+#     """
+#     source_schema: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_SRC_SCHEMA)))
+
+def test_object_derivations() -> None:
+    """
+    Test nested object_derivations inside slot_derivations using YAML transform spec.
+    """
+
+    # Build source schema
+    sb_source = SchemaBuilder()
+    sb_source.add_slot("phv00159563", range="string")
+    sb_source.add_slot("phv00159568", range="integer")
+    sb_source.add_slot("phv00159569", range="string")
+    sb_source.add_slot("phv00159573", range="string")
+    sb_source.add_slot("phv00159578", range="integer")
+    sb_source.add_slot("phv00159579", range="string")
+    sb_source.add_class("Person", slots=["phv00159563", "phv00159568", "phv00159569", "phv00159573", "phv00159578", "phv00159579"])
+    sb_source.add_defaults()
+    source_schema = sb_source.schema
+
+    # Build target schema
+    sb_target = SchemaBuilder()
+    sb_target.add_slot("id", range="integer")
+    sb_target.add_slot("conditions", range="Condition", multivalued=True, inlined=True)
+    sb_target.add_slot("condition_concept", range="string")
+    sb_target.add_slot("condition_status", range="string")
+    sb_target.add_slot("condition_providence", range="string")
+    sb_target.add_class("Participant", slots=["id", "conditions"])
+    sb_target.add_class("Condition", slots=["condition_concept", "condition_status", "condition_providence"])
+    sb_target.add_defaults()
+    target_schema = sb_target.schema
+
+    # Transformation spec in YAML
+    transform_spec_yaml = """
+    class_derivations:
+      Participant:
+        populated_from: Person
+        slot_derivations:
+          id:
+            populated_from: phv00159568
+          conditions:
+            object_derivations:
+              - class_derivations:
+                  Condition:
+                    name: Condition
+                    populated_from: Person
+                    slot_derivations:
+                      condition_concept:
+                        name: condition_concept
+                        expr: "'HP:0001681'"
+                      condition_status:
+                        name: condition_status
+                        populated_from: phv00159563
+                      condition_providence:
+                        name: condition_providence
+                        populated_from: phv00159569
+              - class_derivations:
+                  Condition:
+                    name: Condition
+                    populated_from: Person
+                    slot_derivations:
+                      condition_concept:
+                        name: condition_concept
+                        expr: "'HP:0001683'"
+                      condition_status:
+                        name: condition_status
+                        populated_from: phv00159573
+                      condition_providence:
+                        name: condition_providence
+                        populated_from: phv00159579
+    """
+
+    transform_spec = yaml.safe_load(transform_spec_yaml)
+
+    # Source input
+    input_data = {
+        "phv00159563": "PRESENT",
+        "phv00159568": 123947,
+        "phv00159569": "1",
+        "phv00159573": "ABSENT",
+        "phv00159578": 123947,
+        "phv00159579": "2",
+    }
+
+    # Expected target output
+    expected_output = {
+        "id": 123947,
+        "conditions": [
+            {
+                "condition_concept": "HP:0001681",
+                "condition_status": "PRESENT",
+                "condition_providence": "1",
+            },
+                        {
+                "condition_concept": "HP:0001683",
+                "condition_status": "ABSENT",
+                "condition_providence": "2",
+            }
+        ]
+    }
+    
+    # Create ObjectTransformer and apply transformation
+    transformer = ObjectTransformer(unrestricted_eval=True)
+    transformer.source_schemaview = SchemaView(source_schema)
+    transformer.target_schemaview = SchemaView(target_schema)
+    transformer.create_transformer_specification(transform_spec)
+
+    result = transformer.map_object(input_data, source_type="Person")
+
+    assert result == expected_output
+
 
 def test_transform_simple_object(obj_tr: ObjectTransformer) -> None:
     """
