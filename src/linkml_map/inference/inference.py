@@ -22,6 +22,10 @@ def induce_missing_values(
             cd.populated_from = cd.name
     for cd in specification.class_derivations.values():
         for sd in cd.slot_derivations.values():
+            if sd.object_derivations:
+                #skip inference for object derivations, inferencese come from class derivation later
+                #TODO: we may need to do the inference for the internal class slots
+                continue
             # for null mappings, assume that the slot is copied from the same slot in the source
             # TODO: decide if this is the desired behavior
             if sd.populated_from is None and sd.expr is None:

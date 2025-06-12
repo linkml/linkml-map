@@ -212,6 +212,13 @@ classes:
       sources:
         range: SlotReference
         multivalued: true
+      object_derivations:
+        description: >-
+          One or more object derivations used to construct the slot value(s), 
+          which must be instances of a class.
+        range: ObjectDerivation
+        multivalued: true
+        inlined: true
       derived_from:
         range: SlotReference
         multivalued: true

@@ -11,6 +11,7 @@ from linkml_runtime.linkml_model import (
     SlotDefinition,
 )
 from linkml_runtime.loaders import yaml_loader
+from linkml.utils.schema_builder import SchemaBuilder
 from linkml_runtime.processing.referencevalidator import ReferenceValidator
 from linkml_runtime.utils.introspection import package_schemaview
 
@@ -53,6 +54,12 @@ CONTAINER_OBJECT = yaml_loader.load(
     str(PERSONINFO_CONTAINER_TGT_DATA), target_class=tgt_dm.Container
 )
 
+def inject_slot(schema_dict: dict, class_name: str, slot_name: str, slot_def: dict):
+    schema_dict.setdefault("slots", {})[slot_name] = slot_def
+    schema_dict["classes"][class_name].setdefault("slots", []).append(slot_name)
+
+def inject_enum(schema: dict, enum_name: str, values: list[str]) -> None:
+    schema["enums"][enum_name] = { "permissible_values": {val: {} for val in values} }
 
 @pytest.fixture
 def obj_tr() -> ObjectTransformer:
@@ -113,6 +120,139 @@ def test_coerce(obj_tr: ObjectTransformer) -> None:
     assert x == "5"
     x = obj_tr._coerce_datatype(5, "integer")  # noqa: SLF001
     assert x == 5
+
+def test_value_mappings() -> None:
+    """
+    Tests transforming using value mappings.
+    """
+    source_schema: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_SRC_SCHEMA)))
+    work_int_dict = { "range": "integer", "minimum_value": 1, "maximum_value": 2}
+    inject_slot(source_schema, "Person", "work_type", work_int_dict)
+
+    target_schema: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TGT_SCHEMA)))
+    inject_enum(target_schema, "WorkEnum", ["Home", "Office", "None"])
+    work_enum_dict = {"range": "WorkEnum"}
+    inject_slot(target_schema, "Agent", "work_value", work_enum_dict)
+
+    transform_spec: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TR)))
+    transform_spec_dict = {
+        "populated_from": "work_type",
+        "value_mappings": { "1": "Home", "2": "Office" }
+    }
+    transform_spec.setdefault("class_derivations", {}).setdefault("Agent", {}) \
+              .setdefault("slot_derivations", {})["work_value"] = transform_spec_dict
+
+    obj_tr = ObjectTransformer(unrestricted_eval=True)
+    obj_tr.source_schemaview = SchemaView(yaml.dump(source_schema))
+    obj_tr.target_schemaview = SchemaView(yaml.dump(target_schema))
+    obj_tr.create_transformer_specification(transform_spec)
+
+    person_dict: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_DATA)))
+    person_dict["work_type"] = 1
+    target_dict: dict[str, Any] = obj_tr.map_object(person_dict, source_type="Person")
+    assert target_dict["work_value"] == "Home"
+    TARGET_DATA["work_value"] = "Home"
+    assert target_dict == TARGET_DATA
+
+def test_object_derivations() -> None:
+    """
+    Test nested object_derivations inside slot_derivations using YAML transform spec.
+    """
+
+    # Build source schema
+    sb_source = SchemaBuilder()
+    sb_source.add_slot("phv00159563", range="string")
+    sb_source.add_slot("phv00159568", range="integer")
+    sb_source.add_slot("phv00159569", range="string")
+    sb_source.add_slot("phv00159573", range="string")
+    sb_source.add_slot("phv00159578", range="integer")
+    sb_source.add_slot("phv00159579", range="string")
+    sb_source.add_class("Person", slots=["phv00159563", "phv00159568", "phv00159569", "phv00159573", "phv00159578", "phv00159579"])
+    sb_source.add_defaults()
+    source_schema = sb_source.schema
+
+    # Build target schema
+    sb_target = SchemaBuilder()
+    sb_target.add_slot("id", range="integer")
+    sb_target.add_slot("conditions", range="Condition", multivalued=True, inlined=True)
+    sb_target.add_slot("condition_concept", range="string")
+    sb_target.add_slot("condition_status", range="string")
+    sb_target.add_slot("condition_providence", range="string")
+    sb_target.add_class("Participant", slots=["id", "conditions"])
+    sb_target.add_class("Condition", slots=["condition_concept", "condition_status", "condition_providence"])
+    sb_target.add_defaults()
+    target_schema = sb_target.schema
+
+    # Transformation spec in YAML
+    transform_spec_yaml = """
+    class_derivations:
+      Participant:
+        populated_from: Person
+        slot_derivations:
+          id:
+            populated_from: phv00159568
+          conditions:
+            object_derivations:
+              - class_derivations:
+                  Condition:
+                    populated_from: Person
+                    slot_derivations:
+                      condition_concept:
+                        expr: "'HP:0001681'"
+                      condition_status:
+                        populated_from: phv00159563
+                      condition_providence:
+                        populated_from: phv00159569
+              - class_derivations:
+                  Condition:
+                    populated_from: Person
+                    slot_derivations:
+                      condition_concept:
+                        expr: "'HP:0001683'"
+                      condition_status:
+                        populated_from: phv00159573
+                      condition_providence:
+                        populated_from: phv00159579
+    """
+
+    transform_spec = yaml.safe_load(transform_spec_yaml)
+
+    # Source input
+    input_data = {
+        "phv00159563": "PRESENT",
+        "phv00159568": 123947,
+        "phv00159569": "1",
+        "phv00159573": "ABSENT",
+        "phv00159578": 123947,
+        "phv00159579": "2",
+    }
+
+    # Expected target output
+    expected_output = {
+        "id": 123947,
+        "conditions": [
+            {
+                "condition_concept": "HP:0001681",
+                "condition_status": "PRESENT",
+                "condition_providence": "1",
+            },
+                        {
+                "condition_concept": "HP:0001683",
+                "condition_status": "ABSENT",
+                "condition_providence": "2",
+            }
+        ]
+    }
+    
+    # Create ObjectTransformer and apply transformation
+    transformer = ObjectTransformer(unrestricted_eval=True)
+    transformer.source_schemaview = SchemaView(source_schema)
+    transformer.target_schemaview = SchemaView(target_schema)
+    transformer.create_transformer_specification(transform_spec)
+
+    result = transformer.map_object(input_data, source_type="Person")
+
+    assert result == expected_output
 
 
 def test_transform_simple_object(obj_tr: ObjectTransformer) -> None:

@@ -114,6 +114,28 @@ class Transformer(ABC):
             obj = normalizer.normalize(obj)
             self.specification = TransformationSpecification(**obj)
 
+    def normalize_transform_spec(
+        self,
+        obj: dict[str, Any],
+        normalizer: ReferenceValidator
+    ) -> dict:
+        """
+        Recursively normalize class_derivations and their nested object_derivations.
+        """
+        obj = normalizer.normalize(obj)
+
+        class_derivations = obj.get("class_derivations", {})
+        for class_name, class_spec in class_derivations.items():
+            slot_derivations = class_spec.get("slot_derivations", {})
+            for slot, slot_spec in slot_derivations.items():
+                # Check for nested object_derivations
+                object_derivations = slot_spec.get("object_derivations", [])
+                for i, od in enumerate(object_derivations):
+                    # Recursively normalize each nested class_derivation block
+                    od_normalized = self.normalize_transform_spec(od, normalizer)
+                    object_derivations[i] = od_normalized
+        return obj
+
     def create_transformer_specification(self, obj: dict[str, Any]) -> None:
         """
         Create specification from a dict.
@@ -127,7 +149,7 @@ class Transformer(ABC):
             package_schemaview("linkml_map.datamodel.transformer_model")
         )
         normalizer.expand_all = True
-        obj = normalizer.normalize(obj)
+        obj = self.normalize_transform_spec(obj, normalizer)
         self.specification = TransformationSpecification(**obj)
 
     @property

@@ -566,6 +566,8 @@ class ClassDerivation(ElementDerivation):
         },
     )
 
+class ObjectDerivation(BaseModel):
+    class_derivations: Dict[str, ClassDerivation]
 
 class AliasedClass(ConfiguredBaseModel):
     """
@@ -641,6 +643,7 @@ class SlotDerivation(ElementDerivation):
             }
         },
     )
+    object_derivations: Optional[List[ObjectDerivation]] = None
     derived_from: Optional[List[str]] = Field(
         default_factory=list,
         description="""Source slots that are used to derive this slot. This can be computed from the expr, if the expr is declarative.""",
