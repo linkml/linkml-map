@@ -154,12 +154,6 @@ def test_value_mappings() -> None:
     TARGET_DATA["work_value"] = "Home"
     assert target_dict == TARGET_DATA
 
-# def test_transform_slots_to_nested_list_of_dicts(obj_tr: ObjectTransformer) -> None:
-#     """
-#     Tests transforming a Person object with slots that should be transformed into a nested list of dicts.
-#     """
-#     source_schema: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_SRC_SCHEMA)))
-
 def test_object_derivations() -> None:
     """
     Test nested object_derivations inside slot_derivations using YAML transform spec.
@@ -201,31 +195,23 @@ def test_object_derivations() -> None:
             object_derivations:
               - class_derivations:
                   Condition:
-                    name: Condition
                     populated_from: Person
                     slot_derivations:
                       condition_concept:
-                        name: condition_concept
                         expr: "'HP:0001681'"
                       condition_status:
-                        name: condition_status
                         populated_from: phv00159563
                       condition_providence:
-                        name: condition_providence
                         populated_from: phv00159569
               - class_derivations:
                   Condition:
-                    name: Condition
                     populated_from: Person
                     slot_derivations:
                       condition_concept:
-                        name: condition_concept
                         expr: "'HP:0001683'"
                       condition_status:
-                        name: condition_status
                         populated_from: phv00159573
                       condition_providence:
-                        name: condition_providence
                         populated_from: phv00159579
     """
 
