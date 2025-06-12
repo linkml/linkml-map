@@ -1,0 +1,18 @@
+class_derivations:
+  OntologicalClass:
+    # No populated_from - this creates a new class
+    slot_derivations:
+      label:
+        range: string
+      curie:
+        range: uriorcurie
+
+  Biosample:
+    populated_from: MimsSoil
+    slot_derivations:
+      sample_name:
+      env_medium:
+      env_broad_scale:
+        range: OntologicalClass
+      env_local_scale:
+        range: OntologicalClass
