@@ -1,0 +1,8 @@
+my_greetings:
+  - greeting:
+    - konnichiwa
+    - hello
+    - bonjour
+  - greeting:
+    - ciao
+  - greeting: namaste
