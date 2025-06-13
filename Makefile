@@ -42,7 +42,7 @@ install:
 
 all: gen-project gendoc
 %.yaml: gen-project
-deploy: all mkd-gh-deploy
+deploy: all deploy-gh-doc
 
 # TODO: make this default
 src/linkml_map/datamodel/transformer_model.py: src/linkml_map/datamodel/transformer_model.yaml

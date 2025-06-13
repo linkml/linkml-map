@@ -35,10 +35,10 @@ nav:
       - Session: api/session.md
       - Transformer: api/transformer.md
       - Compiler: api/compiler.md
-      - Importer: api/importer.md
+      # - Importer: api/importer.md
       - Inference: api/inference.md
       - Functions: api/functions.md
-      - Subsetter: api/subsetter.md
+      # - Subsetter: api/subsetter.md
   - FAQ: faq.md
 site_url: https://linkml.github.io/linkml-map/
 repo_url: https://github.com/linkml/linkml-map/
