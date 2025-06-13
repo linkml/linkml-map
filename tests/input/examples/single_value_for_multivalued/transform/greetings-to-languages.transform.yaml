@@ -1,0 +1,38 @@
+class_derivations:
+  my_languages:
+    name: my_languages
+    populated_from: my_greetings
+    slot_derivations:
+      language:
+        name: language
+        populated_from: greeting
+  Container:
+    name: Container
+    slot_derivations:
+      my_languages:
+        populated_from: my_greetings
+enum_derivations:
+  languages:
+    name: languages
+    mirror_source: false
+    populated_from: greetings
+    permissible_value_derivations:
+      English:
+        name: English
+        populated_from: hello
+      French:
+        name: French
+        populated_from: bonjour
+      Hindi:
+        name: Hindi
+        populated_from: namaste
+      Italian:
+        name: Italian
+        populated_from: ciao
+      Japanese:
+        name: Japanese
+        populated_from: konnichiwa
+      Spanish:
+        name: Spanish
+        populated_from: hola
+        
