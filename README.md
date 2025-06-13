@@ -33,4 +33,4 @@ Not all parts of the model are implemented in the reference Python framework.
 * [Tutorial Notebook](docs/examples/Tutorial.ipynb)
 * [Generated Docs](https://linkml.github.io/linkml-map/)
 * [Compliance Suite](https://linkml.github.io/linkml-map/specification/compliance)
-* [API Docs](https://linkml.github.io/linkml-map/#api/session)
+* [API Docs](https://linkml.github.io/linkml-map/api/)
