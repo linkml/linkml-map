@@ -30,8 +30,7 @@ Not all parts of the model are implemented in the reference Python framework.
 
 ## Quickstart
 
-* [Tutorial Notebook](src/docs/examples/Tutorial.ipynb)
+* [Tutorial Notebook](docs/examples/Tutorial.ipynb)
 * [Generated Docs](https://linkml.github.io/linkml-map/)
 * [Compliance Suite](https://linkml.github.io/linkml-map/specification/compliance)
-* [API Docs](https://linkml.github.io/linkml-map/api)
-
+* [API Docs](https://linkml.github.io/linkml-map/#api/session)
