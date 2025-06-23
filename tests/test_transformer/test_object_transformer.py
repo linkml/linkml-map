@@ -4,6 +4,7 @@ from typing import Any
 
 import pytest
 import yaml
+from unittest.mock import MagicMock
 from linkml_runtime import SchemaView
 from linkml_runtime.linkml_model import (
     ClassDefinition,
@@ -408,3 +409,128 @@ def test_self_transform() -> None:
     derived = tr.map_object(source_object)
     print(derived)
     print(yaml.dump(derived))
+
+def test_perform_unit_conversion_basic(obj_tr: ObjectTransformer):
+    # Prepare a SlotDerivation with a unit_conversion object mock
+    uc_mock = MagicMock()
+    uc_mock.source_unit = "cm"
+    uc_mock.target_unit = "m"
+    uc_mock.source_unit_slot = None
+    uc_mock.source_magnitude_slot = None
+    uc_mock.target_magnitude_slot = None
+    uc_mock.target_unit_slot = None
+
+    slot_derivation = MagicMock()
+    slot_derivation.unit_conversion = uc_mock
+    slot_derivation.populated_from = "length"
+
+    # Prepare source_obj with a numeric value for 'length'
+    source_obj = {"length": 120}
+
+    # Mock SchemaView and Slot
+    slot_mock = MagicMock()
+    slot_mock.unit.ucum_code = "cm"
+    slot_mock.unit.iec61360code = None
+    slot_mock.unit.symbol = None
+    slot_mock.unit.abbreviation = None
+    slot_mock.unit.descriptive_name = None
+    slot_mock.name = "length"
+
+    # Patch induced_slot to return slot_mock when called
+    obj_tr.source_schemaview.induced_slot = MagicMock(return_value=slot_mock)
+
+    # Call the method
+    result = obj_tr._perform_unit_conversion(slot_derivation, source_obj, obj_tr.source_schemaview, source_type="SomeType")
+
+    # 120 cm -> 1.2 m expected (assuming convert_units works as expected)
+    # If convert_units not mocked, this test depends on it.
+    assert abs(result - 1.2) < 1e-6
+
+
+def test_perform_unit_conversion_structured_value(obj_tr: ObjectTransformer):
+    # Prepare unit_conversion with structured input slots
+    uc_mock = MagicMock()
+    uc_mock.source_unit = "cm"
+    uc_mock.target_unit = "m"
+    uc_mock.source_unit_slot = "unit"
+    uc_mock.source_magnitude_slot = "value"
+    uc_mock.target_magnitude_slot = "value_converted"
+    uc_mock.target_unit_slot = "unit_converted"
+
+    slot_derivation = MagicMock()
+    slot_derivation.unit_conversion = uc_mock
+    slot_derivation.populated_from = "measurement"
+
+    # Prepare a structured source_obj with unit and value keys
+    source_obj = {"measurement": {"value": 200, "unit": "cm"}}
+
+    # Mock Slot with unit info
+    slot_mock = MagicMock()
+    slot_mock.unit.ucum_code = "cm"
+    slot_mock.unit.iec61360code = None
+    slot_mock.unit.symbol = None
+    slot_mock.unit.abbreviation = None
+    slot_mock.unit.descriptive_name = None
+    slot_mock.name = "measurement"
+
+    obj_tr.source_schemaview.induced_slot = MagicMock(return_value=slot_mock)
+
+    result = obj_tr._perform_unit_conversion(slot_derivation, source_obj, obj_tr.source_schemaview, source_type="SomeType")
+
+    # Should return a dict with converted value and unit
+    assert isinstance(result, dict)
+    assert "value_converted" in result
+    assert "unit_converted" in result
+    # Check that the converted value is numeric and unit matches target_unit
+    assert isinstance(result["value_converted"], (int, float))
+    assert result["unit_converted"] == "m"
+
+
+def test_perform_unit_conversion_missing_value(obj_tr: ObjectTransformer):
+    uc_mock = MagicMock()
+    uc_mock.source_unit = "cm"
+    uc_mock.target_unit = "m"
+    uc_mock.source_unit_slot = None
+    uc_mock.source_magnitude_slot = None
+    uc_mock.target_magnitude_slot = None
+    uc_mock.target_unit_slot = None
+
+    slot_derivation = MagicMock()
+    slot_derivation.unit_conversion = uc_mock
+    slot_derivation.populated_from = "missing_length"
+
+    source_obj = {}  # no 'missing_length' key
+
+    # Should return None if source value missing
+    result = obj_tr._perform_unit_conversion(slot_derivation, source_obj, obj_tr.source_schemaview, source_type="SomeType")
+    assert result is None
+
+
+def test_perform_unit_conversion_raise_on_unit_mismatch(obj_tr: ObjectTransformer):
+    uc_mock = MagicMock()
+    uc_mock.source_unit = "mm"
+    uc_mock.target_unit = "m"
+    uc_mock.source_unit_slot = None
+    uc_mock.source_magnitude_slot = None
+    uc_mock.target_magnitude_slot = None
+    uc_mock.target_unit_slot = None
+
+    slot_derivation = MagicMock()
+    slot_derivation.unit_conversion = uc_mock
+    slot_derivation.populated_from = "length"
+
+    source_obj = {"length": 100}
+
+    # Mock Slot with unit 'cm' which conflicts with uc.source_unit 'mm'
+    slot_mock = MagicMock()
+    slot_mock.unit.ucum_code = "cm"
+    slot_mock.unit.iec61360code = None
+    slot_mock.unit.symbol = None
+    slot_mock.unit.abbreviation = None
+    slot_mock.unit.descriptive_name = None
+    slot_mock.name = "length"
+
+    obj_tr.source_schemaview.induced_slot = MagicMock(return_value=slot_mock)
+
+    with pytest.raises(ValueError, match="Mismatch in source units"):
+        obj_tr._perform_unit_conversion(slot_derivation, source_obj, obj_tr.source_schemaview, source_type="SomeType")

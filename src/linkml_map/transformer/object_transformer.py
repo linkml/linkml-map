@@ -303,64 +303,101 @@ class ObjectTransformer(Transformer):
         return tgt_attrs
 
     def _perform_unit_conversion(
-        self,
-        slot_derivation: SlotDerivation,
-        source_obj: Any,
-        sv: SchemaView,
-        source_type: str,
-    ) -> Union[float, dict]:
+            self,
+            slot_derivation: SlotDerivation,
+            source_obj: Any,
+            sv: SchemaView,
+            source_type: str,
+    ) -> Union[float, dict, None]:
         uc = slot_derivation.unit_conversion
         curr_v = source_obj.get(slot_derivation.populated_from, None)
+        if curr_v is None:
+            logger.debug(f"No value found for slot '{slot_derivation.populated_from}'; skipping conversion")
+            return None
+
+        # Get the slot from schema
+        slot = sv.induced_slot(slot_derivation.populated_from, source_type)
+        schema_unit = None
+        from_unit = None
         system = UnitSystem.UCUM
-        if curr_v is not None:
-            slot = sv.induced_slot(slot_derivation.populated_from, source_type)
-            to_unit = uc.target_unit
-            if uc.source_unit_slot:
-                from_unit = curr_v.get(uc.source_unit_slot, None)
-                if from_unit is None:
-                    msg = f"Could not determine unit from {curr_v} using {uc.source_unit_slot}"
-                    raise ValueError(msg)
-                magnitude = curr_v.get(uc.source_magnitude_slot, None)
-                if magnitude is None:
-                    msg = f"Could not determine magnitude from {curr_v} using {uc.source_magnitude_slot}"
-                    raise ValueError(msg)
+
+        # --- Step 1: Get unit from schema ---
+        if slot.unit:
+            if slot.unit.ucum_code:
+                schema_unit = slot.unit.ucum_code
+            elif slot.unit.iec61360code:
+                schema_unit = slot.unit.iec61360code
+                system = UnitSystem.IEC61360
+            elif slot.unit.symbol:
+                schema_unit = slot.unit.symbol
+                system = None
+            elif slot.unit.abbreviation:
+                schema_unit = slot.unit.abbreviation
+                system = None
+            elif slot.unit.descriptive_name:
+                schema_unit = slot.unit.descriptive_name
+                system = None
             else:
-                if slot.unit.ucum_code:
-                    from_unit = slot.unit.ucum_code
-                elif slot.unit.iec61360code:
-                    from_unit = slot.unit.iec61360code
-                    system = UnitSystem.IEC61360
-                else:
-                    system = None
-                    if slot.unit.symbol:
-                        from_unit = slot.unit.symbol
-                    elif slot.unit.abbreviation:
-                        from_unit = slot.unit.abbreviation
-                    elif slot.unit.descriptive_name:
-                        from_unit = slot.unit.descriptive_name
-                    else:
-                        msg = f"Cannot determine unit system for {slot.unit}"
-                        raise NotImplementedError(msg)
-                magnitude = curr_v
-            if not from_unit:
-                msg = f"Could not determine from_unit for {slot_derivation}"
-                raise ValueError(msg)
-            if not to_unit:
-                to_unit = from_unit
-                # raise ValueError(f"Could not determine to_unit for {slot_derivation}")
-            if from_unit == to_unit:
-                v = magnitude
-            else:
-                v = convert_units(
-                    magnitude,
-                    from_unit=from_unit,
-                    to_unit=to_unit,
-                    system=system,
+                raise NotImplementedError(
+                    f"Cannot determine unit system for slot '{slot.name}' — all unit fields are None")
+
+        # --- Step 2: Get unit from transformer spec ---
+        spec_unit = uc.source_unit if uc.source_unit else None
+
+        # --- Step 3: Validate unit source ---
+        if schema_unit and spec_unit:
+            if schema_unit != spec_unit:
+                raise ValueError(
+                    f"Mismatch in source units for slot '{slot_derivation.populated_from}': "
+                    f"schema unit '{schema_unit}' vs. transformation spec '{spec_unit}'"
                 )
-            if uc.target_magnitude_slot:
-                v = {uc.target_magnitude_slot: v, uc.target_unit_slot: to_unit}
-            return v
-        return None
+            from_unit = schema_unit
+        elif schema_unit:
+            from_unit = schema_unit
+        elif spec_unit:
+            from_unit = spec_unit
+        else:
+            # Handle structured unit slot case: don't raise here if source_unit_slot is set,
+            # defer unit extraction to Step 4
+            if uc.source_unit_slot:
+                from_unit = None
+            else:
+                raise ValueError(
+                    f"No source unit provided in schema or transformation spec for slot '{slot_derivation.populated_from}'"
+                )
+
+        # --- Step 4: Determine magnitude and possibly from_unit ---
+        if uc.source_unit_slot:
+            # Structured input, e.g., {"value": 120, "unit": "cm"}
+            from_unit_val = curr_v.get(uc.source_unit_slot)
+            if from_unit_val:
+                if from_unit and from_unit_val != from_unit:
+                    raise ValueError(
+                        f"Value unit '{from_unit_val}' does not match expected '{from_unit}' for slot '{slot_derivation.populated_from}'"
+                    )
+                from_unit = from_unit_val
+            else:
+                raise ValueError(
+                    f"Missing unit in structured value for slot '{slot_derivation.populated_from}': {curr_v}")
+
+            magnitude = curr_v.get(uc.source_magnitude_slot)
+            if magnitude is None:
+                raise ValueError(
+                    f"Missing magnitude in structured value for slot '{slot_derivation.populated_from}': {curr_v}")
+        else:
+            magnitude = curr_v
+
+        # --- Step 5: Convert ---
+        to_unit = uc.target_unit or from_unit
+        if from_unit == to_unit:
+            result = magnitude
+        else:
+            result = convert_units(magnitude, from_unit=from_unit, to_unit=to_unit, system=system)
+
+        # --- Step 6: Structure result if needed ---
+        if uc.target_magnitude_slot:
+            return {uc.target_magnitude_slot: result, uc.target_unit_slot: to_unit}
+        return result
 
     def _multivalued_to_singlevalued(self, vs: list[Any], slot_derivation: SlotDerivation) -> Any:
         if slot_derivation.stringification:
