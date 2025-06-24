@@ -1,0 +1,31 @@
+name: languages
+id: languages
+description: Names of languages
+imports:
+- linkml:types
+default_range: string
+enums:
+  languages:
+    permissible_values:
+      English:
+      French:
+      Hindi:
+      Italian:
+      Japanese:
+      Spanish:
+classes:
+  my_languages:
+    slots:
+      - language
+  Container:
+    tree_root: True
+    attributes:
+      my_languages:
+        range: my_languages
+        multivalued: True
+        inlined_as_list: True
+slots:
+    language:
+      range: languages
+      multivalued: True
+      inlined_as_list: True

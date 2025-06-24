@@ -1,0 +1,31 @@
+name: greetings
+id: greetings
+description: Greetings from different languages
+imports:
+- linkml:types
+default_range: string
+enums:
+  greetings:
+    permissible_values:
+      bonjour:
+      ciao:
+      hello:
+      hola:
+      konnichiwa:
+      namaste:
+classes:
+  my_greetings:
+    slots:
+      - greeting
+  Container:
+    tree_root: True
+    attributes:
+      my_greetings:
+        range: my_greetings
+        multivalued: True
+        inlined_as_list: True
+slots:
+    greeting:
+      range: greetings
+      multivalued: True
+      inlined_as_list: True

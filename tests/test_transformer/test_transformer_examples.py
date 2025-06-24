@@ -8,6 +8,7 @@ from tests import EXAMPLE_DIR
 EXAMPLE_PROJECTS = [
     "measurements",
     "personinfo_basic",
+    "single_value_for_multivalued",
 ]
 
 
