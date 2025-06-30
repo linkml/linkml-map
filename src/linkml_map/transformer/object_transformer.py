@@ -229,6 +229,9 @@ class ObjectTransformer(Transformer):
                     v = aeval.symtable["target"]
             elif slot_derivation.populated_from:
                 v = source_obj.get(slot_derivation.populated_from, None)
+                if slot_derivation.value_mappings and v is not None:
+                    mapped = slot_derivation.value_mappings.get(str(v), None)
+                    v = mapped.value if mapped is not None else None
                 source_class_slot = sv.induced_slot(slot_derivation.populated_from, source_type)
                 logger.debug(
                     f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {source_obj}"
