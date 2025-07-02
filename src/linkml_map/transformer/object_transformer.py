@@ -206,7 +206,9 @@ class ObjectTransformer(Transformer):
         for slot_derivation in class_deriv.slot_derivations.values():
             v = None
             source_class_slot = None
-            if slot_derivation.unit_conversion:
+            if slot_derivation.value is not None:
+                v = slot_derivation.value
+            elif slot_derivation.unit_conversion:
                 v = self._perform_unit_conversion(slot_derivation, source_obj, sv, source_type)
             elif slot_derivation.expr:
                 if bindings is None:

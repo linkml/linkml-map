@@ -122,6 +122,35 @@ def test_coerce(obj_tr: ObjectTransformer) -> None:
     x = obj_tr._coerce_datatype(5, "integer")  # noqa: SLF001
     assert x == 5
 
+def test_constant_value_slot_derivation() -> None:
+    """
+    Tests transforming using a constant value (via `value:` field).
+    """
+    source_schema: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_SRC_SCHEMA)))
+    # No need to inject a source slot since `value:` doesn't need source data
+
+    target_schema: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TGT_SCHEMA)))
+    inject_slot(target_schema, "Agent", "study_name", {"range": "string"})
+
+    transform_spec: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TR)))
+    transform_spec.setdefault("class_derivations", {}).setdefault("Agent", {}) \
+                  .setdefault("slot_derivations", {})["study_name"] = {
+                      "value": "Framingham",
+                      "range": "string",
+                  }
+
+    obj_tr = ObjectTransformer(unrestricted_eval=True)
+    obj_tr.source_schemaview = SchemaView(yaml.dump(source_schema))
+    obj_tr.target_schemaview = SchemaView(yaml.dump(target_schema))
+    obj_tr.create_transformer_specification(transform_spec)
+
+    person_dict: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_DATA)))
+    target_dict: dict[str, Any] = obj_tr.map_object(person_dict, source_type="Person")
+
+    expected = dict(TARGET_DATA)
+    expected["study_name"] = "Framingham"
+    assert target_dict == expected
+
 def test_value_mappings() -> None:
     """
     Tests transforming using value mappings.

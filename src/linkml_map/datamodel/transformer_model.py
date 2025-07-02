@@ -661,6 +661,16 @@ class SlotDerivation(ElementDerivation):
             }
         },
     )
+    value: Optional[Any] = Field(
+        None,
+        description="""A constant value to assign to this slot, overriding all other derivations""",
+        json_schema_extra={
+            "linkml_meta": {
+                "alias": "value",
+                "domain_of": ["SlotDerivation"]
+            }
+        },
+    )
     range: Optional[str] = Field(
         None,
         json_schema_extra={
