@@ -14,6 +14,7 @@ from linkml_runtime.utils.yamlutils import YAMLRoot
 from pydantic import BaseModel
 
 from linkml_map.datamodel.transformer_model import (
+    ClassDerivation,
     CollectionType,
     SerializationSyntaxType,
     SlotDerivation,
@@ -146,6 +147,7 @@ class ObjectTransformer(Transformer):
         source_obj: OBJECT_TYPE,
         source_type: Optional[str] = None,
         target_type: Optional[str] = None,
+        class_derivation: Optional[ClassDerivation] = None,
     ) -> Union[DICT_OBJ, Any]:
         """
         Transform a source object into a target object.
@@ -197,7 +199,7 @@ class ObjectTransformer(Transformer):
         if not isinstance(source_obj, dict):
             logger.warning(f"Unexpected: {source_obj} for type {source_type}")
             return source_obj
-        class_deriv = self._get_class_derivation(source_type)
+        class_deriv = class_derivation or self._get_class_derivation(source_type)
         tgt_attrs = {}
         bindings = None
         # map each slot assignment in source_obj, if there is a slot_derivation
@@ -253,6 +255,31 @@ class ObjectTransformer(Transformer):
                 logger.debug(
                     f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {source_obj}"
                 )
+            elif slot_derivation.object_derivations:
+                # We'll collect all derived objects here
+                derived_objs = []
+
+                for obj_derivation in slot_derivation.object_derivations:
+                    for target_cls, cls_derivation in obj_derivation.class_derivations.items():
+                        # Determine the correct source object to use
+                        source_sub_obj = source_obj  # You may refine this if needed
+
+                        # Recursively map the sub-object
+                        nested_result = self.map_object(
+                            source_sub_obj,
+                            source_type=cls_derivation.populated_from,
+                            target_type=target_cls,
+                            class_derivation=cls_derivation,
+                        )
+                        derived_objs.append(nested_result)
+
+                # If the slot is multivalued, we assign the whole list
+                # Otherwise, just assign the first (for now; error/warning later if >1)
+                target_class_slot = self.target_schemaview.induced_slot(slot_derivation.name, target_type)
+                if target_class_slot.multivalued:
+                    v = derived_objs
+                else:
+                    v = derived_objs[0] if derived_objs else None
             else:
                 source_class_slot = sv.induced_slot(slot_derivation.name, source_type)
                 v = source_obj.get(slot_derivation.name, None)
