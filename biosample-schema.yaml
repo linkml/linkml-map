@@ -1,0 +1,122 @@
+name: mixs-derived
+id: https://w3id.org/mixs-derived
+imports:
+- linkml:types
+prefixes:
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  MIXS:
+    prefix_prefix: MIXS
+    prefix_reference: https://w3id.org/mixs/
+  xsd:
+    prefix_prefix: xsd
+    prefix_reference: http://www.w3.org/2001/XMLSchema#
+  shex:
+    prefix_prefix: shex
+    prefix_reference: http://www.w3.org/ns/shex#
+  schema:
+    prefix_prefix: schema
+    prefix_reference: http://schema.org/
+  SO:
+    prefix_prefix: SO
+    prefix_reference: http://purl.obolibrary.org/obo/SO_
+default_prefix: https://w3id.org/mixs-derived/
+default_range: string
+classes:
+  OntologicalClass:
+    name: OntologicalClass
+    attributes:
+      label:
+        name: label
+        range: string
+      curie:
+        name: curie
+        range: uriorcurie
+  Biosample:
+    name: Biosample
+    description: MIxS Data that comply with the Mims checklist and the Soil Extension
+    title: Mims combined with Soil
+    in_subset:
+    - combination_classes
+    attributes:
+      sample_name:
+        name: sample_name
+      env_medium:
+        name: env_medium
+        description: 'Report the environmental material(s) immediately surrounding
+          the sample or specimen at the time of sampling. We recommend using subclasses
+          of ''environmental material'' (http://purl.obolibrary.org/obo/ENVO_00010483).
+          EnvO documentation about how to use the field: https://github.com/EnvironmentOntology/envo/wiki/Using-ENVO-with-MIxS
+          . Terms from other OBO ontologies are permissible as long as they reference
+          mass/volume nouns (e.g. air, water, blood) and not discrete, countable entities
+          (e.g. a tree, a leaf, a table top)'
+        title: environmental medium
+        examples:
+        - value: bluegrass field soil [ENVO:00005789]
+        in_subset:
+        - environment
+        keywords:
+        - environmental
+        slot_uri: MIXS:0000014
+        range: string
+        required: true
+        pattern: ^([^\s-]{1,2}|[^\s-]+.+[^\s-]+) \[[a-zA-Z]{2,}:[a-zA-Z0-9]\d+\]$
+        structured_pattern:
+          syntax: ^{termLabel} \[{termID}\]$
+          interpolated: true
+          partial_match: true
+      env_broad_scale:
+        name: env_broad_scale
+        description: 'Report the major environmental system the sample or specimen
+          came from. The system(s) identified should have a coarse spatial grain,
+          to provide the general environmental context of where the sampling was done
+          (e.g. in the desert or a rainforest). We recommend using subclasses of EnvO
+          s biome class:  http://purl.obolibrary.org/obo/ENVO_00000428. EnvO documentation
+          about how to use the field: https://github.com/EnvironmentOntology/envo/wiki/Using-ENVO-with-MIxS'
+        title: broad-scale environmental context
+        examples:
+        - value: rangeland biome [ENVO:01000247]
+        in_subset:
+        - environment
+        keywords:
+        - context
+        - environmental
+        slot_uri: MIXS:0000012
+        range: OntologicalClass
+        required: true
+        pattern: ^([^\s-]{1,2}|[^\s-]+.+[^\s-]+) \[[a-zA-Z]{2,}:[a-zA-Z0-9]\d+\]$
+        structured_pattern:
+          syntax: ^{termLabel} \[{termID}\]$
+          interpolated: true
+          partial_match: true
+      env_local_scale:
+        name: env_local_scale
+        annotations:
+          Expected_value:
+            tag: Expected_value
+            value: Environmental entities having causal influences upon the entity
+              at time of sampling
+        description: 'Report the entity or entities which are in the sample or specimen
+          s local vicinity and which you believe have significant causal influences
+          on your sample or specimen. We recommend using EnvO terms which are of smaller
+          spatial grain than your entry for env_broad_scale. Terms, such as anatomical
+          sites, from other OBO Library ontologies which interoperate with EnvO (e.g.
+          UBERON) are accepted in this field. EnvO documentation about how to use
+          the field: https://github.com/EnvironmentOntology/envo/wiki/Using-ENVO-with-MIxS'
+        title: local environmental context
+        examples:
+        - value: hillside [ENVO:01000333]
+        in_subset:
+        - environment
+        keywords:
+        - context
+        - environmental
+        slot_uri: MIXS:0000013
+        range: OntologicalClass
+        required: true
+        structured_pattern:
+          syntax: ^{termLabel} \[{termID}\]$
+          interpolated: true
+          partial_match: true
+    class_uri: MIXS:0010007_0016012
