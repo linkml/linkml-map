@@ -329,7 +329,7 @@ class SlotDerivation(ElementDerivation):
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    object_derivations: Optional[List[str]] = Field(default=None, description="""One or more object derivations used to construct the slot value(s),  which must be instances of a class.""", json_schema_extra = { "linkml_meta": {'alias': 'object_derivations', 'domain_of': ['SlotDerivation']} })
+    object_derivations: Optional[Dict[str, ElementDerivation]] = Field(default=None, description="""One or more object derivations used to construct the slot value(s),  which must be instances of a class.""", json_schema_extra = { "linkml_meta": {'alias': 'object_derivations', 'domain_of': ['SlotDerivation']} })
     derived_from: Optional[List[str]] = Field(default=None, description="""Source slots that are used to derive this slot. This can be computed from the expr, if the expr is declarative.""", json_schema_extra = { "linkml_meta": {'alias': 'derived_from', 'domain_of': ['SlotDerivation']} })
     expr: Optional[str] = Field(default=None, description="""An expression to be evaluated on the source object to derive the target slot. Should be specified using the LinkML expression language.""", json_schema_extra = { "linkml_meta": {'alias': 'expr',
          'domain_of': ['SlotDerivation',
