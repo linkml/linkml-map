@@ -206,7 +206,8 @@ class TransformationSpecification(SpecificationComponent):
     mapping_method: Optional[str] = Field(default=None, description="""The method used to create this mapping, e.g. manual curation, automated mapping, etc.""", json_schema_extra = { "linkml_meta": {'alias': 'mapping_method',
          'domain_of': ['TransformationSpecification'],
          'slot_uri': 'sssom:mapping_justification'} })
-    class_derivations: Optional[Dict[str, ClassDerivation]] = Field(default=None, description="""Instructions on how to derive a set of classes in the target schema from classes in the source schema.""", json_schema_extra = { "linkml_meta": {'alias': 'class_derivations', 'domain_of': ['TransformationSpecification']} })
+    class_derivations: Optional[Dict[str, ClassDerivation]] = Field(default=None, description="""Instructions on how to derive a set of classes in the target schema from classes in the source schema.""", json_schema_extra = { "linkml_meta": {'alias': 'class_derivations',
+         'domain_of': ['TransformationSpecification', 'ObjectDerivation']} })
     enum_derivations: Optional[Dict[str, EnumDerivation]] = Field(default=None, description="""Instructions on how to derive a set of enums in the target schema""", json_schema_extra = { "linkml_meta": {'alias': 'enum_derivations', 'domain_of': ['TransformationSpecification']} })
     slot_derivations: Optional[Dict[str, SlotDerivation]] = Field(default=None, description="""Instructions on how to derive a set of top level slots in the target schema""", json_schema_extra = { "linkml_meta": {'alias': 'slot_derivations',
          'domain_of': ['TransformationSpecification', 'ClassDerivation']} })
@@ -308,6 +309,13 @@ class AliasedClass(ConfiguredBaseModel):
     class_named: Optional[str] = Field(default=None, description="""local alias for the class""", json_schema_extra = { "linkml_meta": {'alias': 'class_named', 'domain_of': ['AliasedClass']} })
 
 
+class ObjectDerivation(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/linkml/transformer'})
+
+    class_derivations: Optional[Dict[str, ClassDerivation]] = Field(default=None, description="""One or more class derivations.""", json_schema_extra = { "linkml_meta": {'alias': 'class_derivations',
+         'domain_of': ['TransformationSpecification', 'ObjectDerivation']} })
+
+
 class SlotDerivation(ElementDerivation):
     """
     A specification of how to derive the value of a target slot from a source slot
@@ -329,7 +337,7 @@ class SlotDerivation(ElementDerivation):
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    object_derivations: Optional[Dict[str, ElementDerivation]] = Field(default=None, description="""One or more object derivations used to construct the slot value(s),  which must be instances of a class.""", json_schema_extra = { "linkml_meta": {'alias': 'object_derivations', 'domain_of': ['SlotDerivation']} })
+    object_derivations: Optional[List[ObjectDerivation]] = Field(default=None, description="""One or more object derivations used to construct the slot value(s),  which must be instances of a class.""", json_schema_extra = { "linkml_meta": {'alias': 'object_derivations', 'domain_of': ['SlotDerivation']} })
     derived_from: Optional[List[str]] = Field(default=None, description="""Source slots that are used to derive this slot. This can be computed from the expr, if the expr is declarative.""", json_schema_extra = { "linkml_meta": {'alias': 'derived_from', 'domain_of': ['SlotDerivation']} })
     expr: Optional[str] = Field(default=None, description="""An expression to be evaluated on the source object to derive the target slot. Should be specified using the LinkML expression language.""", json_schema_extra = { "linkml_meta": {'alias': 'expr',
          'domain_of': ['SlotDerivation',
@@ -617,6 +625,7 @@ TransformationSpecification.model_rebuild()
 ElementDerivation.model_rebuild()
 ClassDerivation.model_rebuild()
 AliasedClass.model_rebuild()
+ObjectDerivation.model_rebuild()
 SlotDerivation.model_rebuild()
 EnumDerivation.model_rebuild()
 PermissibleValueDerivation.model_rebuild()

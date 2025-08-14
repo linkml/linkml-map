@@ -232,6 +232,15 @@ classes:
       class_named:
         description: local alias for the class
 
+  ObjectDerivation:
+    attributes:
+      class_derivations:
+        description: >-
+          One or more class derivations.
+        range: ClassDerivation
+        multivalued: true
+        inlined: true
+
   SlotDerivation:
     is_a: ElementDerivation
     description: A specification of how to derive the value of a target slot from a source slot
