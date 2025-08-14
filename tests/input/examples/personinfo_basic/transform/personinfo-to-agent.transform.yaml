@@ -1,9 +1,21 @@
-id: my-mappings
-title: my mappings
+id: https://w3id.org/linkml/map/example/personinfo-to-agent.transform.yaml
+title: PersonInfo to Agent example transformation
+version: 0.1
 prefixes:
   foo: foo
-source_schema: s1
-target_schema: s2
+  semapv: https://w3id.org/semapv/vocab/
+description: |
+  This mapping set demonstrates how to transform a person information schema
+  into a different format using LinkML.
+license: https://creativecommons.org/licenses/by/4.0/
+creator_id:
+  - https://orcid.org/0000-0002-7356-1779
+author_id:
+  - https://orcid.org/0000-0002-7356-1779
+publication_date: 2025-08-14
+source_schema: https://w3id.org/linkml/map/example/personinfo.yaml
+target_schema: https://w3id.org/linkml/map/example/agent.yaml
+mapping_method: semapv:ManualMappingCuration
 class_derivations:
   Container:
     populated_from: Container
