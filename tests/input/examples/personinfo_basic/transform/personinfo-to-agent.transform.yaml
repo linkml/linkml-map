@@ -1,156 +1,98 @@
-id: my-mappings
-title: my mappings
-prefixes:
-  foo: foo
-source_schema: s1
-target_schema: s2
 class_derivations:
+  Address:
+    populated_from: Address
+    slot_derivations:
+      address_of:
+        expr: '''foo'''
+        inverse_of:
+          class_name: Agent
+          slot_name: current_address
+      city: null
+      street: null
+  Agent:
+    is_a: Entity
+    populated_from: Person
+    slot_derivations:
+      age:
+        expr: str({age_in_years}) + ' years'
+      current_address: null
+      death_date:
+        expr: "death_dates = [x.important_event_date for x in src.has_important_life_events\
+          \ if str(x.event_name) == \"DEATH\"]\nif len(death_dates):\n  target = death_dates[0]\n"
+      driving_since:
+        expr: "d_test = [x.important_event_date for x in src.has_important_life_events\
+          \ if str(x.event_name) == \"PASSED_DRIVING_TEST\"]\nif len(d_test):\n  \
+          \  target = d_test[0]\n"
+      first_known_event:
+        expr: "if src.has_important_life_events:\n  target = src.has_important_life_events[0].important_event_date\n"
+      gender:
+        expr: None
+      has_familial_relationships:
+        populated_from: has_familial_relationships
+      id: null
+      label:
+        populated_from: name
+      primary_email:
+        expr: null
+      secondary_email:
+        expr: 'NULL'
+      work_value:
+        populated_from: work_type
+        value_mappings:
+          '1': Home
+          '2': Office
   Container:
     populated_from: Container
     slot_derivations:
       agents:
         populated_from: persons
-    #copy_directives:
-    #  "*":
-    #    copy_all: true
-  Entity:
-  Agent:
-    is_a: Entity
-    populated_from: Person
-    slot_derivations:
-      ## implicitly same name in Agent
-      id:
-
-      label:
-        populated_from: name
-
-      age:
-        expr: "str({age_in_years}) + ' years'"
-
-      # YAML interprets this as expr = None
-      # no transformation is performed
-      primary_email:
-        expr: NULL
-
-      # this is the string "NULL", which will set this field to null
-      secondary_email:
-        #expr: "'NULL'"
-        expr: "NULL"
-
-      # FIXME: this should return the type "None", rather than null
-      gender:
-        expr: "None"
-
-      driving_since:
-        expr: |
-          d_test = [x.important_event_date for x in src.has_important_life_events if str(x.event_name) == "PASSED_DRIVING_TEST"]
-          if len(d_test):
-              target = d_test[0]
-
-      first_known_event:
-        expr: |
-            if src.has_important_life_events:
-              target = src.has_important_life_events[0].important_event_date
-
-      death_date:
-        expr: |
-            death_dates = [x.important_event_date for x in src.has_important_life_events if str(x.event_name) == "DEATH"]
-            if len(death_dates):
-              target = death_dates[0]
-
-
-      current_address:
-
-      ## expressions
-      #full_name:
-      #  expr: "{first} {last}"
-
-      ## unit conversion
-      #age_in_years:
-      #  expr: "units.convert(age.value, age.unit, units.YEARS)"
-
-      ## nested to flat
-      #friends:
-      #  expr: "[x.id for x in {friends}]"
-
-      ## copy recursively, flat to nested
-      #jobs:
-      #  populated_from: jobs
-
-      ## copy recursively
-      #diagnoses:
-      #  populated_from: diagnoses
-
-      has_familial_relationships:
-        populated_from: has_familial_relationships
-
-  Job:
-    #primitive: uriorcurie
-    slot_derivations:
-      type:
-      #  this: true   ## use input primitive
-      current:
-        expr: "True"
-
-  Address:
-    populated_from: Address
-    slot_derivations:
-      address_of:
-        expr: "'foo'"
-        inverse_of:
-          class_name: Agent
-          slot_name: current_address
-      street:
-      city:
-        # expr: "'foo'"
-
-  FamilialRelationship:
-    populated_from: FamilialRelationship
-    slot_derivations:
-      type:
-      related_to:
-      #person_id:
-      #  # inverse of has_familial_relationships
-      #  inverse_of:
-      #    slot_name: has_familial_relationships
-      #    class_name: Person
-
-  SequenceFeature:
-    slot_derivations:
-      type:
-        type_designator: true
-        hide: true
-        populated_from: feature_type
-
   DenormMapping:
     populated_from: Mapping
-    #joins:
-    #  subject: Entity
-    #  object: Entity
     slot_derivations:
-      id:         ## implicitly mapping.id
-      creator:
-      license:
-      subject_id:
-        expr: subject.id
-      subject_name:
-        expr: subject.name
+      creator: null
+      id: null
+      license: null
       object_id:
         expr: object.id
       object_name:
         expr: object.name
       predicate_id:
-        ## implicitly: mapping.predicate
         populated_from: predicate
       predicate_label:
-        expr: "lookup(predicate)"
-
+        expr: lookup(predicate)
+      subject_id:
+        expr: subject.id
+      subject_name:
+        expr: subject.name
+  Entity: null
+  FamilialRelationship:
+    populated_from: FamilialRelationship
+    slot_derivations:
+      related_to: null
+      type: null
+  Job:
+    slot_derivations:
+      current:
+        expr: 'True'
+      type: null
+  SequenceFeature:
+    slot_derivations:
+      type:
+        hide: true
+        populated_from: feature_type
+        type_designator: true
 enum_derivations:
   MyFamilialRelationshipType:
-    populated_from: FamilialRelationshipType
     mirror_source: true
     permissible_value_derivations:
-      SIBLING_OF:
-        populated_from: SIBLING_OF
       CHILD_OF:
         populated_from: CHILD_OF
+      SIBLING_OF:
+        populated_from: SIBLING_OF
+    populated_from: FamilialRelationshipType
+id: my-mappings
+prefixes:
+  foo: foo
+source_schema: s1
+target_schema: s2
+title: my mappings

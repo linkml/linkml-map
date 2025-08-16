@@ -29,6 +29,7 @@ persons:
           name: c1
       - diagnosis:
           id: C:002
+    work_type: 1
   - id: P:002
     name: Alison Wu
     has_familial_relationships:
@@ -40,6 +41,7 @@ persons:
       - diagnosis:
           id: C:001
           name: c1 (renamed)
+    work_type: 2
   - id: P:003
     name: Mr. Blobby
     has_familial_relationships:
@@ -47,6 +49,7 @@ persons:
         related_to: P:001
       - type: PARENT_OF
         related_to: P:002
+    work_type: 0
 organizations:
   - id: ROR:1
     name: Acme
