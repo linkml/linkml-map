@@ -198,7 +198,8 @@ class Transformer(ABC):
         """
         spec = self.specification
         ancestors = {}
-        parents = cd.mixins + ([cd.is_a] if cd.is_a else [])
+        mixins = cd.mixins or []
+        parents = mixins + ([cd.is_a] if cd.is_a else [])
         for parent in parents:
             ancestors[parent] = spec.class_derivations[parent]
             ancestors.update(self._class_derivation_ancestors(spec.class_derivations[parent]))

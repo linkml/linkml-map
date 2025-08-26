@@ -555,8 +555,8 @@ def test_cardinalities(source_multivalued: bool, target_multivalued: bool, expli
         sd.cast_collection_as = (
             CollectionType.MultiValued if target_multivalued else CollectionType.SingleValued
         )
-    specification.class_derivations[class_name] = cd
-    cd.slot_derivations[att_name] = sd
+    specification.ensure_class_derivations()[class_name] = cd
+    cd.ensure_slot_derivations()[att_name] = sd
     source_instance = {att_name: [val] if source_multivalued else val}
     tr = ObjectTransformer(
         specification=specification,

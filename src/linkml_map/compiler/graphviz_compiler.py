@@ -84,20 +84,21 @@ class GraphvizCompiler(Compiler):
                 continue
             source_record = Record(name=source_cn, source="source")
             target_record = Record(name=target_cn, source="target")
-            for sd in cd.slot_derivations.values():
-                target_slot = sd.name
-                target_id = f"{target_record.id}:{target_slot}"
-                source_slot = sd.populated_from
-                if source_slot:
-                    source_id = f"{source_record.id}:{source_slot}"
-                    dg.edge(source_id, target_id)
-                elif sd.expr:
-                    # TODO: do this in a less hacky way
-                    tokens = re.findall(r"\w+", sd.expr)
-                    for token in tokens:
-                        if token not in source_schemaview.all_slots():
-                            continue
-                        dg.edge(f"{source_record.id}:{token}", target_id, style="dashed")
+            if cd.slot_derivations:
+                for sd in cd.slot_derivations.values():
+                    target_slot = sd.name
+                    target_id = f"{target_record.id}:{target_slot}"
+                    source_slot = sd.populated_from
+                    if source_slot:
+                        source_id = f"{source_record.id}:{source_slot}"
+                        dg.edge(source_id, target_id)
+                    elif sd.expr:
+                        # TODO: do this in a less hacky way
+                        tokens = re.findall(r"\w+", sd.expr)
+                        for token in tokens:
+                            if token not in source_schemaview.all_slots():
+                                continue
+                            dg.edge(f"{source_record.id}:{token}", target_id, style="dashed")
         return GraphvizObject(digraph=dg, serialization=dg.source)
 
     def add_records(self, schemaview: SchemaView, source: str) -> list[Record]:

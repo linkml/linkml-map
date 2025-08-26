@@ -46,7 +46,6 @@ deploy: all deploy-gh-doc
 
 # TODO: make this default
 src/linkml_map/datamodel/transformer_model.py: src/linkml_map/datamodel/transformer_model.yaml
-	# $(RUN) gen-pydantic --pydantic-version 2 $< > $@.tmp && mv $@.tmp $@
 	$(RUN) gen-pydantic $< > $@.tmp && mv $@.tmp $@
 
 # generates all project files

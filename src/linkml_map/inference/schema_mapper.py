@@ -100,6 +100,8 @@ class SchemaMapper:
         source: SchemaDefinition,
         target: SchemaDefinition,
     ) -> SchemaDefinition:
+        if copy_directives is None:
+            return target
         if type(copy_directives) is dict:
             copy_directives_list = copy_directives.values()
         else:
@@ -120,6 +122,8 @@ class SchemaMapper:
         source: ClassDefinition,
         target: ClassDefinition,
     ) -> ClassDefinition:
+        if copy_directives is None:
+            return target
         if type(copy_directives) is dict:
             copy_directives_list = copy_directives.values()
         else:
@@ -170,12 +174,14 @@ class SchemaMapper:
             target_schema.imports.append(im)
         for prefix in source_schema.prefixes.values():
             target_schema.prefixes[prefix.prefix_prefix] = prefix
-        for class_derivation in specification.class_derivations.values():
-            class_definition = self._derive_class(class_derivation)
-            target_schema.classes[class_definition.name] = class_definition
-        for enum_derivation in specification.enum_derivations.values():
-            enum_definition = self._derive_enum(enum_derivation)
-            target_schema.enums[enum_definition.name] = enum_definition
+        if specification.class_derivations:
+            for class_derivation in specification.class_derivations.values():
+                class_definition = self._derive_class(class_derivation)
+                target_schema.classes[class_definition.name] = class_definition
+        if specification.enum_derivations:
+            for enum_derivation in specification.enum_derivations.values():
+                enum_definition = self._derive_enum(enum_derivation)
+                target_schema.enums[enum_definition.name] = enum_definition
         target_schema.default_range = source_schema.default_range
         for cd in target_schema.classes.values():
             self._rewire_class(cd)
@@ -211,9 +217,10 @@ class SchemaMapper:
                     source_class,
                     target_class,
                 )
-        for slot_derivation in class_derivation.slot_derivations.values():
-            slot_definition = self._derive_slot(slot_derivation)
-            target_class.attributes[slot_definition.name] = slot_definition
+        if class_derivation.slot_derivations is not None:
+            for slot_derivation in class_derivation.slot_derivations.values():
+                slot_definition = self._derive_slot(slot_derivation)
+                target_class.attributes[slot_definition.name] = slot_definition
         if class_derivation.is_a:
             target_class.is_a = class_derivation.is_a
         if class_derivation.mixins:
@@ -255,17 +262,18 @@ class SchemaMapper:
             target_enum.slots = []
             target_enum.attributes = {}
             target_enum.slot_usage = {}
-        for pv_derivation in enum_derivation.permissible_value_derivations.values():
-            if pv_derivation.populated_from:
-                pv = PermissibleValue(text=pv_derivation.populated_from)
-                target_enum.permissible_values[pv.text] = pv
-            elif pv_derivation.sources:
-                for source in pv_derivation.sources:
-                    pv = PermissibleValue(text=source)
+        if enum_derivation.permissible_value_derivations:
+            for pv_derivation in enum_derivation.permissible_value_derivations.values():
+                if pv_derivation.populated_from:
+                    pv = PermissibleValue(text=pv_derivation.populated_from)
                     target_enum.permissible_values[pv.text] = pv
-            else:
-                msg = f"Missing populated_from or sources for {pv_derivation}"
-                raise ValueError(msg)
+                elif pv_derivation.sources:
+                    for source in pv_derivation.sources:
+                        pv = PermissibleValue(text=source)
+                        target_enum.permissible_values[pv.text] = pv
+                else:
+                    msg = f"Missing populated_from or sources for {pv_derivation}"
+                    raise ValueError(msg)
         if enum_derivation.mirror_source:
             for pv in source_enum.permissible_values.values():
                 if pv.text not in target_enum.permissible_values:

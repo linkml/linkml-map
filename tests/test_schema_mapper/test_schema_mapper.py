@@ -139,7 +139,7 @@ def test_derive_partial(mapper: SchemaMapper) -> None:
         ClassDerivation(name="Agent", populated_from="Person"),
     ]
     for derivation in derivations:
-        specification.class_derivations[derivation.name] = derivation
+        specification.ensure_class_derivations()[derivation.name] = derivation
     target_schema = mapper.derive_schema(specification)
     print(yaml_dumper.dumps(target_schema))
     assert list(target_schema.classes.keys()) == ["Agent"]
@@ -215,7 +215,7 @@ def test_partial_copy_specification(mapper: SchemaMapper) -> None:
         ClassDerivation(name="Agent", populated_from="Person"),
     ]
     for derivation in derivations:
-        specification.class_derivations[derivation.name] = derivation
+        specification.ensure_class_derivations()[derivation.name] = derivation
     target_schema = mapper.derive_schema(specification)
     # classes must be the same with addition
     for schema_class in source_schema.classes:
@@ -236,7 +236,7 @@ def test_full_copy_class(mapper: SchemaMapper) -> None:
         ClassDerivation(name="Agent", populated_from="Person", copy_directives=copy_all_directive),
     ]
     for derivation in derivations:
-        specification.class_derivations[derivation.name] = derivation
+        specification.ensure_class_derivations()[derivation.name] = derivation
     target_schema = mapper.derive_schema(specification)
     # classes must be the same with addition
     for schema_class in source_schema.classes:
@@ -264,7 +264,7 @@ def test_copy_blacklisting(mapper: SchemaMapper) -> None:
         ClassDerivation(name="Agent", populated_from="Person"),
     ]
     for derivation in derivations:
-        specification.class_derivations[derivation.name] = derivation
+        specification.ensure_class_derivations()[derivation.name] = derivation
     target_schema = mapper.derive_schema(specification)
     # classes must be the same with addition
     for schema_class in source_schema.classes:
@@ -298,7 +298,7 @@ def test_copy_whitelisting(mapper: SchemaMapper) -> None:
         ClassDerivation(name="Agent", populated_from="Person"),
     ]
     for derivation in derivations:
-        specification.class_derivations[derivation.name] = derivation
+        specification.ensure_class_derivations()[derivation.name] = derivation
     target_schema = mapper.derive_schema(specification)
     # classes, slots and enums must have only what explicitly included
     for schema_class in source_schema.classes:

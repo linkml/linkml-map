@@ -51,12 +51,14 @@ class TransformationSpecificationInverter:
         """
         logger.info("Inverting specification")
         inverted_spec = TransformationSpecification()
-        for cd in spec.class_derivations.values():
-            inverted_cd = self.invert_class_derivation(cd, spec)
-            inverted_spec.class_derivations[inverted_cd.name] = inverted_cd
-        for ed in spec.enum_derivations.values():
-            inverted_ed = self.invert_enum_derivation(ed, spec)
-            inverted_spec.enum_derivations[inverted_ed.name] = inverted_ed
+        if spec.class_derivations:
+            for cd in spec.class_derivations.values():
+                inverted_cd = self.invert_class_derivation(cd, spec)
+                inverted_spec.ensure_class_derivations()[inverted_cd.name] = inverted_cd
+        if spec.enum_derivations:
+            for ed in spec.enum_derivations.values():
+                inverted_ed = self.invert_enum_derivation(ed, spec)
+                inverted_spec.ensure_enum_derivations()[inverted_ed.name] = inverted_ed
         return inverted_spec
 
     def invert_class_derivation(
@@ -72,13 +74,14 @@ class TransformationSpecificationInverter:
         inverted_cd = ClassDerivation(
             name=cd.populated_from if cd.populated_from else cd.name, populated_from=cd.name
         )
-        for sd in cd.slot_derivations.values():
-            inverted_sd = self.invert_slot_derivation(sd, cd, spec)
-            if inverted_sd:
-                inverted_cd.slot_derivations[inverted_sd.name] = inverted_sd
-            elif self.strict:
-                msg = f"Cannot invert slot derivation: {sd.name}"
-                raise NonInvertibleSpecificationError(msg)
+        if cd.slot_derivations:
+            for sd in cd.slot_derivations.values():
+                inverted_sd = self.invert_slot_derivation(sd, cd, spec)
+                if inverted_sd:
+                    inverted_cd.ensure_slot_derivations()[inverted_sd.name] = inverted_sd
+                elif self.strict:
+                    msg = f"Cannot invert slot derivation: {sd.name}"
+                    raise NonInvertibleSpecificationError(msg)
         return inverted_cd
 
     def invert_enum_derivation(
@@ -97,12 +100,13 @@ class TransformationSpecificationInverter:
         if inverted_ed.expr:
             msg = "TODO: invert enum derivation with expression"
             raise NonInvertibleSpecificationError(msg)
-        for pv_deriv in ed.permissible_value_derivations.values():
-            inverted_pv_deriv = PermissibleValueDerivation(
-                name=pv_deriv.populated_from if pv_deriv.populated_from else pv_deriv.name,
-                populated_from=pv_deriv.name,
-            )
-            inverted_ed.permissible_value_derivations[inverted_pv_deriv.name] = inverted_pv_deriv
+        if ed.permissible_value_derivations:
+            for pv_deriv in ed.permissible_value_derivations.values():
+                inverted_pv_deriv = PermissibleValueDerivation(
+                    name=pv_deriv.populated_from if pv_deriv.populated_from else pv_deriv.name,
+                    populated_from=pv_deriv.name,
+                )
+                inverted_ed.ensure_permissible_value_derivations()[inverted_pv_deriv.name] = inverted_pv_deriv
         return inverted_ed
 
     def invert_slot_derivation(

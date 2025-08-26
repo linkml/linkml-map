@@ -203,138 +203,139 @@ class ObjectTransformer(Transformer):
         tgt_attrs = {}
         bindings = None
         # map each slot assignment in source_obj, if there is a slot_derivation
-        for slot_derivation in class_deriv.slot_derivations.values():
-            v = None
-            source_class_slot = None
-            if slot_derivation.value is not None:
-                v = slot_derivation.value
-                if slot_derivation.range is None:
-                    slot_derivation.range = "string"
-            elif slot_derivation.unit_conversion:
-                v = self._perform_unit_conversion(slot_derivation, source_obj, sv, source_type)
-            elif slot_derivation.expr:
-                if bindings is None:
-                    bindings = Bindings(
-                        self,
-                        source_obj=source_obj,
-                        source_obj_typed=source_obj_typed,
-                        source_type=source_type,
-                        sv=sv,
-                        bindings={"NULL": None},
-                    )
-
-                try:
-                    v = eval_expr_with_mapping(slot_derivation.expr, bindings)
-                except Exception as err:
-                    if not self.unrestricted_eval:
-                        msg = f"Expression not in safe subset: {slot_derivation.expr}"
-                        raise RuntimeError(msg) from err
-                    ctxt_obj, _ = bindings.get_ctxt_obj_and_dict()
-                    aeval = Interpreter(usersyms={"src": ctxt_obj, "target": None})
-                    aeval(slot_derivation.expr)
-                    v = aeval.symtable["target"]
-            elif slot_derivation.populated_from:
-                v = source_obj.get(slot_derivation.populated_from, None)
-                if slot_derivation.value_mappings and v is not None:
-                    mapped = slot_derivation.value_mappings.get(str(v), None)
-                    v = mapped.value if mapped is not None else None
-                source_class_slot = sv.induced_slot(slot_derivation.populated_from, source_type)
-                logger.debug(
-                    f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {source_obj}"
-                )
-            elif slot_derivation.sources:
-                vmap = {s: source_obj.get(s, None) for s in slot_derivation.sources}
-                vmap = {k: v for k, v in vmap.items() if v is not None}
-                if len(vmap.keys()) > 1:
-                    msg = f"Multiple sources for {slot_derivation.name}: {vmap}"
-                    raise ValueError(msg)
-                if len(vmap.keys()) == 1:
-                    v = next(iter(vmap.values()))
-                    source_class_slot_name = next(iter(vmap.keys()))
-                    source_class_slot = sv.induced_slot(source_class_slot_name, source_type)
-                else:
-                    v = None
-                    source_class_slot = None
-
-                logger.debug(
-                    f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {source_obj}"
-                )
-            elif slot_derivation.object_derivations:
-                # We'll collect all derived objects here
-                derived_objs = []
-
-                for obj_derivation in slot_derivation.object_derivations:
-                    for target_cls, cls_derivation in obj_derivation.class_derivations.items():
-                        # Determine the correct source object to use
-                        source_sub_obj = source_obj  # You may refine this if needed
-
-                        # Recursively map the sub-object
-                        nested_result = self.map_object(
-                            source_sub_obj,
-                            source_type=cls_derivation.populated_from,
-                            target_type=target_cls,
-                            class_derivation=cls_derivation,
+        if class_deriv.slot_derivations:
+            for slot_derivation in class_deriv.slot_derivations.values():
+                v = None
+                source_class_slot = None
+                if slot_derivation.value is not None:
+                    v = slot_derivation.value
+                    if slot_derivation.range is None:
+                        slot_derivation.range = "string"
+                elif slot_derivation.unit_conversion:
+                    v = self._perform_unit_conversion(slot_derivation, source_obj, sv, source_type)
+                elif slot_derivation.expr:
+                    if bindings is None:
+                        bindings = Bindings(
+                            self,
+                            source_obj=source_obj,
+                            source_obj_typed=source_obj_typed,
+                            source_type=source_type,
+                            sv=sv,
+                            bindings={"NULL": None},
                         )
-                        derived_objs.append(nested_result)
 
-                # If the slot is multivalued, we assign the whole list
-                # Otherwise, just assign the first (for now; error/warning later if >1)
-                target_class_slot = self.target_schemaview.induced_slot(slot_derivation.name, target_type)
-                if target_class_slot.multivalued:
-                    v = derived_objs
-                else:
-                    v = derived_objs[0] if derived_objs else None
-            else:
-                source_class_slot = sv.induced_slot(slot_derivation.name, source_type)
-                v = source_obj.get(slot_derivation.name, None)
-            if source_class_slot and v is not None:
-                # slot is mapped and there is a value in the assignment
-                target_range = slot_derivation.range
-                source_class_slot_range = source_class_slot.range
-                if source_class_slot.multivalued:
-                    if isinstance(v, list):
-                        v = [self.map_object(v1, source_class_slot_range, target_range) for v1 in v]
-                    elif isinstance(v, dict):
-                        v = {
-                            k1: self.map_object(v1, source_class_slot_range, target_range)
-                            for k1, v1 in v.items()
-                        }
-                    else:
-                        v = [self.map_object(v, source_class_slot_range, target_range)]
-                else:
-                    v = self.map_object(v, source_class_slot_range, target_range)
-                if (
-                    self._is_coerce_to_multivalued(slot_derivation, class_deriv)
-                    and v is not None
-                    and not isinstance(v, list)
-                ):
-                    v = self._singlevalued_to_multivalued(v, slot_derivation)
-                if self._is_coerce_to_singlevalued(slot_derivation, class_deriv) and isinstance(
-                    v, list
-                ):
-                    v = self._multivalued_to_singlevalued(v, slot_derivation)
-                v = self._coerce_datatype(v, target_range)
-                if slot_derivation.dictionary_key and isinstance(v, list):
-                    # List to CompactDict
-                    v = {v1[slot_derivation.dictionary_key]: v1 for v1 in v}
-                    for v1 in v.values():
-                        del v1[slot_derivation.dictionary_key]
-                elif (
-                    slot_derivation.cast_collection_as
-                    and slot_derivation.cast_collection_as == CollectionType.MultiValuedList
-                    and isinstance(v, dict)
-                ):
-                    # CompactDict to List
-                    src_rng = source_class_slot.range
-                    src_rng_id_slot = self.source_schemaview.get_identifier_slot(
-                        src_rng, use_key=True
+                    try:
+                        v = eval_expr_with_mapping(slot_derivation.expr, bindings)
+                    except Exception as err:
+                        if not self.unrestricted_eval:
+                            msg = f"Expression not in safe subset: {slot_derivation.expr}"
+                            raise RuntimeError(msg) from err
+                        ctxt_obj, _ = bindings.get_ctxt_obj_and_dict()
+                        aeval = Interpreter(usersyms={"src": ctxt_obj, "target": None})
+                        aeval(slot_derivation.expr)
+                        v = aeval.symtable["target"]
+                elif slot_derivation.populated_from:
+                    v = source_obj.get(slot_derivation.populated_from, None)
+                    if slot_derivation.value_mappings and v is not None:
+                        mapped = slot_derivation.value_mappings.get(str(v), None)
+                        v = mapped.value if mapped is not None else None
+                    source_class_slot = sv.induced_slot(slot_derivation.populated_from, source_type)
+                    logger.debug(
+                        f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {source_obj}"
                     )
-                    if src_rng_id_slot:
-                        v = [{**v1, src_rng_id_slot.name: k} for k, v1 in v.items()]
+                elif slot_derivation.sources:
+                    vmap = {s: source_obj.get(s, None) for s in slot_derivation.sources}
+                    vmap = {k: v for k, v in vmap.items() if v is not None}
+                    if len(vmap.keys()) > 1:
+                        msg = f"Multiple sources for {slot_derivation.name}: {vmap}"
+                        raise ValueError(msg)
+                    if len(vmap.keys()) == 1:
+                        v = next(iter(vmap.values()))
+                        source_class_slot_name = next(iter(vmap.keys()))
+                        source_class_slot = sv.induced_slot(source_class_slot_name, source_type)
                     else:
-                        v = list(v.values())
-            tgt_attrs[str(slot_derivation.name)] = v
-        return tgt_attrs
+                        v = None
+                        source_class_slot = None
+
+                    logger.debug(
+                        f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {source_obj}"
+                    )
+                elif slot_derivation.object_derivations:
+                    # We'll collect all derived objects here
+                    derived_objs = []
+
+                    for obj_derivation in slot_derivation.object_derivations:
+                        for target_cls, cls_derivation in obj_derivation.class_derivations.items():
+                            # Determine the correct source object to use
+                            source_sub_obj = source_obj  # You may refine this if needed
+
+                            # Recursively map the sub-object
+                            nested_result = self.map_object(
+                                source_sub_obj,
+                                source_type=cls_derivation.populated_from,
+                                target_type=target_cls,
+                                class_derivation=cls_derivation,
+                            )
+                            derived_objs.append(nested_result)
+
+                    # If the slot is multivalued, we assign the whole list
+                    # Otherwise, just assign the first (for now; error/warning later if >1)
+                    target_class_slot = self.target_schemaview.induced_slot(slot_derivation.name, target_type)
+                    if target_class_slot.multivalued:
+                        v = derived_objs
+                    else:
+                        v = derived_objs[0] if derived_objs else None
+                else:
+                    source_class_slot = sv.induced_slot(slot_derivation.name, source_type)
+                    v = source_obj.get(slot_derivation.name, None)
+                if source_class_slot and v is not None:
+                    # slot is mapped and there is a value in the assignment
+                    target_range = slot_derivation.range
+                    source_class_slot_range = source_class_slot.range
+                    if source_class_slot.multivalued:
+                        if isinstance(v, list):
+                            v = [self.map_object(v1, source_class_slot_range, target_range) for v1 in v]
+                        elif isinstance(v, dict):
+                            v = {
+                                k1: self.map_object(v1, source_class_slot_range, target_range)
+                                for k1, v1 in v.items()
+                            }
+                        else:
+                            v = [self.map_object(v, source_class_slot_range, target_range)]
+                    else:
+                        v = self.map_object(v, source_class_slot_range, target_range)
+                    if (
+                        self._is_coerce_to_multivalued(slot_derivation, class_deriv)
+                        and v is not None
+                        and not isinstance(v, list)
+                    ):
+                        v = self._singlevalued_to_multivalued(v, slot_derivation)
+                    if self._is_coerce_to_singlevalued(slot_derivation, class_deriv) and isinstance(
+                        v, list
+                    ):
+                        v = self._multivalued_to_singlevalued(v, slot_derivation)
+                    v = self._coerce_datatype(v, target_range)
+                    if slot_derivation.dictionary_key and isinstance(v, list):
+                        # List to CompactDict
+                        v = {v1[slot_derivation.dictionary_key]: v1 for v1 in v}
+                        for v1 in v.values():
+                            del v1[slot_derivation.dictionary_key]
+                    elif (
+                        slot_derivation.cast_collection_as
+                        and slot_derivation.cast_collection_as == CollectionType.MultiValuedList
+                        and isinstance(v, dict)
+                    ):
+                        # CompactDict to List
+                        src_rng = source_class_slot.range
+                        src_rng_id_slot = self.source_schemaview.get_identifier_slot(
+                            src_rng, use_key=True
+                        )
+                        if src_rng_id_slot:
+                            v = [{**v1, src_rng_id_slot.name: k} for k, v1 in v.items()]
+                        else:
+                            v = list(v.values())
+                tgt_attrs[str(slot_derivation.name)] = v
+            return tgt_attrs
 
     def _perform_unit_conversion(
             self,
@@ -523,7 +524,7 @@ class ObjectTransformer(Transformer):
         for pv_deriv in enum_deriv.permissible_value_derivations.values():
             if source_value == pv_deriv.populated_from:
                 return pv_deriv.name
-            if source_value in pv_deriv.sources:
+            if pv_deriv.sources and source_value in pv_deriv.sources:
                 return pv_deriv.name
         if enum_deriv.mirror_source:
             return str(source_value)

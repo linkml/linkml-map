@@ -37,7 +37,7 @@ def get_biolink_class_derivations(sv: SchemaView, subset_classes: list) -> dict:
         induced_slots = sv.class_induced_slots(class_name)
         for slot in induced_slots:
             slot_derivation = SlotDerivation(populated_from=slot.name, name=underscore(slot.name))
-            class_derivation.slot_derivations[underscore(slot.name)] = slot_derivation
+            class_derivation.ensure_slot_derivations()[underscore(slot.name)] = slot_derivation
         class_derivations[camelcase(class_name)] = class_derivation
     return class_derivations
 

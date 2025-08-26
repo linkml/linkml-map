@@ -21,6 +21,8 @@ def induce_missing_values(
         if not cd.populated_from:
             cd.populated_from = cd.name
     for cd in specification.class_derivations.values():
+        if cd.slot_derivations is None:
+            continue
         for sd in cd.slot_derivations.values():
             if sd.object_derivations:
                 #skip inference for object derivations, inferencese come from class derivation later

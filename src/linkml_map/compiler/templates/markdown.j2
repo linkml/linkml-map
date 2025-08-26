@@ -7,19 +7,25 @@
 
 | Target | Target Range | Source | Source Range | Info |
 | ------ | ------ | ---- | ---- | ---- |
+    {%- if cd.slot_derivations is not none %}
     {%- for sd in cd.slot_derivations.values() %}
 | {{ sd.name }} | | {{ sd.range }} | {% if sd.expr is not none %} [expression] {% else %} {{ sd.populated_from }} {% endif %} | . | . |
     {%- endfor -%}
+    {%- endif %}
 {% endfor %}
 
 ## Enum Mappings
 
+{%- if spec.enum_derivations is not none %}
 {% for ed in spec.enum_derivations.values() %}
 ### Target enum {{ ed.name }}
 
 | Target | Source | Info |
 | ------ | ------ | ---- |
+    {%- if ed.permissible_value_derivations is not none %}
     {%- for pvd in ed.permissible_value_derivations.values() %}
 | {{ pvd.name }} | {{ pvd.populated_from }} | . |
     {%- endfor -%}
+    {%- endif %}
 {%  endfor %}
+{%- endif %}

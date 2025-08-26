@@ -269,6 +269,8 @@ classes:
         range: StringificationConfiguration
       aggregation_operation:
         range: AggregationOperation
+      value:
+        range: Any
 
   EnumDerivation:
     is_a: ElementDerivation
