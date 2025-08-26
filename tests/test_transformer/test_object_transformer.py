@@ -266,7 +266,7 @@ def test_object_derivations() -> None:
                 "condition_status": "PRESENT",
                 "condition_providence": "1",
             },
-                        {
+            {
                 "condition_concept": "HP:0001683",
                 "condition_status": "ABSENT",
                 "condition_providence": "2",

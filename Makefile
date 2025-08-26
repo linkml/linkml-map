@@ -8,8 +8,8 @@ SHELL := bash
 
 RUN = uv run
 # get values from about.yaml file
-SCHEMA_NAME = $(shell sh ./utils/get-value.sh name)
-SOURCE_SCHEMA_PATH = $(shell sh ./utils/get-value.sh source_schema_path)
+SCHEMA_NAME = $(shell bash ./utils/get-value.sh name)
+SOURCE_SCHEMA_PATH = $(shell bash ./utils/get-value.sh source_schema_path)
 SRC = src
 DEST = project
 PYMODEL = $(SRC)/$(SCHEMA_NAME)/datamodel
@@ -46,7 +46,8 @@ deploy: all deploy-gh-doc
 
 # TODO: make this default
 src/linkml_map/datamodel/transformer_model.py: src/linkml_map/datamodel/transformer_model.yaml
-	$(RUN) gen-pydantic --pydantic-version 2 $< > $@.tmp && mv $@.tmp $@
+	# $(RUN) gen-pydantic --pydantic-version 2 $< > $@.tmp && mv $@.tmp $@
+	$(RUN) gen-pydantic $< > $@.tmp && mv $@.tmp $@
 
 # generates all project files
 # TODO: combine pydantic into this step

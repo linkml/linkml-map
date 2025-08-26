@@ -190,6 +190,15 @@ classes:
         comments:
           - currently defined as Any to avoid coupling with metamodel
 
+  ObjectDerivation:
+    is_a: ElementDerivation
+    description: Temporary placeholder for object_derivations
+    attributes:
+      class_derivations:
+        range: ClassDerivation
+        multivalued: true
+        inlined: false
+
   AliasedClass:
     description: alias-class key value pairs for classes
     attributes:
@@ -218,7 +227,7 @@ classes:
           which must be instances of a class.
         range: ObjectDerivation
         multivalued: true
-        inlined: true
+        inlined: false
       derived_from:
         range: SlotReference
         multivalued: true
