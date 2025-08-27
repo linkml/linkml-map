@@ -158,8 +158,8 @@ class SpecificationComponent(ConfiguredBaseModel):
     description: Optional[str] = Field(default=None, description="""description of the specification component""", json_schema_extra = { "linkml_meta": {'alias': 'description',
          'domain_of': ['SpecificationComponent'],
          'slot_uri': 'dcterms:description'} })
-    implements: Optional[List[str]] = Field(default_factory=list, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'alias': 'implements', 'domain_of': ['SpecificationComponent']} })
-    comments: Optional[List[str]] = Field(default_factory=list, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'alias': 'comments',
+    implements: Optional[List[str]] = Field(default=None, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'alias': 'implements', 'domain_of': ['SpecificationComponent']} })
+    comments: Optional[List[str]] = Field(default=None, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'alias': 'comments',
          'domain_of': ['SpecificationComponent'],
          'slot_uri': 'rdfs:comment'} })
 
@@ -176,23 +176,23 @@ class TransformationSpecification(SpecificationComponent):
     title: Optional[str] = Field(default=None, description="""human readable title for this transformation specification""", json_schema_extra = { "linkml_meta": {'alias': 'title',
          'domain_of': ['TransformationSpecification'],
          'slot_uri': 'dcterms:title'} })
-    prefixes: Optional[Dict[str, KeyVal]] = Field(default_factory=dict, description="""maps prefixes to URL expansions""", json_schema_extra = { "linkml_meta": {'alias': 'prefixes',
+    prefixes: Optional[Dict[str, KeyVal]] = Field(default=None, description="""maps prefixes to URL expansions""", json_schema_extra = { "linkml_meta": {'alias': 'prefixes',
          'domain_of': ['TransformationSpecification'],
          'slot_uri': 'sh:declare'} })
-    copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives',
+    copy_directives: Optional[Dict[str, CopyDirective]] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives',
          'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     source_schema: Optional[str] = Field(default=None, description="""name of the schema that describes the source (input) objects""", json_schema_extra = { "linkml_meta": {'alias': 'source_schema', 'domain_of': ['TransformationSpecification']} })
     target_schema: Optional[str] = Field(default=None, description="""name of the schema that describes the target (output) objects""", json_schema_extra = { "linkml_meta": {'alias': 'target_schema', 'domain_of': ['TransformationSpecification']} })
-    class_derivations: Optional[Dict[str, ClassDerivation]] = Field(default_factory=dict, description="""Instructions on how to derive a set of classes in the target schema from classes in the source schema.""", json_schema_extra = { "linkml_meta": {'alias': 'class_derivations',
+    class_derivations: Optional[Dict[str, ClassDerivation]] = Field(default=None, description="""Instructions on how to derive a set of classes in the target schema from classes in the source schema.""", json_schema_extra = { "linkml_meta": {'alias': 'class_derivations',
          'domain_of': ['TransformationSpecification', 'ObjectDerivation']} })
-    enum_derivations: Optional[Dict[str, EnumDerivation]] = Field(default_factory=dict, description="""Instructions on how to derive a set of enums in the target schema""", json_schema_extra = { "linkml_meta": {'alias': 'enum_derivations', 'domain_of': ['TransformationSpecification']} })
-    slot_derivations: Optional[Dict[str, SlotDerivation]] = Field(default_factory=dict, description="""Instructions on how to derive a set of top level slots in the target schema""", json_schema_extra = { "linkml_meta": {'alias': 'slot_derivations',
+    enum_derivations: Optional[Dict[str, EnumDerivation]] = Field(default=None, description="""Instructions on how to derive a set of enums in the target schema""", json_schema_extra = { "linkml_meta": {'alias': 'enum_derivations', 'domain_of': ['TransformationSpecification']} })
+    slot_derivations: Optional[Dict[str, SlotDerivation]] = Field(default=None, description="""Instructions on how to derive a set of top level slots in the target schema""", json_schema_extra = { "linkml_meta": {'alias': 'slot_derivations',
          'domain_of': ['TransformationSpecification', 'ClassDerivation']} })
     description: Optional[str] = Field(default=None, description="""description of the specification component""", json_schema_extra = { "linkml_meta": {'alias': 'description',
          'domain_of': ['SpecificationComponent'],
          'slot_uri': 'dcterms:description'} })
-    implements: Optional[List[str]] = Field(default_factory=list, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'alias': 'implements', 'domain_of': ['SpecificationComponent']} })
-    comments: Optional[List[str]] = Field(default_factory=list, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'alias': 'comments',
+    implements: Optional[List[str]] = Field(default=None, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'alias': 'implements', 'domain_of': ['SpecificationComponent']} })
+    comments: Optional[List[str]] = Field(default=None, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'alias': 'comments',
          'domain_of': ['SpecificationComponent'],
          'slot_uri': 'rdfs:comment'} })
 
@@ -205,27 +205,26 @@ class ElementDerivation(SpecificationComponent):
 
     name: str = Field(default=..., description="""Name of the element in the target schema""", json_schema_extra = { "linkml_meta": {'alias': 'name',
          'domain_of': ['ElementDerivation',
-                       'ObjectDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives',
+    copy_directives: Optional[Dict[str, CopyDirective]] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives',
          'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     overrides: Optional[Any] = Field(default=None, description="""overrides source schema slots""", json_schema_extra = { "linkml_meta": {'alias': 'overrides', 'domain_of': ['ElementDerivation']} })
     is_a: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'is_a', 'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:is_a'} })
-    mixins: Optional[List[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'alias': 'mixins',
+    mixins: Optional[List[str]] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'mixins',
          'domain_of': ['ElementDerivation'],
          'slot_uri': 'linkml:mixins'} })
-    value_mappings: Optional[Dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table that is applied directly to mappings, in order of precedence""", json_schema_extra = { "linkml_meta": {'alias': 'value_mappings', 'domain_of': ['ElementDerivation']} })
-    expression_to_value_mappings: Optional[Dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_value_mappings', 'domain_of': ['ElementDerivation']} })
-    expression_to_expression_mappings: Optional[Dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_expression_mappings',
+    value_mappings: Optional[Dict[str, KeyVal]] = Field(default=None, description="""A mapping table that is applied directly to mappings, in order of precedence""", json_schema_extra = { "linkml_meta": {'alias': 'value_mappings', 'domain_of': ['ElementDerivation']} })
+    expression_to_value_mappings: Optional[Dict[str, KeyVal]] = Field(default=None, description="""A mapping table in which the keys are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_value_mappings', 'domain_of': ['ElementDerivation']} })
+    expression_to_expression_mappings: Optional[Dict[str, KeyVal]] = Field(default=None, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_expression_mappings',
          'domain_of': ['ElementDerivation']} })
     mirror_source: Optional[bool] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'mirror_source', 'domain_of': ['ElementDerivation']} })
     description: Optional[str] = Field(default=None, description="""description of the specification component""", json_schema_extra = { "linkml_meta": {'alias': 'description',
          'domain_of': ['SpecificationComponent'],
          'slot_uri': 'dcterms:description'} })
-    implements: Optional[List[str]] = Field(default_factory=list, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'alias': 'implements', 'domain_of': ['SpecificationComponent']} })
-    comments: Optional[List[str]] = Field(default_factory=list, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'alias': 'comments',
+    implements: Optional[List[str]] = Field(default=None, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'alias': 'implements', 'domain_of': ['SpecificationComponent']} })
+    comments: Optional[List[str]] = Field(default=None, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'alias': 'comments',
          'domain_of': ['SpecificationComponent'],
          'slot_uri': 'rdfs:comment'} })
 
@@ -241,42 +240,41 @@ class ClassDerivation(ElementDerivation):
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    sources: Optional[List[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'alias': 'sources',
+    sources: Optional[List[str]] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'sources',
          'domain_of': ['ClassDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    joins: Optional[Dict[str, AliasedClass]] = Field(default_factory=dict, description="""Additional classes to be joined to derive instances of the target class""", json_schema_extra = { "linkml_meta": {'alias': 'joins',
+    joins: Optional[Dict[str, AliasedClass]] = Field(default=None, description="""Additional classes to be joined to derive instances of the target class""", json_schema_extra = { "linkml_meta": {'alias': 'joins',
          'comments': ['not yet implemented'],
          'domain_of': ['ClassDerivation']} })
-    slot_derivations: Optional[Dict[str, SlotDerivation]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'alias': 'slot_derivations',
+    slot_derivations: Optional[Dict[str, SlotDerivation]] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'slot_derivations',
          'domain_of': ['TransformationSpecification', 'ClassDerivation']} })
     target_definition: Optional[Any] = Field(default=None, description="""LinkML class definition object for this slot.""", json_schema_extra = { "linkml_meta": {'alias': 'target_definition',
          'comments': ['currently defined as Any to avoid coupling with metamodel'],
          'domain_of': ['ClassDerivation', 'SlotDerivation']} })
     name: str = Field(default=..., description="""Name of the element in the target schema""", json_schema_extra = { "linkml_meta": {'alias': 'name',
          'domain_of': ['ElementDerivation',
-                       'ObjectDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives',
+    copy_directives: Optional[Dict[str, CopyDirective]] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives',
          'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     overrides: Optional[Any] = Field(default=None, description="""overrides source schema slots""", json_schema_extra = { "linkml_meta": {'alias': 'overrides', 'domain_of': ['ElementDerivation']} })
     is_a: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'is_a', 'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:is_a'} })
-    mixins: Optional[List[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'alias': 'mixins',
+    mixins: Optional[List[str]] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'mixins',
          'domain_of': ['ElementDerivation'],
          'slot_uri': 'linkml:mixins'} })
-    value_mappings: Optional[Dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table that is applied directly to mappings, in order of precedence""", json_schema_extra = { "linkml_meta": {'alias': 'value_mappings', 'domain_of': ['ElementDerivation']} })
-    expression_to_value_mappings: Optional[Dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_value_mappings', 'domain_of': ['ElementDerivation']} })
-    expression_to_expression_mappings: Optional[Dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_expression_mappings',
+    value_mappings: Optional[Dict[str, KeyVal]] = Field(default=None, description="""A mapping table that is applied directly to mappings, in order of precedence""", json_schema_extra = { "linkml_meta": {'alias': 'value_mappings', 'domain_of': ['ElementDerivation']} })
+    expression_to_value_mappings: Optional[Dict[str, KeyVal]] = Field(default=None, description="""A mapping table in which the keys are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_value_mappings', 'domain_of': ['ElementDerivation']} })
+    expression_to_expression_mappings: Optional[Dict[str, KeyVal]] = Field(default=None, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_expression_mappings',
          'domain_of': ['ElementDerivation']} })
     mirror_source: Optional[bool] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'mirror_source', 'domain_of': ['ElementDerivation']} })
     description: Optional[str] = Field(default=None, description="""description of the specification component""", json_schema_extra = { "linkml_meta": {'alias': 'description',
          'domain_of': ['SpecificationComponent'],
          'slot_uri': 'dcterms:description'} })
-    implements: Optional[List[str]] = Field(default_factory=list, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'alias': 'implements', 'domain_of': ['SpecificationComponent']} })
-    comments: Optional[List[str]] = Field(default_factory=list, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'alias': 'comments',
+    implements: Optional[List[str]] = Field(default=None, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'alias': 'implements', 'domain_of': ['SpecificationComponent']} })
+    comments: Optional[List[str]] = Field(default=None, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'alias': 'comments',
          'domain_of': ['SpecificationComponent'],
          'slot_uri': 'rdfs:comment'} })
 
@@ -287,31 +285,30 @@ class ObjectDerivation(ElementDerivation):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/linkml/transformer'})
 
-    name: Optional[str] = Field(default=None, description="""Name of the element in the target schema""", json_schema_extra = { "linkml_meta": {'alias': 'name',
+    class_derivations: Optional[List[str]] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'class_derivations',
+         'domain_of': ['TransformationSpecification', 'ObjectDerivation']} })
+    name: str = Field(default=..., description="""Name of the element in the target schema""", json_schema_extra = { "linkml_meta": {'alias': 'name',
          'domain_of': ['ElementDerivation',
-                       'ObjectDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    class_derivations: Optional[Dict[str, ClassDerivation]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'alias': 'class_derivations',
-         'domain_of': ['TransformationSpecification', 'ObjectDerivation']} })
-    copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives',
+    copy_directives: Optional[Dict[str, CopyDirective]] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives',
          'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     overrides: Optional[Any] = Field(default=None, description="""overrides source schema slots""", json_schema_extra = { "linkml_meta": {'alias': 'overrides', 'domain_of': ['ElementDerivation']} })
     is_a: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'is_a', 'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:is_a'} })
-    mixins: Optional[List[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'alias': 'mixins',
+    mixins: Optional[List[str]] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'mixins',
          'domain_of': ['ElementDerivation'],
          'slot_uri': 'linkml:mixins'} })
-    value_mappings: Optional[Dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table that is applied directly to mappings, in order of precedence""", json_schema_extra = { "linkml_meta": {'alias': 'value_mappings', 'domain_of': ['ElementDerivation']} })
-    expression_to_value_mappings: Optional[Dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_value_mappings', 'domain_of': ['ElementDerivation']} })
-    expression_to_expression_mappings: Optional[Dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_expression_mappings',
+    value_mappings: Optional[Dict[str, KeyVal]] = Field(default=None, description="""A mapping table that is applied directly to mappings, in order of precedence""", json_schema_extra = { "linkml_meta": {'alias': 'value_mappings', 'domain_of': ['ElementDerivation']} })
+    expression_to_value_mappings: Optional[Dict[str, KeyVal]] = Field(default=None, description="""A mapping table in which the keys are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_value_mappings', 'domain_of': ['ElementDerivation']} })
+    expression_to_expression_mappings: Optional[Dict[str, KeyVal]] = Field(default=None, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_expression_mappings',
          'domain_of': ['ElementDerivation']} })
     mirror_source: Optional[bool] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'mirror_source', 'domain_of': ['ElementDerivation']} })
     description: Optional[str] = Field(default=None, description="""description of the specification component""", json_schema_extra = { "linkml_meta": {'alias': 'description',
          'domain_of': ['SpecificationComponent'],
          'slot_uri': 'dcterms:description'} })
-    implements: Optional[List[str]] = Field(default_factory=list, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'alias': 'implements', 'domain_of': ['SpecificationComponent']} })
-    comments: Optional[List[str]] = Field(default_factory=list, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'alias': 'comments',
+    implements: Optional[List[str]] = Field(default=None, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'alias': 'implements', 'domain_of': ['SpecificationComponent']} })
+    comments: Optional[List[str]] = Field(default=None, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'alias': 'comments',
          'domain_of': ['SpecificationComponent'],
          'slot_uri': 'rdfs:comment'} })
 
@@ -334,7 +331,6 @@ class SlotDerivation(ElementDerivation):
 
     name: str = Field(default=..., description="""Target slot name""", json_schema_extra = { "linkml_meta": {'alias': 'name',
          'domain_of': ['ElementDerivation',
-                       'ObjectDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
@@ -343,18 +339,17 @@ class SlotDerivation(ElementDerivation):
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    sources: Optional[List[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'alias': 'sources',
+    sources: Optional[List[str]] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'sources',
          'domain_of': ['ClassDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    object_derivations: Optional[List[ObjectDerivation]] = Field(default_factory=list, description="""One or more object derivations used to construct the slot value(s),  which must be instances of a class.""", json_schema_extra = { "linkml_meta": {'alias': 'object_derivations', 'domain_of': ['SlotDerivation']} })
-    derived_from: Optional[List[str]] = Field(default_factory=list, description="""Source slots that are used to derive this slot. This can be computed from the expr, if the expr is declarative.""", json_schema_extra = { "linkml_meta": {'alias': 'derived_from', 'domain_of': ['SlotDerivation']} })
+    object_derivations: Optional[List[str]] = Field(default=None, description="""One or more object derivations used to construct the slot value(s),  which must be instances of a class.""", json_schema_extra = { "linkml_meta": {'alias': 'object_derivations', 'domain_of': ['SlotDerivation']} })
+    derived_from: Optional[List[str]] = Field(default=None, description="""Source slots that are used to derive this slot. This can be computed from the expr, if the expr is declarative.""", json_schema_extra = { "linkml_meta": {'alias': 'derived_from', 'domain_of': ['SlotDerivation']} })
     expr: Optional[str] = Field(default=None, description="""An expression to be evaluated on the source object to derive the target slot. Should be specified using the LinkML expression language.""", json_schema_extra = { "linkml_meta": {'alias': 'expr',
          'domain_of': ['SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    value: Optional[Any] = Field(default=None, description="""A constant value to assign to the target slot.""", json_schema_extra = { "linkml_meta": {'alias': 'value', 'domain_of': ['SlotDerivation', 'KeyVal']} })
     range: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'range', 'domain_of': ['SlotDerivation'], 'slot_uri': 'linkml:range'} })
     unit_conversion: Optional[UnitConversionConfiguration] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'unit_conversion', 'domain_of': ['SlotDerivation']} })
     inverse_of: Optional[Inverse] = Field(default=None, description="""Used to specify a class-slot tuple that is the inverse of the derived/target slot. This is used primarily for mapping to relational databases or formalisms that do not allow multiple values. The class representing the repeated element has a foreign key slot inserted in that 'back references' the original multivalued slot.""", json_schema_extra = { "linkml_meta": {'alias': 'inverse_of', 'domain_of': ['SlotDerivation']} })
@@ -370,23 +365,23 @@ class SlotDerivation(ElementDerivation):
     dictionary_key: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'dictionary_key', 'domain_of': ['SlotDerivation']} })
     stringification: Optional[StringificationConfiguration] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'stringification', 'domain_of': ['SlotDerivation']} })
     aggregation_operation: Optional[AggregationOperation] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'aggregation_operation', 'domain_of': ['SlotDerivation']} })
-    copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives',
+    copy_directives: Optional[Dict[str, CopyDirective]] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives',
          'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     overrides: Optional[Any] = Field(default=None, description="""overrides source schema slots""", json_schema_extra = { "linkml_meta": {'alias': 'overrides', 'domain_of': ['ElementDerivation']} })
     is_a: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'is_a', 'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:is_a'} })
-    mixins: Optional[List[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'alias': 'mixins',
+    mixins: Optional[List[str]] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'mixins',
          'domain_of': ['ElementDerivation'],
          'slot_uri': 'linkml:mixins'} })
-    value_mappings: Optional[Dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table that is applied directly to mappings, in order of precedence""", json_schema_extra = { "linkml_meta": {'alias': 'value_mappings', 'domain_of': ['ElementDerivation']} })
-    expression_to_value_mappings: Optional[Dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_value_mappings', 'domain_of': ['ElementDerivation']} })
-    expression_to_expression_mappings: Optional[Dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_expression_mappings',
+    value_mappings: Optional[Dict[str, KeyVal]] = Field(default=None, description="""A mapping table that is applied directly to mappings, in order of precedence""", json_schema_extra = { "linkml_meta": {'alias': 'value_mappings', 'domain_of': ['ElementDerivation']} })
+    expression_to_value_mappings: Optional[Dict[str, KeyVal]] = Field(default=None, description="""A mapping table in which the keys are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_value_mappings', 'domain_of': ['ElementDerivation']} })
+    expression_to_expression_mappings: Optional[Dict[str, KeyVal]] = Field(default=None, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_expression_mappings',
          'domain_of': ['ElementDerivation']} })
     mirror_source: Optional[bool] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'mirror_source', 'domain_of': ['ElementDerivation']} })
     description: Optional[str] = Field(default=None, description="""description of the specification component""", json_schema_extra = { "linkml_meta": {'alias': 'description',
          'domain_of': ['SpecificationComponent'],
          'slot_uri': 'dcterms:description'} })
-    implements: Optional[List[str]] = Field(default_factory=list, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'alias': 'implements', 'domain_of': ['SpecificationComponent']} })
-    comments: Optional[List[str]] = Field(default_factory=list, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'alias': 'comments',
+    implements: Optional[List[str]] = Field(default=None, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'alias': 'implements', 'domain_of': ['SpecificationComponent']} })
+    comments: Optional[List[str]] = Field(default=None, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'alias': 'comments',
          'domain_of': ['SpecificationComponent'],
          'slot_uri': 'rdfs:comment'} })
 
@@ -399,7 +394,6 @@ class EnumDerivation(ElementDerivation):
 
     name: str = Field(default=..., description="""Target enum name""", json_schema_extra = { "linkml_meta": {'alias': 'name',
          'domain_of': ['ElementDerivation',
-                       'ObjectDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
@@ -408,7 +402,7 @@ class EnumDerivation(ElementDerivation):
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    sources: Optional[List[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'alias': 'sources',
+    sources: Optional[List[str]] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'sources',
          'domain_of': ['ClassDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
@@ -421,24 +415,24 @@ class EnumDerivation(ElementDerivation):
          'domain_of': ['SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    permissible_value_derivations: Optional[Dict[str, PermissibleValueDerivation]] = Field(default_factory=dict, description="""Instructions on how to derive a set of PVs in the target schema""", json_schema_extra = { "linkml_meta": {'alias': 'permissible_value_derivations', 'domain_of': ['EnumDerivation']} })
-    copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives',
+    permissible_value_derivations: Optional[Dict[str, PermissibleValueDerivation]] = Field(default=None, description="""Instructions on how to derive a set of PVs in the target schema""", json_schema_extra = { "linkml_meta": {'alias': 'permissible_value_derivations', 'domain_of': ['EnumDerivation']} })
+    copy_directives: Optional[Dict[str, CopyDirective]] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives',
          'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     overrides: Optional[Any] = Field(default=None, description="""overrides source schema slots""", json_schema_extra = { "linkml_meta": {'alias': 'overrides', 'domain_of': ['ElementDerivation']} })
     is_a: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'is_a', 'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:is_a'} })
-    mixins: Optional[List[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'alias': 'mixins',
+    mixins: Optional[List[str]] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'mixins',
          'domain_of': ['ElementDerivation'],
          'slot_uri': 'linkml:mixins'} })
-    value_mappings: Optional[Dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table that is applied directly to mappings, in order of precedence""", json_schema_extra = { "linkml_meta": {'alias': 'value_mappings', 'domain_of': ['ElementDerivation']} })
-    expression_to_value_mappings: Optional[Dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_value_mappings', 'domain_of': ['ElementDerivation']} })
-    expression_to_expression_mappings: Optional[Dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_expression_mappings',
+    value_mappings: Optional[Dict[str, KeyVal]] = Field(default=None, description="""A mapping table that is applied directly to mappings, in order of precedence""", json_schema_extra = { "linkml_meta": {'alias': 'value_mappings', 'domain_of': ['ElementDerivation']} })
+    expression_to_value_mappings: Optional[Dict[str, KeyVal]] = Field(default=None, description="""A mapping table in which the keys are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_value_mappings', 'domain_of': ['ElementDerivation']} })
+    expression_to_expression_mappings: Optional[Dict[str, KeyVal]] = Field(default=None, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_expression_mappings',
          'domain_of': ['ElementDerivation']} })
     mirror_source: Optional[bool] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'mirror_source', 'domain_of': ['ElementDerivation']} })
     description: Optional[str] = Field(default=None, description="""description of the specification component""", json_schema_extra = { "linkml_meta": {'alias': 'description',
          'domain_of': ['SpecificationComponent'],
          'slot_uri': 'dcterms:description'} })
-    implements: Optional[List[str]] = Field(default_factory=list, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'alias': 'implements', 'domain_of': ['SpecificationComponent']} })
-    comments: Optional[List[str]] = Field(default_factory=list, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'alias': 'comments',
+    implements: Optional[List[str]] = Field(default=None, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'alias': 'implements', 'domain_of': ['SpecificationComponent']} })
+    comments: Optional[List[str]] = Field(default=None, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'alias': 'comments',
          'domain_of': ['SpecificationComponent'],
          'slot_uri': 'rdfs:comment'} })
 
@@ -453,7 +447,6 @@ class PermissibleValueDerivation(ElementDerivation):
 
     name: str = Field(default=..., description="""Target permissible value text""", json_schema_extra = { "linkml_meta": {'alias': 'name',
          'domain_of': ['ElementDerivation',
-                       'ObjectDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
@@ -466,7 +459,7 @@ class PermissibleValueDerivation(ElementDerivation):
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    sources: Optional[List[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'alias': 'sources',
+    sources: Optional[List[str]] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'sources',
          'domain_of': ['ClassDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
@@ -475,23 +468,23 @@ class PermissibleValueDerivation(ElementDerivation):
          'domain_of': ['SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives',
+    copy_directives: Optional[Dict[str, CopyDirective]] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives',
          'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     overrides: Optional[Any] = Field(default=None, description="""overrides source schema slots""", json_schema_extra = { "linkml_meta": {'alias': 'overrides', 'domain_of': ['ElementDerivation']} })
     is_a: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'is_a', 'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:is_a'} })
-    mixins: Optional[List[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'alias': 'mixins',
+    mixins: Optional[List[str]] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'mixins',
          'domain_of': ['ElementDerivation'],
          'slot_uri': 'linkml:mixins'} })
-    value_mappings: Optional[Dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table that is applied directly to mappings, in order of precedence""", json_schema_extra = { "linkml_meta": {'alias': 'value_mappings', 'domain_of': ['ElementDerivation']} })
-    expression_to_value_mappings: Optional[Dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_value_mappings', 'domain_of': ['ElementDerivation']} })
-    expression_to_expression_mappings: Optional[Dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_expression_mappings',
+    value_mappings: Optional[Dict[str, KeyVal]] = Field(default=None, description="""A mapping table that is applied directly to mappings, in order of precedence""", json_schema_extra = { "linkml_meta": {'alias': 'value_mappings', 'domain_of': ['ElementDerivation']} })
+    expression_to_value_mappings: Optional[Dict[str, KeyVal]] = Field(default=None, description="""A mapping table in which the keys are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_value_mappings', 'domain_of': ['ElementDerivation']} })
+    expression_to_expression_mappings: Optional[Dict[str, KeyVal]] = Field(default=None, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_expression_mappings',
          'domain_of': ['ElementDerivation']} })
     mirror_source: Optional[bool] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'mirror_source', 'domain_of': ['ElementDerivation']} })
     description: Optional[str] = Field(default=None, description="""description of the specification component""", json_schema_extra = { "linkml_meta": {'alias': 'description',
          'domain_of': ['SpecificationComponent'],
          'slot_uri': 'dcterms:description'} })
-    implements: Optional[List[str]] = Field(default_factory=list, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'alias': 'implements', 'domain_of': ['SpecificationComponent']} })
-    comments: Optional[List[str]] = Field(default_factory=list, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'alias': 'comments',
+    implements: Optional[List[str]] = Field(default=None, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'alias': 'implements', 'domain_of': ['SpecificationComponent']} })
+    comments: Optional[List[str]] = Field(default=None, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'alias': 'comments',
          'domain_of': ['SpecificationComponent'],
          'slot_uri': 'rdfs:comment'} })
 
@@ -501,27 +494,26 @@ class PrefixDerivation(ElementDerivation):
 
     name: str = Field(default=..., description="""Name of the element in the target schema""", json_schema_extra = { "linkml_meta": {'alias': 'name',
          'domain_of': ['ElementDerivation',
-                       'ObjectDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives',
+    copy_directives: Optional[Dict[str, CopyDirective]] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives',
          'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     overrides: Optional[Any] = Field(default=None, description="""overrides source schema slots""", json_schema_extra = { "linkml_meta": {'alias': 'overrides', 'domain_of': ['ElementDerivation']} })
     is_a: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'is_a', 'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:is_a'} })
-    mixins: Optional[List[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'alias': 'mixins',
+    mixins: Optional[List[str]] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'mixins',
          'domain_of': ['ElementDerivation'],
          'slot_uri': 'linkml:mixins'} })
-    value_mappings: Optional[Dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table that is applied directly to mappings, in order of precedence""", json_schema_extra = { "linkml_meta": {'alias': 'value_mappings', 'domain_of': ['ElementDerivation']} })
-    expression_to_value_mappings: Optional[Dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_value_mappings', 'domain_of': ['ElementDerivation']} })
-    expression_to_expression_mappings: Optional[Dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_expression_mappings',
+    value_mappings: Optional[Dict[str, KeyVal]] = Field(default=None, description="""A mapping table that is applied directly to mappings, in order of precedence""", json_schema_extra = { "linkml_meta": {'alias': 'value_mappings', 'domain_of': ['ElementDerivation']} })
+    expression_to_value_mappings: Optional[Dict[str, KeyVal]] = Field(default=None, description="""A mapping table in which the keys are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_value_mappings', 'domain_of': ['ElementDerivation']} })
+    expression_to_expression_mappings: Optional[Dict[str, KeyVal]] = Field(default=None, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'alias': 'expression_to_expression_mappings',
          'domain_of': ['ElementDerivation']} })
     mirror_source: Optional[bool] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'mirror_source', 'domain_of': ['ElementDerivation']} })
     description: Optional[str] = Field(default=None, description="""description of the specification component""", json_schema_extra = { "linkml_meta": {'alias': 'description',
          'domain_of': ['SpecificationComponent'],
          'slot_uri': 'dcterms:description'} })
-    implements: Optional[List[str]] = Field(default_factory=list, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'alias': 'implements', 'domain_of': ['SpecificationComponent']} })
-    comments: Optional[List[str]] = Field(default_factory=list, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'alias': 'comments',
+    implements: Optional[List[str]] = Field(default=None, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'alias': 'implements', 'domain_of': ['SpecificationComponent']} })
+    comments: Optional[List[str]] = Field(default=None, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'alias': 'comments',
          'domain_of': ['SpecificationComponent'],
          'slot_uri': 'rdfs:comment'} })
 
@@ -550,7 +542,7 @@ class StringificationConfiguration(ConfiguredBaseModel):
          'domain_of': ['StringificationConfiguration'],
          'examples': [{'value': ','}, {'value': '|'}, {'value': ';'}]} })
     reversed: Optional[bool] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'reversed', 'domain_of': ['StringificationConfiguration']} })
-    over_slots: Optional[List[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'alias': 'over_slots', 'domain_of': ['StringificationConfiguration']} })
+    over_slots: Optional[List[str]] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'over_slots', 'domain_of': ['StringificationConfiguration']} })
     syntax: Optional[SerializationSyntaxType] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'syntax',
          'domain_of': ['StringificationConfiguration'],
          'examples': [{'value': 'json'}, {'value': 'yaml'}]} })
@@ -603,14 +595,14 @@ class PivotOperation(TransformationOperation):
          'domain_of': ['PivotOperation'],
          'ifabsent': 'string(value)'} })
     unmelt_to_class: Optional[str] = Field(default=None, description="""In an unmelt operation, attributes (which are values in the long/melted/EAV representation) must conform to valid attributes in this class""", json_schema_extra = { "linkml_meta": {'alias': 'unmelt_to_class', 'domain_of': ['PivotOperation']} })
-    unmelt_to_slots: Optional[List[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'alias': 'unmelt_to_slots', 'domain_of': ['PivotOperation']} })
+    unmelt_to_slots: Optional[List[str]] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'unmelt_to_slots', 'domain_of': ['PivotOperation']} })
 
 
 class KeyVal(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/linkml/transformer'})
 
     key: str = Field(default=..., json_schema_extra = { "linkml_meta": {'alias': 'key', 'domain_of': ['KeyVal']} })
-    value: Optional[Any] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'value', 'domain_of': ['SlotDerivation', 'KeyVal']} })
+    value: Optional[Any] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'value', 'domain_of': ['KeyVal']} })
 
 
 class CopyDirective(ConfiguredBaseModel):
