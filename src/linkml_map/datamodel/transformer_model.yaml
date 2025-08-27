@@ -242,10 +242,7 @@ classes:
         description: >-
           An expression to be evaluated on the source object to derive the target slot.
           Should be specified using the LinkML expression language.
-      value:
-        range: Any
-        description: >-
-          A constant value to assign to the target slot.
+          A constant value to assign to the target slot. Use this for constant values; use `expr` for computed values from source objects.
       range:
         slot_uri: linkml:range
         range: string
