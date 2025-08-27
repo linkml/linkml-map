@@ -194,10 +194,13 @@ classes:
     is_a: ElementDerivation
     description: Temporary placeholder for object_derivations
     attributes:
+      name:
+        description: Name of the element in the target schema
+        required: false
       class_derivations:
         range: ClassDerivation
         multivalued: true
-        inlined: false
+        inlined: true
 
   AliasedClass:
     description: alias-class key value pairs for classes
@@ -227,7 +230,8 @@ classes:
           which must be instances of a class.
         range: ObjectDerivation
         multivalued: true
-        inlined: false
+        inlined: true
+        inlined_as_list: true
       derived_from:
         range: SlotReference
         multivalued: true
@@ -238,6 +242,10 @@ classes:
         description: >-
           An expression to be evaluated on the source object to derive the target slot.
           Should be specified using the LinkML expression language.
+      value:
+        range: Any
+        description: >-
+          A constant value to assign to the target slot.
       range:
         slot_uri: linkml:range
         range: string
