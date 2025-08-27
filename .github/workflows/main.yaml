@@ -55,14 +55,22 @@ jobs:
 
       - name: Generate LinkML-Map Transformation Model artifacts
         run: |
+          # Force regenerate by removing the target file first
+          rm -f src/linkml_map/datamodel/transformer_model.py
           make src/linkml_map/datamodel/transformer_model.py
+          
+          # Run tests to make sure everything works
           make test
-          if [ $? -eq 0 ]; then
-            git config --local user.email "action@github.com"
-            git config --local user.name "GitHub Action"
-            git add src/*
+          
+          # Check if there are any changes and commit them
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add src/
+          
+          # Only commit if there are changes
+          if ! git diff --cached --quiet; then
             git commit -m "Regenerate artifacts from linkml-map transformer_model.yaml"
             git push
           else
-            echo "'make' gen-project failed to finish successfully"
+            echo "No changes to commit"
           fi
