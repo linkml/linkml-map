@@ -60,7 +60,6 @@ jobs:
           if [ $? -eq 0 ]; then
             git config --local user.email "action@github.com"
             git config --local user.name "GitHub Action"
-            git add project/*
             git add src/*
             git commit -m "Regenerate artifacts from linkml-map transformer_model.yaml"
             git push
