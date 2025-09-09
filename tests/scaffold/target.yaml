@@ -1,0 +1,28 @@
+id: https://example.org/test-target-scaffold
+name: target-scaffold
+description: Minimal target schema for LinkML-Map testing
+prefixes:
+  scaffold: https://example.org/test-target-scaffold/
+  linkml: https://w3id.org/linkml/
+default_prefix: scaffold
+default_range: string
+
+classes:
+
+  NamedThing:
+    description: >-
+      A generic grouping for any identifiable entity
+    slots:
+      - id
+      - label
+
+  That:
+    is_a: NamedThing
+    description: >-
+      That thing (alive, dead, undead, or fictional).
+
+slots:
+  id:
+    range: string
+  label:
+    range: string

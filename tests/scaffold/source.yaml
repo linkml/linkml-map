@@ -1,0 +1,28 @@
+id: https://example.org/test-source-scaffold
+name: source-scaffold
+description: Minimal source schema for LinkML-Map testing
+prefixes:
+  source_scaffold: https://example.org/test-source-scaffold/
+  linkml: https://w3id.org/linkml/
+default_prefix: source-scaffold
+default_range: string
+
+classes:
+
+  NamedThing:
+    description: >-
+      A generic grouping for any identifiable entity
+    slots:
+      - id
+      - name
+
+  This:
+    is_a: NamedThing
+    description: >-
+      This thing (alive, dead, undead, or fictional).
+
+slots:
+  id:
+    range: string
+  name:
+    range: string
