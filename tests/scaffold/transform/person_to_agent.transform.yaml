@@ -7,8 +7,8 @@ source_schema: https://example.org/test-source-scaffold
 target_schema: https://example.org/test-target-scaffold
 
 class_derivations:
-  That:
-    populated_from: This
+  Agent:
+    populated_from: Person
     slot_derivations:
       id:
       label:

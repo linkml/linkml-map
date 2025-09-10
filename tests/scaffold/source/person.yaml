@@ -16,7 +16,7 @@ classes:
       - id
       - name
 
-  This:
+  Person:
     is_a: NamedThing
     description: >-
       This thing (alive, dead, undead, or fictional).

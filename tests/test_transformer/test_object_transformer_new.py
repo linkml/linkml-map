@@ -7,14 +7,11 @@ import yaml
 from linkml_runtime import SchemaView
 
 from linkml_map.transformer.object_transformer import ObjectTransformer
-
-
-import pytest
 from tests.scaffold import make_scaffold
 
 @pytest.fixture
 def scaffold():
-    """Provides a fresh in-memory scaffold for every test."""
+    """Fresh scaffold per test."""
     return make_scaffold()
 
 
@@ -35,7 +32,7 @@ def inject_slot(schema_dict: dict, class_name: str, slot_name: str, slot_def: di
 def inject_enum(schema: dict, enum_name: str, values: list[str]) -> None:
     schema["enums"][enum_name] = { "permissible_values": {val: {} for val in values} }
 
-def test_constant_value_slot_derivation() -> None:
+def test_constant_value_slot_derivation_old() -> None:
     """
     Tests transforming using a constant value (via `value:` field).
     """
@@ -63,3 +60,26 @@ def test_constant_value_slot_derivation() -> None:
     expected = dict(TARGET_DATA)
     expected["study_name"] = "Framingham"
     assert target_dict == expected
+
+def test_constant_value_slot_derivation(scaffold):
+    # Add extra target slot
+    scaffold["target_schema"]["slots"]["study_name"] = {"range": "string"}
+    scaffold["target_schema"]["classes"]["Agent"]["slots"].append("study_name")
+
+    # Add constant value derivation
+    scaffold["transform_spec"]["class_derivations"]["Agent"]["slot_derivations"]["study_name"] = {
+        "value": "Framingham",
+        "range": "string"
+    }
+
+    # Update expected output
+    scaffold["expected"]["study_name"] = "Framingham"
+
+    obj_tr = ObjectTransformer(unrestricted_eval=True)
+    obj_tr.source_schemaview = SchemaView(scaffold["source_schema"])
+    obj_tr.target_schemaview = SchemaView(scaffold["target_schema"])
+    obj_tr.create_transformer_specification(scaffold["transform_spec"])
+
+    result = obj_tr.map_object(scaffold["input_data"], source_type="Person")
+    assert result == scaffold["expected"]
+

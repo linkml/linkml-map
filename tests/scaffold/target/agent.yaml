@@ -16,13 +16,16 @@ classes:
       - id
       - label
 
-  That:
+  Agent:
     is_a: NamedThing
     description: >-
       That thing (alive, dead, undead, or fictional).
+    slots:
 
 slots:
   id:
     range: string
   label:
+    range: string
+  test:
     range: string

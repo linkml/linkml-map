@@ -1,29 +1,33 @@
 import copy
+from importlib.resources import files
+from pathlib import Path
+import yaml
 
-# --- Minimal Transform Spec ---
-SCAFFOLD_TRANSFORM = {
-    "class_derivations": {}
+SOURCE = "source"
+TARGET = "target"
+TRANSFORM = "transform"
+DATA = "data"
+EXPECTED = "expected"
+
+SCAFFOLD_DIR = Path(__file__).parent.resolve()
+
+SOURCE_SCHEMA = SCAFFOLD_DIR / SOURCE / "person.yaml"
+TARGET_SCHEMA = SCAFFOLD_DIR / TARGET / "agent.yaml"
+TRANSFORM_SPEC = SCAFFOLD_DIR / TRANSFORM / "person_to_agent.transform.yaml"
+
+INPUT_DATA = SCAFFOLD_DIR / DATA / "Person-001.yaml"
+EXPECTED_DATA = SCAFFOLD_DIR / EXPECTED / "Person-001.transformed.yaml"
+
+FILE_PATHS = {
+    "source_schema": SOURCE_SCHEMA,
+    "target_schema": TARGET_SCHEMA,
+    "transform_spec": TRANSFORM_SPEC,
+    "input_data": INPUT_DATA,
+    "expected": EXPECTED_DATA,
 }
 
-# --- Minimal Example Data ---
-SOURCE_SCAFFOLD_DATA = {
-    "id": "P:001",
-    "name": "fred bloggs"
-}
-
-# --- Minimal Example Data ---
-TARGET_SCAFFOLD_DATA = {
-    "id": "P:001",
-    "label": "fred bloggs"
-}
-
+LOADED_DATA = {k: yaml.safe_load(p.read_text()) for k, p in FILE_PATHS.items()}
 
 def make_scaffold():
-    """Return a fresh scaffold copy for a single test."""
-    return {
-        "src_schema": copy.deepcopy(SOURCE_SCAFFOLD_SCHEMA),
-        "tgt_schema": copy.deepcopy(TARGET_SCAFFOLD_SCHEMA),
-        "transform_spec": copy.deepcopy(SCAFFOLD_TRANSFORM),
-        "person_data": copy.deepcopy(SOURCE_SCAFFOLD_DATA),
-        "expected": copy.deepcopy(TARGET_SCAFFOLD_DATA),
-    }
+    """Return a fresh deep copy for each test."""
+    return copy.deepcopy(LOADED_DATA)
