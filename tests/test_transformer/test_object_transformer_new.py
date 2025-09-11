@@ -1,72 +1,45 @@
 """Test the object transformer. -- New framework"""
-
-from typing import Any
-
 import pytest
-import yaml
-from linkml_runtime import SchemaView
+from linkml_runtime.linkml_model import SlotDefinition
 
 from linkml_map.transformer.object_transformer import ObjectTransformer
-from tests.scaffold import make_scaffold
+from tests.conftest import add_to_integration, setup_integration
+from tests.scaffold import new_scaffold
 
 @pytest.fixture
 def scaffold():
     """Fresh scaffold per test."""
-    return make_scaffold()
+    return new_scaffold()
 
-
-from tests import (
-    PERSONINFO_DATA,
-    PERSONINFO_SRC_SCHEMA,
-    PERSONINFO_TGT_DATA,
-    PERSONINFO_TGT_SCHEMA,
-    PERSONINFO_TR,
-)
-
-TARGET_DATA = yaml.safe_load(open(str(PERSONINFO_TGT_DATA)))
-
-def inject_slot(schema_dict: dict, class_name: str, slot_name: str, slot_def: dict):
-    schema_dict.setdefault("slots", {})[slot_name] = slot_def
-    schema_dict["classes"][class_name].setdefault("slots", []).append(slot_name)
-
-def inject_enum(schema: dict, enum_name: str, values: list[str]) -> None:
-    schema["enums"][enum_name] = { "permissible_values": {val: {} for val in values} }
-
-def test_constant_value_slot_derivation_old() -> None:
-    """
-    Tests transforming using a constant value (via `value:` field).
-    """
-    source_schema: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_SRC_SCHEMA)))
-    # No need to inject a source slot since `value:` doesn't need source data
-
-    target_schema: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TGT_SCHEMA)))
-    inject_slot(target_schema, "Agent", "study_name", {"range": "string"})
-
-    transform_spec: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TR)))
-    transform_spec.setdefault("class_derivations", {}).setdefault("Agent", {}) \
-                  .setdefault("slot_derivations", {})["study_name"] = {
-                      "value": "Framingham",
-                      "range": "string",
-                  }
+def run_transformer(scaffold):
+    """Helper function to run the object transformer with the given scaffold."""
+    source = scaffold["source_schema"]
+    target = scaffold["target_schema"]
 
     obj_tr = ObjectTransformer(unrestricted_eval=True)
-    obj_tr.source_schemaview = SchemaView(yaml.dump(source_schema))
-    obj_tr.target_schemaview = SchemaView(yaml.dump(target_schema))
-    obj_tr.create_transformer_specification(transform_spec)
+    obj_tr.source_schemaview = source
+    obj_tr.target_schemaview = target
+    obj_tr.create_transformer_specification(scaffold["transform_spec"])
 
-    person_dict: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_DATA)))
-    target_dict: dict[str, Any] = obj_tr.map_object(person_dict, source_type="Person")
+    return obj_tr.map_object(scaffold["input_data"], source_type="Person")
 
-    expected = dict(TARGET_DATA)
-    expected["study_name"] = "Framingham"
-    assert target_dict == expected
+def add_slot_to_class(scaffold, class_name, slot_name, slot_range):
+    """Helper function to add a slot to a class in the target schema."""
+    scaffold["target_schema"].schema.slots[slot_name] = SlotDefinition(name=slot_name, range=slot_range)
+    scaffold["target_schema"].schema.classes[class_name].slots.append(slot_name)
 
-def test_constant_value_slot_derivation(scaffold):
-    # Add extra target slot
-    scaffold["target_schema"]["slots"]["study_name"] = {"range": "string"}
-    scaffold["target_schema"]["classes"]["Agent"]["slots"].append("study_name")
+def test_basic_person_to_agent(scaffold):
+    """Ensure Person is transformed into Agent with expected slot mappings."""
 
-    # Add constant value derivation
+    result = run_transformer(scaffold)
+    assert result == scaffold["expected"]
+
+@add_to_integration
+def setup_value_slot_derivation(scaffold):
+    # Add study_name slot to target schema
+    add_slot_to_class(scaffold, "Agent", "study_name", "string")
+
+    # Add value slot_derivation
     scaffold["transform_spec"]["class_derivations"]["Agent"]["slot_derivations"]["study_name"] = {
         "value": "Framingham",
         "range": "string"
@@ -75,11 +48,14 @@ def test_constant_value_slot_derivation(scaffold):
     # Update expected output
     scaffold["expected"]["study_name"] = "Framingham"
 
-    obj_tr = ObjectTransformer(unrestricted_eval=True)
-    obj_tr.source_schemaview = SchemaView(scaffold["source_schema"])
-    obj_tr.target_schemaview = SchemaView(scaffold["target_schema"])
-    obj_tr.create_transformer_specification(scaffold["transform_spec"])
+def test_value_slot_derivation(scaffold):
+    setup_value_slot_derivation(scaffold)
 
-    result = obj_tr.map_object(scaffold["input_data"], source_type="Person")
+    result = run_transformer(scaffold)
     assert result == scaffold["expected"]
 
+def test_z_integration(scaffold):
+    setup_integration(scaffold)
+
+    result = run_transformer(scaffold)
+    assert result == scaffold["expected"]

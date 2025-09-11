@@ -1,5 +1,5 @@
 id: https://example.org/test-source-scaffold
-name: source-scaffold
+name: person
 description: Minimal source schema for LinkML-Map testing
 prefixes:
   source_scaffold: https://example.org/test-source-scaffold/

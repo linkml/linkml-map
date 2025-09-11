@@ -1,5 +1,5 @@
 id: https://example.org/test-target-scaffold
-name: target-scaffold
+name: agent
 description: Minimal target schema for LinkML-Map testing
 prefixes:
   scaffold: https://example.org/test-target-scaffold/
