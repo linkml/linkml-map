@@ -42,7 +42,6 @@ def setup_value_slot_derivation(scaffold):
     # Add value slot_derivation
     scaffold["transform_spec"]["class_derivations"]["Agent"]["slot_derivations"]["study_name"] = {
         "value": "Framingham",
-        "range": "string"
     }
 
     # Update expected output
