@@ -27,5 +27,3 @@ slots:
     range: string
   label:
     range: string
-  test:
-    range: string
