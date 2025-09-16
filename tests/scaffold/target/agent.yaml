@@ -1,15 +1,19 @@
-id: https://example.org/test-target-scaffold
+id: https://example.org/linkml/scaffold/agent
 name: agent
-description: Minimal target schema for LinkML-Map testing
+description: |-
+  Minimal agent target schema for LinkML-Map testing, based on Person from [schema.org](http://schema.org)
+license: https://creativecommons.org/publicdomain/zero/1.0/
 prefixes:
-  scaffold: https://example.org/test-target-scaffold/
+  agent: https://example.org/linkml/scaffold/agent/
   linkml: https://w3id.org/linkml/
-default_prefix: scaffold
+default_prefix: agent
 default_range: string
 
-classes:
+imports:
+  - linkml:types
 
-  NamedThing:
+classes:
+  Element:
     description: >-
       A generic grouping for any identifiable entity
     slots:
@@ -17,9 +21,9 @@ classes:
       - label
 
   Agent:
-    is_a: NamedThing
+    is_a: Element
     description: >-
-      That thing (alive, dead, undead, or fictional).
+      An agent (person, animal, digital, or fictional).
     slots:
 
 slots:
