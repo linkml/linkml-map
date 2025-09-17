@@ -28,6 +28,11 @@ def add_slot_to_class(scaffold, class_name, slot_name, slot_range):
     scaffold["target_schema"].schema.slots[slot_name] = SlotDefinition(name=slot_name, range=slot_range)
     scaffold["target_schema"].schema.classes[class_name].slots.append(slot_name)
 
+def add_attribute_to_class(scaffold, class_name, attribute_name, attribute_range):
+    """Helper function to add an attribute to a class in the target schema."""
+    attribute = SlotDefinition(name=attribute_name, range=attribute_range)
+    scaffold["target_schema"].schema.classes[class_name].attributes[attribute_name] = attribute
+
 def test_basic_person_to_agent(scaffold):
     """Ensure Person is transformed into Agent with expected slot mappings."""
 
@@ -41,14 +46,33 @@ def setup_value_slot_derivation(scaffold):
 
     # Add value slot_derivation
     scaffold["transform_spec"]["class_derivations"]["Agent"]["slot_derivations"]["study_name"] = {
+        "value": "Framingham Heart Study",
+    }
+
+    # Update expected output
+    scaffold["expected"]["study_name"] = "Framingham Heart Study"
+
+def test_value_slot_derivation(scaffold):
+    setup_value_slot_derivation(scaffold)
+
+    result = run_transformer(scaffold)
+    assert result == scaffold["expected"]
+
+@add_to_integration
+def setup_value_attribute_slot_derivation(scaffold):
+    # Add study_name slot to target schema
+    add_attribute_to_class(scaffold, "Agent", "location", "string")
+
+    # Add value slot_derivation
+    scaffold["transform_spec"]["class_derivations"]["Agent"]["slot_derivations"]["location"] = {
         "value": "Framingham",
     }
 
     # Update expected output
-    scaffold["expected"]["study_name"] = "Framingham"
+    scaffold["expected"]["location"] = "Framingham"
 
-def test_value_slot_derivation(scaffold):
-    setup_value_slot_derivation(scaffold)
+def test_value_attribute_slot_derivation(scaffold):
+    setup_value_attribute_slot_derivation(scaffold)
 
     result = run_transformer(scaffold)
     assert result == scaffold["expected"]
