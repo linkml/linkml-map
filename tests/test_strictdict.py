@@ -1,5 +1,5 @@
 import pytest
-from tests.scaffold import StrictDict
+from tests.conftest import StrictDict
 
 def test_strictdict_allows_same_value():
     d = StrictDict()
