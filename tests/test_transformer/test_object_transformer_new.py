@@ -42,6 +42,7 @@ def test_basic_person_to_agent(scaffold):
 
 @add_to_test_setup
 def setup_value_slot_derivation(scaffold):
+    """Derive slot from constant value."""
     add_slot_to_class(scaffold, "Agent", "study_name", "string")
 
     scaffold["transform_spec"]["class_derivations"]["Agent"]["slot_derivations"]["study_name"] = {
@@ -52,6 +53,7 @@ def setup_value_slot_derivation(scaffold):
 
 @add_to_test_setup
 def setup_value_attribute_slot_derivation(scaffold):
+    """Derive attribute from constant value."""
     add_attribute_to_class(scaffold, "Agent", "location", "string")
 
     scaffold["transform_spec"]["class_derivations"]["Agent"]["slot_derivations"]["location"] = {
@@ -63,7 +65,7 @@ def setup_value_attribute_slot_derivation(scaffold):
 @pytest.mark.parametrize(
     "setup_func",
     TEST_SETUP_FUNCTIONS,
-    ids=[f.__name__ for f in TEST_SETUP_FUNCTIONS],
+    ids=[f.__doc__ or f.__name__.removeprefix("setup_") for f in TEST_SETUP_FUNCTIONS],
 )
 def test_with_setup(scaffold, setup_func):
     """Apply a setup function, run transformer, and assert expected output."""
