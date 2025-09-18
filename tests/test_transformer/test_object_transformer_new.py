@@ -27,6 +27,12 @@ def add_attribute_to_class(scaffold, class_name, attribute_name, attribute_range
     attribute = SlotDefinition(name=attribute_name, range=attribute_range)
     scaffold["target_schema"].schema.classes[class_name].attributes[attribute_name] = attribute
 
+def add_slot_derivation_to_transform_spec(scaffold, class_name, slot_name, value):
+    """Helper function to add a slot derivation to the transform specification."""
+    scaffold["transform_spec"]["class_derivations"][class_name]["slot_derivations"][slot_name] = {
+        "value": value,
+    }
+
 def test_basic_person_to_agent(scaffold):
     """Ensure Person is transformed into Agent with expected slot mappings."""
 
@@ -43,22 +49,16 @@ def test_basic_person_to_agent(scaffold):
 @add_to_test_setup
 def setup_value_slot_derivation(scaffold):
     """Derive slot from constant value."""
-    add_slot_to_class(scaffold, "Agent", "study_name", "string")
-
-    scaffold["transform_spec"]["class_derivations"]["Agent"]["slot_derivations"]["study_name"] = {
-        "value": "Framingham Heart Study",
-    }
+    add_slot_to_class(scaffold, class_name="Agent", slot_name="study_name", slot_range="string")
+    add_slot_derivation_to_transform_spec(scaffold, class_name="Agent", slot_name="study_name", value="Framingham Heart Study")
 
     scaffold["expected"]["study_name"] = "Framingham Heart Study"
 
 @add_to_test_setup
 def setup_value_attribute_slot_derivation(scaffold):
     """Derive attribute from constant value."""
-    add_attribute_to_class(scaffold, "Agent", "location", "string")
-
-    scaffold["transform_spec"]["class_derivations"]["Agent"]["slot_derivations"]["location"] = {
-        "value": "Framingham",
-    }
+    add_attribute_to_class(scaffold, class_name="Agent", attribute_name="location", attribute_range="string")
+    add_slot_derivation_to_transform_spec(scaffold, class_name="Agent", slot_name="location", value="Framingham")
 
     scaffold["expected"]["location"] = "Framingham"
 
