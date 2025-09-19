@@ -12,12 +12,19 @@ class StrictDict(dict):
     """A dict that disallows overwriting with a different value."""
 
     def __setitem__(self, key, value):
+        """Set an item, disallowing overwrites with different values."""
         if key in self and self[key] != value:
             raise ValueError(
                 f"Duplicate assignment to expected key '{key}': "
                 f"existing={self[key]!r}, new={value!r}"
             )
         super().__setitem__(key, value)
+
+    def update(self, *args, **kwargs):
+        """Update the dictionary, disallowing overwrites with different values."""
+        other = dict(*args, **kwargs)
+        for key, value in other.items():
+            self[key] = value
 
 @pytest.fixture
 def scaffold():
