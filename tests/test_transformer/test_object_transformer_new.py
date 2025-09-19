@@ -1,6 +1,8 @@
 """Test the object transformer. -- New framework"""
 from linkml_runtime import SchemaView
-from linkml_runtime.linkml_model import ClassDefinition, SlotDefinition
+from linkml_runtime.linkml_model import ( 
+    ClassDefinition, EnumDefinition, Prefix, SlotDefinition, SubsetDefinition, TypeDefinition
+)
 import pytest
 import yaml
 
@@ -24,23 +26,43 @@ def apply_schema_patch(schemaview: SchemaView, yaml_str: str):
     patch = yaml.safe_load(yaml_str)
     schema = schemaview.schema
 
-    # Classes
+    for field in ["id", "name", "description", "default_prefix"]:
+        if field in patch:
+            setattr(schema, field, patch[field])
+
+    if "imports" in patch:
+        for imp in patch["imports"]:
+            if imp not in schema.imports:
+                schema.imports.append(imp)
+    
+    for pname, ppatch in patch.get("prefixes", {}).items():
+        schema.prefixes[pname] = Prefix(prefix_prefix=pname, prefix_reference=ppatch["prefix_reference"])
+
     for cname, cpatch in patch.get("classes", {}).items():
         if cname not in schema.classes:
-            schema.classes[cname] = ClassDefinition(name=cname, **{k: v for k, v in cpatch.items() if k != "slots"})
+            schema.classes[cname] = ClassDefinition(
+                name=cname, **{k: v for k, v in cpatch.items() if k != "slots"}
+            )
         existing = schema.classes[cname]
         for slot in cpatch.get("slots", []):
             if slot not in existing.slots:
                 existing.slots.append(slot)
 
-    # Slots
-    for sname, spatch in patch.get("slots", {}).items():
-        if sname not in schema.slots:
-            schema.slots[sname] = SlotDefinition(name=sname, **spatch)
-        else:
-            existing = schema.slots[sname]
-            for field, value in spatch.items():
-                setattr(existing, field, value)
+    simple_definitions = {
+        "slots": SlotDefinition,
+        "enums": EnumDefinition,
+        "types": TypeDefinition,
+        "subsets": SubsetDefinition,
+    }
+
+    for key, cls in simple_definitions.items():
+        for name, patch_data in patch.get(key, {}).items():
+            if name not in getattr(schema, key):
+                getattr(schema, key)[name] = cls(name=name, **patch_data)
+            else:
+                existing = getattr(schema, key)[name]
+                for field, value in patch_data.items():
+                    setattr(existing, field, value)
 
 def apply_transform_patch(transform: dict, yaml_str: str):
     """Merge a YAML fragment into the scaffold['transform_spec']."""
@@ -114,6 +136,7 @@ def setup_value_attribute_slot_derivation(scaffold):
             range: string
 """
     )
+    
     apply_transform_patch(scaffold["transform_spec"],
 """
     class_derivations:
@@ -130,12 +153,12 @@ def setup_value_attribute_slot_derivation(scaffold):
     TEST_SETUP_FUNCTIONS,
     ids=[f.__doc__ or f.__name__.removeprefix("setup_") for f in TEST_SETUP_FUNCTIONS],
 )
-def test_with_setup(scaffold, setup_func):
+def test_unit(scaffold, setup_func):
     """Apply a setup function, run transformer, and assert expected output."""
     setup_func(scaffold)
     result = run_transformer(scaffold)
     assert result == scaffold["expected"]
 
-def test_all_setup_integration(integration_scaffold):
+def test_integration(integration_scaffold):
     result = run_transformer(integration_scaffold)
     assert result == integration_scaffold["expected"]
