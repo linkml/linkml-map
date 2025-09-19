@@ -1,6 +1,8 @@
 """Test the object transformer. -- New framework"""
-from linkml_runtime.linkml_model import SlotDefinition
+from linkml_runtime import SchemaView
+from linkml_runtime.linkml_model import ClassDefinition, SlotDefinition
 import pytest
+import yaml
 
 from linkml_map.transformer.object_transformer import ObjectTransformer
 from tests.conftest import add_to_test_setup, TEST_SETUP_FUNCTIONS
@@ -17,21 +19,44 @@ def run_transformer(scaffold):
 
     return obj_tr.map_object(scaffold["input_data"], source_type="Person")
 
-def add_slot_to_class(scaffold, class_name, slot_name, slot_range):
-    """Helper function to add a slot to a class in the target schema."""
-    scaffold["target_schema"].schema.slots[slot_name] = SlotDefinition(name=slot_name, range=slot_range)
-    scaffold["target_schema"].schema.classes[class_name].slots.append(slot_name)
+def apply_schema_patch(schemaview: SchemaView, yaml_str: str):
+    """Patch a SchemaView.schema from a YAML fragment."""
+    patch = yaml.safe_load(yaml_str)
+    schema = schemaview.schema
 
-def add_attribute_to_class(scaffold, class_name, attribute_name, attribute_range):
-    """Helper function to add an attribute to a class in the target schema."""
-    attribute = SlotDefinition(name=attribute_name, range=attribute_range)
-    scaffold["target_schema"].schema.classes[class_name].attributes[attribute_name] = attribute
+    # Classes
+    for cname, cpatch in patch.get("classes", {}).items():
+        if cname not in schema.classes:
+            schema.classes[cname] = ClassDefinition(name=cname, **{k: v for k, v in cpatch.items() if k != "slots"})
+        existing = schema.classes[cname]
+        for slot in cpatch.get("slots", []):
+            if slot not in existing.slots:
+                existing.slots.append(slot)
 
-def add_slot_derivation_to_transform_spec(scaffold, class_name, slot_name, value):
-    """Helper function to add a slot derivation to the transform specification."""
-    scaffold["transform_spec"]["class_derivations"][class_name]["slot_derivations"][slot_name] = {
-        "value": value,
-    }
+    # Slots
+    for sname, spatch in patch.get("slots", {}).items():
+        if sname not in schema.slots:
+            schema.slots[sname] = SlotDefinition(name=sname, **spatch)
+        else:
+            existing = schema.slots[sname]
+            for field, value in spatch.items():
+                setattr(existing, field, value)
+
+def apply_transform_patch(transform: dict, yaml_str: str):
+    """Merge a YAML fragment into the scaffold['transform_spec']."""
+    patch = yaml.safe_load(yaml_str) or {}
+
+    def merge(d, p):
+        for k, v in p.items():
+            if isinstance(v, dict) and isinstance(d.get(k), dict):
+                merge(d[k], v)
+            elif isinstance(v, list) and isinstance(d.get(k), list):
+                d[k].extend(v)
+            else:
+                d[k] = v
+
+    merge(transform, patch)
+    return transform
 
 def test_basic_person_to_agent(scaffold):
     """Ensure Person is transformed into Agent with expected slot mappings."""
@@ -44,21 +69,59 @@ def test_basic_person_to_agent(scaffold):
 #
 # @add_to_test_setup
 # def setup_your_test_name(scaffold):
-#     # Add your test setup code modifying the scaffold here
+#     # Your test setup code modifying the scaffold here
+#     # apply_schema_patch(...) (source and target)
+#     # apply_transform_patch(...)
+#     # scaffold["expected"]...
 
 @add_to_test_setup
 def setup_value_slot_derivation(scaffold):
     """Derive slot from constant value."""
-    add_slot_to_class(scaffold, class_name="Agent", slot_name="study_name", slot_range="string")
-    add_slot_derivation_to_transform_spec(scaffold, class_name="Agent", slot_name="study_name", value="Framingham Heart Study")
+
+    apply_schema_patch(scaffold["target_schema"],
+"""
+    classes:
+      Agent:
+        slots:
+          - study_name
+    slots:
+      study_name:
+        range: string
+"""
+    )
+
+    apply_transform_patch(scaffold["transform_spec"],
+"""
+    class_derivations:
+      Agent:
+        slot_derivations:
+          study_name:
+            value: Framingham Heart Study
+"""
+    )
 
     scaffold["expected"]["study_name"] = "Framingham Heart Study"
 
 @add_to_test_setup
 def setup_value_attribute_slot_derivation(scaffold):
     """Derive attribute from constant value."""
-    add_attribute_to_class(scaffold, class_name="Agent", attribute_name="location", attribute_range="string")
-    add_slot_derivation_to_transform_spec(scaffold, class_name="Agent", slot_name="location", value="Framingham")
+    apply_schema_patch(scaffold["target_schema"],
+"""
+    classes:
+      Agent:
+        attributes:
+          location:
+            range: string
+"""
+    )
+    apply_transform_patch(scaffold["transform_spec"],
+"""
+    class_derivations:
+      Agent:
+        slot_derivations:
+          location:
+            value: Framingham
+""")
 
     scaffold["expected"]["location"] = "Framingham"
 
