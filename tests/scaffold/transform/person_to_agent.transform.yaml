@@ -1,0 +1,15 @@
+id: scaffold-mapping
+title: Minimal scaffold mapping
+prefixes:
+  src: https://example.org/test-source-scaffold/
+  tgt: https://example.org/test-target-scaffold/
+source_schema: https://example.org/test-source-scaffold
+target_schema: https://example.org/test-target-scaffold
+
+class_derivations:
+  Agent:
+    populated_from: Person
+    slot_derivations:
+      id:
+      label:
+        populated_from: name

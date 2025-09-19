@@ -1,0 +1,33 @@
+id: https://example.org/linkml/scaffold/person
+name: person
+description: |-
+  Minimal person schema for LinkML-Map testing, based on [schema.org](http://schema.org)
+license: https://creativecommons.org/publicdomain/zero/1.0/
+prefixes:
+  person: https://example.org/linkml/scaffold/person
+  linkml: https://w3id.org/linkml/
+default_prefix: person
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+  NamedThing:
+    description: >-
+      A generic grouping for any identifiable entity
+    slots:
+      - id
+      - name
+
+  Person:
+    is_a: NamedThing
+    description: >-
+      A person (alive, dead, undead, or fictional).
+
+slots:
+  id:
+    identifier: true
+    range: string
+  name:
+    range: string
