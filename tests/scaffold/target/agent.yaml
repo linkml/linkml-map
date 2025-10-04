@@ -1,0 +1,33 @@
+id: https://example.org/linkml/scaffold/agent
+name: agent
+description: |-
+  Minimal agent target schema for LinkML-Map testing, based on Person from [schema.org](http://schema.org)
+license: https://creativecommons.org/publicdomain/zero/1.0/
+prefixes:
+  agent: https://example.org/linkml/scaffold/agent/
+  linkml: https://w3id.org/linkml/
+default_prefix: agent
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+  Element:
+    description: >-
+      A generic grouping for any identifiable entity
+    slots:
+      - id
+      - label
+
+  Agent:
+    is_a: Element
+    description: >-
+      An agent (person, animal, digital, or fictional).
+    slots:
+
+slots:
+  id:
+    range: string
+  label:
+    range: string
