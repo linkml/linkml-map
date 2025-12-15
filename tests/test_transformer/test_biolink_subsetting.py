@@ -80,6 +80,10 @@ def test_biolink_subsetting_manual(
         target_schema_name="BiolinkProfile",
     )
 
+    # Remove non-linkml imports so derived schema is standalone
+    # (the subset doesn't use content from attributes.yaml)
+    target_schema_obj.imports = [i for i in target_schema_obj.imports if i.startswith("linkml:")]
+
     dump_output = str(tmp_path / "biolink-profile.yaml")
     yaml_dumper.dump(target_schema_obj, dump_output)
 
@@ -133,6 +137,9 @@ def test_biolink_subset_auto(biolink_schema: SchemaView, tmp_path: Path) -> None
 
     # ugly bit of hacking to demonstrate end-to-end functionality
     target_schema_obj.types = biolink_schema.all_types()
+
+    # Remove non-linkml imports so derived schema is standalone
+    target_schema_obj.imports = [i for i in target_schema_obj.imports if i.startswith("linkml:")]
 
     dump_output = str(tmp_path / "biolink-subset.yaml")
     yaml_dumper.dump(target_schema_obj, dump_output)
