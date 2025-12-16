@@ -54,9 +54,14 @@ def apply_schema_patch(schemaview: SchemaView, patch: dict[str, Any]) -> None:
             if slot not in existing.slots:
                 existing.slots.append(slot)
         for attr_name, attr_def in cpatch.get("attributes", {}).items():
-            existing.attributes[attr_name] = SlotDefinition(
-                name=attr_name, **(attr_def or {})
-            )
+            if attr_name not in existing.attributes:
+                existing.attributes[attr_name] = SlotDefinition(
+                    name=attr_name, **(attr_def or {})
+                )
+            else:
+                existing_attr = existing.attributes[attr_name]
+                for field, value in (attr_def or {}).items():
+                    setattr(existing_attr, field, value)
 
     simple_definitions = {
         "slots": SlotDefinition,

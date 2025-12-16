@@ -239,6 +239,7 @@ class ObjectTransformer(Transformer):
                 if "." in populated_from:
                     fk_slot_name, target_path = populated_from.split(".", 1)
                     fk_value = source_obj.get(fk_slot_name, None)
+                    target_class = None
 
                     if fk_value is not None and self.object_index:
                         fk_slot = sv.induced_slot(fk_slot_name, source_type)
@@ -275,7 +276,16 @@ class ObjectTransformer(Transformer):
                                 f"Call transformer.index(container_data) first."
                             )
 
-                    source_class_slot = sv.induced_slot(fk_slot_name, source_type)
+                    # Set source_class_slot to the final attribute in the FK chain
+                    # so type conversions use the correct range
+                    if target_class and target_class in sv.all_classes():
+                        final_attr = target_path.split(".")[-1]
+                        try:
+                            source_class_slot = sv.induced_slot(final_attr, target_class)
+                        except Exception:
+                            source_class_slot = None
+                    else:
+                        source_class_slot = None
                 else:
                     v = source_obj.get(populated_from, None)
                     source_class_slot = sv.induced_slot(populated_from, source_type)
