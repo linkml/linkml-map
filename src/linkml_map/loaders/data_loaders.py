@@ -220,7 +220,7 @@ class DataLoader:
         Searches for files with supported extensions in order of preference.
         """
         if not self.base_path.is_dir():
-            msg = f"Base path is not a directory: {self.base_path}"
+            msg = "Cannot search for files when loader is in single-file mode."
             raise ValueError(msg)
 
         # Search order: prefer explicit format, then TSV, CSV, YAML, JSON

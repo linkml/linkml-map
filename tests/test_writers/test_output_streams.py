@@ -3,7 +3,6 @@
 import json
 
 import pytest
-import yaml
 
 from linkml_map.writers import (
     OutputFormat,
@@ -52,7 +51,9 @@ class TestYamlStream:
         result = "".join(yaml_stream(sample_chunks))
         # Should contain YAML document separators
         assert "---" in result
-        assert "id:" in result or "id: P:001" in result
+        # Should contain actual data
+        assert "id: P:001" in result
+        assert "name: Alice" in result
 
     def test_with_key_name(self) -> None:
         chunks = iter([[{"id": "P:001", "name": "Alice"}]])
@@ -86,16 +87,20 @@ class TestJsonlStream:
         result = "".join(jsonl_stream(sample_chunks))
         lines = [line for line in result.strip().split("\n") if line]
         assert len(lines) == 3
-        # Each line should be valid JSON
+        # Each line should be independently valid JSON
         for line in lines:
             obj = json.loads(line)
             assert "id" in obj
+            assert "name" in obj
 
     def test_key_name_ignored(self) -> None:
-        chunks = iter([[{"id": "P:001"}]])
-        result = "".join(jsonl_stream(chunks, key_name="ignored"))
-        # key_name should be ignored for JSONL
-        obj = json.loads(result.strip())
+        chunks_with_key = iter([[{"id": "P:001"}]])
+        chunks_without_key = iter([[{"id": "P:001"}]])
+        result_with_key = "".join(jsonl_stream(chunks_with_key, key_name="ignored"))
+        result_without_key = "".join(jsonl_stream(chunks_without_key))
+        # key_name should have no effect on JSONL output
+        assert result_with_key == result_without_key
+        obj = json.loads(result_with_key.strip())
         assert obj["id"] == "P:001"
 
 
@@ -121,7 +126,8 @@ class TestTsvStream:
     def test_nested_objects_flattened(self, nested_chunks) -> None:
         result = "".join(tsv_stream(nested_chunks))
         # Nested keys should be flattened with __
-        assert "address__street" in result or "address__city" in result
+        assert "address__street" in result
+        assert "address__city" in result
 
 
 class TestCsvStream:
@@ -156,7 +162,8 @@ class TestTabularStreamWriter:
                 [{"id": "P:002", "name": "Bob", "email": "bob@example.com"}],
             ]
         )
-        result = "".join(writer.stream(chunks))
+        # Consume the stream to trigger header discovery
+        "".join(writer.stream(chunks))
         assert writer.headers_changed is True
         assert "email" in writer.get_final_headers()
 

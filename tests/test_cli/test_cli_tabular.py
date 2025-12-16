@@ -2,7 +2,6 @@
 
 import json
 from pathlib import Path
-from typing import Generator
 
 import pytest
 import yaml
@@ -118,7 +117,8 @@ class TestMapDataTsv:
         )
         assert result.exit_code == 0
         # Output should contain transformed data
-        assert "label: Alice" in result.stdout or "label: Bob" in result.stdout
+        assert "label: Alice" in result.stdout
+        assert "label: Bob" in result.stdout
 
     def test_tsv_input_jsonl_output(
         self,
