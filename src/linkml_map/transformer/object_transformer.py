@@ -234,11 +234,55 @@ class ObjectTransformer(Transformer):
                     aeval(slot_derivation.expr)
                     v = aeval.symtable["target"]
             elif slot_derivation.populated_from:
-                v = source_obj.get(slot_derivation.populated_from, None)
+                populated_from = slot_derivation.populated_from
+
+                if "." in populated_from:
+                    fk_slot_name, target_path = populated_from.split(".", 1)
+                    fk_value = source_obj.get(fk_slot_name, None)
+
+                    if fk_value is not None and self.object_index:
+                        fk_slot = sv.induced_slot(fk_slot_name, source_type)
+                        target_class = fk_slot.range
+
+                        if target_class and target_class in sv.all_classes():
+                            cache_key = (target_class, str(fk_value))
+                            referenced_obj = self.object_index._source_object_cache.get(cache_key)
+
+                            if referenced_obj:
+                                v = referenced_obj
+                                for attr in target_path.split("."):
+                                    if isinstance(v, dict):
+                                        v = v.get(attr)
+                                    elif v is not None:
+                                        v = getattr(v, attr, None)
+                                    if v is None:
+                                        break
+                            else:
+                                v = None
+                                logger.debug(
+                                    f"FK reference not found: {target_class}[{fk_value}] for {slot_derivation.name}"
+                                )
+                        else:
+                            v = None
+                            logger.warning(
+                                f"FK slot '{fk_slot_name}' range '{target_class}' is not a class in schema"
+                            )
+                    else:
+                        v = None
+                        if fk_value is not None and not self.object_index:
+                            logger.warning(
+                                f"Cross-class lookup requires object_index. "
+                                f"Call transformer.index(container_data) first."
+                            )
+
+                    source_class_slot = sv.induced_slot(fk_slot_name, source_type)
+                else:
+                    v = source_obj.get(populated_from, None)
+                    source_class_slot = sv.induced_slot(populated_from, source_type)
+
                 if slot_derivation.value_mappings and v is not None:
                     mapped = slot_derivation.value_mappings.get(str(v), None)
                     v = mapped.value if mapped is not None else None
-                source_class_slot = sv.induced_slot(slot_derivation.populated_from, source_type)
                 logger.debug(
                     f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {source_obj}"
                 )

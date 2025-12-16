@@ -24,12 +24,14 @@ def apply_schema_patch(schemaview: SchemaView, yaml_str: str):
     for cname, cpatch in patch.get("classes", {}).items():
         if cname not in schema.classes:
             schema.classes[cname] = ClassDefinition(
-                name=cname, **{k: v for k, v in cpatch.items() if k != "slots"}
+                name=cname, **{k: v for k, v in cpatch.items() if k not in ("slots", "attributes")}
             )
         existing = schema.classes[cname]
         for slot in cpatch.get("slots", []):
             if slot not in existing.slots:
                 existing.slots.append(slot)
+        for attr_name, attr_def in cpatch.get("attributes", {}).items():
+            existing.attributes[attr_name] = SlotDefinition(name=attr_name, **(attr_def or {}))
 
     simple_definitions = {
         "slots": SlotDefinition,

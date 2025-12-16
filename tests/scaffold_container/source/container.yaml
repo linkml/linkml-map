@@ -1,0 +1,47 @@
+id: https://example.org/linkml/scaffold/container
+name: container
+description: |-
+  Container schema for cross-class FK lookup testing.
+prefixes:
+  container: https://example.org/linkml/scaffold/container/
+  linkml: https://w3id.org/linkml/
+default_prefix: container
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+  Container:
+    tree_root: true
+    attributes:
+      persons:
+        range: Person
+        multivalued: true
+        inlined: true
+        inlined_as_list: true
+      organizations:
+        range: Organization
+        multivalued: true
+        inlined: true
+        inlined_as_list: true
+
+  Person:
+    attributes:
+      id:
+        identifier: true
+        range: string
+      name:
+        range: string
+      org_id:
+        range: Organization
+
+  Organization:
+    attributes:
+      id:
+        identifier: true
+        range: string
+      name:
+        range: string
+      city:
+        range: string
