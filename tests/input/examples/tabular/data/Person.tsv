@@ -1,0 +1,4 @@
+id	name	primary_email	age_in_years	gender
+P:001	fred bloggs	fred.bloggs@example.com	33	nonbinary man
+P:002	jane doe	jane.doe@example.com	28	cisgender woman
+P:003	bob smith	bob.smith@example.com	45	cisgender man

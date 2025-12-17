@@ -1,0 +1,14 @@
+id: person-to-agent-flat
+title: Person to Agent transformation (flat)
+class_derivations:
+  Agent:
+    populated_from: Person
+    slot_derivations:
+      id:
+      label:
+        populated_from: name
+      email:
+        populated_from: primary_email
+      age:
+        expr: "str({age_in_years}) + ' years'"
+      gender:
