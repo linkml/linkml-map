@@ -200,6 +200,60 @@ cd tests/input/examples/personinfo_basic
 linkml-map map-data -T transform/personinfo-to-agent.transform.yaml -s source/personinfo.yaml  data/Container-001.yaml
 ```
 
+#### Tabular Data Support (TSV/CSV)
+
+The `map-data` command supports tabular data files (TSV and CSV) as input, enabling transformations
+on large datasets with streaming output.
+
+**Single TSV/CSV file:**
+
+```bash
+linkml-map map-data \
+  -T transform.yaml \
+  -s source_schema.yaml \
+  --source-type Person \
+  people.tsv
+```
+
+**Directory of data files:**
+
+When transforming data from multiple source types, organize your data in a directory with files
+named after the source type (e.g., `Person.tsv`, `Organization.csv`):
+
+```bash
+linkml-map map-data \
+  -T transform.yaml \
+  -s source_schema.yaml \
+  -f jsonl \
+  -o output.jsonl \
+  ./data/
+```
+
+**Output formats:**
+
+The `-f/--output-format` option supports:
+- `yaml` - YAML format (default)
+- `json` - JSON array
+- `jsonl` - JSON Lines (one object per line)
+- `tsv` - Tab-separated values
+- `csv` - Comma-separated values
+
+Output format can also be inferred from the output file extension.
+
+**Streaming for large files:**
+
+For large datasets, use `--chunk-size` to control memory usage:
+
+```bash
+linkml-map map-data \
+  -T transform.yaml \
+  -s schema.yaml \
+  --source-type Person \
+  --chunk-size 1000 \
+  -f jsonl \
+  large_dataset.tsv
+```
+
 ### derive-schema
 
 ```

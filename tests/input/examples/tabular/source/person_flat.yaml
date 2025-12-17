@@ -1,0 +1,28 @@
+id: https://example.org/person_flat
+name: person_flat
+description: Simple flat person schema for tabular data testing
+prefixes:
+  linkml: https://w3id.org/linkml/
+  P: http://example.org/P/
+imports:
+  - linkml:types
+default_range: string
+
+classes:
+  Person:
+    attributes:
+      id:
+        identifier: true
+      name:
+      primary_email:
+      age_in_years:
+        range: integer
+      gender:
+
+enums:
+  GenderType:
+    permissible_values:
+      nonbinary man:
+      nonbinary woman:
+      cisgender man:
+      cisgender woman:
