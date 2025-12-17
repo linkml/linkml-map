@@ -23,6 +23,7 @@ from linkml_map.functions.unit_conversion import UnitSystem, convert_units
 from linkml_map.transformer.transformer import OBJECT_TYPE, Transformer
 from linkml_map.utils.dynamic_object import DynObj, dynamic_object
 from linkml_map.utils.eval_utils import eval_expr, eval_expr_with_mapping
+from linkml_map.utils.fk_utils import resolve_fk_path
 
 DICT_OBJ = dict[str, Any]
 
@@ -235,38 +236,28 @@ class ObjectTransformer(Transformer):
                     v = aeval.symtable["target"]
             elif slot_derivation.populated_from:
                 populated_from = slot_derivation.populated_from
+                fk_resolution = resolve_fk_path(sv, source_type, populated_from)
 
-                if "." in populated_from:
-                    fk_slot_name, target_path = populated_from.split(".", 1)
-                    fk_value = source_obj.get(fk_slot_name, None)
-                    target_class = None
+                if fk_resolution:
+                    fk_value = source_obj.get(fk_resolution.fk_slot_name)
 
                     if fk_value is not None and self.object_index:
-                        fk_slot = sv.induced_slot(fk_slot_name, source_type)
-                        target_class = fk_slot.range
+                        cache_key = (fk_resolution.target_class, str(fk_value))
+                        referenced_obj = self.object_index._source_object_cache.get(cache_key)
 
-                        if target_class and target_class in sv.all_classes():
-                            cache_key = (target_class, str(fk_value))
-                            referenced_obj = self.object_index._source_object_cache.get(cache_key)
-
-                            if referenced_obj:
-                                v = referenced_obj
-                                for attr in target_path.split("."):
-                                    if isinstance(v, dict):
-                                        v = v.get(attr)
-                                    elif v is not None:
-                                        v = getattr(v, attr, None)
-                                    if v is None:
-                                        break
-                            else:
-                                v = None
-                                logger.debug(
-                                    f"FK reference not found: {target_class}[{fk_value}] for {slot_derivation.name}"
-                                )
+                        if referenced_obj:
+                            v = referenced_obj
+                            for attr in fk_resolution.remaining_path.split("."):
+                                if isinstance(v, dict):
+                                    v = v.get(attr)
+                                elif v is not None:
+                                    v = getattr(v, attr, None)
+                                if v is None:
+                                    break
                         else:
                             v = None
-                            logger.warning(
-                                f"FK slot '{fk_slot_name}' range '{target_class}' is not a class in schema"
+                            logger.debug(
+                                f"FK reference not found for {slot_derivation.name}"
                             )
                     else:
                         v = None
@@ -276,16 +267,7 @@ class ObjectTransformer(Transformer):
                                 f"Call transformer.index(container_data) first."
                             )
 
-                    # Set source_class_slot to the final attribute in the FK chain
-                    # so type conversions use the correct range
-                    if target_class and target_class in sv.all_classes():
-                        final_attr = target_path.split(".")[-1]
-                        try:
-                            source_class_slot = sv.induced_slot(final_attr, target_class)
-                        except Exception:
-                            source_class_slot = None
-                    else:
-                        source_class_slot = None
+                    source_class_slot = fk_resolution.final_slot
                 else:
                     v = source_obj.get(populated_from, None)
                     source_class_slot = sv.induced_slot(populated_from, source_type)
