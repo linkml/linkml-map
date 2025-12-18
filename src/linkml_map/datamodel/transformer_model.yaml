@@ -89,6 +89,12 @@ classes:
         description: name of the schema that describes the source (input) objects
       target_schema:
         description: name of the schema that describes the target (output) objects
+      source_schema_patches:
+        range: Any
+        description: >-
+          Schema patches to apply to the source schema before transformation.
+          Useful for adding foreign key relationships to auto-generated schemas.
+          Uses LinkML schema YAML structure (classes, slots, attributes, etc.).
       class_derivations:
         description: >-
           Instructions on how to derive a set of classes in the target schema

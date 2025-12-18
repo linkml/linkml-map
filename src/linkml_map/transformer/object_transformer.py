@@ -23,6 +23,7 @@ from linkml_map.functions.unit_conversion import UnitSystem, convert_units
 from linkml_map.transformer.transformer import OBJECT_TYPE, Transformer
 from linkml_map.utils.dynamic_object import DynObj, dynamic_object
 from linkml_map.utils.eval_utils import eval_expr, eval_expr_with_mapping
+from linkml_map.utils.fk_utils import resolve_fk_path
 
 DICT_OBJ = dict[str, Any]
 
@@ -234,11 +235,46 @@ class ObjectTransformer(Transformer):
                     aeval(slot_derivation.expr)
                     v = aeval.symtable["target"]
             elif slot_derivation.populated_from:
-                v = source_obj.get(slot_derivation.populated_from, None)
+                populated_from = slot_derivation.populated_from
+                fk_resolution = resolve_fk_path(sv, source_type, populated_from)
+
+                if fk_resolution:
+                    fk_value = source_obj.get(fk_resolution.fk_slot_name)
+
+                    if fk_value is not None and self.object_index:
+                        cache_key = (fk_resolution.target_class, str(fk_value))
+                        referenced_obj = self.object_index._source_object_cache.get(cache_key)
+
+                        if referenced_obj:
+                            v = referenced_obj
+                            for attr in fk_resolution.remaining_path.split("."):
+                                if isinstance(v, dict):
+                                    v = v.get(attr)
+                                elif v is not None:
+                                    v = getattr(v, attr, None)
+                                if v is None:
+                                    break
+                        else:
+                            v = None
+                            logger.debug(
+                                f"FK reference not found for {slot_derivation.name}"
+                            )
+                    else:
+                        v = None
+                        if fk_value is not None and not self.object_index:
+                            logger.warning(
+                                f"Cross-class lookup requires object_index. "
+                                f"Call transformer.index(container_data) first."
+                            )
+
+                    source_class_slot = fk_resolution.final_slot
+                else:
+                    v = source_obj.get(populated_from, None)
+                    source_class_slot = sv.induced_slot(populated_from, source_type)
+
                 if slot_derivation.value_mappings and v is not None:
                     mapped = slot_derivation.value_mappings.get(str(v), None)
                     v = mapped.value if mapped is not None else None
-                source_class_slot = sv.induced_slot(slot_derivation.populated_from, source_type)
                 logger.debug(
                     f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {source_obj}"
                 )
