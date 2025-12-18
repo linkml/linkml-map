@@ -143,6 +143,13 @@ class ObjectTransformer(Transformer):
         else:
             self.object_index = ObjectIndex(source_obj, schemaview=self.source_schemaview)
 
+    # Developer Note:
+    # This method has grown large. When modifying it, consider extracting to
+    # private methods and adding tests using the scaffold-based testing pattern.
+    # See EXTRACT markers below for candidates.
+    #
+    # See: tests/README.md for testing guidance
+    # Tracking: https://github.com/linkml/linkml-map/issues/104
     def map_object(
         self,
         source_obj: OBJECT_TYPE,
@@ -159,6 +166,7 @@ class ObjectTransformer(Transformer):
         :return: transformed data, either as type target_type or a dictionary
         """
         sv = self.source_schemaview
+        # EXTRACT: _resolve_source_type(sv, source_obj) -> str
         if source_type is None and sv is None:
             # TODO: use smarter method
             source_type = next(iter(self.specification.class_derivations.values())).name
@@ -213,6 +221,7 @@ class ObjectTransformer(Transformer):
                     slot_derivation.range = "string"
             elif slot_derivation.unit_conversion:
                 v = self._perform_unit_conversion(slot_derivation, source_obj, sv, source_type)
+            # EXTRACT: _derive_from_expr(slot_derivation, source_obj, source_obj_typed, source_type, sv) -> Any
             elif slot_derivation.expr:
                 if bindings is None:
                     bindings = Bindings(
@@ -234,6 +243,7 @@ class ObjectTransformer(Transformer):
                     aeval = Interpreter(usersyms={"src": ctxt_obj, "target": None})
                     aeval(slot_derivation.expr)
                     v = aeval.symtable["target"]
+            # EXTRACT: _derive_from_populated_from(slot_derivation, source_obj, sv, source_type) -> tuple[Any, SlotDefinition]
             elif slot_derivation.populated_from:
                 populated_from = slot_derivation.populated_from
                 fk_resolution = resolve_fk_path(sv, source_type, populated_from)
@@ -295,6 +305,7 @@ class ObjectTransformer(Transformer):
                 logger.debug(
                     f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {source_obj}"
                 )
+            # EXTRACT: _derive_from_object_derivations(slot_derivation, source_obj, source_type, target_type) -> Any
             elif slot_derivation.object_derivations:
                 # We'll collect all derived objects here
                 derived_objs = []
@@ -323,6 +334,7 @@ class ObjectTransformer(Transformer):
             else:
                 source_class_slot = sv.induced_slot(slot_derivation.name, source_type)
                 v = source_obj.get(slot_derivation.name, None)
+            # EXTRACT: _post_process_slot_value(v, source_class_slot, slot_derivation, class_deriv) -> Any
             if source_class_slot and v is not None:
                 # slot is mapped and there is a value in the assignment
                 target_range = slot_derivation.range
