@@ -44,3 +44,12 @@ Best practice:
 * For state in engine-style OO classes, dataclasses is favored
 * Declarative principles are favored
 * Always use type hints, always document methods and classes
+* **Always add tests when implementing new features or fixing bugs.** Don't wait to be asked.
+* For transformation tests, use the scaffold-based testing pattern described in `tests/README.md`
+
+## Code Patterns
+
+When modifying `ObjectTransformer.map_object`, check for `# EXTRACT:` markers.
+If touching a marked section, extract it to a private method first and add a test
+in `tests/test_transformer/test_object_transformer_new.py` using `@add_to_test_setup`.
+See issue #104 for context.

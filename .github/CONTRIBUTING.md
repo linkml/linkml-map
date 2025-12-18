@@ -1,5 +1,9 @@
 # Contributing
 
+### Testing
+
+See `tests/README.md` for guidance on the scaffold-based testing pattern used in this project.
+
 ### Code Style
 
 This project uses [`black`](https://github.com/psf/black) to automatically
