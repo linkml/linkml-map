@@ -3,6 +3,7 @@
 from linkml_runtime import SchemaView
 
 from linkml_map.datamodel.transformer_model import TransformationSpecification
+from linkml_map.utils.fk_utils import resolve_fk_path
 
 
 def induce_missing_values(
@@ -36,10 +37,22 @@ def induce_missing_values(
                 # auto-populate range field
                 if cd.populated_from not in source_schemaview.all_classes():
                     continue
-                source_induced_slot = source_schemaview.induced_slot(
-                    sd.populated_from, cd.populated_from
+
+                populated_from_slot = sd.populated_from
+
+                fk_resolution = resolve_fk_path(
+                    source_schemaview, cd.populated_from, populated_from_slot
                 )
-                source_induced_slot_range = source_induced_slot.range
+                if fk_resolution:
+                    if not fk_resolution.final_slot:
+                        continue
+                    source_induced_slot_range = fk_resolution.final_slot.range
+                else:
+                    source_induced_slot = source_schemaview.induced_slot(
+                        populated_from_slot, cd.populated_from
+                    )
+                    source_induced_slot_range = source_induced_slot.range
+
                 for range_cd in specification.class_derivations.values():
                     if range_cd.populated_from == source_induced_slot_range:
                         sd.range = range_cd.name

@@ -1,0 +1,12 @@
+persons:
+  - id: P001
+    name: Alice
+    org_id: ORG001
+
+organizations:
+  - id: ORG001
+    name: Acme Corp
+    city: Springfield
+  - id: ORG002
+    name: Globex Inc
+    city: Shelbyville
