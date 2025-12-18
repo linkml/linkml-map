@@ -1,4 +1,4 @@
-name: "Claude Issue summarize Action"
+name: "Claude Issue Summarize Action"
 description: "Automatically Summarize GitHub issues using Claude Code"
 
 inputs:
@@ -32,7 +32,7 @@ runs:
       run: |
         mkdir -p /tmp/claude-prompts
         cat > /tmp/claude-prompts/claude-issue-summarize-prompt.txt << 'EOF'
-        You're an Summarization assistant for GitHub issues. Your task is to analyze the issue, look up related issues, and summarize the issue.
+        You're a Summarization assistant for GitHub issues. Your task is to analyze the issue, look up related issues, and summarize the issue.
 
         Remember that this repo is primarily a note-taking and memory device for Chris Mungall, so anything you can do to enhance and enrich that would be helpful.
 
@@ -46,7 +46,7 @@ runs:
 
         1. First, use your judgement to determine the course of action.
             - If the issue is an epic or has links to other issues, read those issues, and summarize them. Summarize their status etc. Given an overall summary.
-            - If the issue is an idea or a vague high level description, run with the idea, do deep research, give heloful suggestions with links to relevant papers etc.
+            - If the issue is an idea or a vague high level description, run with the idea, do deep research, give helpful suggestions with links to relevant papers etc.
             - If there are links in the issue to websites, database entities, etc, then look these up.
             - If there are links or references to papers, then looks these up and summarize (don't guess content - if you can't access the paper, then say "I can't access the paper")
             - Try using artl-mcp to get paper fulltext.

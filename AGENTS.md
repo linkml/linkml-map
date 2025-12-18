@@ -9,7 +9,8 @@ TODO: fill in extra description here
 This repo uses `uv` for managing dependencies. Never use commands like `pip` to add or manage dependencies.
 `uv run` is the best way to run things, unless you are using `justfile` or `makefile` target
 
-`mkdocs` is used for documentation.## This is a Python repository
+`mkdocs` is used for documentation.
+## This is a Python repository
 
 Layout:
 
@@ -21,7 +22,7 @@ Layout:
 Building and testing:
 
 * `just --list` to see all commands
-* `just test` performs unit tests, doctests, ruff/liniting
+* `just test` performs unit tests, doctests, ruff/linting
 * `just test-full` as above plus integration tests
 
 You can run the underlying commands (with `uv run ...`) but in general justfile targets should be favored.
