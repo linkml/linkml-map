@@ -1,25 +1,30 @@
 """Command line interface for linkml-map."""
 
 import logging
+import os
 import sys
-
-import click
-
-__all__ = [
-    "main",
-]
-
+from collections.abc import Iterator
+from contextlib import nullcontext
+from pathlib import Path
 from typing import Any, Optional, Union
 
+import click
 import yaml
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper
+from more_itertools import chunked
 
 from linkml_map.compiler.markdown_compiler import MarkdownCompiler
 from linkml_map.compiler.python_compiler import PythonCompiler
 from linkml_map.inference.inverter import TransformationSpecificationInverter
 from linkml_map.inference.schema_mapper import SchemaMapper
+from linkml_map.loaders import DataLoader
 from linkml_map.transformer.object_transformer import ObjectTransformer
+from linkml_map.writers import OutputFormat, get_stream_writer, rewrite_header_and_pad
+
+__all__ = [
+    "main",
+]
 
 # CLI options
 output_option = click.option("-o", "--output", help="Output file.")
@@ -53,12 +58,26 @@ def main(verbose: int, quiet: bool) -> None:
 @output_option
 @transformer_specification_option
 @schema_option
-@click.option("--source-type")
+@click.option("--source-type", help="Source type/class name for the input data.")
 @click.option(
     "--unrestricted-eval/--no-unrestricted-eval",
     default=False,
     show_default=True,
     help="Allow unrestricted eval of python expressions.",
+)
+@click.option(
+    "--output-format",
+    "-f",
+    type=click.Choice(["yaml", "json", "jsonl", "tsv", "csv"]),
+    default=None,
+    help="Output format. Defaults to yaml for single objects, or inferred from output file extension.",
+)
+@click.option(
+    "--chunk-size",
+    type=int,
+    default=1000,
+    show_default=True,
+    help="Number of records to process per chunk (for streaming output).",
 )
 @click.argument("input_data")
 def map_data(
@@ -67,26 +86,183 @@ def map_data(
     source_type: Optional[str],
     transformer_specification: str,
     output: Optional[str],
+    output_format: Optional[str],
+    chunk_size: int,
     **kwargs: dict[str, Any],
 ) -> None:
     """
     Map data from a source schema to a target schema using a transformation specification.
 
-    Example:
-        linkml-map map-data -T X-to-Y-tr.yaml -s X.yaml  X-data.yaml
+    INPUT_DATA can be:
+      - A single YAML/JSON file (original behavior)
+      - A single TSV/CSV file (each row is transformed)
+      - A directory containing TSV/CSV/YAML/JSON files (multi-file transform)
+
+    For directory input, each file should be named after the source type
+    (e.g., Person.tsv for Person instances).
+
+    Examples:
+        # Single YAML file (original behavior)
+        linkml-map map-data -T transform.yaml -s schema.yaml data.yaml
+
+        # Single TSV file
+        linkml-map map-data -T transform.yaml -s schema.yaml --source-type Person people.tsv
+
+        # Directory of TSV files with streaming output
+        linkml-map map-data -T transform.yaml -s schema.yaml -f jsonl -o output.jsonl ./data/
 
     """
     logger.info(
         f"Transforming {input_data} conforming to {schema} using {transformer_specification}"
     )
+
+    input_path = Path(input_data)
+
+    # Determine output format
+    if output_format is None:
+        if output:
+            # Infer from output file extension
+            ext = Path(output).suffix.lower()
+            format_map = {
+                ".yaml": "yaml",
+                ".yml": "yaml",
+                ".json": "json",
+                ".jsonl": "jsonl",
+                ".tsv": "tsv",
+                ".csv": "csv",
+            }
+            output_format = format_map.get(ext, "yaml")
+        else:
+            output_format = "yaml"
+
+    # Check if input is tabular or directory
+    is_tabular = input_path.suffix.lower() in (".tsv", ".csv")
+    is_directory = input_path.is_dir()
+
+    if is_tabular or is_directory:
+        # Use streaming transformation for tabular/directory input
+        _map_data_streaming(
+            input_path=input_path,
+            schema=schema,
+            source_type=source_type,
+            transformer_specification=transformer_specification,
+            output=output,
+            output_format=output_format,
+            chunk_size=chunk_size,
+            **kwargs,
+        )
+    else:
+        # Original single-object transformation
+        _map_data_single(
+            input_data=input_data,
+            schema=schema,
+            source_type=source_type,
+            transformer_specification=transformer_specification,
+            output=output,
+            output_format=output_format,
+            **kwargs,
+        )
+
+
+def _map_data_single(
+    input_data: str,
+    schema: str,
+    source_type: Optional[str],
+    transformer_specification: str,
+    output: Optional[str],
+    output_format: str,
+    **kwargs: dict[str, Any],
+) -> None:
+    """Original single-object transformation logic."""
     tr = ObjectTransformer(**kwargs)
     tr.source_schemaview = SchemaView(schema)
     tr.load_transformer_specification(transformer_specification)
+
+    # Load input data (YAML or JSON)
     with open(input_data) as file:
-        input_obj = yaml.safe_load(file)
+        content = file.read()
+        try:
+            input_obj = yaml.safe_load(content)
+        except yaml.YAMLError:
+            import json
+
+            input_obj = json.loads(content)
+
     tr.index(input_obj, source_type)
     tr_obj = tr.map_object(input_obj, source_type)
-    dump_output(tr_obj, "yaml", output)
+    dump_output(tr_obj, output_format, output)
+
+
+def _transform_iterator(
+    data_loader: DataLoader,
+    transformer: ObjectTransformer,
+    source_type: Optional[str],
+) -> Iterator[dict[str, Any]]:
+    """Iterate over data and yield transformed objects."""
+    for identifier, rows in data_loader.iter_sources():
+        # Use explicit source_type if provided, otherwise use identifier from filename
+        effective_type = source_type if source_type else identifier
+        logger.info(f"Processing {identifier} as {effective_type}")
+        for row in rows:
+            try:
+                mapped = transformer.map_object(row, source_type=effective_type)
+                yield mapped
+            except Exception as e:
+                logger.warning(f"Error transforming row from {identifier}: {e}")
+                raise
+
+
+def _map_data_streaming(
+    input_path: Path,
+    schema: str,
+    source_type: Optional[str],
+    transformer_specification: str,
+    output: Optional[str],
+    output_format: str,
+    chunk_size: int,
+    **kwargs: dict[str, Any],
+) -> None:
+    """Streaming transformation for tabular/directory input."""
+    # Initialize transformer
+    tr = ObjectTransformer(**kwargs)
+    tr.source_schemaview = SchemaView(schema)
+    tr.load_transformer_specification(transformer_specification)
+
+    # Initialize data loader
+    data_loader = DataLoader(input_path)
+
+    # Create transform iterator
+    transform_iter = _transform_iterator(data_loader, tr, source_type)
+
+    # Chunk the iterator for streaming
+    chunks = chunked(transform_iter, chunk_size)
+
+    # Get stream writer
+    try:
+        fmt = OutputFormat(output_format)
+    except ValueError:
+        msg = f"Unsupported output format: {output_format}"
+        raise click.ClickException(msg) from None
+
+    stream_writer = get_stream_writer(fmt)
+
+    # Write output using context manager
+    output_ctx = open(output, "w", encoding="utf-8") if output else nullcontext(sys.stdout)
+    with output_ctx as output_file:
+        for chunk_str in stream_writer(chunks):
+            output_file.write(chunk_str)
+
+    # Handle header rewrite for tabular output if needed
+    if output and hasattr(stream_writer, "headers"):
+        logger.info("Rewriting output with updated headers")
+        tmp_path = output + ".tmp"
+        with open(output) as src, open(tmp_path, "w", encoding="utf-8") as dst:
+            separator = "\t" if output_format == "tsv" else ","
+            for line in rewrite_header_and_pad(
+                iter(src), stream_writer.headers, separator, chunk_size
+            ):
+                dst.write(line)
+        os.replace(tmp_path, output)
 
 
 @main.command()
@@ -194,25 +370,54 @@ def dump_output(
     file_path: Optional[str] = None,
 ) -> None:
     """
-    Dump output as YAML to a file or stdout.
+    Dump output to a file or stdout.
 
     :param output_data: data to dump
     :type output_data: dict[str, Any] | list[Any] | str
-    :param output_format: format for dumped data, defaults to None
+    :param output_format: format for dumped data (yaml, json, jsonl, tsv, csv)
     :type output_format: Optional[str], optional
     :param file_path: path to an output file, defaults to None
     :type file_path: Optional[str], optional
     """
+    import json
+
+    from flatten_dict import flatten
+    from flatten_dict.reducers import make_reducer
+
     if output_data is None:
-        # this should already have been caught...
         msg = "No output to be printed"
         raise ValueError(msg)
 
     text_dump = output_data
     if output_format == "yaml":
         text_dump = yaml_dumper.dumps(output_data)
+    elif output_format == "json":
+        text_dump = json.dumps(output_data, indent=2, ensure_ascii=False)
+    elif output_format == "jsonl":
+        if isinstance(output_data, list):
+            text_dump = "\n".join(json.dumps(item, ensure_ascii=False) for item in output_data)
+        else:
+            text_dump = json.dumps(output_data, ensure_ascii=False)
+    elif output_format in ("tsv", "csv"):
+        separator = "\t" if output_format == "tsv" else ","
+        reducer = make_reducer("__")
+        if isinstance(output_data, list):
+            rows = [flatten(item, reducer=reducer) for item in output_data]
+        else:
+            rows = [flatten(output_data, reducer=reducer)]
+        if rows:
+            headers = list(rows[0].keys())
+            for row in rows[1:]:
+                for k in row:
+                    if k not in headers:
+                        headers.append(k)
+            lines = [separator.join(headers)]
+            for row in rows:
+                lines.append(separator.join(str(row.get(h, "")) for h in headers))
+            text_dump = "\n".join(lines) + "\n"
+        else:
+            text_dump = ""
     elif output_format:
-        # some other defined output format
         msg = f"Output format {output_format} is not supported"
         raise NotImplementedError(msg)
 

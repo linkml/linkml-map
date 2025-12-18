@@ -624,6 +624,18 @@ wheels = [
 ]
 
 [[package]]
+name = "flatten-dict"
+version = "0.4.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "six" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/89/c6/5fe21639369f2ea609c964e20870b5c6c98a134ef12af848a7776ddbabe3/flatten-dict-0.4.2.tar.gz", hash = "sha256:506a96b6e6f805b81ae46a0f9f31290beb5fa79ded9d80dbe1b7fa236ab43076", size = 10362, upload-time = "2021-08-08T09:56:51.455Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/43/f5/ee39c6e92acc742c052f137b47c210cd0a1b72dcd3f98495528bb4d27761/flatten_dict-0.4.2-py2.py3-none-any.whl", hash = "sha256:7e245b20c4c718981212210eec4284a330c9f713e632e98765560e05421e48ad", size = 9656, upload-time = "2021-08-08T09:56:54.313Z" },
+]
+
+[[package]]
 name = "flexcache"
 version = "0.3"
 source = { registry = "https://pypi.org/simple" }
@@ -1441,10 +1453,12 @@ dependencies = [
     { name = "curies" },
     { name = "deepdiff" },
     { name = "duckdb" },
+    { name = "flatten-dict" },
     { name = "graphviz" },
     { name = "jinja2" },
     { name = "lark" },
     { name = "linkml-runtime" },
+    { name = "more-itertools" },
     { name = "pint" },
     { name = "pydantic" },
     { name = "pyyaml" },
@@ -1473,10 +1487,12 @@ requires-dist = [
     { name = "curies" },
     { name = "deepdiff", specifier = ">=8.6.1" },
     { name = "duckdb", specifier = ">=0,<1" },
+    { name = "flatten-dict", specifier = ">=0.4.2" },
     { name = "graphviz", specifier = ">=0.20.3,<1.0.0" },
     { name = "jinja2", specifier = ">=3,<4" },
     { name = "lark", specifier = ">=1,<2" },
     { name = "linkml-runtime", specifier = ">=1.9.1" },
+    { name = "more-itertools", specifier = ">=10.0.0" },
     { name = "pint", specifier = ">=0,<1" },
     { name = "pydantic", specifier = ">=2.11.3" },
     { name = "pyyaml" },
@@ -1831,6 +1847,15 @@ dependencies = [
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/54/40/2f69d9858c06d3fd9232fe7ead0c828cc3d64783edb98476782a7f125977/mknotebooks-0.8.0-py3-none-any.whl", hash = "sha256:4a9b998260c09bcc311455a19a44cc395a30ee82dc1e86e3316dd09f2445ebd3", size = 13230, upload-time = "2023-08-07T10:01:06.289Z" },
+]
+
+[[package]]
+name = "more-itertools"
+version = "10.8.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ea/5d/38b681d3fce7a266dd9ab73c66959406d565b3e85f21d5e66e1181d93721/more_itertools-10.8.0.tar.gz", hash = "sha256:f638ddf8a1a0d134181275fb5d58b086ead7c6a72429ad725c67503f13ba30bd", size = 137431, upload-time = "2025-09-02T15:23:11.018Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a4/8e/469e5a4a2f5855992e425f3cb33804cc07bf18d48f2db061aec61ce50270/more_itertools-10.8.0-py3-none-any.whl", hash = "sha256:52d4362373dcf7c52546bc4af9a86ee7c4579df9a8dc268be0a2f949d376cc9b", size = 69667, upload-time = "2025-09-02T15:23:09.635Z" },
 ]
 
 [[package]]

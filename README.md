@@ -11,6 +11,7 @@ Features:
 
 - YAML-based lightweight syntax
 - Python library for executing mappings on data files
+- **Tabular data support (TSV/CSV) with streaming for large datasets**
 - Ability to compile to other frameworks (forthcoming)
 - Derivation of target (implicit) schemas, allowing easy customization of data models (*profiling*)
 - Simple YAML dictionaries for simple mappings
@@ -18,6 +19,7 @@ Features:
 - Use of subset of Python to specify complex mappings
 - Visualizations of mappings
 - Mappings are reversible (provided all expressions used are reversible)
+- Multiple output formats (YAML, JSON, JSONL, TSV, CSV)
 
 For full documentation see:
 
