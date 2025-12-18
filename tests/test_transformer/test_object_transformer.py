@@ -703,3 +703,130 @@ def test_perform_unit_conversion_raise_on_unit_mismatch(obj_tr: ObjectTransforme
 
     with pytest.raises(ValueError, match="Mismatch in source units"):
         obj_tr._perform_unit_conversion(slot_derivation, source_obj, obj_tr.source_schemaview, source_type="SomeType")
+
+
+def test_offset_basic():
+    """Test simple offset: baseline + offset_field * offset_value"""
+    sb_source = SchemaBuilder()
+    sb_source.add_slot("age", range="float")
+    sb_source.add_slot("days", range="integer")
+    sb_source.add_class("Person", slots=["age", "days"])
+    sb_source.add_defaults()
+    source_schema = sb_source.schema
+
+    sb_target = SchemaBuilder()
+    sb_target.add_slot("age_at_visit", range="float")
+    sb_target.add_class("Person", slots=["age_at_visit"])
+    sb_target.add_defaults()
+    target_schema = sb_target.schema
+
+    transform_spec = {
+        "class_derivations": {
+            "Person": {
+                "populated_from": "Person",
+                "slot_derivations": {
+                    "age_at_visit": {
+                        "populated_from": "age",
+                        "offset": {
+                            "offset_value": 1/365,
+                            "offset_field": "days"
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    src = {"age": 30, "days": 20}
+    transformer = ObjectTransformer(unrestricted_eval=True)
+    transformer.source_schemaview = SchemaView(source_schema)
+    transformer.target_schemaview = SchemaView(target_schema)
+    transformer.create_transformer_specification(transform_spec)
+
+    result = transformer.map_object(src, source_type="Person")
+    assert result["age_at_visit"] == pytest.approx(30.0548, rel=1e-3)
+
+
+def test_offset_reverse():
+    """Test reverse offset: baseline - offset_field * offset_value"""
+    sb_source = SchemaBuilder()
+    sb_source.add_slot("current_age", range="float")
+    sb_source.add_slot("days_since", range="integer")
+    sb_source.add_class("Measurement", slots=["current_age", "days_since"])
+    sb_source.add_defaults()
+    source_schema = sb_source.schema
+
+    sb_target = SchemaBuilder()
+    sb_target.add_slot("baseline_age", range="float")
+    sb_target.add_class("Study", slots=["baseline_age"])
+    sb_target.add_defaults()
+    target_schema = sb_target.schema
+
+    transform_spec = {
+        "class_derivations": {
+            "Study": {
+                "populated_from": "Measurement",
+                "slot_derivations": {
+                    "baseline_age": {
+                        "populated_from": "current_age",
+                        "offset": {
+                            "offset_value": 1/365,
+                            "offset_field": "days_since",
+                            "offset_reverse": True
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    src = {"current_age": 32, "days_since": 365}
+    transformer = ObjectTransformer(unrestricted_eval=True)
+    transformer.source_schemaview = SchemaView(source_schema)
+    transformer.target_schemaview = SchemaView(target_schema)
+    transformer.create_transformer_specification(transform_spec)
+
+    result = transformer.map_object(src, source_type="Measurement")
+    assert result["baseline_age"] == pytest.approx(31.0, rel=1e-6)
+
+
+def test_offset_missing_offset_field():
+    """Offset skipped if offset field missing"""
+    sb_source = SchemaBuilder()
+    sb_source.add_slot("age", range="float")
+    sb_source.add_slot("days", range="integer")
+    sb_source.add_class("Person", slots=["age", "days"])
+    sb_source.add_defaults()
+    source_schema = sb_source.schema
+
+    sb_target = SchemaBuilder()
+    sb_target.add_slot("age_at_visit", range="float")
+    sb_target.add_class("Person", slots=["age_at_visit"])
+    sb_target.add_defaults()
+    target_schema = sb_target.schema
+
+    transform_spec = {
+        "class_derivations": {
+            "Person": {
+                "populated_from": "Person",
+                "slot_derivations": {
+                    "age_at_visit": {
+                        "populated_from": "age",
+                        "offset": {
+                            "offset_value": 1/365,
+                            "offset_field": "days"
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    src = {"age": 30}  # days missing
+    transformer = ObjectTransformer(unrestricted_eval=True)
+    transformer.source_schemaview = SchemaView(source_schema)
+    transformer.target_schemaview = SchemaView(target_schema)
+    transformer.create_transformer_specification(transform_spec)
+
+    result = transformer.map_object(src, source_type="Person")
+    assert result["age_at_visit"] == 30

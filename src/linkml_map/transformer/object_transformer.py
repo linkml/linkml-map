@@ -239,9 +239,42 @@ class ObjectTransformer(Transformer):
                     mapped = slot_derivation.value_mappings.get(str(v), None)
                     v = mapped.value if mapped is not None else None
                 source_class_slot = sv.induced_slot(slot_derivation.populated_from, source_type)
+
+                # Apply offset if configured
+                if slot_derivation.offset and v is not None:
+                    off = slot_derivation.offset
+                    # Read offset field value from source object
+                    off_field_val = source_obj.get(off.offset_field, None)
+                    if off_field_val is not None:
+                        try:
+                            # Compute delta = offset_value * offset_field_value
+                            delta = off.offset_value * off_field_val
+                            # Apply offset (add or subtract based on offset_reverse)
+                            if off.offset_reverse:
+                                v = v - delta
+                            else:
+                                v = v + delta
+                            logger.debug(
+                                f"Offset calculation for '{slot_derivation.name}': "
+                                f"{source_obj.get(slot_derivation.populated_from)} "
+                                f"{'-' if off.offset_reverse else '+'} "
+                                f"({off.offset_value} * {off_field_val}) = {v}"
+                            )
+                        except (TypeError, ValueError) as e:
+                            raise TypeError(
+                                f"Cannot perform offset calculation for slot '{slot_derivation.name}': "
+                                f"values must be numeric (base={v}, offset_field={off_field_val})"
+                            ) from e
+                    else:
+                        logger.debug(
+                            f"Offset field '{off.offset_field}' not found in source object; "
+                            f"skipping offset calculation for '{slot_derivation.name}'"
+                        )
+
                 logger.debug(
                     f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {source_obj}"
                 )
+
             elif slot_derivation.sources:
                 vmap = {s: source_obj.get(s, None) for s in slot_derivation.sources}
                 vmap = {k: v for k, v in vmap.items() if v is not None}
