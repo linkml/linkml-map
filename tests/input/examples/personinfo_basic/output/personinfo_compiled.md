@@ -1,4 +1,4 @@
-# my mappings
+# PersonInfo to Agent example transformation
 
 ## Class Mappings
 

@@ -64,3 +64,42 @@ def test_patch_top_level_fields(empty_schemaview):
     assert empty_schemaview.schema.name == "PatchedSchema"
     assert empty_schemaview.schema.description == "Patched schema for testing"
     assert empty_schemaview.schema.default_prefix == "ex"
+
+
+def test_add_class_with_attributes(empty_schemaview):
+    apply_schema_patch(empty_schemaview, """
+    classes:
+      Person:
+        attributes:
+          name:
+            range: string
+          age:
+            range: integer
+    """)
+    assert "Person" in empty_schemaview.schema.classes
+    person = empty_schemaview.schema.classes["Person"]
+    assert "name" in person.attributes
+    assert person.attributes["name"].range == "string"
+    assert "age" in person.attributes
+    assert person.attributes["age"].range == "integer"
+
+
+def test_add_attributes_to_existing_class(empty_schemaview):
+    apply_schema_patch(empty_schemaview, """
+    classes:
+      Person:
+        attributes:
+          name:
+            range: string
+    """)
+    apply_schema_patch(empty_schemaview, """
+    classes:
+      Person:
+        attributes:
+          org_id:
+            range: Organization
+    """)
+    person = empty_schemaview.schema.classes["Person"]
+    assert "name" in person.attributes
+    assert "org_id" in person.attributes
+    assert person.attributes["org_id"].range == "Organization"

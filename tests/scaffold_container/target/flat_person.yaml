@@ -1,0 +1,21 @@
+id: https://example.org/linkml/scaffold/flat_person
+name: flat_person
+description: |-
+  Minimal target schema for container-based testing.
+prefixes:
+  flat_person: https://example.org/linkml/scaffold/flat_person/
+  linkml: https://w3id.org/linkml/
+default_prefix: flat_person
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+  FlatPerson:
+    attributes:
+      id:
+        identifier: true
+        range: string
+      name:
+        range: string

@@ -235,7 +235,7 @@ def test_dump_output(
 @pytest.mark.parametrize(
     ("param", "value", "error", "message"),
     [
-        ("output_format", "json", NotImplementedError, "Output format json is not supported"),
+        ("output_format", "xml", NotImplementedError, "Output format xml is not supported"),
         ("output_data", None, ValueError, "No output to be printed"),
         ("file_path", "path/to/a/dir", FileNotFoundError, "No such file or directory"),
     ],
@@ -248,3 +248,31 @@ def test_dump_output_fail(param: str, value: Optional[str], error: Exception, me
     test_params = {**default_params, param: value}
     with pytest.raises(error, match=message):
         dump_output(**test_params)
+
+
+@pytest.mark.parametrize("output_format", ["json", "jsonl", "tsv", "csv"])
+def test_dump_output_supported_formats(
+    capsys: Generator[pytest.CaptureFixture, None, None],
+    output_format: str,
+) -> None:
+    """Test that supported output formats (json, jsonl, tsv, csv) work correctly."""
+    test_data = {"name": "test", "value": 123}
+    dump_output(test_data, output_format, None)
+    captured = capsys.readouterr()
+    assert captured.err == ""
+    assert len(captured.out) > 0
+
+    # Basic format-specific checks
+    if output_format == "json":
+        assert "{" in captured.out
+        assert '"name"' in captured.out
+    elif output_format == "jsonl":
+        # JSONL: single object should be a single line of JSON
+        lines = captured.out.strip().split("\n")
+        assert len(lines) == 1
+        # Verify it's valid JSON
+        import json
+        json.loads(lines[0])
+    elif output_format in ("tsv", "csv"):
+        assert "name" in captured.out
+        assert "value" in captured.out

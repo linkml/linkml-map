@@ -151,6 +151,54 @@ Use cases include:
 - Specifying mappings between different serializations of a model (e.g. OO to Relational)
 - Mapping between normalized/non-redundant forms and denormalized/query-optimized forms
 
+## Working with Auto-Generated Schemas
+
+When working with schemas auto-generated from tabular data (e.g., via [schema-automator](https://github.com/linkml/schema-automator)),
+foreign key relationships may not be defined. The `source_schema_patches` feature allows you to augment the source schema
+with additional type information needed for cross-table lookups.
+
+### Cross-Class Slot Lookups
+
+Use dot notation in `populated_from` to traverse foreign key relationships:
+
+```yaml
+class_derivations:
+  FlatPerson:
+    populated_from: Person
+    slot_derivations:
+      id:
+      name:
+      org_name:
+        populated_from: org_id.name  # Get 'name' from the Organization referenced by org_id
+```
+
+This requires:
+1. The source schema defines `org_id` with `range: Organization`
+2. The transformer has an `ObjectIndex` created via `transformer.index(container_data, "Container")`
+
+### Schema Patches for Auto-Generated Schemas
+
+If your source schema doesn't define FK relationships (common with auto-generated schemas),
+use `source_schema_patches` to add them:
+
+```yaml
+source_schema_patches:
+  classes:
+    Person:
+      attributes:
+        org_id:
+          range: Organization  # Add FK relationship
+
+class_derivations:
+  FlatPerson:
+    populated_from: Person
+    slot_derivations:
+      org_name:
+        populated_from: org_id.name  # Now works with the patched schema
+```
+
+The patches use standard LinkML schema YAML structure and are applied before transformation runs.
+This keeps your auto-generated schemas reproducible while adding semantic information discovered during transform design.
 
 ## Data Model
 
@@ -198,6 +246,60 @@ through to a complex mappings.
 ```
 cd tests/input/examples/personinfo_basic
 linkml-map map-data -T transform/personinfo-to-agent.transform.yaml -s source/personinfo.yaml  data/Container-001.yaml
+```
+
+#### Tabular Data Support (TSV/CSV)
+
+The `map-data` command supports tabular data files (TSV and CSV) as input, enabling transformations
+on large datasets with streaming output.
+
+**Single TSV/CSV file:**
+
+```bash
+linkml-map map-data \
+  -T transform.yaml \
+  -s source_schema.yaml \
+  --source-type Person \
+  people.tsv
+```
+
+**Directory of data files:**
+
+When transforming data from multiple source types, organize your data in a directory with files
+named after the source type (e.g., `Person.tsv`, `Organization.csv`):
+
+```bash
+linkml-map map-data \
+  -T transform.yaml \
+  -s source_schema.yaml \
+  -f jsonl \
+  -o output.jsonl \
+  ./data/
+```
+
+**Output formats:**
+
+The `-f/--output-format` option supports:
+- `yaml` - YAML format (default)
+- `json` - JSON array
+- `jsonl` - JSON Lines (one object per line)
+- `tsv` - Tab-separated values
+- `csv` - Comma-separated values
+
+Output format can also be inferred from the output file extension.
+
+**Streaming for large files:**
+
+For large datasets, use `--chunk-size` to control memory usage:
+
+```bash
+linkml-map map-data \
+  -T transform.yaml \
+  -s schema.yaml \
+  --source-type Person \
+  --chunk-size 1000 \
+  -f jsonl \
+  large_dataset.tsv
 ```
 
 ### derive-schema
