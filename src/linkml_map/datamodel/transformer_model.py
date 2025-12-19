@@ -98,7 +98,9 @@ linkml_meta = LinkMLMeta({'default_prefix': 'linkmlmap',
                   'schema': {'prefix_prefix': 'schema',
                              'prefix_reference': 'http://schema.org/'},
                   'sh': {'prefix_prefix': 'sh',
-                         'prefix_reference': 'http://www.w3.org/ns/shacl#'}},
+                         'prefix_reference': 'http://www.w3.org/ns/shacl#'},
+                  'sssom': {'prefix_prefix': 'sssom',
+                            'prefix_reference': 'https://w3id.org/sssom/'}},
      'source_file': 'src/linkml_map/datamodel/transformer_model.yaml',
      'title': 'LinkML Map Data Model',
      'types': {'ClassReference': {'from_schema': 'https://w3id.org/linkml/transformer',
@@ -176,6 +178,15 @@ class TransformationSpecification(SpecificationComponent):
     title: Optional[str] = Field(default=None, description="""human readable title for this transformation specification""", json_schema_extra = { "linkml_meta": {'alias': 'title',
          'domain_of': ['TransformationSpecification'],
          'slot_uri': 'dcterms:title'} })
+    publication_date: Optional[date] = Field(default=None, description="""date of publication of this transformation specification""", json_schema_extra = { "linkml_meta": {'alias': 'publication_date',
+         'domain_of': ['TransformationSpecification'],
+         'slot_uri': 'dcterms:issued'} })
+    license: Optional[str] = Field(default=None, description="""license under which this transformation specification is published""", json_schema_extra = { "linkml_meta": {'alias': 'license',
+         'domain_of': ['TransformationSpecification'],
+         'slot_uri': 'dcterms:license'} })
+    version: Optional[str] = Field(default=None, description="""version of this transformation specification""", json_schema_extra = { "linkml_meta": {'alias': 'version',
+         'domain_of': ['TransformationSpecification'],
+         'slot_uri': 'dcterms:version'} })
     prefixes: Optional[Dict[str, KeyVal]] = Field(default_factory=dict, description="""maps prefixes to URL expansions""", json_schema_extra = { "linkml_meta": {'alias': 'prefixes',
          'domain_of': ['TransformationSpecification'],
          'slot_uri': 'sh:declare'} })
@@ -183,6 +194,16 @@ class TransformationSpecification(SpecificationComponent):
          'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     source_schema: Optional[str] = Field(default=None, description="""name of the schema that describes the source (input) objects""", json_schema_extra = { "linkml_meta": {'alias': 'source_schema', 'domain_of': ['TransformationSpecification']} })
     target_schema: Optional[str] = Field(default=None, description="""name of the schema that describes the target (output) objects""", json_schema_extra = { "linkml_meta": {'alias': 'target_schema', 'domain_of': ['TransformationSpecification']} })
+    source_schema_patches: Optional[Any] = Field(default=None, description="""Schema patches to apply to the source schema before transformation. Useful for adding foreign key relationships to auto-generated schemas. Uses LinkML schema YAML structure (classes, slots, attributes, etc.).""", json_schema_extra = { "linkml_meta": {'alias': 'source_schema_patches', 'domain_of': ['TransformationSpecification']} })
+    creator_id: Optional[List[str]] = Field(default_factory=list, description="""A list of creators of this transformation specification""", json_schema_extra = { "linkml_meta": {'alias': 'creator_id',
+         'domain_of': ['TransformationSpecification'],
+         'slot_uri': 'sssom:creator_id'} })
+    author_id: Optional[List[str]] = Field(default_factory=list, description="""A list of authors of this transformation specification""", json_schema_extra = { "linkml_meta": {'alias': 'author_id',
+         'domain_of': ['TransformationSpecification'],
+         'slot_uri': 'sssom:author_id'} })
+    mapping_method: Optional[str] = Field(default=None, description="""The method used to create this mapping, e.g. manual curation, automated mapping, etc.""", json_schema_extra = { "linkml_meta": {'alias': 'mapping_method',
+         'domain_of': ['TransformationSpecification'],
+         'slot_uri': 'sssom:mapping_justification'} })
     class_derivations: Optional[Dict[str, ClassDerivation]] = Field(default_factory=dict, description="""Instructions on how to derive a set of classes in the target schema from classes in the source schema.""", json_schema_extra = { "linkml_meta": {'alias': 'class_derivations',
          'domain_of': ['TransformationSpecification', 'ObjectDerivation']} })
     enum_derivations: Optional[Dict[str, EnumDerivation]] = Field(default_factory=dict, description="""Instructions on how to derive a set of enums in the target schema""", json_schema_extra = { "linkml_meta": {'alias': 'enum_derivations', 'domain_of': ['TransformationSpecification']} })

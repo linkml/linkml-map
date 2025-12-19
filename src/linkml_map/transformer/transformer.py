@@ -25,6 +25,7 @@ from linkml_map.datamodel.transformer_model import (
     TransformationSpecification,
 )
 from linkml_map.inference.inference import induce_missing_values
+from linkml_map.utils.schema_patch import apply_schema_patch
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +54,9 @@ class Transformer(ABC):
 
     _derived_specification: TransformationSpecification = None
     """A specification with inferred missing values."""
+
+    _source_schema_patched: bool = field(default=False)
+    """Flag to track if source schema patches have been applied."""
 
     target_schemaview: Optional[SchemaView] = None
     """A view over the schema describing the output/target object."""
@@ -152,11 +156,23 @@ class Transformer(ABC):
         obj = self.normalize_transform_spec(obj, normalizer)
         self.specification = TransformationSpecification(**obj)
 
+    def _apply_source_schema_patches(self) -> None:
+        """Apply source_schema_patches from specification to source_schemaview."""
+        if self._source_schema_patched:
+            return
+        if self.specification and self.source_schemaview:
+            patches = self.specification.source_schema_patches
+            if patches:
+                apply_schema_patch(self.source_schemaview, patches)
+                self.source_schemaview.induced_slot.cache_clear()
+        self._source_schema_patched = True
+
     @property
     def derived_specification(self) -> Optional[TransformationSpecification]:
         if self._derived_specification is None:
             if self.specification is None:
                 return None
+            self._apply_source_schema_patches()
             self._derived_specification = deepcopy(self.specification)
             induce_missing_values(self._derived_specification, self.source_schemaview)
         return self._derived_specification

@@ -76,11 +76,6 @@ classes:
       title:
         description: human readable title for this transformation specification
         slot_uri: dcterms:title
-      description:
-        description: >-
-          A description of the transformation specification, including its purpose,
-          how it should be used, and any other relevant information.
-        slot_uri: dcterms:description
       publication_date:
         description: date of publication of this transformation specification
         range: date
@@ -107,6 +102,12 @@ classes:
         description: name of the schema that describes the source (input) objects
       target_schema:
         description: name of the schema that describes the target (output) objects
+      source_schema_patches:
+        range: Any
+        description: >-
+          Schema patches to apply to the source schema before transformation.
+          Useful for adding foreign key relationships to auto-generated schemas.
+          Uses LinkML schema YAML structure (classes, slots, attributes, etc.).
       creator_id:
         description: A list of creators of this transformation specification
         range: uriorcurie
