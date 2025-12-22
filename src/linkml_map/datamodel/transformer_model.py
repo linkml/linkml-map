@@ -173,7 +173,7 @@ class TransformationSpecification(SpecificationComponent):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/linkml/transformer', 'tree_root': True})
 
     id: Optional[str] = Field(default=None, description="""Unique identifier for this transformation specification""", json_schema_extra = { "linkml_meta": {'alias': 'id',
-         'domain_of': ['TransformationSpecification'],
+         'domain_of': ['TransformationSpecification', 'Contributor'],
          'slot_uri': 'schema:identifier'} })
     title: Optional[str] = Field(default=None, description="""human readable title for this transformation specification""", json_schema_extra = { "linkml_meta": {'alias': 'title',
          'domain_of': ['TransformationSpecification'],
@@ -195,12 +195,12 @@ class TransformationSpecification(SpecificationComponent):
     source_schema: Optional[str] = Field(default=None, description="""name of the schema that describes the source (input) objects""", json_schema_extra = { "linkml_meta": {'alias': 'source_schema', 'domain_of': ['TransformationSpecification']} })
     target_schema: Optional[str] = Field(default=None, description="""name of the schema that describes the target (output) objects""", json_schema_extra = { "linkml_meta": {'alias': 'target_schema', 'domain_of': ['TransformationSpecification']} })
     source_schema_patches: Optional[Any] = Field(default=None, description="""Schema patches to apply to the source schema before transformation. Useful for adding foreign key relationships to auto-generated schemas. Uses LinkML schema YAML structure (classes, slots, attributes, etc.).""", json_schema_extra = { "linkml_meta": {'alias': 'source_schema_patches', 'domain_of': ['TransformationSpecification']} })
-    creator_id: Optional[List[str]] = Field(default_factory=list, description="""A list of creators of this transformation specification""", json_schema_extra = { "linkml_meta": {'alias': 'creator_id',
+    creator: Optional[List[CreatorContributor]] = Field(default_factory=list, description="""A list of creators of this transformation specification""", json_schema_extra = { "linkml_meta": {'alias': 'creator',
          'domain_of': ['TransformationSpecification'],
-         'slot_uri': 'sssom:creator_id'} })
-    author_id: Optional[List[str]] = Field(default_factory=list, description="""A list of authors of this transformation specification""", json_schema_extra = { "linkml_meta": {'alias': 'author_id',
+         'slot_uri': 'dcterms:creator'} })
+    author: Optional[List[AuthorContributor]] = Field(default_factory=list, description="""A list of authors of this transformation specification""", json_schema_extra = { "linkml_meta": {'alias': 'author',
          'domain_of': ['TransformationSpecification'],
-         'slot_uri': 'sssom:author_id'} })
+         'slot_uri': 'dcterms:contributor'} })
     mapping_method: Optional[str] = Field(default=None, description="""The method used to create this mapping, e.g. manual curation, automated mapping, etc.""", json_schema_extra = { "linkml_meta": {'alias': 'mapping_method',
          'domain_of': ['TransformationSpecification'],
          'slot_uri': 'sssom:mapping_justification'} })
@@ -229,7 +229,8 @@ class ElementDerivation(SpecificationComponent):
                        'ObjectDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
-                       'PermissibleValueDerivation']} })
+                       'PermissibleValueDerivation',
+                       'Contributor']} })
     copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives',
          'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     overrides: Optional[Any] = Field(default=None, description="""overrides source schema slots""", json_schema_extra = { "linkml_meta": {'alias': 'overrides', 'domain_of': ['ElementDerivation']} })
@@ -280,7 +281,8 @@ class ClassDerivation(ElementDerivation):
                        'ObjectDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
-                       'PermissibleValueDerivation']} })
+                       'PermissibleValueDerivation',
+                       'Contributor']} })
     copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives',
          'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     overrides: Optional[Any] = Field(default=None, description="""overrides source schema slots""", json_schema_extra = { "linkml_meta": {'alias': 'overrides', 'domain_of': ['ElementDerivation']} })
@@ -313,7 +315,8 @@ class ObjectDerivation(ElementDerivation):
                        'ObjectDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
-                       'PermissibleValueDerivation']} })
+                       'PermissibleValueDerivation',
+                       'Contributor']} })
     class_derivations: Optional[Dict[str, ClassDerivation]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'alias': 'class_derivations',
          'domain_of': ['TransformationSpecification', 'ObjectDerivation']} })
     copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives',
@@ -358,7 +361,8 @@ class SlotDerivation(ElementDerivation):
                        'ObjectDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
-                       'PermissibleValueDerivation']} })
+                       'PermissibleValueDerivation',
+                       'Contributor']} })
     populated_from: Optional[str] = Field(default=None, description="""Source slot name""", json_schema_extra = { "linkml_meta": {'alias': 'populated_from',
          'domain_of': ['ClassDerivation',
                        'SlotDerivation',
@@ -423,7 +427,8 @@ class EnumDerivation(ElementDerivation):
                        'ObjectDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
-                       'PermissibleValueDerivation']} })
+                       'PermissibleValueDerivation',
+                       'Contributor']} })
     populated_from: Optional[str] = Field(default=None, description="""Source enum name""", json_schema_extra = { "linkml_meta": {'alias': 'populated_from',
          'domain_of': ['ClassDerivation',
                        'SlotDerivation',
@@ -477,7 +482,8 @@ class PermissibleValueDerivation(ElementDerivation):
                        'ObjectDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
-                       'PermissibleValueDerivation']} })
+                       'PermissibleValueDerivation',
+                       'Contributor']} })
     expr: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'expr',
          'domain_of': ['SlotDerivation',
                        'EnumDerivation',
@@ -525,7 +531,8 @@ class PrefixDerivation(ElementDerivation):
                        'ObjectDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
-                       'PermissibleValueDerivation']} })
+                       'PermissibleValueDerivation',
+                       'Contributor']} })
     copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives',
          'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     overrides: Optional[Any] = Field(default=None, description="""overrides source schema slots""", json_schema_extra = { "linkml_meta": {'alias': 'overrides', 'domain_of': ['ElementDerivation']} })
@@ -634,6 +641,66 @@ class KeyVal(ConfiguredBaseModel):
     value: Optional[Any] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'value', 'domain_of': ['SlotDerivation', 'KeyVal']} })
 
 
+class Contributor(ConfiguredBaseModel):
+    """
+    A contributor to the transformation specification, such as an author or creator
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True, 'from_schema': 'https://w3id.org/linkml/transformer'})
+
+    id: str = Field(default=..., description="""Unique identifier for the contributor, typically an ORCID""", json_schema_extra = { "linkml_meta": {'alias': 'id', 'domain_of': ['TransformationSpecification', 'Contributor']} })
+    name: Optional[str] = Field(default=None, description="""Name of the contributor""", json_schema_extra = { "linkml_meta": {'alias': 'name',
+         'domain_of': ['ElementDerivation',
+                       'ObjectDerivation',
+                       'SlotDerivation',
+                       'EnumDerivation',
+                       'PermissibleValueDerivation',
+                       'Contributor'],
+         'slot_uri': 'schema:name'} })
+    email: Optional[str] = Field(default=None, description="""Email address of the contributor""", json_schema_extra = { "linkml_meta": {'alias': 'email', 'domain_of': ['Contributor'], 'slot_uri': 'schema:email'} })
+
+
+class CreatorContributor(Contributor):
+    """
+    A creator of the transformation specification
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/linkml/transformer',
+         'slot_usage': {'id': {'name': 'id', 'slot_uri': 'sssom:creator_id'}}})
+
+    id: str = Field(default=..., description="""Unique identifier for the contributor, typically an ORCID""", json_schema_extra = { "linkml_meta": {'alias': 'id',
+         'domain_of': ['TransformationSpecification', 'Contributor'],
+         'slot_uri': 'sssom:creator_id'} })
+    name: Optional[str] = Field(default=None, description="""Name of the contributor""", json_schema_extra = { "linkml_meta": {'alias': 'name',
+         'domain_of': ['ElementDerivation',
+                       'ObjectDerivation',
+                       'SlotDerivation',
+                       'EnumDerivation',
+                       'PermissibleValueDerivation',
+                       'Contributor'],
+         'slot_uri': 'schema:name'} })
+    email: Optional[str] = Field(default=None, description="""Email address of the contributor""", json_schema_extra = { "linkml_meta": {'alias': 'email', 'domain_of': ['Contributor'], 'slot_uri': 'schema:email'} })
+
+
+class AuthorContributor(Contributor):
+    """
+    An author of the transformation specification
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/linkml/transformer',
+         'slot_usage': {'id': {'name': 'id', 'slot_uri': 'sssom:author_id'}}})
+
+    id: str = Field(default=..., description="""Unique identifier for the contributor, typically an ORCID""", json_schema_extra = { "linkml_meta": {'alias': 'id',
+         'domain_of': ['TransformationSpecification', 'Contributor'],
+         'slot_uri': 'sssom:author_id'} })
+    name: Optional[str] = Field(default=None, description="""Name of the contributor""", json_schema_extra = { "linkml_meta": {'alias': 'name',
+         'domain_of': ['ElementDerivation',
+                       'ObjectDerivation',
+                       'SlotDerivation',
+                       'EnumDerivation',
+                       'PermissibleValueDerivation',
+                       'Contributor'],
+         'slot_uri': 'schema:name'} })
+    email: Optional[str] = Field(default=None, description="""Email address of the contributor""", json_schema_extra = { "linkml_meta": {'alias': 'email', 'domain_of': ['Contributor'], 'slot_uri': 'schema:email'} })
+
+
 class CopyDirective(ConfiguredBaseModel):
     """
     Instructs a Schema Mapper in how to map to a target schema. Not used for data transformation.
@@ -674,5 +741,8 @@ AggregationOperation.model_rebuild()
 GroupingOperation.model_rebuild()
 PivotOperation.model_rebuild()
 KeyVal.model_rebuild()
+Contributor.model_rebuild()
+CreatorContributor.model_rebuild()
+AuthorContributor.model_rebuild()
 CopyDirective.model_rebuild()
 

@@ -108,16 +108,20 @@ classes:
           Schema patches to apply to the source schema before transformation.
           Useful for adding foreign key relationships to auto-generated schemas.
           Uses LinkML schema YAML structure (classes, slots, attributes, etc.).
-      creator_id:
+      creator:
         description: A list of creators of this transformation specification
-        range: uriorcurie
+        range: CreatorContributor
         multivalued: true
-        slot_uri: sssom:creator_id
-      author_id:
+        inlined: true
+        inlined_as_list: true
+        slot_uri: dcterms:creator
+      author:
         description: A list of authors of this transformation specification
-        range: uriorcurie
+        range: AuthorContributor
         multivalued: true
-        slot_uri: sssom:author_id
+        inlined: true
+        inlined_as_list: true
+        slot_uri: dcterms:contributor
       mapping_method:
         description: The method used to create this mapping, e.g. manual curation, automated
           mapping, etc.
@@ -464,6 +468,37 @@ classes:
         key: true
       value:
         range: Any
+
+  Contributor:
+    abstract: true
+    description: A contributor to the transformation specification, such as an author or creator
+    attributes:
+      id:
+        identifier: true
+        description: Unique identifier for the contributor, typically an ORCID
+        range: uriorcurie
+      name:
+        description: Name of the contributor
+        range: string
+        slot_uri: schema:name
+      email:
+        description: Email address of the contributor
+        range: string
+        slot_uri: schema:email
+
+  CreatorContributor:
+    is_a: Contributor
+    description: A creator of the transformation specification
+    slot_usage:
+      id:
+        slot_uri: sssom:creator_id
+
+  AuthorContributor:
+    is_a: Contributor
+    description: An author of the transformation specification
+    slot_usage:
+      id:
+        slot_uri: sssom:author_id
 
   CopyDirective:
     description: >-

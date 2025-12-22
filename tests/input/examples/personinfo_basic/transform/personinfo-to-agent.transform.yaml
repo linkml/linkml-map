@@ -8,10 +8,10 @@ description: |
   This mapping set demonstrates how to transform a person information schema
   into a different format using LinkML.
 license: https://creativecommons.org/licenses/by/4.0/
-creator_id:
-  - https://orcid.org/0000-0002-7356-1779
-author_id:
-  - https://orcid.org/0000-0002-7356-1779
+creator:
+  - id: https://orcid.org/0000-0002-7356-1779
+author:
+  - id: https://orcid.org/0000-0002-7356-1779
 publication_date: 2025-08-14
 source_schema: https://w3id.org/linkml/map/example/personinfo.yaml
 target_schema: https://w3id.org/linkml/map/example/agent.yaml
