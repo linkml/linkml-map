@@ -195,6 +195,9 @@ classes:
           LinkML class definition object for this slot.
         comments:
           - currently defined as Any to avoid coupling with metamodel
+      pivot_operation:
+        range: PivotOperation
+        description: Configuration for pivot (unmelt) operations at class level
 
   ObjectDerivation:
     is_a: ElementDerivation
@@ -283,6 +286,9 @@ classes:
         range: StringificationConfiguration
       aggregation_operation:
         range: AggregationOperation
+      pivot_operation:
+        range: PivotOperation
+        description: Configuration for pivot (melt) operations producing this slot
 
   EnumDerivation:
     is_a: ElementDerivation
@@ -429,6 +435,21 @@ classes:
       unmelt_to_slots:
         range: SlotReference
         multivalued: true
+      unit_slot:
+        range: SlotReference
+        description: Optional slot containing unit information for {variable}_{unit} naming
+      slot_name_template:
+        range: string
+        ifabsent: string({variable})
+        description: Template for generating target slot names. Supports {variable} and {unit}.
+      source_slots:
+        range: SlotReference
+        multivalued: true
+        description: For MELT, the list of wide-format slots to melt
+      id_slots:
+        range: SlotReference
+        multivalued: true
+        description: Slots that identify the entity (not pivoted)
 
   KeyVal:
     attributes:
