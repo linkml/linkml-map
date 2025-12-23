@@ -255,6 +255,7 @@ class ClassDerivation(ElementDerivation):
     target_definition: Optional[Any] = Field(default=None, description="""LinkML class definition object for this slot.""", json_schema_extra = { "linkml_meta": {'alias': 'target_definition',
          'comments': ['currently defined as Any to avoid coupling with metamodel'],
          'domain_of': ['ClassDerivation', 'SlotDerivation']} })
+    pivot_operation: Optional[PivotOperation] = Field(default=None, description="""Configuration for pivot (unmelt) operations at class level""", json_schema_extra = { "linkml_meta": {'alias': 'pivot_operation', 'domain_of': ['ClassDerivation', 'SlotDerivation']} })
     name: str = Field(default=..., description="""Name of the element in the target schema""", json_schema_extra = { "linkml_meta": {'alias': 'name',
          'domain_of': ['ElementDerivation',
                        'ObjectDerivation',
@@ -371,6 +372,7 @@ class SlotDerivation(ElementDerivation):
     dictionary_key: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'dictionary_key', 'domain_of': ['SlotDerivation']} })
     stringification: Optional[StringificationConfiguration] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'stringification', 'domain_of': ['SlotDerivation']} })
     aggregation_operation: Optional[AggregationOperation] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'aggregation_operation', 'domain_of': ['SlotDerivation']} })
+    pivot_operation: Optional[PivotOperation] = Field(default=None, description="""Configuration for pivot (melt) operations producing this slot""", json_schema_extra = { "linkml_meta": {'alias': 'pivot_operation', 'domain_of': ['ClassDerivation', 'SlotDerivation']} })
     copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives',
          'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     overrides: Optional[Any] = Field(default=None, description="""overrides source schema slots""", json_schema_extra = { "linkml_meta": {'alias': 'overrides', 'domain_of': ['ElementDerivation']} })
@@ -605,6 +607,12 @@ class PivotOperation(TransformationOperation):
          'ifabsent': 'string(value)'} })
     unmelt_to_class: Optional[str] = Field(default=None, description="""In an unmelt operation, attributes (which are values in the long/melted/EAV representation) must conform to valid attributes in this class""", json_schema_extra = { "linkml_meta": {'alias': 'unmelt_to_class', 'domain_of': ['PivotOperation']} })
     unmelt_to_slots: Optional[List[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'alias': 'unmelt_to_slots', 'domain_of': ['PivotOperation']} })
+    unit_slot: Optional[str] = Field(default=None, description="""Optional slot containing unit information for {variable}_{unit} naming""", json_schema_extra = { "linkml_meta": {'alias': 'unit_slot', 'domain_of': ['PivotOperation']} })
+    slot_name_template: Optional[str] = Field(default="{variable}", description="""Template for generating target slot names. Supports {variable} and {unit}.""", json_schema_extra = { "linkml_meta": {'alias': 'slot_name_template',
+         'domain_of': ['PivotOperation'],
+         'ifabsent': 'string({variable})'} })
+    source_slots: Optional[List[str]] = Field(default_factory=list, description="""For MELT, the list of wide-format slots to melt""", json_schema_extra = { "linkml_meta": {'alias': 'source_slots', 'domain_of': ['PivotOperation']} })
+    id_slots: Optional[List[str]] = Field(default_factory=list, description="""Slots that identify the entity (not pivoted)""", json_schema_extra = { "linkml_meta": {'alias': 'id_slots', 'domain_of': ['PivotOperation']} })
 
 
 class KeyVal(ConfiguredBaseModel):
