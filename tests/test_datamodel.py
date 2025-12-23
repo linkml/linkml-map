@@ -10,8 +10,8 @@ def test_datamodel() -> None:
     tr.load_transformer_specification(PERSONINFO_TR)
     trs = tr.specification
     assert trs.model_dump_json() != ""
-    assert trs.source_schema == "s1"
-    assert trs.target_schema == "s2"
+    assert trs.source_schema == "https://w3id.org/linkml/map/example/personinfo.yaml"
+    assert trs.target_schema == "https://w3id.org/linkml/map/example/agent.yaml"
 
     # class derivations
     class_derivs = {

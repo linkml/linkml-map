@@ -1,0 +1,69 @@
+# Sample SSSOM Mapping Set instance for testing transformation to FAIR Mappings Schema
+# This demonstrates how SSSOM metadata maps to FAIR Mappings Schema MappingSpecification
+mapping_set_id: http://purl.obolibrary.org/obo/mondo/mappings/mondo_exactmatch_ncit.sssom.tsv
+mapping_set_title: Mondo to NCIT Exact Mappings
+mapping_set_description: |-
+  This mapping set contains exact mappings between Mondo Disease Ontology
+  and NCI Thesaurus (NCIT) terms. These mappings were curated by the
+  Monarch Initiative team to support disease data integration.
+mapping_set_version: "2024-01-15"
+license: https://creativecommons.org/publicdomain/zero/1.0/
+publication_date: "2024-01-15"
+
+# Creator and author information (SSSOM uses ID + label pattern)
+creator_id:
+  - orcid:0000-0002-7356-1779
+  - orcid:0000-0002-6601-2165
+creator_label:
+  - Nicolas Matentzoglu
+  - Chris Mungall
+
+author_id:
+  - orcid:0000-0002-7356-1779
+author_label:
+  - Nicolas Matentzoglu
+
+reviewer_id:
+  - orcid:0000-0001-9114-8737
+reviewer_label:
+  - Melissa Haendel
+
+# Source information
+subject_source: obo:mondo.owl
+subject_source_version: http://purl.obolibrary.org/obo/mondo/releases/2024-01-03/mondo.owl
+object_source: obo:ncit.owl
+object_source_version: http://purl.obolibrary.org/obo/ncit/releases/2024-01/ncit.owl
+
+# Mapping provenance
+mapping_tool: https://github.com/mapping-commons/sssom-py
+mapping_tool_version: "0.4.0"
+mapping_date: "2024-01-10"
+mapping_provider: https://monarchinitiative.org/
+
+# Sample mappings (demonstrating that mappings are preserved but not part of FAIR Mappings output)
+mappings:
+  - subject_id: MONDO:0005015
+    subject_label: diabetes mellitus
+    predicate_id: skos:exactMatch
+    object_id: NCIT:C2985
+    object_label: Diabetes Mellitus
+    mapping_justification: semapv:ManualMappingCuration
+    confidence: 0.95
+
+  - subject_id: MONDO:0004992
+    subject_label: cancer
+    predicate_id: skos:exactMatch
+    object_id: NCIT:C9305
+    object_label: Malignant Neoplasm
+    mapping_justification: semapv:ManualMappingCuration
+    confidence: 0.90
+
+  - subject_id: MONDO:0005301
+    subject_label: multiple sclerosis
+    predicate_id: skos:exactMatch
+    object_id: NCIT:C3243
+    object_label: Multiple Sclerosis
+    mapping_justification: semapv:LexicalMatching
+    confidence: 0.85
+    match_string:
+      - multiple sclerosis
