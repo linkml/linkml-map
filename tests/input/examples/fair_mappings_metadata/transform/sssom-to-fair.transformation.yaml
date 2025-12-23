@@ -1,0 +1,61 @@
+id: https://w3id.org/linkml/transformer/sssom-to-fair-mappings
+title: SSSOM to FAIR Mappings Schema Transformation
+description: |-
+  Transforms an SSSOM Mapping Set to a FAIR Mappings Schema MappingSpecification.
+  This preserves metadata elements while discarding the individual mappings,
+  which have no equivalent in the FAIR Mappings Schema (which focuses on
+  mapping specification metadata, not individual mapping assertions).
+
+  Key transformations:
+  - mapping_set_id → id
+  - mapping_set_title → name
+  - mapping_set_description → description
+  - subject_source → subject_source.id
+  - object_source → object_source.id
+  - Sets type to 'sssom' to indicate the mapping specification type
+
+  Note: Creator/author/reviewer transformations are simplified since SSSOM
+  uses flat ID lists while FAIR Mappings uses structured Agent objects.
+
+prefixes:
+  sssom: https://w3id.org/sssom/
+  fair_mappings_schema: https://w3id.org/mapping-commons/fair-mappings-schema/
+
+source_schema: /Users/matentzn/ws/SSSOM/src/sssom_schema/schema/sssom_schema.yaml
+target_schema: /Users/matentzn/ws/fair-mappings-schema/src/fair_mappings_schema/schema/fair_mappings_schema.yaml
+
+class_derivations:
+
+  MappingSpecification:
+    populated_from: "mapping set"
+    description: |-
+      Maps SSSOM Mapping Set metadata to MappingSpecification.
+      Note: Individual mappings are not preserved as they represent
+      actual mapping assertions, not metadata about the specification.
+    slot_derivations:
+      id:
+        populated_from: mapping_set_id
+      name:
+        populated_from: mapping_set_title
+      description:
+        populated_from: mapping_set_description
+      version:
+        populated_from: mapping_set_version
+      license:
+        populated_from: license
+      publication_date:
+        populated_from: publication_date
+      type:
+        # SSSOM mapping sets are always of type 'sssom'
+        value: "sssom"
+      mapping_method:
+        # Use mapping_tool as a proxy for mapping_method
+        populated_from: mapping_tool
+      subject_source:
+        # Map subject_source string to Source object with id
+        expr: "{'id': str(subject_source)} if subject_source else None"
+        description: Maps subject_source to a Source object
+      object_source:
+        # Map object_source string to Source object with id
+        expr: "{'id': str(object_source)} if object_source else None"
+        description: Maps object_source to a Source object
