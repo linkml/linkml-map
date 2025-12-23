@@ -135,21 +135,12 @@ classes:
         description: The method used to create this mapping, e.g. manual curation, automated
           mapping, etc.
         range: uriorcurie
-        slot_uri: sssom:mapping_justification
       documentation:
         description: URL or reference to documentation for the mapping specification
         range: uri
       content_url:
         description: Reference to the actual content of the mapping specification
         range: uri
-      subject_source:
-        description: The source from which the subject entities are drawn (structured alternative to source_schema)
-        range: Source
-        inlined: true
-      object_source:
-        description: The source to which the object entities are mapped (structured alternative to target_schema)
-        range: Source
-        inlined: true
       class_derivations:
         description: >-
           Instructions on how to derive a set of classes in the target schema
@@ -545,37 +536,6 @@ classes:
       repository_url:
         description: URL to a code repository
         range: uri
-
-  # Corresponds to fair_mappings_schema:Source
-  Source:
-    description: >-
-      A data source from which entities are drawn, such as a database, ontology, or vocabulary.
-    attributes:
-      id:
-        identifier: true
-        description: Identifier for the source
-        range: uriorcurie
-      name:
-        description: Name of the source
-        range: string
-      version:
-        description: Version of the source
-        range: string
-      documentation:
-        description: URL or reference to documentation for the source
-        range: uri
-      content_url:
-        description: Reference to the actual content of the source
-        range: uri
-      content_type:
-        description: The type of the content (e.g., application/owl+xml)
-        range: string
-      metadata_url:
-        description: Reference to metadata about the source
-        range: uri
-      metadata_type:
-        description: The type of the metadata
-        range: string
 
   CopyDirective:
     description: >-
