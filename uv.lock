@@ -1482,36 +1482,36 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "asteval", specifier = ">=0,<1" },
-    { name = "click", specifier = ">=8,<9" },
+    { name = "asteval", specifier = ">=0.9" },
+    { name = "click", specifier = ">=8" },
     { name = "curies" },
-    { name = "deepdiff", specifier = ">=8.6.1" },
-    { name = "duckdb", specifier = ">=0,<1" },
+    { name = "deepdiff", specifier = ">=6.0" },
+    { name = "duckdb", specifier = ">=0.10" },
     { name = "flatten-dict", specifier = ">=0.4.2" },
-    { name = "graphviz", specifier = ">=0.20.3,<1.0.0" },
-    { name = "jinja2", specifier = ">=3,<4" },
-    { name = "lark", specifier = ">=1,<2" },
+    { name = "graphviz", specifier = ">=0.20" },
+    { name = "jinja2", specifier = ">=3" },
+    { name = "lark", specifier = ">=1" },
     { name = "linkml-runtime", specifier = ">=1.9.1" },
     { name = "more-itertools", specifier = ">=10.0.0" },
-    { name = "pint", specifier = ">=0,<1" },
-    { name = "pydantic", specifier = ">=2.11.3" },
+    { name = "pint", specifier = ">=0.20" },
+    { name = "pydantic", specifier = ">=2,<3" },
     { name = "pyyaml" },
-    { name = "ucumvert", specifier = ">=0,<1" },
+    { name = "ucumvert", specifier = ">=0.2" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "deepdiff", specifier = ">=8.6.1" },
-    { name = "deptry", specifier = ">=0.23.0,<1.0.0" },
-    { name = "jupyter", specifier = ">=1.1.1,<2.0.0" },
+    { name = "deepdiff", specifier = ">=6.0" },
+    { name = "deptry", specifier = ">=0.23" },
+    { name = "jupyter", specifier = ">=1.1" },
     { name = "linkml", specifier = ">=1.8.7" },
-    { name = "mkdocs-mermaid2-plugin", specifier = ">=0.6.0,<1.0.0" },
+    { name = "mkdocs-mermaid2-plugin", specifier = ">=0.6" },
     { name = "mkdocs-windmill" },
     { name = "mkdocstrings", extras = ["crystal", "python"] },
-    { name = "mknotebooks", specifier = ">=0.8.0,<1.0.0" },
-    { name = "pytest", specifier = ">=8.3.5" },
-    { name = "ruff", specifier = ">=0.11.5" },
-    { name = "tox", specifier = ">=4.25.0" },
+    { name = "mknotebooks", specifier = ">=0.8" },
+    { name = "pytest", specifier = ">=8" },
+    { name = "ruff", specifier = ">=0.11" },
+    { name = "tox", specifier = ">=4" },
 ]
 
 [[package]]
