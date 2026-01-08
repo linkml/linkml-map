@@ -373,6 +373,7 @@ class SlotDerivation(ElementDerivation):
     stringification: Optional[StringificationConfiguration] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'stringification', 'domain_of': ['SlotDerivation']} })
     aggregation_operation: Optional[AggregationOperation] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'aggregation_operation', 'domain_of': ['SlotDerivation']} })
     pivot_operation: Optional[PivotOperation] = Field(default=None, description="""Configuration for pivot (melt) operations producing this slot""", json_schema_extra = { "linkml_meta": {'alias': 'pivot_operation', 'domain_of': ['ClassDerivation', 'SlotDerivation']} })
+    offset: Optional[Offset] = Field(default=None, description="""Configuration for calculating a value by applying an offset to a baseline value. The baseline value comes from the slot's populated_from field. This is commonly used for longitudinal data where measurements are recorded relative to a baseline. For example, calculating age_at_visit from age + (days * 1/365).""", json_schema_extra = { "linkml_meta": {'alias': 'offset', 'domain_of': ['SlotDerivation']} })
     copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives',
          'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     overrides: Optional[Any] = Field(default=None, description="""overrides source schema slots""", json_schema_extra = { "linkml_meta": {'alias': 'overrides', 'domain_of': ['ElementDerivation']} })
@@ -546,6 +547,18 @@ class UnitConversionConfiguration(ConfiguredBaseModel):
     target_magnitude_slot: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'target_magnitude_slot', 'domain_of': ['UnitConversionConfiguration']} })
 
 
+class Offset(ConfiguredBaseModel):
+    """
+    Configuration for calculating a value by applying an offset to a baseline value. The baseline value comes from the slot's populated_from field. This is commonly used for longitudinal data where measurements are recorded relative to a baseline. For example, calculating age_at_visit from age + (days * 1/365).
+    The calculation is: result = baseline ± (offset_value * offset_field_value) where baseline comes from populated_from.
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/linkml/transformer'})
+
+    offset_value: float = Field(default=..., description="""Multiplier applied to the offset field value. For example, use 1/365 (or 0.00273973) to convert days to years, or 1/12 (or 0.0833333) to convert months to years.""", json_schema_extra = { "linkml_meta": {'alias': 'offset_value', 'domain_of': ['Offset']} })
+    offset_field: str = Field(default=..., description="""Name of the field in the source object that contains the offset amount. This value will be multiplied by offset_value.""", json_schema_extra = { "linkml_meta": {'alias': 'offset_field', 'domain_of': ['Offset']} })
+    offset_reverse: Optional[bool] = Field(default=None, description="""If true, subtract the offset from the baseline (baseline - offset). If false, add the offset to the baseline (baseline + offset). Defaults to false (addition).""", json_schema_extra = { "linkml_meta": {'alias': 'offset_reverse', 'domain_of': ['Offset']} })
+
+
 class StringificationConfiguration(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/linkml/transformer'})
 
@@ -655,6 +668,7 @@ EnumDerivation.model_rebuild()
 PermissibleValueDerivation.model_rebuild()
 PrefixDerivation.model_rebuild()
 UnitConversionConfiguration.model_rebuild()
+Offset.model_rebuild()
 StringificationConfiguration.model_rebuild()
 Inverse.model_rebuild()
 TransformationOperation.model_rebuild()

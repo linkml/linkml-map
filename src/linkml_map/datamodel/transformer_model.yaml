@@ -289,6 +289,13 @@ classes:
       pivot_operation:
         range: PivotOperation
         description: Configuration for pivot (melt) operations producing this slot
+      offset:
+        description: >-
+          Configuration for calculating a value by applying an offset to a baseline value.
+          The baseline value comes from the slot's populated_from field.
+          This is commonly used for longitudinal data where measurements are recorded relative to a baseline.
+          For example, calculating age_at_visit from age + (days * 1/365).
+        range: Offset
 
   EnumDerivation:
     is_a: ElementDerivation
@@ -356,6 +363,36 @@ classes:
       source_magnitude_slot:
       target_unit_slot:
       target_magnitude_slot:
+
+  Offset:
+    description: >-
+      Configuration for calculating a value by applying an offset to a baseline value.
+      The baseline value comes from the slot's populated_from field.
+      This is commonly used for longitudinal data where measurements are recorded relative to a baseline.
+      For example, calculating age_at_visit from age + (days * 1/365).
+
+      The calculation is: result = baseline ± (offset_value * offset_field_value)
+      where baseline comes from populated_from.
+    attributes:
+      offset_value:
+        range: float
+        required: true
+        description: >-
+          Multiplier applied to the offset field value.
+          For example, use 1/365 (or 0.00273973) to convert days to years,
+          or 1/12 (or 0.0833333) to convert months to years.
+      offset_field:
+        range: string
+        required: true
+        description: >-
+          Name of the field in the source object that contains the offset amount.
+          This value will be multiplied by offset_value.
+      offset_reverse:
+        range: boolean
+        description: >-
+          If true, subtract the offset from the baseline (baseline - offset).
+          If false, add the offset to the baseline (baseline + offset).
+          Defaults to false (addition).
 
   StringificationConfiguration:
     attributes:
