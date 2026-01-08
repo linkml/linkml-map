@@ -1,0 +1,12 @@
+id: http://purl.obolibrary.org/obo/mondo/mappings/mondo_exactmatch_ncit.sssom.tsv
+name: Mondo to NCIT Exact Mappings
+description: 'This mapping set contains exact mappings between Mondo Disease Ontology
+
+  and NCI Thesaurus (NCIT) terms. These mappings were curated by the
+
+  Monarch Initiative team to support disease data integration.'
+version: '2024-01-15'
+license: https://creativecommons.org/publicdomain/zero/1.0/
+publication_date: '2024-01-15'
+type: sssom
+mapping_method: https://github.com/mapping-commons/sssom-py
