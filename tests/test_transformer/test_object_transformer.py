@@ -703,3 +703,122 @@ def test_perform_unit_conversion_raise_on_unit_mismatch(obj_tr: ObjectTransforme
 
     with pytest.raises(ValueError, match="Mismatch in source units"):
         obj_tr._perform_unit_conversion(slot_derivation, source_obj, obj_tr.source_schemaview, source_type="SomeType")
+
+def test_offset_skipped_when_offset_field_missing():
+    sb_source = SchemaBuilder()
+    sb_source.add_class("Person")
+    sb_source.add_defaults()
+
+    sb_target = SchemaBuilder()
+    sb_target.add_slot("age", range="integer")
+    sb_target.add_class("Person", slots=["age"])
+    sb_target.add_defaults()
+
+    transform_spec = {
+        "class_derivations": {
+            "Person": {
+                "populated_from": "Person",
+                "slot_derivations": {
+                    "age": {
+                        "value": 30,
+                        "offset": {
+                            "offset_field": "days",
+                            "offset_value": 1
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    transformer = ObjectTransformer()
+    transformer.source_schemaview = SchemaView(sb_source.schema)
+    transformer.target_schemaview = SchemaView(sb_target.schema)
+    transformer.create_transformer_specification(transform_spec)
+
+    result = transformer.map_object({}, source_type="Person")
+
+    assert result["age"] == 30
+
+def test_offset_applied_addition():
+    sb_source = SchemaBuilder()
+    sb_source.add_slot("days", range="integer")
+    sb_source.add_slot("age_at_start", range="integer")
+    sb_source.add_class("Person", slots=["days", "age_at_start"])
+    sb_source.add_defaults()
+
+    sb_target = SchemaBuilder()
+    sb_target.add_slot("age", range="integer")
+    sb_target.add_class("Person", slots=["age"])
+    sb_target.add_defaults()
+
+    transform_spec = {
+        "class_derivations": {
+            "Person": {
+                "populated_from": "Person",
+                "slot_derivations": {
+                    "age": {
+                        "populated_from": "age_at_start",
+                        "offset": {
+                            "offset_field": "days",
+                            "offset_value": 1,
+                        },
+                    }
+                }
+            }
+        }
+    }
+
+    transformer = ObjectTransformer()
+    transformer.source_schemaview = SchemaView(sb_source.schema)
+    transformer.target_schemaview = SchemaView(sb_target.schema)
+    transformer.create_transformer_specification(transform_spec)
+
+    result = transformer.map_object(
+        {"age_at_start": 30, "days": 5},
+        source_type="Person"
+    )
+
+    assert result["age"] == 35
+
+def test_offset_reverse_subtraction():
+    sb_source = SchemaBuilder()
+    sb_source.add_slot("days", range="integer")
+    sb_source.add_slot("age_at_measurement", range="integer")
+    sb_source.add_class("Person", slots=["days", "age_at_measurement"])
+    sb_source.add_defaults()
+
+    sb_target = SchemaBuilder()
+    sb_target.add_slot("age_at_start", range="integer")
+    sb_target.add_class("Person", slots=["age_at_start"])
+    sb_target.add_defaults()
+
+    transform_spec = {
+        "class_derivations": {
+            "Person": {
+                "populated_from": "Person",
+                "slot_derivations": {
+                    "age_at_start": {
+                        "populated_from": "age_at_measurement",
+                        "offset": {
+                            "offset_field": "days",
+                            "offset_value": 1,
+                            "offset_reverse": True,
+                        },
+                    }
+                }
+            }
+        }
+    }
+
+    transformer = ObjectTransformer()
+    transformer.source_schemaview = SchemaView(sb_source.schema)
+    transformer.target_schemaview = SchemaView(sb_target.schema)
+    transformer.create_transformer_specification(transform_spec)
+
+    result = transformer.map_object(
+        {"age_at_measurement": 30, "days": 5},
+        source_type="Person"
+    )
+
+    assert result["age_at_start"] == 25

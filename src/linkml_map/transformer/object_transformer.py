@@ -289,6 +289,34 @@ class ObjectTransformer(Transformer):
                 if slot_derivation.value_mappings and v is not None:
                     mapped = slot_derivation.value_mappings.get(str(v), None)
                     v = mapped.value if mapped is not None else None
+
+                # ---- OFFSET HANDLING (SAFE) ----
+                if getattr(slot_derivation, "offset", None) and v is not None:
+                    off = slot_derivation.offset
+                    off_field_val = source_obj.get(getattr(off, "offset_field", None), None)
+
+                    if off_field_val is not None:
+                        try:
+                            delta = getattr(off, "offset_value", 0) * off_field_val
+                            v = v - delta if getattr(off, "offset_reverse", False) else v + delta
+                            logger.debug(
+                                f"Offset calculation for '{slot_derivation.name}': "
+                                f"{source_obj.get(slot_derivation.populated_from)} "
+                                f"{'-' if getattr(off, 'offset_reverse', False) else '+'} "
+                                f"({getattr(off, 'offset_value', 0)} * {off_field_val}) = {v}"
+                            )
+                        except (TypeError, ValueError) as e:
+                            raise TypeError(
+                                f"Cannot perform offset calculation for slot '{slot_derivation.name}': "
+                                f"values must be numeric (base={v}, offset_field={off_field_val})"
+                            ) from e
+                    else:
+                        logger.debug(
+                            f"Offset field '{getattr(off, 'offset_field', None)}' not found in source object; "
+                            f"skipping offset calculation for '{slot_derivation.name}'"
+                        )
+                # ---------------------------------
+
                 logger.debug(
                     f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {source_obj}"
                 )
