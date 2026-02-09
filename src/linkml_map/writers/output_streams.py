@@ -1,13 +1,19 @@
 """Streaming output writers for linkml-map transformations."""
 
 import json
+import logging
+import os
+from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from enum import Enum
+from pathlib import Path
 from typing import Any, Optional
 
 import yaml
 from flatten_dict import flatten
 from flatten_dict.reducers import make_reducer
+
+logger = logging.getLogger(__name__)
 
 
 class OutputFormat(str, Enum):
@@ -18,6 +24,172 @@ class OutputFormat(str, Enum):
     JSONL = "jsonl"
     TSV = "tsv"
     CSV = "csv"
+
+
+class StreamWriter(ABC):
+    """
+    Abstract base class for chunk-based stream writers.
+
+    Each writer converts individual chunks of objects into formatted string
+    fragments. The ``process`` method drives the full lifecycle: it iterates
+    over chunks, calling ``write_chunk`` for each, then ``finalize`` at the
+    end.
+
+    Subclasses must implement ``write_chunk`` and ``finalize``.
+    """
+
+    @abstractmethod
+    def write_chunk(self, chunk: list[dict]) -> Iterator[str]:
+        """
+        Emit formatted string fragments for a single chunk of objects.
+
+        :param chunk: A list of dictionaries (one chunk of transformed data).
+        :yield: Formatted string fragments.
+        """
+
+    @abstractmethod
+    def finalize(self) -> Iterator[str]:
+        """
+        Emit any trailing content after all chunks have been processed.
+
+        :yield: Trailing string fragments (may be empty).
+        """
+
+    def process(self, chunks: Iterator[list[dict]]) -> Iterator[str]:
+        """
+        Drive the full streaming lifecycle over an iterator of chunks.
+
+        :param chunks: Iterator of lists of dictionaries.
+        :yield: Formatted string fragments for the entire stream.
+        """
+        for chunk in chunks:
+            yield from self.write_chunk(chunk)
+        yield from self.finalize()
+
+
+class JSONStreamWriter(StreamWriter):
+    """
+    Class-based streaming writer for JSON array output.
+
+    Emits a JSON array (optionally wrapped under a key) incrementally,
+    handling comma placement between objects.
+
+    :param key_name: Optional key to wrap the array, e.g. ``{"people": [...]}``.
+    """
+
+    def __init__(self, key_name: Optional[str] = None) -> None:
+        """Initialize with an optional wrapping key name."""
+        self.key_name = key_name
+        self._first_object = True
+
+    def write_chunk(self, chunk: list[dict]) -> Iterator[str]:
+        """
+        Emit JSON fragments for each object in the chunk.
+
+        :param chunk: A list of dictionaries.
+        :yield: JSON string fragments.
+        """
+        if self._first_object:
+            if self.key_name:
+                yield f"{{{json.dumps(self.key_name)}: [\n"
+            else:
+                yield "[\n"
+
+        for obj in chunk:
+            prefix = "" if self._first_object else ",\n"
+            self._first_object = False
+            yield prefix + json.dumps(obj, ensure_ascii=False, indent=2)
+
+    def finalize(self) -> Iterator[str]:
+        """
+        Emit the closing bracket(s) for the JSON structure.
+
+        :yield: Closing JSON fragments.
+        """
+        if self._first_object:
+            # No objects were written; still need to emit preamble + close
+            if self.key_name:
+                yield f"{{{json.dumps(self.key_name)}: [\n"
+            else:
+                yield "[\n"
+
+        if self.key_name:
+            yield "\n]}\n"
+        else:
+            yield "\n]\n"
+
+
+class JSONLStreamWriter(StreamWriter):
+    """
+    Class-based streaming writer for JSON Lines output.
+
+    Each object is emitted as a single line of JSON. Stateless—no preamble
+    or postamble is needed.
+    """
+
+    def write_chunk(self, chunk: list[dict]) -> Iterator[str]:
+        """
+        Emit one JSON line per object.
+
+        :param chunk: A list of dictionaries.
+        :yield: JSONL string lines.
+        """
+        for obj in chunk:
+            yield json.dumps(obj, ensure_ascii=False) + "\n"
+
+    def finalize(self) -> Iterator[str]:
+        """
+        No trailing content needed for JSONL.
+
+        :yield: Nothing.
+        """
+        return iter(())
+
+
+class YAMLStreamWriter(StreamWriter):
+    """
+    Class-based streaming writer for YAML output.
+
+    If ``key_name`` is provided, wraps all objects under that key as a list.
+    Otherwise, outputs each object as a separate YAML document.
+
+    :param key_name: Optional key to wrap all objects.
+    """
+
+    def __init__(self, key_name: Optional[str] = None) -> None:
+        """Initialize with an optional wrapping key name."""
+        self.key_name = key_name
+        self._first_chunk = True
+
+    def write_chunk(self, chunk: list[dict]) -> Iterator[str]:
+        """
+        Emit YAML fragments for a chunk.
+
+        :param chunk: A list of dictionaries.
+        :yield: YAML string fragments.
+        """
+        if self.key_name:
+            yaml_str = yaml.dump(
+                {self.key_name: chunk}, default_flow_style=False, allow_unicode=True
+            )
+            if self._first_chunk:
+                yield yaml_str
+                self._first_chunk = False
+            else:
+                lines = yaml_str.splitlines()
+                yield "\n".join(lines[1:]) + "\n"
+        else:
+            for obj in chunk:
+                yield yaml.dump(obj, default_flow_style=False, allow_unicode=True)
+                yield "---\n"
+
+    def finalize(self) -> Iterator[str]:
+        """
+        No trailing content needed for YAML.
+
+        :yield: Nothing.
+        """
+        return iter(())
 
 
 def yaml_stream(
@@ -101,7 +273,7 @@ def jsonl_stream(
             yield json.dumps(obj, ensure_ascii=False) + "\n"
 
 
-class TabularStreamWriter:
+class TabularStreamWriter(StreamWriter):
     """
     Streaming writer for TSV/CSV output with dynamic header handling.
 
@@ -128,41 +300,55 @@ class TabularStreamWriter:
         self.initial_headers: list[str] = []
         self._headers_changed = False
 
+    def write_chunk(self, chunk: list[dict]) -> Iterator[str]:
+        """
+        Emit tabular rows for a single chunk of objects.
+
+        :param chunk: A list of dictionaries.
+        :yield: TSV/CSV formatted strings.
+        """
+        for obj in chunk:
+            flat = flatten(obj, reducer=self.reducer)
+
+            # Track new headers
+            for k in flat:
+                if k not in self.headers:
+                    self.headers.append(k)
+
+            # Emit header row on first object
+            if len(self.initial_headers) == 0:
+                self.initial_headers = list(self.headers)
+                yield self.separator.join(self.headers) + "\n"
+
+            # Emit data row
+            row = self.separator.join(
+                self._escape_value(flat.get(h, "")) for h in self.headers
+            )
+            yield row + "\n"
+
+    def finalize(self) -> Iterator[str]:
+        """
+        Track header changes after all chunks processed.
+
+        :yield: Nothing (side-effect only).
+        """
+        if self.headers != self.initial_headers:
+            self._headers_changed = True
+        return iter(())
+
     def stream(
         self,
         chunks: Iterator[list[dict[str, Any]]],
         key_name: Optional[str] = None,  # noqa: ARG002
     ) -> Iterator[str]:
         """
-        Stream objects as tabular data.
+        Stream objects as tabular data. Backward-compatible alias for ``process``.
 
         :param chunks: Iterator of lists of dictionaries
         :param key_name: Unused, kept for API consistency
         :yield: TSV/CSV formatted strings
         """
-        for chunk in chunks:
-            for obj in chunk:
-                flat = flatten(obj, reducer=self.reducer)
-
-                # Track new headers
-                for k in flat:
-                    if k not in self.headers:
-                        self.headers.append(k)
-
-                # Emit header row on first object
-                if len(self.initial_headers) == 0:
-                    self.initial_headers = list(self.headers)
-                    yield self.separator.join(self.headers) + "\n"
-
-                # Emit data row
-                row = self.separator.join(
-                    self._escape_value(flat.get(h, "")) for h in self.headers
-                )
-                yield row + "\n"
-
-        # Track if headers changed during streaming
-        if self.headers != self.initial_headers:
-            self._headers_changed = True
+        yield from self.process(chunks)
 
     def _escape_value(self, value: Any) -> str:
         """
@@ -294,3 +480,98 @@ def get_stream_writer(output_format: OutputFormat) -> Any:
         msg = f"No stream writer available for format: {output_format}"
         raise ValueError(msg)
     return writer
+
+
+# Extension-to-format mapping used by make_stream_writer and CLI
+EXTENSION_FORMAT_MAP = {
+    ".yaml": OutputFormat.YAML,
+    ".yml": OutputFormat.YAML,
+    ".json": OutputFormat.JSON,
+    ".jsonl": OutputFormat.JSONL,
+    ".tsv": OutputFormat.TSV,
+    ".csv": OutputFormat.CSV,
+}
+
+
+def make_stream_writer(
+    output_format: OutputFormat,
+    key_name: Optional[str] = None,
+    separator: Optional[str] = None,
+) -> StreamWriter:
+    """
+    Return the appropriate ``StreamWriter`` for a format.
+
+    :param output_format: The desired output format.
+    :param key_name: Optional key for formats that support wrapping (JSON, YAML).
+    :param separator: Optional separator override for tabular formats.
+    :return: A ``StreamWriter`` instance.
+    :raises ValueError: If the format is not supported.
+    """
+    if output_format == OutputFormat.JSON:
+        return JSONStreamWriter(key_name=key_name)
+    if output_format == OutputFormat.JSONL:
+        return JSONLStreamWriter()
+    if output_format == OutputFormat.YAML:
+        return YAMLStreamWriter(key_name=key_name)
+    if output_format == OutputFormat.TSV:
+        return TabularStreamWriter(separator=separator or "\t")
+    if output_format == OutputFormat.CSV:
+        return TabularStreamWriter(separator=separator or ",")
+    msg = f"No stream writer available for format: {output_format}"
+    raise ValueError(msg)
+
+
+class MultiStreamWriter:
+    """
+    Fan-out writer that sends the same chunks to multiple ``StreamWriter`` instances.
+
+    Each output is a ``(StreamWriter, Path)`` pair. ``write_all`` opens all
+    output files, feeds every chunk to every writer, finalizes each writer,
+    and handles tabular header-rewrite post-processing.
+
+    :param outputs: List of ``(StreamWriter, Path)`` tuples.
+    """
+
+    def __init__(self, outputs: list[tuple[StreamWriter, Path]]) -> None:
+        """Initialize with a list of (writer, path) output targets."""
+        self.outputs = outputs
+
+    def write_all(self, chunks: Iterator[list[dict]]) -> None:
+        """
+        Consume *chunks* once and write to all outputs simultaneously.
+
+        :param chunks: Iterator of lists of dictionaries.
+        """
+        handles = []
+        try:
+            # Open all output files
+            for _writer, path in self.outputs:
+                fh = open(path, "w", encoding="utf-8")  # noqa: SIM115
+                handles.append(fh)
+
+            # Fan out each chunk to every writer
+            for chunk in chunks:
+                for idx, (writer, _path) in enumerate(self.outputs):
+                    for fragment in writer.write_chunk(chunk):
+                        handles[idx].write(fragment)
+
+            # Finalize each writer
+            for idx, (writer, _path) in enumerate(self.outputs):
+                for fragment in writer.finalize():
+                    handles[idx].write(fragment)
+
+        finally:
+            for fh in handles:
+                fh.close()
+
+        # Post-process tabular outputs that had header changes
+        for writer, path in self.outputs:
+            if isinstance(writer, TabularStreamWriter) and writer.headers_changed:
+                logger.info("Rewriting %s with updated headers", path)
+                tmp_path = str(path) + ".tmp"
+                with open(path) as src, open(tmp_path, "w", encoding="utf-8") as dst:
+                    for line in rewrite_header_and_pad(
+                        iter(src), writer.get_final_headers(), writer.separator
+                    ):
+                        dst.write(line)
+                os.replace(tmp_path, str(path))

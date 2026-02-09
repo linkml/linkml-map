@@ -20,7 +20,14 @@ from linkml_map.inference.inverter import TransformationSpecificationInverter
 from linkml_map.inference.schema_mapper import SchemaMapper
 from linkml_map.loaders import DataLoader
 from linkml_map.transformer.object_transformer import ObjectTransformer
-from linkml_map.writers import OutputFormat, get_stream_writer, rewrite_header_and_pad
+from linkml_map.writers import (
+    EXTENSION_FORMAT_MAP,
+    MultiStreamWriter,
+    OutputFormat,
+    get_stream_writer,
+    make_stream_writer,
+    rewrite_header_and_pad,
+)
 
 __all__ = [
     "main",
@@ -79,6 +86,12 @@ def main(verbose: int, quiet: bool) -> None:
     show_default=True,
     help="Number of records to process per chunk (for streaming output).",
 )
+@click.option(
+    "-O",
+    "--additional-output",
+    multiple=True,
+    help="Additional output files. Format inferred from extension. Can be repeated.",
+)
 @click.argument("input_data")
 def map_data(
     input_data: str,
@@ -88,6 +101,7 @@ def map_data(
     output: Optional[str],
     output_format: Optional[str],
     chunk_size: int,
+    additional_output: tuple,
     **kwargs: dict[str, Any],
 ) -> None:
     """
@@ -110,6 +124,9 @@ def map_data(
 
         # Directory of TSV files with streaming output
         linkml-map map-data -T transform.yaml -s schema.yaml -f jsonl -o output.jsonl ./data/
+
+        # Multi-output: write TSV, JSON, and JSONL simultaneously
+        linkml-map map-data -T transform.yaml -s schema.yaml -f jsonl -O out.tsv -O out.json input.tsv
 
     """
     logger.info(
@@ -149,6 +166,7 @@ def map_data(
             output=output,
             output_format=output_format,
             chunk_size=chunk_size,
+            additional_output=additional_output,
             **kwargs,
         )
     else:
@@ -212,6 +230,83 @@ def _transform_iterator(
                 raise
 
 
+def _build_additional_outputs(
+    additional_output: tuple,
+) -> list[tuple]:
+    """Build (StreamWriter, Path) pairs for additional -O outputs.
+
+    :param additional_output: Tuple of file path strings from the CLI.
+    :return: List of (StreamWriter, Path) tuples.
+    :raises click.ClickException: If an extension cannot be mapped to a format.
+    """
+    result = []
+    for extra_path_str in additional_output:
+        extra_path = Path(extra_path_str)
+        ext = extra_path.suffix.lower()
+        extra_fmt = EXTENSION_FORMAT_MAP.get(ext)
+        if extra_fmt is None:
+            msg = f"Cannot infer output format from extension: {ext}"
+            raise click.ClickException(msg)
+        result.append((make_stream_writer(extra_fmt), extra_path))
+    return result
+
+
+def _rewrite_tabular_headers(file_outputs: list[tuple]) -> None:
+    """Post-process tabular outputs that had header changes during streaming.
+
+    :param file_outputs: List of (StreamWriter, Path) tuples.
+    """
+    from linkml_map.writers import TabularStreamWriter
+
+    for writer, path in file_outputs:
+        if isinstance(writer, TabularStreamWriter) and writer.headers_changed:
+            logger.info("Rewriting %s with updated headers", path)
+            tmp = str(path) + ".tmp"
+            with open(path) as src, open(tmp, "w", encoding="utf-8") as dst:
+                for line in rewrite_header_and_pad(
+                    iter(src), writer.get_final_headers(), writer.separator
+                ):
+                    dst.write(line)
+            os.replace(tmp, str(path))
+
+
+def _write_multi_to_stdout_and_files(
+    chunks: Iterator,
+    fmt: OutputFormat,
+    file_outputs: list[tuple],
+) -> None:
+    """Write primary format to stdout while fanning out to additional file outputs.
+
+    :param chunks: Chunk iterator (consumed once).
+    :param fmt: Primary output format (for stdout).
+    :param file_outputs: List of (StreamWriter, Path) tuples for file outputs.
+    """
+    stdout_writer = make_stream_writer(fmt)
+    handles = []
+    try:
+        for _w, p in file_outputs:
+            fh = open(p, "w", encoding="utf-8")  # noqa: SIM115
+            handles.append(fh)
+
+        for chunk in chunks:
+            for fragment in stdout_writer.write_chunk(chunk):
+                sys.stdout.write(fragment)
+            for idx, (writer, _p) in enumerate(file_outputs):
+                for fragment in writer.write_chunk(chunk):
+                    handles[idx].write(fragment)
+
+        for fragment in stdout_writer.finalize():
+            sys.stdout.write(fragment)
+        for idx, (writer, _p) in enumerate(file_outputs):
+            for fragment in writer.finalize():
+                handles[idx].write(fragment)
+    finally:
+        for fh in handles:
+            fh.close()
+
+    _rewrite_tabular_headers(file_outputs)
+
+
 def _map_data_streaming(
     input_path: Path,
     schema: str,
@@ -220,6 +315,7 @@ def _map_data_streaming(
     output: Optional[str],
     output_format: str,
     chunk_size: int,
+    additional_output: tuple = (),
     **kwargs: dict[str, Any],
 ) -> None:
     """Streaming transformation for tabular/directory input."""
@@ -231,38 +327,48 @@ def _map_data_streaming(
     # Initialize data loader
     data_loader = DataLoader(input_path)
 
-    # Create transform iterator
+    # Create transform iterator and chunk it
     transform_iter = _transform_iterator(data_loader, tr, source_type)
-
-    # Chunk the iterator for streaming
     chunks = chunked(transform_iter, chunk_size)
 
-    # Get stream writer
+    # Resolve output format
     try:
         fmt = OutputFormat(output_format)
     except ValueError:
         msg = f"Unsupported output format: {output_format}"
         raise click.ClickException(msg) from None
 
-    stream_writer = get_stream_writer(fmt)
+    if additional_output:
+        extra_outputs = _build_additional_outputs(additional_output)
 
-    # Write output using context manager
-    output_ctx = open(output, "w", encoding="utf-8") if output else nullcontext(sys.stdout)
-    with output_ctx as output_file:
-        for chunk_str in stream_writer(chunks):
-            output_file.write(chunk_str)
+        if output:
+            # All outputs go to files — use MultiStreamWriter
+            primary_writer = make_stream_writer(fmt)
+            all_outputs = [(primary_writer, Path(output))] + extra_outputs
+            MultiStreamWriter(all_outputs).write_all(chunks)
+        else:
+            # Primary to stdout, additional to files
+            _write_multi_to_stdout_and_files(chunks, fmt, extra_outputs)
+    else:
+        # Original single-output path (backward compatible)
+        stream_writer = get_stream_writer(fmt)
 
-    # Handle header rewrite for tabular output if needed
-    if output and hasattr(stream_writer, "headers"):
-        logger.info("Rewriting output with updated headers")
-        tmp_path = output + ".tmp"
-        with open(output) as src, open(tmp_path, "w", encoding="utf-8") as dst:
-            separator = "\t" if output_format == "tsv" else ","
-            for line in rewrite_header_and_pad(
-                iter(src), stream_writer.headers, separator, chunk_size
-            ):
-                dst.write(line)
-        os.replace(tmp_path, output)
+        output_ctx = open(output, "w", encoding="utf-8") if output else nullcontext(sys.stdout)
+        with output_ctx as output_file:
+            for chunk_str in stream_writer(chunks):
+                output_file.write(chunk_str)
+
+        # Handle header rewrite for tabular output if needed
+        if output and hasattr(stream_writer, "headers"):
+            logger.info("Rewriting output with updated headers")
+            tmp_path = output + ".tmp"
+            with open(output) as src, open(tmp_path, "w", encoding="utf-8") as dst:
+                separator = "\t" if output_format == "tsv" else ","
+                for line in rewrite_header_and_pad(
+                    iter(src), stream_writer.headers, separator, chunk_size
+                ):
+                    dst.write(line)
+            os.replace(tmp_path, output)
 
 
 @main.command()
