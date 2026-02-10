@@ -262,7 +262,7 @@ def _rewrite_tabular_headers(file_outputs: list[tuple]) -> None:
         if isinstance(writer, TabularStreamWriter) and writer.headers_changed:
             logger.info("Rewriting %s with updated headers", path)
             tmp = str(path) + ".tmp"
-            with open(path) as src, open(tmp, "w", encoding="utf-8") as dst:
+            with open(path, encoding="utf-8") as src, open(tmp, "w", encoding="utf-8") as dst:
                 for line in rewrite_header_and_pad(
                     iter(src), writer.get_final_headers(), writer.separator
                 ):

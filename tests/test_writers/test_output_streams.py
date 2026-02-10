@@ -325,6 +325,15 @@ class TestJSONStreamWriter:
         data = json.loads(result)
         assert data == []
 
+    def test_empty_chunk_before_data(self) -> None:
+        """Empty chunks before real data should not duplicate the preamble."""
+        writer = JSONStreamWriter()
+        parts = list(writer.write_chunk([]))
+        parts.extend(writer.write_chunk(SAMPLE_DATA[:1]))
+        parts.extend(writer.finalize())
+        data = json.loads("".join(parts))
+        assert len(data) == 1
+
     def test_write_chunk_then_finalize(self) -> None:
         writer = JSONStreamWriter()
         parts = list(writer.write_chunk(SAMPLE_DATA[:2]))
@@ -379,6 +388,17 @@ class TestYAMLStreamWriter:
         chunks = _make_chunks(1, 2)
         result = "".join(writer.process(iter(chunks)))
         assert "items:" in result
+
+    def test_empty_chunk_before_data_with_key(self) -> None:
+        """Empty first chunk should not consume the key-name preamble."""
+        writer = YAMLStreamWriter(key_name="people")
+        parts = list(writer.write_chunk([]))
+        parts.extend(writer.write_chunk(SAMPLE_DATA[:1]))
+        parts.extend(writer.finalize())
+        result = "".join(parts)
+        assert "people:" in result
+        parsed = yaml.safe_load(result)
+        assert len(parsed["people"]) == 1
 
 
 class TestTabularStreamWriterChunk:

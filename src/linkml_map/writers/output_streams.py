@@ -80,7 +80,17 @@ class JSONStreamWriter(StreamWriter):
     def __init__(self, key_name: Optional[str] = None) -> None:
         """Initialize with an optional wrapping key name."""
         self.key_name = key_name
+        self._started = False
         self._first_object = True
+
+    def _emit_preamble(self) -> Iterator[str]:
+        """Emit the opening bracket(s) exactly once."""
+        if not self._started:
+            self._started = True
+            if self.key_name:
+                yield f"{{{json.dumps(self.key_name)}: [\n"
+            else:
+                yield "[\n"
 
     def write_chunk(self, chunk: list[dict]) -> Iterator[str]:
         """
@@ -89,11 +99,7 @@ class JSONStreamWriter(StreamWriter):
         :param chunk: A list of dictionaries.
         :yield: JSON string fragments.
         """
-        if self._first_object:
-            if self.key_name:
-                yield f"{{{json.dumps(self.key_name)}: [\n"
-            else:
-                yield "[\n"
+        yield from self._emit_preamble()
 
         for obj in chunk:
             prefix = "" if self._first_object else ",\n"
@@ -106,12 +112,7 @@ class JSONStreamWriter(StreamWriter):
 
         :yield: Closing JSON fragments.
         """
-        if self._first_object:
-            # No objects were written; still need to emit preamble + close
-            if self.key_name:
-                yield f"{{{json.dumps(self.key_name)}: [\n"
-            else:
-                yield "[\n"
+        yield from self._emit_preamble()
 
         if self.key_name:
             yield "\n]}\n"
@@ -165,9 +166,15 @@ class YAMLStreamWriter(StreamWriter):
         """
         Emit YAML fragments for a chunk.
 
+        Empty chunks are skipped to avoid emitting an empty-list preamble
+        that would break subsequent continuation chunks.
+
         :param chunk: A list of dictionaries.
         :yield: YAML string fragments.
         """
+        if not chunk:
+            return
+
         if self.key_name:
             yaml_str = yaml.dump(
                 {self.key_name: chunk}, default_flow_style=False, allow_unicode=True
@@ -569,7 +576,7 @@ class MultiStreamWriter:
             if isinstance(writer, TabularStreamWriter) and writer.headers_changed:
                 logger.info("Rewriting %s with updated headers", path)
                 tmp_path = str(path) + ".tmp"
-                with open(path) as src, open(tmp_path, "w", encoding="utf-8") as dst:
+                with open(path, encoding="utf-8") as src, open(tmp_path, "w", encoding="utf-8") as dst:
                     for line in rewrite_header_and_pad(
                         iter(src), writer.get_final_headers(), writer.separator
                     ):
