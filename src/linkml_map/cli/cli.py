@@ -362,7 +362,7 @@ def _map_data_streaming(
         if output and hasattr(stream_writer, "headers"):
             logger.info("Rewriting output with updated headers")
             tmp_path = output + ".tmp"
-            with open(output) as src, open(tmp_path, "w", encoding="utf-8") as dst:
+            with open(output, encoding="utf-8") as src, open(tmp_path, "w", encoding="utf-8") as dst:
                 separator = "\t" if output_format == "tsv" else ","
                 for line in rewrite_header_and_pad(
                     iter(src), stream_writer.headers, separator, chunk_size
