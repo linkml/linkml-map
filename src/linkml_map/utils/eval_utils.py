@@ -8,6 +8,7 @@ TODO: move to core
 
 import ast
 import operator as op
+import uuid
 from collections.abc import Mapping
 
 # supported operators
@@ -42,6 +43,12 @@ def eval_conditional(*conds: list[tuple[bool, Any]]) -> Any:
     return None
 
 
+def _uuid5(namespace: str, name: str) -> str:
+    """Generate a deterministic UUID5 from a namespace URL and name string."""
+    ns = uuid.uuid5(uuid.NAMESPACE_URL, namespace)
+    return str(uuid.uuid5(ns, name))
+
+
 funcs = {
     "max": (True, max),
     "min": (True, min),
@@ -49,6 +56,7 @@ funcs = {
     "str": (False, str),
     "strlen": (False, len),
     "case": (False, eval_conditional),
+    "uuid5": (True, _uuid5),
 }
 
 
