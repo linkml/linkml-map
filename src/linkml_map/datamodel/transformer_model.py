@@ -184,8 +184,26 @@ class TransformationSpecification(SpecificationComponent):
     source_schema: Optional[str] = Field(default=None, description="""name of the schema that describes the source (input) objects""", json_schema_extra = { "linkml_meta": {'alias': 'source_schema', 'domain_of': ['TransformationSpecification']} })
     target_schema: Optional[str] = Field(default=None, description="""name of the schema that describes the target (output) objects""", json_schema_extra = { "linkml_meta": {'alias': 'target_schema', 'domain_of': ['TransformationSpecification']} })
     source_schema_patches: Optional[Any] = Field(default=None, description="""Schema patches to apply to the source schema before transformation. Useful for adding foreign key relationships to auto-generated schemas. Uses LinkML schema YAML structure (classes, slots, attributes, etc.).""", json_schema_extra = { "linkml_meta": {'alias': 'source_schema_patches', 'domain_of': ['TransformationSpecification']} })
-    class_derivations: Optional[Dict[str, ClassDerivation]] = Field(default_factory=dict, description="""Instructions on how to derive a set of classes in the target schema from classes in the source schema.""", json_schema_extra = { "linkml_meta": {'alias': 'class_derivations',
+    class_derivations: Optional[List[ClassDerivation]] = Field(default_factory=list, description="""Instructions on how to derive a set of classes in the target schema from classes in the source schema.""", json_schema_extra = { "linkml_meta": {'alias': 'class_derivations',
          'domain_of': ['TransformationSpecification', 'ObjectDerivation']} })
+
+    # HAND-MAINTAINED: This validator is not auto-generated.
+    # It must be re-added after any model regeneration (make src/linkml_map/datamodel/transformer_model.py).
+    @field_validator('class_derivations', mode='before')
+    @classmethod
+    def coerce_class_derivations(cls, v):
+        """Accept dict input for backward compatibility and convert to list."""
+        if isinstance(v, dict):
+            result = []
+            for name, cd in v.items():
+                if isinstance(cd, dict):
+                    cd.setdefault('name', name)
+                elif isinstance(cd, ClassDerivation):
+                    pass  # already a ClassDerivation, name is set
+                result.append(cd)
+            return result
+        return v
+
     enum_derivations: Optional[Dict[str, EnumDerivation]] = Field(default_factory=dict, description="""Instructions on how to derive a set of enums in the target schema""", json_schema_extra = { "linkml_meta": {'alias': 'enum_derivations', 'domain_of': ['TransformationSpecification']} })
     slot_derivations: Optional[Dict[str, SlotDerivation]] = Field(default_factory=dict, description="""Instructions on how to derive a set of top level slots in the target schema""", json_schema_extra = { "linkml_meta": {'alias': 'slot_derivations',
          'domain_of': ['TransformationSpecification', 'ClassDerivation']} })

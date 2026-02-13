@@ -31,14 +31,14 @@ def get_biolink_class_derivations(sv: SchemaView, subset_classes: list) -> dict:
     """
     # Example implementation to fetch class definitions
     # This should be replaced with the actual implementation
-    class_derivations = {}
+    class_derivations = []
     for class_name in subset_classes:
         class_derivation = ClassDerivation(populated_from=class_name, name=camelcase(class_name))
         induced_slots = sv.class_induced_slots(class_name)
         for slot in induced_slots:
             slot_derivation = SlotDerivation(populated_from=slot.name, name=underscore(slot.name))
             class_derivation.slot_derivations[underscore(slot.name)] = slot_derivation
-        class_derivations[camelcase(class_name)] = class_derivation
+        class_derivations.append(class_derivation)
     return class_derivations
 
 

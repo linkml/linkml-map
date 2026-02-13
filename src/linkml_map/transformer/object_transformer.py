@@ -171,7 +171,7 @@ class ObjectTransformer(Transformer):
         # EXTRACT: _resolve_source_type(sv, source_obj) -> str
         if source_type is None and sv is None:
             # TODO: use smarter method
-            source_type = next(iter(self.specification.class_derivations.values())).name
+            source_type = self.specification.class_derivations[0].name
         if source_type is None and sv is not None:
             source_types = [c.name for c in sv.all_classes().values() if c.tree_root]
             if len(source_types) == 1:
