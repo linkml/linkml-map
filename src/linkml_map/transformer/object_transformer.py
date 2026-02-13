@@ -145,6 +145,34 @@ class ObjectTransformer(Transformer):
         else:
             self.object_index = ObjectIndex(source_obj, schemaview=self.source_schemaview)
 
+    def _resolve_source_type(
+        self, source_type: Optional[str], sv: Optional[SchemaView]
+    ) -> Optional[str]:
+        """
+        Resolve the source type when not explicitly provided.
+
+        :param source_type: Explicitly provided source type, or None.
+        :param sv: Source schema view, may be None.
+        :return: Resolved source type name.
+        """
+        if source_type is None and sv is None:
+            # TODO: use smarter method
+            source_type = self.specification.class_derivations[0].name
+        if source_type is None and sv is not None:
+            source_types = [c.name for c in sv.all_classes().values() if c.tree_root]
+            if len(source_types) == 1:
+                source_type = source_types[0]
+            elif len(source_types) > 1:
+                msg = "No source type specified and multiple root classes found"
+                raise ValueError(msg)
+            elif len(source_types) == 0:
+                if len(sv.all_classes()) == 1:
+                    source_type = next(iter(sv.all_classes().keys()))
+                else:
+                    msg = "No source type specified and no root classes found"
+                    raise ValueError(msg)
+        return source_type
+
     # Developer Note:
     # This method has grown large. When modifying it, consider extracting to
     # private methods and adding tests using the scaffold-based testing pattern.
@@ -168,23 +196,7 @@ class ObjectTransformer(Transformer):
         :return: transformed data, either as type target_type or a dictionary
         """
         sv = self.source_schemaview
-        # EXTRACT: _resolve_source_type(sv, source_obj) -> str
-        if source_type is None and sv is None:
-            # TODO: use smarter method
-            source_type = self.specification.class_derivations[0].name
-        if source_type is None and sv is not None:
-            source_types = [c.name for c in sv.all_classes().values() if c.tree_root]
-            if len(source_types) == 1:
-                source_type = source_types[0]
-            elif len(source_types) > 1:
-                msg = "No source type specified and multiple root classes found"
-                raise ValueError(msg)
-            elif len(source_types) == 0:
-                if len(sv.all_classes()) == 1:
-                    source_type = next(iter(sv.all_classes().keys()))
-                else:
-                    msg = "No source type specified and no root classes found"
-                    raise ValueError(msg)
+        source_type = self._resolve_source_type(source_type, sv)
 
         if source_type in sv.all_types():
             if target_type:
