@@ -44,7 +44,30 @@ def eval_conditional(*conds: list[tuple[bool, Any]]) -> Any:
 
 
 def _uuid5(namespace: str, name: str) -> str:
-    """Generate a deterministic UUID5 from a namespace URL and name string."""
+    """
+    Generate a deterministic UUID5 string from a namespace URL and a name.
+
+    This function uses a two-level UUID5 generation strategy:
+
+    1. First, it derives a namespace UUID by hashing the given ``namespace``
+       string (which should be a URL, e.g. ``"https://example.org/ns"``)
+       using :data:`uuid.NAMESPACE_URL`.
+    2. Then, it computes the final UUID5 using that derived namespace UUID
+       and the provided ``name`` string.
+
+    Because UUID5 is fully deterministic, calling this function with the
+    same ``namespace`` and ``name`` will always return the same UUID string.
+
+    >>> ns = "https://example.org/ns"
+    >>> _uuid5(ns, "example") == _uuid5(ns, "example")
+    True
+    >>> _uuid5(ns, "example") != _uuid5(ns, "different")
+    True
+
+    :param namespace: Namespace identifier as a URL string.
+    :param name: Name string to be combined with the derived namespace UUID.
+    :return: Deterministic UUID5 as a string.
+    """
     ns = uuid.uuid5(uuid.NAMESPACE_URL, namespace)
     return str(uuid.uuid5(ns, name))
 
