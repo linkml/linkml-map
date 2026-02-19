@@ -170,7 +170,7 @@ class SchemaMapper:
             target_schema.imports.append(im)
         for prefix in source_schema.prefixes.values():
             target_schema.prefixes[prefix.prefix_prefix] = prefix
-        for class_derivation in specification.class_derivations.values():
+        for class_derivation in specification.class_derivations:
             class_definition = self._derive_class(class_derivation)
             target_schema.classes[class_definition.name] = class_definition
         for enum_derivation in specification.enum_derivations.values():

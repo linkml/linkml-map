@@ -34,7 +34,7 @@ class SQLCompiler(Compiler):
 
     def compile(self, specification: TransformationSpecification) -> CompiledSpecification:
         compiled = CompiledSpecification()
-        for cd in specification.class_derivations.values():
+        for cd in specification.class_derivations:
             self.compile_class(compiled, cd, specification)
         return compiled
 

@@ -50,6 +50,7 @@ class Session:
             self.transformer_specification = specification
         elif isinstance(specification, dict):
             # TODO: centralize this code
+            Transformer._preprocess_class_derivations(specification)
             normalizer = ReferenceValidator(
                 package_schemaview("linkml_map.datamodel.transformer_model")
             )

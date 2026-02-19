@@ -90,7 +90,7 @@ class PythonCompiler(Compiler):
     def _compile_iterator(self, specification: TransformationSpecification) -> Iterator[str]:
         specification = deepcopy(specification)
         induce_missing_values(specification, self.source_schemaview)
-        for cd in specification.class_derivations.values():
+        for cd in specification.class_derivations:
             yield from self._compiled_class_derivations_iter(cd)
 
     def _compiled_class_derivations_iter(self, cd: ClassDerivation) -> Iterator[str]:

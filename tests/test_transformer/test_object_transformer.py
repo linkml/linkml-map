@@ -555,7 +555,7 @@ def test_cardinalities(source_multivalued: bool, target_multivalued: bool, expli
         sd.cast_collection_as = (
             CollectionType.MultiValued if target_multivalued else CollectionType.SingleValued
         )
-    specification.class_derivations[class_name] = cd
+    specification.class_derivations.append(cd)
     cd.slot_derivations[att_name] = sd
     source_instance = {att_name: [val] if source_multivalued else val}
     tr = ObjectTransformer(
@@ -572,6 +572,12 @@ def test_self_transform() -> None:
     tr.source_schemaview = SchemaView(str(TR_SCHEMA))
     tr.load_transformer_specification(TR_TO_MAPPING_TABLES)
     source_object = yaml.safe_load(open(str(PERSONINFO_TR)))
+    # Fix None values in class_derivations before normalization
+    cd = source_object.get("class_derivations")
+    if isinstance(cd, dict):
+        for k, v in cd.items():
+            if v is None:
+                cd[k] = {}
     normalizer = ReferenceValidator(package_schemaview("linkml_map.datamodel.transformer_model"))
     normalizer.expand_all = True
     source_object = normalizer.normalize(source_object)

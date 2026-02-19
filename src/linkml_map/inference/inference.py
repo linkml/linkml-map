@@ -18,10 +18,10 @@ def induce_missing_values(
     :param source_schemaview:
     :return:
     """
-    for cd in specification.class_derivations.values():
+    for cd in specification.class_derivations:
         if not cd.populated_from:
             cd.populated_from = cd.name
-    for cd in specification.class_derivations.values():
+    for cd in specification.class_derivations:
         for sd in cd.slot_derivations.values():
             if sd.object_derivations:
                 #skip inference for object derivations, inferencese come from class derivation later
@@ -53,6 +53,6 @@ def induce_missing_values(
                     )
                     source_induced_slot_range = source_induced_slot.range
 
-                for range_cd in specification.class_derivations.values():
+                for range_cd in specification.class_derivations:
                     if range_cd.populated_from == source_induced_slot_range:
                         sd.range = range_cd.name

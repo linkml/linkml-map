@@ -102,6 +102,7 @@ classes:
         range: ClassDerivation
         multivalued: true
         inlined: true
+        inlined_as_list: true
       enum_derivations:
         description: >-
           Instructions on how to derive a set of enums in the target schema
