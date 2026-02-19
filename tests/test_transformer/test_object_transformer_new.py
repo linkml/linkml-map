@@ -85,6 +85,34 @@ def setup_value_attribute_slot_derivation(scaffold):
 
     scaffold["expected"]["location"] = "Framingham"
 
+@add_to_test_setup
+def setup_uuid5_expr(scaffold):
+    """Derive slot via uuid5 expression."""
+
+    apply_schema_patch(scaffold["target_schema"],
+"""
+    classes:
+      Agent:
+        slots:
+          - uuid_id
+    slots:
+      uuid_id:
+        range: string
+"""
+    )
+
+    apply_transform_patch(scaffold["transform_spec"],
+"""
+    class_derivations:
+      Agent:
+        slot_derivations:
+          uuid_id:
+            expr: 'uuid5("https://example.org/Agent", {id})'
+"""
+    )
+
+    scaffold["expected"]["uuid_id"] = "abbe798e-d61b-5371-86f2-ea8e54129a50"
+
 @pytest.mark.parametrize(
     "setup_func",
     TEST_SETUP_FUNCTIONS,
