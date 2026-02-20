@@ -1,0 +1,135 @@
+id: https://w3id.org/linkml/transformer/linkml-map-to-fair-mappings
+title: LinkML-Map to FAIR Mappings Schema Transformation
+description: |-
+  Transforms a LinkML-Map TransformationSpecification to a FAIR Mappings Schema
+  MappingSpecification. This preserves metadata elements while discarding the
+  actual transformation rules (class_derivations, slot_derivations, etc.) which
+  have no equivalent in the FAIR Mappings Schema.
+
+prefixes:
+  linkmlmap: https://w3id.org/linkml/transformer/
+  fair_mappings_schema: https://w3id.org/mapping-commons/fair-mappings-schema/
+
+source_schema: src/linkml_map/datamodel/transformer_model.yaml
+# Note: Use absolute path or ensure fair-mappings-schema is available locally
+# The transformation will still work without the target schema, but with warnings
+target_schema: /Users/matentzn/ws/fair-mappings-schema/src/fair_mappings_schema/schema/fair_mappings_schema.yaml
+
+class_derivations:
+
+  MappingSpecification:
+    populated_from: TransformationSpecification
+    description: |-
+      Maps TransformationSpecification metadata to MappingSpecification.
+      Note: class_derivations, slot_derivations, enum_derivations, prefixes,
+      copy_directives, and schema patches are not preserved as they have no
+      equivalent in the FAIR Mappings Schema.
+    slot_derivations:
+      id:
+        populated_from: id
+      name:
+        populated_from: title
+        description: Maps 'title' from source to 'name' in target
+      description:
+        populated_from: description
+      publication_date:
+        populated_from: publication_date
+      license:
+        populated_from: license
+      version:
+        populated_from: version
+      mapping_method:
+        populated_from: mapping_method
+      documentation:
+        populated_from: documentation
+      content_url:
+        populated_from: content_url
+      creator:
+        populated_from: creator
+      author:
+        populated_from: author
+      reviewer:
+        populated_from: reviewer
+      subject_source:
+        expr: "{'name': source_schema}"
+        description: Maps source_schema string to a Source object with name field
+      object_source:
+        expr: "{'name': target_schema}"
+        description: Maps target_schema string to a Source object with name field
+
+  Agent:
+    populated_from: Agent
+    description: Maps Agent class (abstract in both schemas)
+    slot_derivations:
+      id:
+        populated_from: id
+      name:
+        populated_from: name
+      type:
+        populated_from: type
+
+  Person:
+    populated_from: Person
+    description: Maps Person (individual contributor)
+    slot_derivations:
+      id:
+        populated_from: id
+      name:
+        populated_from: name
+      type:
+        populated_from: type
+      orcid:
+        populated_from: orcid
+      affiliation:
+        populated_from: affiliation
+
+  Organization:
+    populated_from: Organization
+    description: Maps Organization
+    slot_derivations:
+      id:
+        populated_from: id
+      name:
+        populated_from: name
+      type:
+        populated_from: type
+      ror_id:
+        populated_from: ror_id
+      url:
+        populated_from: url
+
+  Software:
+    populated_from: Software
+    description: Maps Software agent
+    slot_derivations:
+      id:
+        populated_from: id
+      name:
+        populated_from: name
+      type:
+        populated_from: type
+      version:
+        populated_from: version
+      repository_url:
+        populated_from: repository_url
+
+  Source:
+    populated_from: Source
+    description: Maps Source (data source metadata)
+    slot_derivations:
+      id:
+        populated_from: id
+      name:
+        populated_from: name
+      version:
+        populated_from: version
+      documentation:
+        populated_from: documentation
+      content_url:
+        populated_from: content_url
+      content_type:
+        populated_from: content_type
+      metadata_url:
+        populated_from: metadata_url
+      metadata_type:
+        populated_from: metadata_type

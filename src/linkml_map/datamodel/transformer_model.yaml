@@ -23,6 +23,7 @@ prefixes:
   rdfs: http://www.w3.org/2000/01/rdf-schema#
   sh: http://www.w3.org/ns/shacl#
   STATO: http://purl.obolibrary.org/obo/STATO_
+  sssom: https://w3id.org/sssom/
 default_prefix: linkmlmap
 
 imports:
@@ -73,8 +74,21 @@ classes:
         description: Unique identifier for this transformation specification
         slot_uri: schema:identifier
       title:
+        # Corresponds to fair_mappings_schema:MappingSpecification.name
         description: human readable title for this transformation specification
         slot_uri: dcterms:title
+      publication_date:
+        description: date of publication of this transformation specification
+        range: date
+        slot_uri: dcterms:issued
+      license:
+        description: license under which this transformation specification is published
+        range: uriorcurie
+        slot_uri: dcterms:license
+      version:
+        description: version of this transformation specification
+        range: string
+        slot_uri: dcterms:version
       prefixes:
         description: maps prefixes to URL expansions
         range: KeyVal
@@ -86,8 +100,10 @@ classes:
         multivalued: true
         inlined: true
       source_schema:
+        # Corresponds to fair_mappings_schema:MappingSpecification.subject_source
         description: name of the schema that describes the source (input) objects
       target_schema:
+        # Corresponds to fair_mappings_schema:MappingSpecification.object_source
         description: name of the schema that describes the target (output) objects
       source_schema_patches:
         range: Any
@@ -95,6 +111,36 @@ classes:
           Schema patches to apply to the source schema before transformation.
           Useful for adding foreign key relationships to auto-generated schemas.
           Uses LinkML schema YAML structure (classes, slots, attributes, etc.).
+      creator:
+        description: A list of creators of this transformation specification
+        range: Agent
+        multivalued: true
+        inlined: true
+        inlined_as_list: true
+        slot_uri: dcterms:creator
+      author:
+        description: A list of authors of this transformation specification
+        range: Agent
+        multivalued: true
+        inlined: true
+        inlined_as_list: true
+        slot_uri: dcterms:contributor
+      reviewer:
+        description: A list of reviewers of this transformation specification
+        range: Agent
+        multivalued: true
+        inlined: true
+        inlined_as_list: true
+      mapping_method:
+        description: The method used to create this mapping, e.g. manual curation, automated
+          mapping, etc.
+        range: uriorcurie
+      documentation:
+        description: URL or reference to documentation for the mapping specification
+        range: uri
+      content_url:
+        description: Reference to the actual content of the mapping specification
+        range: uri
       class_derivations:
         description: >-
           Instructions on how to derive a set of classes in the target schema
@@ -494,6 +540,60 @@ classes:
         key: true
       value:
         range: Any
+
+  # Aligned with fair_mappings_schema:Agent
+  Agent:
+    abstract: true
+    description: An entity that can create or contribute to a digital object, such as an author or creator.
+    attributes:
+      id:
+        identifier: true
+        description: Identifier for the agent
+        range: uriorcurie
+      name:
+        description: Name of the agent
+        range: string
+        slot_uri: schema:name
+      type:
+        description: Type of the agent
+        range: string
+        designates_type: true
+
+  # Aligned with fair_mappings_schema:Person
+  Person:
+    is_a: Agent
+    description: An individual person who contributes to a mapping specification
+    attributes:
+      orcid:
+        description: ORCID identifier for the person
+        range: uriorcurie
+      affiliation:
+        description: Institutional affiliation of the person
+        range: string
+
+  # Aligned with fair_mappings_schema:Organization
+  Organization:
+    is_a: Agent
+    description: An organization or institution that contributes to a mapping specification
+    attributes:
+      ror_id:
+        description: ROR (Research Organization Registry) identifier
+        range: uriorcurie
+      url:
+        description: URL or web address of the organization
+        range: uri
+
+  # Aligned with fair_mappings_schema:Software
+  Software:
+    is_a: Agent
+    description: A software tool or system used in creating mappings
+    attributes:
+      version:
+        description: Version of the software
+        range: string
+      repository_url:
+        description: URL to a code repository
+        range: uri
 
   CopyDirective:
     description: >-

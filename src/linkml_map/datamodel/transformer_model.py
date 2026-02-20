@@ -98,7 +98,9 @@ linkml_meta = LinkMLMeta({'default_prefix': 'linkmlmap',
                   'schema': {'prefix_prefix': 'schema',
                              'prefix_reference': 'http://schema.org/'},
                   'sh': {'prefix_prefix': 'sh',
-                         'prefix_reference': 'http://www.w3.org/ns/shacl#'}},
+                         'prefix_reference': 'http://www.w3.org/ns/shacl#'},
+                  'sssom': {'prefix_prefix': 'sssom',
+                            'prefix_reference': 'https://w3id.org/sssom/'}},
      'source_file': 'src/linkml_map/datamodel/transformer_model.yaml',
      'title': 'LinkML Map Data Model',
      'types': {'ClassReference': {'from_schema': 'https://w3id.org/linkml/transformer',
@@ -171,11 +173,20 @@ class TransformationSpecification(SpecificationComponent):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/linkml/transformer', 'tree_root': True})
 
     id: Optional[str] = Field(default=None, description="""Unique identifier for this transformation specification""", json_schema_extra = { "linkml_meta": {'alias': 'id',
-         'domain_of': ['TransformationSpecification'],
+         'domain_of': ['TransformationSpecification', 'Agent'],
          'slot_uri': 'schema:identifier'} })
     title: Optional[str] = Field(default=None, description="""human readable title for this transformation specification""", json_schema_extra = { "linkml_meta": {'alias': 'title',
          'domain_of': ['TransformationSpecification'],
          'slot_uri': 'dcterms:title'} })
+    publication_date: Optional[date] = Field(default=None, description="""date of publication of this transformation specification""", json_schema_extra = { "linkml_meta": {'alias': 'publication_date',
+         'domain_of': ['TransformationSpecification'],
+         'slot_uri': 'dcterms:issued'} })
+    license: Optional[str] = Field(default=None, description="""license under which this transformation specification is published""", json_schema_extra = { "linkml_meta": {'alias': 'license',
+         'domain_of': ['TransformationSpecification'],
+         'slot_uri': 'dcterms:license'} })
+    version: Optional[str] = Field(default=None, description="""version of this transformation specification""", json_schema_extra = { "linkml_meta": {'alias': 'version',
+         'domain_of': ['TransformationSpecification', 'Software'],
+         'slot_uri': 'dcterms:version'} })
     prefixes: Optional[Dict[str, KeyVal]] = Field(default_factory=dict, description="""maps prefixes to URL expansions""", json_schema_extra = { "linkml_meta": {'alias': 'prefixes',
          'domain_of': ['TransformationSpecification'],
          'slot_uri': 'sh:declare'} })
@@ -184,6 +195,16 @@ class TransformationSpecification(SpecificationComponent):
     source_schema: Optional[str] = Field(default=None, description="""name of the schema that describes the source (input) objects""", json_schema_extra = { "linkml_meta": {'alias': 'source_schema', 'domain_of': ['TransformationSpecification']} })
     target_schema: Optional[str] = Field(default=None, description="""name of the schema that describes the target (output) objects""", json_schema_extra = { "linkml_meta": {'alias': 'target_schema', 'domain_of': ['TransformationSpecification']} })
     source_schema_patches: Optional[Any] = Field(default=None, description="""Schema patches to apply to the source schema before transformation. Useful for adding foreign key relationships to auto-generated schemas. Uses LinkML schema YAML structure (classes, slots, attributes, etc.).""", json_schema_extra = { "linkml_meta": {'alias': 'source_schema_patches', 'domain_of': ['TransformationSpecification']} })
+    creator: Optional[List[Union[Agent,Person,Organization,Software]]] = Field(default_factory=list, description="""A list of creators of this transformation specification""", json_schema_extra = { "linkml_meta": {'alias': 'creator',
+         'domain_of': ['TransformationSpecification'],
+         'slot_uri': 'dcterms:creator'} })
+    author: Optional[List[Union[Agent,Person,Organization,Software]]] = Field(default_factory=list, description="""A list of authors of this transformation specification""", json_schema_extra = { "linkml_meta": {'alias': 'author',
+         'domain_of': ['TransformationSpecification'],
+         'slot_uri': 'dcterms:contributor'} })
+    reviewer: Optional[List[Union[Agent,Person,Organization,Software]]] = Field(default_factory=list, description="""A list of reviewers of this transformation specification""", json_schema_extra = { "linkml_meta": {'alias': 'reviewer', 'domain_of': ['TransformationSpecification']} })
+    mapping_method: Optional[str] = Field(default=None, description="""The method used to create this mapping, e.g. manual curation, automated mapping, etc.""", json_schema_extra = { "linkml_meta": {'alias': 'mapping_method', 'domain_of': ['TransformationSpecification']} })
+    documentation: Optional[str] = Field(default=None, description="""URL or reference to documentation for the mapping specification""", json_schema_extra = { "linkml_meta": {'alias': 'documentation', 'domain_of': ['TransformationSpecification']} })
+    content_url: Optional[str] = Field(default=None, description="""Reference to the actual content of the mapping specification""", json_schema_extra = { "linkml_meta": {'alias': 'content_url', 'domain_of': ['TransformationSpecification']} })
     class_derivations: Optional[Dict[str, ClassDerivation]] = Field(default_factory=dict, description="""Instructions on how to derive a set of classes in the target schema from classes in the source schema.""", json_schema_extra = { "linkml_meta": {'alias': 'class_derivations',
          'domain_of': ['TransformationSpecification', 'ObjectDerivation']} })
     enum_derivations: Optional[Dict[str, EnumDerivation]] = Field(default_factory=dict, description="""Instructions on how to derive a set of enums in the target schema""", json_schema_extra = { "linkml_meta": {'alias': 'enum_derivations', 'domain_of': ['TransformationSpecification']} })
@@ -209,7 +230,8 @@ class ElementDerivation(SpecificationComponent):
                        'ObjectDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
-                       'PermissibleValueDerivation']} })
+                       'PermissibleValueDerivation',
+                       'Agent']} })
     copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives',
          'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     overrides: Optional[Any] = Field(default=None, description="""overrides source schema slots""", json_schema_extra = { "linkml_meta": {'alias': 'overrides', 'domain_of': ['ElementDerivation']} })
@@ -261,7 +283,8 @@ class ClassDerivation(ElementDerivation):
                        'ObjectDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
-                       'PermissibleValueDerivation']} })
+                       'PermissibleValueDerivation',
+                       'Agent']} })
     copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives',
          'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     overrides: Optional[Any] = Field(default=None, description="""overrides source schema slots""", json_schema_extra = { "linkml_meta": {'alias': 'overrides', 'domain_of': ['ElementDerivation']} })
@@ -294,7 +317,8 @@ class ObjectDerivation(ElementDerivation):
                        'ObjectDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
-                       'PermissibleValueDerivation']} })
+                       'PermissibleValueDerivation',
+                       'Agent']} })
     class_derivations: Optional[Dict[str, ClassDerivation]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'alias': 'class_derivations',
          'domain_of': ['TransformationSpecification', 'ObjectDerivation']} })
     copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives',
@@ -339,7 +363,8 @@ class SlotDerivation(ElementDerivation):
                        'ObjectDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
-                       'PermissibleValueDerivation']} })
+                       'PermissibleValueDerivation',
+                       'Agent']} })
     populated_from: Optional[str] = Field(default=None, description="""Source slot name""", json_schema_extra = { "linkml_meta": {'alias': 'populated_from',
          'domain_of': ['ClassDerivation',
                        'SlotDerivation',
@@ -406,7 +431,8 @@ class EnumDerivation(ElementDerivation):
                        'ObjectDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
-                       'PermissibleValueDerivation']} })
+                       'PermissibleValueDerivation',
+                       'Agent']} })
     populated_from: Optional[str] = Field(default=None, description="""Source enum name""", json_schema_extra = { "linkml_meta": {'alias': 'populated_from',
          'domain_of': ['ClassDerivation',
                        'SlotDerivation',
@@ -460,7 +486,8 @@ class PermissibleValueDerivation(ElementDerivation):
                        'ObjectDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
-                       'PermissibleValueDerivation']} })
+                       'PermissibleValueDerivation',
+                       'Agent']} })
     expr: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'expr',
          'domain_of': ['SlotDerivation',
                        'EnumDerivation',
@@ -508,7 +535,8 @@ class PrefixDerivation(ElementDerivation):
                        'ObjectDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
-                       'PermissibleValueDerivation']} })
+                       'PermissibleValueDerivation',
+                       'Agent']} })
     copy_directives: Optional[Dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'alias': 'copy_directives',
          'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     overrides: Optional[Any] = Field(default=None, description="""overrides source schema slots""", json_schema_extra = { "linkml_meta": {'alias': 'overrides', 'domain_of': ['ElementDerivation']} })
@@ -635,6 +663,84 @@ class KeyVal(ConfiguredBaseModel):
     value: Optional[Any] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'value', 'domain_of': ['SlotDerivation', 'KeyVal']} })
 
 
+class Agent(ConfiguredBaseModel):
+    """
+    An entity that can create or contribute to a digital object, such as an author or creator.
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True, 'from_schema': 'https://w3id.org/linkml/transformer'})
+
+    id: str = Field(default=..., description="""Identifier for the agent""", json_schema_extra = { "linkml_meta": {'alias': 'id', 'domain_of': ['TransformationSpecification', 'Agent']} })
+    name: Optional[str] = Field(default=None, description="""Name of the agent""", json_schema_extra = { "linkml_meta": {'alias': 'name',
+         'domain_of': ['ElementDerivation',
+                       'ObjectDerivation',
+                       'SlotDerivation',
+                       'EnumDerivation',
+                       'PermissibleValueDerivation',
+                       'Agent'],
+         'slot_uri': 'schema:name'} })
+    type: Literal["Agent"] = Field(default="Agent", description="""Type of the agent""", json_schema_extra = { "linkml_meta": {'alias': 'type', 'designates_type': True, 'domain_of': ['Agent']} })
+
+
+class Person(Agent):
+    """
+    An individual person who contributes to a mapping specification
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/linkml/transformer'})
+
+    orcid: Optional[str] = Field(default=None, description="""ORCID identifier for the person""", json_schema_extra = { "linkml_meta": {'alias': 'orcid', 'domain_of': ['Person']} })
+    affiliation: Optional[str] = Field(default=None, description="""Institutional affiliation of the person""", json_schema_extra = { "linkml_meta": {'alias': 'affiliation', 'domain_of': ['Person']} })
+    id: str = Field(default=..., description="""Identifier for the agent""", json_schema_extra = { "linkml_meta": {'alias': 'id', 'domain_of': ['TransformationSpecification', 'Agent']} })
+    name: Optional[str] = Field(default=None, description="""Name of the agent""", json_schema_extra = { "linkml_meta": {'alias': 'name',
+         'domain_of': ['ElementDerivation',
+                       'ObjectDerivation',
+                       'SlotDerivation',
+                       'EnumDerivation',
+                       'PermissibleValueDerivation',
+                       'Agent'],
+         'slot_uri': 'schema:name'} })
+    type: Literal["Person"] = Field(default="Person", description="""Type of the agent""", json_schema_extra = { "linkml_meta": {'alias': 'type', 'designates_type': True, 'domain_of': ['Agent']} })
+
+
+class Organization(Agent):
+    """
+    An organization or institution that contributes to a mapping specification
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/linkml/transformer'})
+
+    ror_id: Optional[str] = Field(default=None, description="""ROR (Research Organization Registry) identifier""", json_schema_extra = { "linkml_meta": {'alias': 'ror_id', 'domain_of': ['Organization']} })
+    url: Optional[str] = Field(default=None, description="""URL or web address of the organization""", json_schema_extra = { "linkml_meta": {'alias': 'url', 'domain_of': ['Organization']} })
+    id: str = Field(default=..., description="""Identifier for the agent""", json_schema_extra = { "linkml_meta": {'alias': 'id', 'domain_of': ['TransformationSpecification', 'Agent']} })
+    name: Optional[str] = Field(default=None, description="""Name of the agent""", json_schema_extra = { "linkml_meta": {'alias': 'name',
+         'domain_of': ['ElementDerivation',
+                       'ObjectDerivation',
+                       'SlotDerivation',
+                       'EnumDerivation',
+                       'PermissibleValueDerivation',
+                       'Agent'],
+         'slot_uri': 'schema:name'} })
+    type: Literal["Organization"] = Field(default="Organization", description="""Type of the agent""", json_schema_extra = { "linkml_meta": {'alias': 'type', 'designates_type': True, 'domain_of': ['Agent']} })
+
+
+class Software(Agent):
+    """
+    A software tool or system used in creating mappings
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/linkml/transformer'})
+
+    version: Optional[str] = Field(default=None, description="""Version of the software""", json_schema_extra = { "linkml_meta": {'alias': 'version', 'domain_of': ['TransformationSpecification', 'Software']} })
+    repository_url: Optional[str] = Field(default=None, description="""URL to a code repository""", json_schema_extra = { "linkml_meta": {'alias': 'repository_url', 'domain_of': ['Software']} })
+    id: str = Field(default=..., description="""Identifier for the agent""", json_schema_extra = { "linkml_meta": {'alias': 'id', 'domain_of': ['TransformationSpecification', 'Agent']} })
+    name: Optional[str] = Field(default=None, description="""Name of the agent""", json_schema_extra = { "linkml_meta": {'alias': 'name',
+         'domain_of': ['ElementDerivation',
+                       'ObjectDerivation',
+                       'SlotDerivation',
+                       'EnumDerivation',
+                       'PermissibleValueDerivation',
+                       'Agent'],
+         'slot_uri': 'schema:name'} })
+    type: Literal["Software"] = Field(default="Software", description="""Type of the agent""", json_schema_extra = { "linkml_meta": {'alias': 'type', 'designates_type': True, 'domain_of': ['Agent']} })
+
+
 class CopyDirective(ConfiguredBaseModel):
     """
     Instructs a Schema Mapper in how to map to a target schema. Not used for data transformation.
@@ -676,5 +782,9 @@ AggregationOperation.model_rebuild()
 GroupingOperation.model_rebuild()
 PivotOperation.model_rebuild()
 KeyVal.model_rebuild()
+Agent.model_rebuild()
+Person.model_rebuild()
+Organization.model_rebuild()
+Software.model_rebuild()
 CopyDirective.model_rebuild()
 
