@@ -206,6 +206,8 @@ class TransformationSpecification(SpecificationComponent):
             for key, cd in v.items():
                 if isinstance(cd, dict):
                     cd.setdefault('name', key)
+                elif hasattr(cd, 'name') and not cd.name:
+                    cd.name = key
                 result.append(cd)
             return result
         return v

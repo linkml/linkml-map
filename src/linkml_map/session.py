@@ -7,8 +7,6 @@ import yaml
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper
 from linkml_runtime.linkml_model import SchemaDefinition
-from linkml_runtime.processing.referencevalidator import ReferenceValidator
-from linkml_runtime.utils.introspection import package_schemaview
 
 from linkml_map import ObjectTransformer
 from linkml_map.datamodel.transformer_model import TransformationSpecification
@@ -49,13 +47,7 @@ class Session:
         if isinstance(specification, TransformationSpecification):
             self.transformer_specification = specification
         elif isinstance(specification, dict):
-            # TODO: centralize this code
-            Transformer._preprocess_class_derivations(specification)
-            normalizer = ReferenceValidator(
-                package_schemaview("linkml_map.datamodel.transformer_model")
-            )
-            normalizer.expand_all = True
-            specification = normalizer.normalize(specification)
+            Transformer._normalize_spec_dict(specification)
             self.transformer_specification = TransformationSpecification(**specification)
         elif isinstance(specification, str):
             if "\n" in specification:

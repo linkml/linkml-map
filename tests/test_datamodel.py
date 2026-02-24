@@ -1,6 +1,8 @@
 """Tests the data model."""
 
+import pytest
 import yaml
+from linkml_runtime import SchemaView
 
 from linkml_map.datamodel.transformer_model import (
     ClassDerivation,
@@ -260,6 +262,36 @@ class_derivations:
     assert len(spec.class_derivations) == 2
     entity_cd = next(cd for cd in spec.class_derivations if cd.name == "Entity")
     assert entity_cd.populated_from is None
+
+
+def test_get_class_derivation_raises_for_duplicate_names_without_populated_from() -> None:
+    """Two derivations with the same name and no populated_from should raise on lookup."""
+    spec = TransformationSpecification(
+        id="dup-no-pf",
+        class_derivations=[
+            ClassDerivation(name="Result"),
+            ClassDerivation(name="Result"),
+        ],
+    )
+    tr = ObjectTransformer()
+    tr.specification = spec
+    tr.source_schemaview = SchemaView(
+        """\
+id: https://example.org/minimal
+name: minimal
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+classes:
+  Result:
+    attributes:
+      id:
+        range: string
+"""
+    )
+    with pytest.raises(ValueError, match="results=2"):
+        tr._get_class_derivation("Result")
 
 
 def test_create_transformer_specification_dict_input() -> None:

@@ -21,13 +21,13 @@ from src.linkml_map.utils.loaders import load_specification
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
-def get_biolink_class_derivations(sv: SchemaView, subset_classes: list) -> dict:
+def get_biolink_class_derivations(sv: SchemaView, subset_classes: list) -> list:
     """
-    Get Biolink class definitions.
+    Get Biolink class derivations.
 
     :param sv: SchemaView object
     :param subset_classes: List of classes to subset
-    :return: Dictionary of class derivations incl slot derivations
+    :return: List of class derivations incl slot derivations
     """
     # Example implementation to fetch class definitions
     # This should be replaced with the actual implementation
