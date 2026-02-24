@@ -157,7 +157,14 @@ class ObjectTransformer(Transformer):
         """
         if source_type is None and sv is None:
             # TODO: use smarter method
-            source_type = self.specification.class_derivations[0].name
+            if self.specification.class_derivations:
+                source_type = self.specification.class_derivations[0].name
+            else:
+                msg = (
+                    "Cannot resolve source type: no source_type provided, "
+                    "no SchemaView available, and specification has no class_derivations"
+                )
+                raise ValueError(msg)
         if source_type is None and sv is not None:
             source_types = [c.name for c in sv.all_classes().values() if c.tree_root]
             if len(source_types) == 1:

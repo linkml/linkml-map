@@ -249,6 +249,10 @@ class SchemaMapper:
         incoming definition are added to the existing one; on conflict the
         incoming value wins with a warning.
 
+        Merged fields: ``attributes``, ``slots``, ``mixins``, ``is_a``.
+        Fields like ``slot_usage`` are not merged because ``_derive_class``
+        resets them to empty on each derived ClassDefinition.
+
         :param existing: The ClassDefinition already in the target schema.
         :param incoming: The newly derived ClassDefinition to merge in.
         """
