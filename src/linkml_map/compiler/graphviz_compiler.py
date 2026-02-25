@@ -76,7 +76,8 @@ class GraphvizCompiler(Compiler):
 
         # Define the class nodes with fields in UML format using HTML-like labels
         # for precise control over the stacking of the fields
-        for target_cn, cd in specification.class_derivations.items():
+        for cd in specification.class_derivations:
+            target_cn = cd.name
             source_cn = cd.populated_from
             if source_cn is None:
                 source_cn = cd.name

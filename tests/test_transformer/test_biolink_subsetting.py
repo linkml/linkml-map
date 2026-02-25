@@ -21,24 +21,24 @@ from src.linkml_map.utils.loaders import load_specification
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
-def get_biolink_class_derivations(sv: SchemaView, subset_classes: list) -> dict:
+def get_biolink_class_derivations(sv: SchemaView, subset_classes: list) -> list:
     """
-    Get Biolink class definitions.
+    Get Biolink class derivations.
 
     :param sv: SchemaView object
     :param subset_classes: List of classes to subset
-    :return: Dictionary of class derivations incl slot derivations
+    :return: List of class derivations incl slot derivations
     """
     # Example implementation to fetch class definitions
     # This should be replaced with the actual implementation
-    class_derivations = {}
+    class_derivations = []
     for class_name in subset_classes:
         class_derivation = ClassDerivation(populated_from=class_name, name=camelcase(class_name))
         induced_slots = sv.class_induced_slots(class_name)
         for slot in induced_slots:
             slot_derivation = SlotDerivation(populated_from=slot.name, name=underscore(slot.name))
             class_derivation.slot_derivations[underscore(slot.name)] = slot_derivation
-        class_derivations[camelcase(class_name)] = class_derivation
+        class_derivations.append(class_derivation)
     return class_derivations
 
 
