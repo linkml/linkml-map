@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import IO, Any, Optional, Union
 
 import yaml
 from flatten_dict import flatten
@@ -532,15 +532,16 @@ class MultiStreamWriter:
     """
     Fan-out writer that sends the same chunks to multiple ``StreamWriter`` instances.
 
-    Each output is a ``(StreamWriter, Path)`` pair. ``write_all`` opens all
-    output files, feeds every chunk to every writer, finalizes each writer,
-    and handles tabular header-rewrite post-processing.
+    Each output is a ``(StreamWriter, target)`` pair where *target* is either a
+    ``Path`` (opened and closed internally, eligible for header rewrite) or an
+    open file handle such as ``sys.stdout`` (written to directly, never closed
+    or rewritten by this class).
 
-    :param outputs: List of ``(StreamWriter, Path)`` tuples.
+    :param outputs: List of ``(StreamWriter, target)`` tuples.
     """
 
-    def __init__(self, outputs: list[tuple[StreamWriter, Path]]) -> None:
-        """Initialize with a list of (writer, path) output targets."""
+    def __init__(self, outputs: list[tuple[StreamWriter, Union[Path, IO[str]]]]) -> None:
+        """Initialize with a list of (writer, target) output pairs."""
         self.outputs = outputs
 
     def write_all(self, chunks: Iterator[list[dict]]) -> None:
@@ -549,36 +550,46 @@ class MultiStreamWriter:
 
         :param chunks: Iterator of lists of dictionaries.
         """
-        handles = []
+        handles: list[IO[str]] = []
+        owned: list[bool] = []  # True when we opened the handle (so we close it)
         try:
-            # Open all output files
-            for _writer, path in self.outputs:
-                fh = open(path, "w", encoding="utf-8")  # noqa: SIM115
-                handles.append(fh)
+            for _writer, target in self.outputs:
+                if isinstance(target, Path):
+                    fh = open(target, "w", encoding="utf-8")  # noqa: SIM115
+                    handles.append(fh)
+                    owned.append(True)
+                else:
+                    handles.append(target)
+                    owned.append(False)
 
             # Fan out each chunk to every writer
             for chunk in chunks:
-                for idx, (writer, _path) in enumerate(self.outputs):
+                for idx, (writer, _target) in enumerate(self.outputs):
                     for fragment in writer.write_chunk(chunk):
                         handles[idx].write(fragment)
 
             # Finalize each writer
-            for idx, (writer, _path) in enumerate(self.outputs):
+            for idx, (writer, _target) in enumerate(self.outputs):
                 for fragment in writer.finalize():
                     handles[idx].write(fragment)
 
         finally:
-            for fh in handles:
-                fh.close()
+            for fh, is_owned in zip(handles, owned, strict=True):
+                if is_owned:
+                    fh.close()
 
-        # Post-process tabular outputs that had header changes
-        for writer, path in self.outputs:
-            if isinstance(writer, TabularStreamWriter) and writer.headers_changed:
-                logger.info("Rewriting %s with updated headers", path)
-                tmp_path = str(path) + ".tmp"
-                with open(path, encoding="utf-8") as src, open(tmp_path, "w", encoding="utf-8") as dst:
+        # Post-process tabular Path outputs that had header changes
+        for writer, target in self.outputs:
+            if (
+                isinstance(target, Path)
+                and isinstance(writer, TabularStreamWriter)
+                and writer.headers_changed
+            ):
+                logger.info("Rewriting %s with updated headers", target)
+                tmp_path = str(target) + ".tmp"
+                with open(target, encoding="utf-8") as src, open(tmp_path, "w", encoding="utf-8") as dst:
                     for line in rewrite_header_and_pad(
                         iter(src), writer.get_final_headers(), writer.separator
                     ):
                         dst.write(line)
-                os.replace(tmp_path, str(path))
+                os.replace(tmp_path, str(target))

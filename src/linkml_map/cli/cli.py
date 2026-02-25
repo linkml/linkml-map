@@ -251,62 +251,6 @@ def _build_additional_outputs(
     return result
 
 
-def _rewrite_tabular_headers(file_outputs: list[tuple]) -> None:
-    """Post-process tabular outputs that had header changes during streaming.
-
-    :param file_outputs: List of (StreamWriter, Path) tuples.
-    """
-    from linkml_map.writers import TabularStreamWriter
-
-    for writer, path in file_outputs:
-        if isinstance(writer, TabularStreamWriter) and writer.headers_changed:
-            logger.info("Rewriting %s with updated headers", path)
-            tmp = str(path) + ".tmp"
-            with open(path, encoding="utf-8") as src, open(tmp, "w", encoding="utf-8") as dst:
-                for line in rewrite_header_and_pad(
-                    iter(src), writer.get_final_headers(), writer.separator
-                ):
-                    dst.write(line)
-            os.replace(tmp, str(path))
-
-
-def _write_multi_to_stdout_and_files(
-    chunks: Iterator,
-    fmt: OutputFormat,
-    file_outputs: list[tuple],
-) -> None:
-    """Write primary format to stdout while fanning out to additional file outputs.
-
-    :param chunks: Chunk iterator (consumed once).
-    :param fmt: Primary output format (for stdout).
-    :param file_outputs: List of (StreamWriter, Path) tuples for file outputs.
-    """
-    stdout_writer = make_stream_writer(fmt)
-    handles = []
-    try:
-        for _w, p in file_outputs:
-            fh = open(p, "w", encoding="utf-8")  # noqa: SIM115
-            handles.append(fh)
-
-        for chunk in chunks:
-            for fragment in stdout_writer.write_chunk(chunk):
-                sys.stdout.write(fragment)
-            for idx, (writer, _p) in enumerate(file_outputs):
-                for fragment in writer.write_chunk(chunk):
-                    handles[idx].write(fragment)
-
-        for fragment in stdout_writer.finalize():
-            sys.stdout.write(fragment)
-        for idx, (writer, _p) in enumerate(file_outputs):
-            for fragment in writer.finalize():
-                handles[idx].write(fragment)
-    finally:
-        for fh in handles:
-            fh.close()
-
-    _rewrite_tabular_headers(file_outputs)
-
-
 def _map_data_streaming(
     input_path: Path,
     schema: str,
@@ -340,15 +284,10 @@ def _map_data_streaming(
 
     if additional_output:
         extra_outputs = _build_additional_outputs(additional_output)
-
-        if output:
-            # All outputs go to files — use MultiStreamWriter
-            primary_writer = make_stream_writer(fmt)
-            all_outputs = [(primary_writer, Path(output))] + extra_outputs
-            MultiStreamWriter(all_outputs).write_all(chunks)
-        else:
-            # Primary to stdout, additional to files
-            _write_multi_to_stdout_and_files(chunks, fmt, extra_outputs)
+        primary_writer = make_stream_writer(fmt)
+        primary_target = Path(output) if output else sys.stdout
+        all_outputs = [(primary_writer, primary_target), *extra_outputs]
+        MultiStreamWriter(all_outputs).write_all(chunks)
     else:
         # Original single-output path (backward compatible)
         stream_writer = get_stream_writer(fmt)
