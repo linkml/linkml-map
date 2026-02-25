@@ -400,6 +400,13 @@ def test_import_blocked() -> None:
         eval_expr("__import__('os').listdir()")
 
 
+def test_private_attribute_blocked() -> None:
+    """Accessing private/dunder attributes is blocked."""
+    p = Person(name="Alice")
+    with pytest.raises(NameError, match="private attribute"):
+        eval_expr("p.__class__", p=p)
+
+
 def test_set_must_enclose_single_variable() -> None:
     """The {x} syntax requires exactly one variable."""
     with pytest.raises(ValueError, match="single variable"):

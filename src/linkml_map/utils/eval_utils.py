@@ -26,7 +26,7 @@ class UnsetValueError(Exception):
     """Raise when a required ``{variable}`` binding is None."""
 
 
-def eval_conditional(*conds: list[tuple[bool, Any]]) -> Any:  # noqa: ANN401
+def eval_conditional(*conds: tuple[bool, Any]) -> Any:  # noqa: ANN401
     """
     Evaluate a conditional.
 
@@ -178,7 +178,14 @@ def _distributed_getattr(obj: Any, attr: str) -> Any:  # noqa: ANN401
     ['Alice', 'Bob']
     >>> _distributed_getattr(None, "name") is None
     True
+    >>> _distributed_getattr(P("Alice"), "_secret")
+    Traceback (most recent call last):
+        ...
+    NameError: Access to private attribute '_secret' is not allowed
     """
+    if attr.startswith("_"):
+        msg = f"Access to private attribute {attr!r} is not allowed"
+        raise NameError(msg)
     if isinstance(obj, list):
         return [_distributed_getattr(item, attr) for item in obj]
     if isinstance(obj, dict):
