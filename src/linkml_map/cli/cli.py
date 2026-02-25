@@ -138,17 +138,9 @@ def map_data(
     # Determine output format
     if output_format is None:
         if output:
-            # Infer from output file extension
             ext = Path(output).suffix.lower()
-            format_map = {
-                ".yaml": "yaml",
-                ".yml": "yaml",
-                ".json": "json",
-                ".jsonl": "jsonl",
-                ".tsv": "tsv",
-                ".csv": "csv",
-            }
-            output_format = format_map.get(ext, "yaml")
+            fmt = EXTENSION_FORMAT_MAP.get(ext, OutputFormat.YAML)
+            output_format = fmt.value
         else:
             output_format = "yaml"
 

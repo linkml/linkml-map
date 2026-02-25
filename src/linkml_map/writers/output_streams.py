@@ -436,7 +436,9 @@ def rewrite_header_and_pad(
     Rewrite a tabular file with updated headers and padded rows.
 
     Use this when headers changed during initial streaming and the
-    output file needs to be corrected.
+    output file needs to be corrected.  Uses the ``csv`` module to
+    parse and re-emit rows so that quoted fields containing the
+    separator or newlines are handled correctly.
 
     :param lines: Iterator of lines from the original file
     :param final_headers: The complete set of headers
@@ -444,28 +446,39 @@ def rewrite_header_and_pad(
     :param chunk_size: Number of lines to process at once
     :yield: Corrected lines with proper headers and padding
     """
+    import csv
+    import io
+
     from more_itertools import chunked
 
     header_count = len(final_headers)
-    header_line = separator.join(final_headers) + "\n"
 
-    def pad_line(line: str) -> str:
-        """Pad a single line to match header count."""
-        fields = line.rstrip("\n").split(separator)
-        if len(fields) < header_count:
-            fields.extend([""] * (header_count - len(fields)))
-        return separator.join(fields) + "\n"
+    # Choose CSV dialect based on separator
+    if separator == ",":
+        dialect: type[csv.Dialect] = csv.excel
+    else:
+        # TSV: no quoting by default to match TabularStreamWriter output
+        dialect = csv.excel_tab
+
+    def _write_row(fields: list[str]) -> str:
+        """Write a single row using the csv writer."""
+        buf = io.StringIO()
+        csv.writer(buf, dialect=dialect, lineterminator="\n").writerow(fields)
+        return buf.getvalue()
 
     # Yield new header
-    yield header_line
+    yield _write_row(final_headers)
 
     # Skip original header and pad remaining lines
     lines_iter = iter(lines)
     next(lines_iter, None)  # Skip original header
 
     for chunk in chunked(lines_iter, chunk_size):
-        for line in chunk:
-            yield pad_line(line)
+        reader = csv.reader(chunk, dialect=dialect)
+        for fields in reader:
+            if len(fields) < header_count:
+                fields.extend([""] * (header_count - len(fields)))
+            yield _write_row(fields)
 
 
 def get_stream_writer(output_format: OutputFormat) -> Any:
