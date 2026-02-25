@@ -170,9 +170,13 @@ class SchemaMapper:
             target_schema.imports.append(im)
         for prefix in source_schema.prefixes.values():
             target_schema.prefixes[prefix.prefix_prefix] = prefix
-        for class_derivation in specification.class_derivations.values():
+        for class_derivation in specification.class_derivations:
             class_definition = self._derive_class(class_derivation)
-            target_schema.classes[class_definition.name] = class_definition
+            existing = target_schema.classes.get(class_definition.name)
+            if existing is not None:
+                self._merge_class_definition(existing, class_definition)
+            else:
+                target_schema.classes[class_definition.name] = class_definition
         for enum_derivation in specification.enum_derivations.values():
             enum_definition = self._derive_enum(enum_derivation)
             target_schema.enums[enum_definition.name] = enum_definition
@@ -233,6 +237,60 @@ class SchemaMapper:
                 curr[k] = v
             target_class = ClassDefinition(**curr)
         return target_class
+
+    def _merge_class_definition(
+        self, existing: ClassDefinition, incoming: ClassDefinition
+    ) -> None:
+        """
+        Merge an incoming ClassDefinition into an existing one.
+
+        Used when multiple ClassDerivations target the same class name (e.g.
+        two source tables both map to ``Condition``). Attributes from the
+        incoming definition are added to the existing one; on conflict the
+        incoming value wins with a warning.
+
+        Merged fields: ``attributes``, ``slots``, ``mixins``, ``is_a``.
+        Fields like ``slot_usage`` are not merged because ``_derive_class``
+        resets them to empty on each derived ClassDefinition.
+
+        :param existing: The ClassDefinition already in the target schema.
+        :param incoming: The newly derived ClassDefinition to merge in.
+        """
+        for attr_name in list(incoming.attributes):
+            if attr_name.startswith("_"):
+                continue
+            if attr_name in existing.attributes:
+                logger.warning(
+                    "Slot '%s' in class '%s' defined by multiple derivations; "
+                    "later derivation wins",
+                    attr_name,
+                    existing.name,
+                )
+            existing.attributes[attr_name] = incoming.attributes[attr_name]
+
+        existing_slot_set = set(existing.slots)
+        for slot in incoming.slots:
+            if slot not in existing_slot_set:
+                existing.slots.append(slot)
+                existing_slot_set.add(slot)
+
+        existing_mixin_set = set(existing.mixins)
+        for mixin in incoming.mixins:
+            if mixin not in existing_mixin_set:
+                existing.mixins.append(mixin)
+                existing_mixin_set.add(mixin)
+
+        if incoming.is_a:
+            if not existing.is_a:
+                existing.is_a = incoming.is_a
+            elif incoming.is_a != existing.is_a:
+                logger.warning(
+                    "Class '%s' has conflicting is_a: '%s' vs '%s'; keeping '%s'",
+                    existing.name,
+                    existing.is_a,
+                    incoming.is_a,
+                    existing.is_a,
+                )
 
     def _derive_enum(self, enum_derivation: EnumDerivation) -> EnumDefinition:
         """

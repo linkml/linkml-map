@@ -110,16 +110,12 @@ class Transformer(ABC):
         """
         with open(path) as f:
             obj = yaml.safe_load(f)
-            # necessary to expand first
-            normalizer = ReferenceValidator(
-                package_schemaview("linkml_map.datamodel.transformer_model")
-            )
-            normalizer.expand_all = True
-            obj = normalizer.normalize(obj)
+            self._normalize_spec_dict(obj)
             self.specification = TransformationSpecification(**obj)
 
+    @classmethod
     def normalize_transform_spec(
-        self,
+        cls,
         obj: dict[str, Any],
         normalizer: ReferenceValidator
     ) -> dict:
@@ -128,17 +124,82 @@ class Transformer(ABC):
         """
         obj = normalizer.normalize(obj)
 
-        class_derivations = obj.get("class_derivations", {})
-        for class_name, class_spec in class_derivations.items():
+        class_derivations = obj.get("class_derivations", [])
+        if isinstance(class_derivations, dict):
+            cd_iter = class_derivations.values()
+        else:
+            cd_iter = class_derivations
+        for class_spec in cd_iter:
+            if not isinstance(class_spec, dict):
+                continue
             slot_derivations = class_spec.get("slot_derivations", {})
             for slot, slot_spec in slot_derivations.items():
                 # Check for nested object_derivations
                 object_derivations = slot_spec.get("object_derivations", [])
                 for i, od in enumerate(object_derivations):
                     # Recursively normalize each nested class_derivation block
-                    od_normalized = self.normalize_transform_spec(od, normalizer)
+                    od_normalized = cls.normalize_transform_spec(od, normalizer)
+                    # ObjectDerivation.class_derivations stays as dict (no inlined_as_list),
+                    # but the normalizer may convert it to list. Convert back.
+                    od_cd = od_normalized.get("class_derivations")
+                    if isinstance(od_cd, list):
+                        od_normalized["class_derivations"] = {
+                            item["name"]: item for item in od_cd if isinstance(item, dict)
+                        }
                     object_derivations[i] = od_normalized
         return obj
+
+    @classmethod
+    def _normalize_spec_dict(cls, obj: dict[str, Any]) -> None:
+        """
+        Normalize a raw specification dict in place.
+
+        Bundles _preprocess_class_derivations, ReferenceValidator normalization,
+        and nested ObjectDerivation fixup into a single entry point. Mutates
+        ``obj`` by replacing its contents with the normalized result.
+
+        :param obj: Raw specification dict (e.g. from YAML or user code).
+        """
+        cls._preprocess_class_derivations(obj)
+        normalizer = ReferenceValidator(
+            package_schemaview("linkml_map.datamodel.transformer_model")
+        )
+        normalizer.expand_all = True
+        normalized = cls.normalize_transform_spec(obj, normalizer)
+        obj.clear()
+        obj.update(normalized)
+
+    @staticmethod
+    def _preprocess_class_derivations(obj: dict[str, Any]) -> None:
+        """
+        Pre-process class_derivations before ReferenceValidator normalization.
+
+        Handles two cases:
+        1. Dict format with None values (e.g. ``Entity:`` with no body) — replace
+           with empty dicts so ReferenceValidator.ensure_list doesn't choke.
+        2. List format with compact keys (e.g. ``- Condition: {populated_from: x}``)
+           — unwrap to ``{name: Condition, populated_from: x}`` so Pydantic can
+           validate.
+        """
+        cd = obj.get("class_derivations")
+        if isinstance(cd, dict):
+            for k, v in cd.items():
+                if v is None:
+                    cd[k] = {}
+        elif isinstance(cd, list):
+            for i, item in enumerate(cd):
+                # Detect YAML compact-key format: a single-key dict where the
+                # key is the class name and the value is the body (dict) or
+                # None.  E.g. ``- Condition: {populated_from: x}`` parses as
+                # ``{"Condition": {"populated_from": "x"}}``.  We skip items
+                # whose sole key is "name" — those are already in expanded
+                # form (``- name: Foo``).
+                if isinstance(item, dict) and len(item) == 1:
+                    key, val = next(iter(item.items()))
+                    if key != "name" and isinstance(val, (dict, type(None))):
+                        expanded = val if val is not None else {}
+                        expanded.setdefault("name", key)
+                        cd[i] = expanded
 
     def create_transformer_specification(self, obj: dict[str, Any]) -> None:
         """
@@ -149,11 +210,7 @@ class Transformer(ABC):
         :param path:
         :return:
         """
-        normalizer = ReferenceValidator(
-            package_schemaview("linkml_map.datamodel.transformer_model")
-        )
-        normalizer.expand_all = True
-        obj = self.normalize_transform_spec(obj, normalizer)
+        self._normalize_spec_dict(obj)
         self.specification = TransformationSpecification(**obj)
 
     def _apply_source_schema_patches(self) -> None:
@@ -181,7 +238,7 @@ class Transformer(ABC):
         spec = self.derived_specification
         matching_tgt_class_derivs = [
             deriv
-            for deriv in spec.class_derivations.values()
+            for deriv in spec.class_derivations
             if deriv.populated_from == target_class_name
             or (not deriv.populated_from and target_class_name == deriv.name)
         ]
@@ -205,6 +262,17 @@ class Transformer(ABC):
                             setattr(cd, k, v)
         return cd
 
+    def _find_class_derivation_by_name(self, name: str) -> ClassDerivation:
+        """Look up a class derivation by name from the specification.
+
+        Returns the first match when multiple derivations share the same name.
+        """
+        for cd in self.specification.class_derivations:
+            if cd.name == name:
+                return cd
+        msg = f"No class derivation named '{name}'"
+        raise KeyError(msg)
+
     def _class_derivation_ancestors(self, cd: ClassDerivation) -> dict[str, ClassDerivation]:
         """
         Return a map of all class derivations that are ancestors of the given class derivation.
@@ -212,12 +280,12 @@ class Transformer(ABC):
         :param cd:
         :return:
         """
-        spec = self.specification
         ancestors = {}
         parents = cd.mixins + ([cd.is_a] if cd.is_a else [])
         for parent in parents:
-            ancestors[parent] = spec.class_derivations[parent]
-            ancestors.update(self._class_derivation_ancestors(spec.class_derivations[parent]))
+            parent_cd = self._find_class_derivation_by_name(parent)
+            ancestors[parent] = parent_cd
+            ancestors.update(self._class_derivation_ancestors(parent_cd))
         return ancestors
 
     def _get_enum_derivation(self, target_enum_name: str) -> EnumDerivation:

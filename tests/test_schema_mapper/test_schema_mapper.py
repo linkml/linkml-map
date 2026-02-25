@@ -139,7 +139,7 @@ def test_derive_partial(mapper: SchemaMapper) -> None:
         ClassDerivation(name="Agent", populated_from="Person"),
     ]
     for derivation in derivations:
-        specification.class_derivations[derivation.name] = derivation
+        specification.class_derivations.append(derivation)
     target_schema = mapper.derive_schema(specification)
     print(yaml_dumper.dumps(target_schema))
     assert list(target_schema.classes.keys()) == ["Agent"]
@@ -185,7 +185,7 @@ def test_rewire() -> None:
     assert list(target_schema.classes.keys()) == ["TrEmployee"]
     emp = target_schema.classes["TrEmployee"]
     assert list(emp.attributes.keys()) == ["tr_salary"]
-    specification.class_derivations["TrEmployee"].is_a = "Person"
+    next(cd for cd in specification.class_derivations if cd.name == "TrEmployee").is_a = "Person"
     target_schema = tr.derive_schema(specification)
     assert list(target_schema.classes.keys()) == ["TrEmployee"]
     emp = target_schema.classes["TrEmployee"]
@@ -215,7 +215,7 @@ def test_partial_copy_specification(mapper: SchemaMapper) -> None:
         ClassDerivation(name="Agent", populated_from="Person"),
     ]
     for derivation in derivations:
-        specification.class_derivations[derivation.name] = derivation
+        specification.class_derivations.append(derivation)
     target_schema = mapper.derive_schema(specification)
     # classes must be the same with addition
     for schema_class in source_schema.classes:
@@ -236,7 +236,7 @@ def test_full_copy_class(mapper: SchemaMapper) -> None:
         ClassDerivation(name="Agent", populated_from="Person", copy_directives=copy_all_directive),
     ]
     for derivation in derivations:
-        specification.class_derivations[derivation.name] = derivation
+        specification.class_derivations.append(derivation)
     target_schema = mapper.derive_schema(specification)
     # classes must be the same with addition
     for schema_class in source_schema.classes:
@@ -264,7 +264,7 @@ def test_copy_blacklisting(mapper: SchemaMapper) -> None:
         ClassDerivation(name="Agent", populated_from="Person"),
     ]
     for derivation in derivations:
-        specification.class_derivations[derivation.name] = derivation
+        specification.class_derivations.append(derivation)
     target_schema = mapper.derive_schema(specification)
     # classes must be the same with addition
     for schema_class in source_schema.classes:
@@ -298,7 +298,7 @@ def test_copy_whitelisting(mapper: SchemaMapper) -> None:
         ClassDerivation(name="Agent", populated_from="Person"),
     ]
     for derivation in derivations:
-        specification.class_derivations[derivation.name] = derivation
+        specification.class_derivations.append(derivation)
     target_schema = mapper.derive_schema(specification)
     # classes, slots and enums must have only what explicitly included
     for schema_class in source_schema.classes:
@@ -325,6 +325,87 @@ def test_copy_whitelisting(mapper: SchemaMapper) -> None:
             assert schema_enum not in target_schema.enums, (
                 f"Enum '{schema_enum}' is missing in target"
             )
+
+
+def test_derive_schema_merges_duplicate_name_derivations() -> None:
+    """Two derivations targeting the same class name should merge their slots."""
+    sb = SchemaBuilder()
+    sb.add_slot("code_a", range="string")
+    sb.add_slot("onset_date", range="string")
+    sb.add_slot("code_b", range="string")
+    sb.add_slot("severity", range="string")
+    sb.add_class("pht004031", slots=["code_a", "onset_date"])
+    sb.add_class("pht004047", slots=["code_b", "severity"])
+
+    sm = SchemaMapper(source_schemaview=SchemaView(sb.schema))
+    spec = TransformationSpecification(
+        id="merge-test",
+        class_derivations=[
+            ClassDerivation(
+                name="Condition",
+                populated_from="pht004031",
+                slot_derivations={
+                    "code": SlotDerivation(name="code", populated_from="code_a"),
+                    "onset_date": SlotDerivation(name="onset_date"),
+                },
+            ),
+            ClassDerivation(
+                name="Condition",
+                populated_from="pht004047",
+                slot_derivations={
+                    "code": SlotDerivation(name="code", populated_from="code_b"),
+                    "severity": SlotDerivation(name="severity"),
+                },
+            ),
+        ],
+    )
+    target_schema = sm.derive_schema(spec)
+    condition = target_schema.classes["Condition"]
+    # All three distinct slot names should be present
+    assert "code" in condition.attributes
+    assert "onset_date" in condition.attributes
+    assert "severity" in condition.attributes
+
+
+def test_derive_schema_warns_on_slot_conflict(caplog) -> None:
+    """When two derivations define the same slot, the later one wins with a warning."""
+    import logging
+
+    sb = SchemaBuilder()
+    sb.add_slot("code_a", range="string")
+    sb.add_slot("code_b", range="string")
+    sb.add_class("table1", slots=["code_a"])
+    sb.add_class("table2", slots=["code_b"])
+
+    sm = SchemaMapper(source_schemaview=SchemaView(sb.schema))
+    spec = TransformationSpecification(
+        id="conflict-test",
+        class_derivations=[
+            ClassDerivation(
+                name="Result",
+                populated_from="table1",
+                slot_derivations={
+                    "code": SlotDerivation(name="code", populated_from="code_a"),
+                },
+            ),
+            ClassDerivation(
+                name="Result",
+                populated_from="table2",
+                slot_derivations={
+                    "code": SlotDerivation(name="code", populated_from="code_b"),
+                },
+            ),
+        ],
+    )
+    with caplog.at_level(logging.WARNING, logger="linkml_map.inference.schema_mapper"):
+        target_schema = sm.derive_schema(spec)
+
+    # Slot exists (later derivation overwrote earlier)
+    result = target_schema.classes["Result"]
+    assert "code" in result.attributes
+
+    # Warning was logged about the conflict
+    assert any("Slot 'code'" in msg for msg in caplog.messages)
 
 
 def test_overrides_in_class_derivation(mapper: SchemaMapper) -> None:
