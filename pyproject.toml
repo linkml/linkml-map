@@ -23,6 +23,7 @@ dependencies = [
     "pint>=0.20",
     "pydantic>=2,<3",
     "pyyaml",
+    "simpleeval>=1.0.3",
     "ucumvert>=0.2",
 ]
 
