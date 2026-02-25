@@ -24,7 +24,7 @@ from linkml_map.datamodel.transformer_model import (
 from linkml_map.functions.unit_conversion import UnitSystem, convert_units
 from linkml_map.transformer.transformer import OBJECT_TYPE, Transformer
 from linkml_map.utils.dynamic_object import DynObj, dynamic_object
-from linkml_map.utils.eval_utils import eval_expr, eval_expr_with_mapping
+from linkml_map.utils.eval_utils import _uuid5, eval_expr, eval_expr_with_mapping
 from linkml_map.utils.fk_utils import resolve_fk_path
 
 DICT_OBJ = dict[str, Any]
@@ -273,7 +273,7 @@ class ObjectTransformer(Transformer):
                         msg = f"Expression not in safe subset: {slot_derivation.expr}"
                         raise RuntimeError(msg) from err
                     ctxt_obj, _ = bindings.get_ctxt_obj_and_dict()
-                    aeval = Interpreter(usersyms={"src": ctxt_obj, "target": None})
+                    aeval = Interpreter(usersyms={"src": ctxt_obj, "target": None, "uuid5": _uuid5})
                     aeval(slot_derivation.expr)
                     v = aeval.symtable["target"]
             # EXTRACT: _derive_from_populated_from(slot_derivation, source_obj, sv, source_type) -> tuple[Any, SlotDefinition]
@@ -624,7 +624,7 @@ class ObjectTransformer(Transformer):
                 if enum_deriv.expr:
                     v = eval_expr(enum_deriv.expr, **source_obj, NULL=None)
             except Exception:
-                aeval = Interpreter(usersyms={"src": source_obj, "target": None})
+                aeval = Interpreter(usersyms={"src": source_obj, "target": None, "uuid5": _uuid5})
                 aeval(enum_deriv.expr)
                 v = aeval.symtable["target"]
             if v is not None:
