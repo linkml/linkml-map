@@ -79,7 +79,7 @@ funcs = {
     "str": (False, str),
     "strlen": (False, len),
     "case": (False, eval_conditional),
-    "uuid5": (True, _uuid5),
+    "uuid5": (False, _uuid5),
 }
 
 
