@@ -280,14 +280,17 @@ class SchemaMapper:
                 existing.mixins.append(mixin)
                 existing_mixin_set.add(mixin)
 
-        if incoming.is_a and existing.is_a and incoming.is_a != existing.is_a:
-            logger.warning(
-                "Class '%s' has conflicting is_a: '%s' vs '%s'; keeping '%s'",
-                existing.name,
-                existing.is_a,
-                incoming.is_a,
-                existing.is_a,
-            )
+        if incoming.is_a:
+            if not existing.is_a:
+                existing.is_a = incoming.is_a
+            elif incoming.is_a != existing.is_a:
+                logger.warning(
+                    "Class '%s' has conflicting is_a: '%s' vs '%s'; keeping '%s'",
+                    existing.name,
+                    existing.is_a,
+                    incoming.is_a,
+                    existing.is_a,
+                )
 
     def _derive_enum(self, enum_derivation: EnumDerivation) -> EnumDefinition:
         """
