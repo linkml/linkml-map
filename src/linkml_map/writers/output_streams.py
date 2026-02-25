@@ -574,7 +574,7 @@ class MultiStreamWriter:
                     handles[idx].write(fragment)
 
         finally:
-            for fh, is_owned in zip(handles, owned, strict=True):
+            for fh, is_owned in zip(handles, owned):  # noqa: B905
                 if is_owned:
                     fh.close()
 
