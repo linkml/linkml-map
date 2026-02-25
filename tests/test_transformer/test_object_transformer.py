@@ -1,10 +1,11 @@
 """Test the object transformer."""
 
 from typing import Any
+from unittest.mock import MagicMock
 
 import pytest
 import yaml
-from unittest.mock import MagicMock
+from linkml.utils.schema_builder import SchemaBuilder
 from linkml_runtime import SchemaView
 from linkml_runtime.linkml_model import (
     ClassDefinition,
@@ -12,9 +13,6 @@ from linkml_runtime.linkml_model import (
     SlotDefinition,
 )
 from linkml_runtime.loaders import yaml_loader
-from linkml.utils.schema_builder import SchemaBuilder
-from linkml_runtime.processing.referencevalidator import ReferenceValidator
-from linkml_runtime.utils.introspection import package_schemaview
 
 import tests.input.examples.flattening.model.denormalized_model as sssom_tgt_dm
 import tests.input.examples.flattening.model.normalized_model as sssom_src_dm
@@ -29,6 +27,7 @@ from linkml_map.datamodel.transformer_model import (
     TransformationSpecification,
 )
 from linkml_map.transformer.object_transformer import ObjectTransformer
+from linkml_map.transformer.transformer import Transformer
 from linkml_map.utils.dynamic_object import dynamic_object
 from tests import (
     DENORM_SCHEMA,
@@ -555,7 +554,7 @@ def test_cardinalities(source_multivalued: bool, target_multivalued: bool, expli
         sd.cast_collection_as = (
             CollectionType.MultiValued if target_multivalued else CollectionType.SingleValued
         )
-    specification.class_derivations[class_name] = cd
+    specification.class_derivations.append(cd)
     cd.slot_derivations[att_name] = sd
     source_instance = {att_name: [val] if source_multivalued else val}
     tr = ObjectTransformer(
@@ -572,9 +571,7 @@ def test_self_transform() -> None:
     tr.source_schemaview = SchemaView(str(TR_SCHEMA))
     tr.load_transformer_specification(TR_TO_MAPPING_TABLES)
     source_object = yaml.safe_load(open(str(PERSONINFO_TR)))
-    normalizer = ReferenceValidator(package_schemaview("linkml_map.datamodel.transformer_model"))
-    normalizer.expand_all = True
-    source_object = normalizer.normalize(source_object)
+    Transformer._normalize_spec_dict(source_object)
     derived = tr.map_object(source_object)
     print(derived)
     print(yaml.dump(derived))

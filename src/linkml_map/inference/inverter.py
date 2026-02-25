@@ -51,9 +51,9 @@ class TransformationSpecificationInverter:
         """
         logger.info("Inverting specification")
         inverted_spec = TransformationSpecification()
-        for cd in spec.class_derivations.values():
+        for cd in spec.class_derivations:
             inverted_cd = self.invert_class_derivation(cd, spec)
-            inverted_spec.class_derivations[inverted_cd.name] = inverted_cd
+            inverted_spec.class_derivations.append(inverted_cd)
         for ed in spec.enum_derivations.values():
             inverted_ed = self.invert_enum_derivation(ed, spec)
             inverted_spec.enum_derivations[inverted_ed.name] = inverted_ed
