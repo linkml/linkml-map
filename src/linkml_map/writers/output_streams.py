@@ -457,7 +457,7 @@ def rewrite_header_and_pad(
     if separator == ",":
         dialect: type[csv.Dialect] = csv.excel
     else:
-        # TSV: no quoting by default to match TabularStreamWriter output
+        # TSV: uses QUOTE_MINIMAL to match TabularStreamWriter quoting behavior
         dialect = csv.excel_tab
 
     def _write_row(fields: list[str]) -> str:

@@ -24,6 +24,7 @@ from linkml_map.writers import (
     EXTENSION_FORMAT_MAP,
     MultiStreamWriter,
     OutputFormat,
+    StreamWriter,
     get_stream_writer,
     make_stream_writer,
     rewrite_header_and_pad,
@@ -224,7 +225,7 @@ def _transform_iterator(
 
 def _build_additional_outputs(
     additional_output: tuple,
-) -> list[tuple]:
+) -> list[tuple[StreamWriter, Path]]:
     """Build (StreamWriter, Path) pairs for additional -O outputs.
 
     :param additional_output: Tuple of file path strings from the CLI.
@@ -276,6 +277,15 @@ def _map_data_streaming(
 
     if additional_output:
         extra_outputs = _build_additional_outputs(additional_output)
+
+        # Validate no duplicate paths between primary and additional outputs
+        if output:
+            primary_resolved = Path(output).resolve()
+            extra_paths = {p.resolve() for _, p in extra_outputs}
+            if primary_resolved in extra_paths:
+                msg = f"Primary output path duplicated in -O: {output}"
+                raise click.ClickException(msg)
+
         primary_writer = make_stream_writer(fmt)
         primary_target = Path(output) if output else sys.stdout
         all_outputs = [(primary_writer, primary_target), *extra_outputs]
