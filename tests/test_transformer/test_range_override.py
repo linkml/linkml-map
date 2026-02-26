@@ -1,26 +1,32 @@
-"""Tests for string-to-object range override patterns (Issue #129).
+"""
+Tests for string-to-object range override patterns (Issue #129).
 
 Explores whether linkml-map can handle transformations where a source slot
 has ``range: string`` and the target redefines that slot as a structured
 object (e.g. ``range: QuantityValue``).
 
-Three scenarios are tested:
+Scenarios tested:
 
 A. **Baseline** -- string-to-string passthrough (no range change).
 B. **Construct from sub-fields** -- two source string slots are combined
    into a target ``QuantityValue`` via an ``expr`` that builds a dict.
 C. **Parse a composite string** -- a single ``"5 m"`` string is split
    inside an ``expr`` to produce a ``QuantityValue``.
+D. **Malformed parse inputs** -- null, empty, missing-unit, and non-numeric
+   strings all yield ``None`` because simpleeval catches evaluation errors.
+E. **Non-numeric construct input** -- ``float("five")`` fails gracefully.
+F. **Validation gap** -- expr output with wrong keys passes through
+   without schema validation (documents current behavior).
 """
 
-from typing import Any
+import copy
+from typing import Any, Optional
 
 import pytest
 from linkml.utils.schema_builder import SchemaBuilder
 from linkml_runtime import SchemaView
 
 from linkml_map.transformer.object_transformer import ObjectTransformer
-
 
 # ---------------------------------------------------------------------------
 # Schema helpers
@@ -136,7 +142,7 @@ def _run(
     tr = ObjectTransformer(unrestricted_eval=True)
     tr.source_schemaview = SchemaView(source_schema.schema)
     tr.target_schemaview = SchemaView(target_schema.schema)
-    tr.create_transformer_specification(transform_spec)
+    tr.create_transformer_specification(copy.deepcopy(transform_spec))
     return tr.map_object(input_data, source_type=source_type)
 
 
@@ -194,3 +200,82 @@ def test_parse_string_into_object() -> None:
         "has_numeric_value": 5.0,
         "has_unit": "m",
     }
+
+
+# ---------------------------------------------------------------------------
+# Test D -- malformed parse inputs yield None
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize(
+    "depth_input",
+    [
+        pytest.param(None, id="null_input"),
+        pytest.param("", id="empty_string"),
+        pytest.param("5", id="no_unit"),
+        pytest.param("five m", id="non_numeric_value"),
+    ],
+)
+def test_parse_expr_malformed_input_yields_none(depth_input: Optional[str]) -> None:
+    """Malformed depth strings cause expr evaluation errors caught by simpleeval."""
+    result = _run(
+        source_schema=_source_schema_string(),
+        target_schema=_target_schema_quantity(),
+        transform_spec=TRANSFORM_PARSE,
+        input_data={"id": "samp1", "depth": depth_input},
+        source_type="StringSample",
+    )
+    assert result["id"] == "samp1"
+    assert result["depth"] is None
+
+
+# ---------------------------------------------------------------------------
+# Test E -- non-numeric depth_value in construct expr
+# ---------------------------------------------------------------------------
+
+def test_construct_non_numeric_depth_value_yields_none() -> None:
+    """float('five') fails; simpleeval catches the error and returns None."""
+    result = _run(
+        source_schema=_source_schema_flat(),
+        target_schema=_target_schema_quantity(),
+        transform_spec=TRANSFORM_CONSTRUCT,
+        input_data={"id": "samp1", "depth_value": "five", "depth_unit": "m"},
+        source_type="FlatSample",
+    )
+    assert result["id"] == "samp1"
+    assert result["depth"] is None
+
+
+# ---------------------------------------------------------------------------
+# Test F -- validation gap: wrong keys pass through unchecked
+# ---------------------------------------------------------------------------
+
+def test_wrong_keys_pass_without_validation() -> None:
+    """
+    Expr output with wrong dict keys is not validated against target schema.
+
+    Documents current behavior: the transformer does not check that
+    expr-produced dicts conform to the target class structure.
+    """
+    wrong_key_spec: dict[str, Any] = {
+        "class_derivations": {
+            "StructuredSample": {
+                "populated_from": "FlatSample",
+                "slot_derivations": {
+                    "id": {},
+                    "depth": {
+                        "expr": '{"wrong_key": float(depth_value)}',
+                    },
+                },
+            },
+        },
+    }
+    result = _run(
+        source_schema=_source_schema_flat(),
+        target_schema=_target_schema_quantity(),
+        transform_spec=wrong_key_spec,
+        input_data={"id": "samp1", "depth_value": "5", "depth_unit": "m"},
+        source_type="FlatSample",
+    )
+    assert result["id"] == "samp1"
+    assert result["depth"] == {"wrong_key": 5.0}
+    assert "has_numeric_value" not in result["depth"]
