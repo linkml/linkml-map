@@ -8,6 +8,8 @@ QuantityValue composites into simple value+unit columns.
 See: https://github.com/linkml/linkml-map/issues/128
 """
 
+import copy
+
 import pytest
 from linkml_runtime import SchemaView
 
@@ -90,7 +92,7 @@ def _make_transformer() -> ObjectTransformer:
     obj_tr = ObjectTransformer()
     obj_tr.source_schemaview = SchemaView(SOURCE_SCHEMA)
     obj_tr.target_schemaview = SchemaView(TARGET_SCHEMA)
-    obj_tr.create_transformer_specification(TRANSFORM_SPEC)
+    obj_tr.create_transformer_specification(copy.deepcopy(TRANSFORM_SPEC))
     return obj_tr
 
 
