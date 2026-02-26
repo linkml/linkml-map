@@ -1,3 +1,5 @@
 id	name	env_broad_scale	env_local_scale	env_medium	depth	collection_date
 nmdc:bsm-11-abc123	SPRUCE bog core	envo:00000446	envo:01000253	envo:00005774	5 m	2024-06-01
 nmdc:bsm-11-def456	River sediment	envo:00000023	envo:00000100	envo:00002007	12.5 m	2023-08-15
+nmdc:bsm-11-ghi789	Forest litter	envo:00000446	envo:00000109	envo:00005774		2022-01-20
+nmdc:bsm-11-jkl012	Peat slurry	envo:00000446	envo:00000109	envo:00005774	five m	2021-11-09

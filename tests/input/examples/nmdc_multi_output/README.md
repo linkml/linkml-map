@@ -18,3 +18,4 @@ linkml-map map-data \
 ```
 
 The transform preserves key biosample fields and parses `depth` values like `"12.5 m"` into `depth_value` and `depth_unit`.
+It also derives `collection_year` from `collection_date` and handles malformed/empty depth values by emitting nulls.

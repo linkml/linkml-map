@@ -14,7 +14,9 @@ class_derivations:
         populated_from: env_medium
       collection_date:
         populated_from: collection_date
+      collection_year:
+        expr: 'collection_date.split("-")[0] if collection_date else NULL'
       depth_value:
-        expr: 'float(depth.split(" ")[0])'
+        expr: 'float(depth.split(" ")[0]) if depth and len(depth.split(" ")) > 1 and depth.split(" ")[0].replace(".", "", 1).isdigit() else NULL'
       depth_unit:
-        expr: 'depth.split(" ")[1]'
+        expr: 'depth.split(" ")[1] if depth and len(depth.split(" ")) > 1 else NULL'

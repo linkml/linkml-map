@@ -514,18 +514,27 @@ def test_additional_output_nmdc_style_fixture(
     assert result.exit_code == 0, result.stderr
 
     lines = [line for line in primary_jsonl.read_text().strip().split("\n") if line]
-    assert len(lines) == 2
+    assert len(lines) == 4
     first = json.loads(lines[0])
     assert first["biosample_id"] == "nmdc:bsm-11-abc123"
+    assert first["collection_year"] == "2024"
     assert first["depth_value"] == 5.0
     assert first["depth_unit"] == "m"
+    third = json.loads(lines[2])
+    assert third["biosample_id"] == "nmdc:bsm-11-ghi789"
+    assert third["depth_value"] is None
+    assert third["depth_unit"] is None
+    fourth = json.loads(lines[3])
+    assert fourth["biosample_id"] == "nmdc:bsm-11-jkl012"
+    assert fourth["depth_value"] is None
+    assert fourth["depth_unit"] == "m"
 
     tsv_lines = extra_tsv.read_text().strip().split("\n")
-    assert len(tsv_lines) == 3
+    assert len(tsv_lines) == 5
     assert tsv_lines[0].startswith("biosample_id\tbiosample_name")
 
     json_data = json.loads(extra_json.read_text())
-    assert len(json_data) == 2
+    assert len(json_data) == 4
     assert json_data[1]["biosample_id"] == "nmdc:bsm-11-def456"
     assert json_data[1]["depth_value"] == 12.5
 
