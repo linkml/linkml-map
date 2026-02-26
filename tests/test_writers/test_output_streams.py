@@ -1,19 +1,27 @@
 """Tests for output stream functions."""
 
 import json
+from io import StringIO
 
 import pytest
+import yaml
 
 from linkml_map.writers import (
+    JSONLStreamWriter,
+    JSONStreamWriter,
+    MultiStreamWriter,
     OutputFormat,
+    StreamWriter,
+    TabularStreamWriter,
+    YAMLStreamWriter,
     csv_stream,
     get_stream_writer,
     json_stream,
     jsonl_stream,
+    make_stream_writer,
     tsv_stream,
     yaml_stream,
 )
-from linkml_map.writers.output_streams import TabularStreamWriter
 
 
 @pytest.fixture
@@ -264,3 +272,307 @@ class TestRewriteHeaderAndPad:
 
         assert result[0] == "id,name,age\n"
         assert result[1] == "P:001,Alice,\n"
+
+
+# ---------------------------------------------------------------------------
+# Tests for class-based StreamWriter hierarchy
+# ---------------------------------------------------------------------------
+
+SAMPLE_DATA = [
+    {"id": "P:001", "name": "Alice", "age": 30},
+    {"id": "P:002", "name": "Bob", "age": 25},
+    {"id": "P:003", "name": "Charlie", "age": 35},
+]
+
+
+def _make_chunks(*chunk_sizes):
+    """Build chunk lists from SAMPLE_DATA by splitting at given sizes."""
+    result = []
+    offset = 0
+    for size in chunk_sizes:
+        result.append(SAMPLE_DATA[offset : offset + size])
+        offset += size
+    return result
+
+
+# --- JSONStreamWriter tests ---
+
+
+def test_json_stream_writer_single_chunk():
+    writer = JSONStreamWriter()
+    result = "".join(writer.process(iter([SAMPLE_DATA])))
+    data = json.loads(result)
+    assert len(data) == 3
+    assert data[0]["name"] == "Alice"
+
+
+def test_json_stream_writer_multi_chunk_comma_handling():
+    writer = JSONStreamWriter()
+    chunks = _make_chunks(2, 1)
+    result = "".join(writer.process(iter(chunks)))
+    data = json.loads(result)
+    assert len(data) == 3
+
+
+def test_json_stream_writer_with_key_name():
+    writer = JSONStreamWriter(key_name="people")
+    result = "".join(writer.process(iter([SAMPLE_DATA[:1]])))
+    data = json.loads(result)
+    assert "people" in data
+    assert len(data["people"]) == 1
+
+
+def test_json_stream_writer_empty_chunks():
+    writer = JSONStreamWriter()
+    result = "".join(writer.process(iter([])))
+    data = json.loads(result)
+    assert data == []
+
+
+def test_json_stream_writer_empty_chunk_before_data():
+    """Empty chunks before real data should not duplicate the preamble."""
+    writer = JSONStreamWriter()
+    parts = list(writer.write_chunk([]))
+    parts.extend(writer.write_chunk(SAMPLE_DATA[:1]))
+    parts.extend(writer.finalize())
+    data = json.loads("".join(parts))
+    assert len(data) == 1
+
+
+def test_json_stream_writer_write_chunk_then_finalize():
+    writer = JSONStreamWriter()
+    parts = list(writer.write_chunk(SAMPLE_DATA[:2]))
+    parts.extend(writer.write_chunk(SAMPLE_DATA[2:]))
+    parts.extend(writer.finalize())
+    data = json.loads("".join(parts))
+    assert len(data) == 3
+
+
+# --- JSONLStreamWriter tests ---
+
+
+def test_jsonl_stream_writer_one_line_per_object():
+    writer = JSONLStreamWriter()
+    result = "".join(writer.process(iter([SAMPLE_DATA])))
+    lines = [line for line in result.strip().split("\n") if line]
+    assert len(lines) == 3
+    for line in lines:
+        obj = json.loads(line)
+        assert "id" in obj
+
+
+def test_jsonl_stream_writer_multi_chunk():
+    writer = JSONLStreamWriter()
+    chunks = _make_chunks(1, 2)
+    result = "".join(writer.process(iter(chunks)))
+    lines = [line for line in result.strip().split("\n") if line]
+    assert len(lines) == 3
+
+
+def test_jsonl_stream_writer_finalize_is_noop():
+    writer = JSONLStreamWriter()
+    assert list(writer.finalize()) == []
+
+
+# --- YAMLStreamWriter tests ---
+
+
+def test_yaml_stream_writer_basic_output():
+    writer = YAMLStreamWriter()
+    result = "".join(writer.process(iter([SAMPLE_DATA[:2]])))
+    assert "---" in result
+    assert "name: Alice" in result
+
+
+def test_yaml_stream_writer_with_key_name():
+    writer = YAMLStreamWriter(key_name="people")
+    result = "".join(writer.process(iter([SAMPLE_DATA[:1]])))
+    assert "people:" in result
+    parsed = yaml.safe_load(result)
+    assert len(parsed["people"]) == 1
+
+
+def test_yaml_stream_writer_multi_chunk_with_key():
+    writer = YAMLStreamWriter(key_name="items")
+    chunks = _make_chunks(1, 2)
+    result = "".join(writer.process(iter(chunks)))
+    assert "items:" in result
+
+
+def test_yaml_stream_writer_empty_chunk_before_data_with_key():
+    """Empty first chunk should not consume the key-name preamble."""
+    writer = YAMLStreamWriter(key_name="people")
+    parts = list(writer.write_chunk([]))
+    parts.extend(writer.write_chunk(SAMPLE_DATA[:1]))
+    parts.extend(writer.finalize())
+    result = "".join(parts)
+    assert "people:" in result
+    parsed = yaml.safe_load(result)
+    assert len(parsed["people"]) == 1
+
+
+# --- TabularStreamWriter chunk-based API tests ---
+
+
+def test_tabular_write_chunk_produces_header_and_rows():
+    writer = TabularStreamWriter(separator="\t")
+    output = list(writer.write_chunk(SAMPLE_DATA[:2]))
+    output.extend(writer.finalize())
+    text = "".join(output)
+    lines = text.strip().split("\n")
+    assert len(lines) == 3  # header + 2 rows
+    assert "id" in lines[0]
+    assert "name" in lines[0]
+
+
+def test_tabular_process_matches_stream():
+    writer_a = TabularStreamWriter(separator="\t")
+    writer_b = TabularStreamWriter(separator="\t")
+    chunks = [SAMPLE_DATA[:2], SAMPLE_DATA[2:]]
+    result_process = "".join(writer_a.process(iter(chunks)))
+    result_stream = "".join(writer_b.stream(iter([SAMPLE_DATA[:2], SAMPLE_DATA[2:]])))
+    assert result_process == result_stream
+
+
+def test_tabular_headers_tracked_across_chunks():
+    writer = TabularStreamWriter(separator="\t")
+    list(writer.write_chunk([{"id": "1", "name": "A"}]))
+    list(writer.write_chunk([{"id": "2", "name": "B", "email": "b@example.com"}]))
+    list(writer.finalize())
+    assert writer.headers_changed is True
+    assert "email" in writer.get_final_headers()
+
+
+def test_tabular_is_stream_writer_subclass():
+    assert issubclass(TabularStreamWriter, StreamWriter)
+
+
+# --- make_stream_writer factory tests ---
+
+
+@pytest.mark.parametrize(
+    "fmt, expected_type",
+    [
+        (OutputFormat.JSON, JSONStreamWriter),
+        (OutputFormat.JSONL, JSONLStreamWriter),
+        (OutputFormat.YAML, YAMLStreamWriter),
+        (OutputFormat.TSV, TabularStreamWriter),
+        (OutputFormat.CSV, TabularStreamWriter),
+    ],
+)
+def test_make_stream_writer_returns_correct_type(fmt, expected_type):
+    writer = make_stream_writer(fmt)
+    assert isinstance(writer, expected_type)
+
+
+def test_make_stream_writer_json_key_name():
+    writer = make_stream_writer(OutputFormat.JSON, key_name="items")
+    assert isinstance(writer, JSONStreamWriter)
+    assert writer.key_name == "items"
+
+
+def test_make_stream_writer_tsv_separator():
+    writer = make_stream_writer(OutputFormat.TSV)
+    assert isinstance(writer, TabularStreamWriter)
+    assert writer.separator == "\t"
+
+
+def test_make_stream_writer_csv_separator():
+    writer = make_stream_writer(OutputFormat.CSV)
+    assert isinstance(writer, TabularStreamWriter)
+    assert writer.separator == ","
+
+
+# --- MultiStreamWriter fan-out tests ---
+
+
+def test_multi_stream_writer_writes_multiple_formats(tmp_path):
+    json_path = tmp_path / "out.json"
+    jsonl_path = tmp_path / "out.jsonl"
+    tsv_path = tmp_path / "out.tsv"
+
+    outputs = [
+        (JSONStreamWriter(), json_path),
+        (JSONLStreamWriter(), jsonl_path),
+        (TabularStreamWriter(separator="\t"), tsv_path),
+    ]
+    multi = MultiStreamWriter(outputs)
+    multi.write_all(iter([SAMPLE_DATA]))
+
+    # Verify JSON
+    json_data = json.loads(json_path.read_text())
+    assert len(json_data) == 3
+    assert json_data[0]["name"] == "Alice"
+
+    # Verify JSONL
+    jsonl_lines = [line for line in jsonl_path.read_text().strip().split("\n") if line]
+    assert len(jsonl_lines) == 3
+    assert json.loads(jsonl_lines[1])["name"] == "Bob"
+
+    # Verify TSV
+    tsv_lines = tsv_path.read_text().strip().split("\n")
+    assert len(tsv_lines) == 4  # header + 3 rows
+    assert "id" in tsv_lines[0]
+
+
+def test_multi_stream_writer_multi_chunk_fanout(tmp_path):
+    json_path = tmp_path / "out.json"
+    jsonl_path = tmp_path / "out.jsonl"
+
+    outputs = [
+        (JSONStreamWriter(), json_path),
+        (JSONLStreamWriter(), jsonl_path),
+    ]
+    multi = MultiStreamWriter(outputs)
+    chunks = _make_chunks(2, 1)
+    multi.write_all(iter(chunks))
+
+    json_data = json.loads(json_path.read_text())
+    assert len(json_data) == 3
+
+    jsonl_lines = [line for line in jsonl_path.read_text().strip().split("\n") if line]
+    assert len(jsonl_lines) == 3
+
+
+def test_multi_stream_writer_tabular_header_rewrite(tmp_path):
+    """Test that MultiStreamWriter rewrites headers when they change."""
+    tsv_path = tmp_path / "out.tsv"
+
+    writer = TabularStreamWriter(separator="\t")
+    multi = MultiStreamWriter([(writer, tsv_path)])
+
+    # First chunk has 2 fields, second adds a third
+    chunk1 = [{"id": "1", "name": "A"}]
+    chunk2 = [{"id": "2", "name": "B", "email": "b@x.com"}]
+    multi.write_all(iter([chunk1, chunk2]))
+
+    content = tsv_path.read_text()
+    lines = content.strip().split("\n")
+    # After rewrite, header should include all three columns
+    assert "email" in lines[0]
+    # All data rows should have 3 fields
+    for line in lines[1:]:
+        assert len(line.split("\t")) == 3
+
+
+def test_multi_stream_writer_with_file_handle_target(tmp_path):
+    """Test that MultiStreamWriter works with a file handle (e.g. StringIO) as target."""
+    buf = StringIO()
+    json_path = tmp_path / "out.json"
+
+    outputs = [
+        (JSONLStreamWriter(), buf),
+        (JSONStreamWriter(), json_path),
+    ]
+    multi = MultiStreamWriter(outputs)
+    multi.write_all(iter([SAMPLE_DATA]))
+
+    # StringIO target should have JSONL content
+    jsonl_output = buf.getvalue()
+    jsonl_lines = [line for line in jsonl_output.strip().split("\n") if line]
+    assert len(jsonl_lines) == 3
+    assert json.loads(jsonl_lines[0])["name"] == "Alice"
+
+    # Path target should have JSON content
+    json_data = json.loads(json_path.read_text())
+    assert len(json_data) == 3
