@@ -1,0 +1,20 @@
+class_derivations:
+  BiosampleFlat:
+    populated_from: BiosampleRaw
+    slot_derivations:
+      biosample_id:
+        populated_from: id
+      biosample_name:
+        populated_from: name
+      env_broad_scale:
+        populated_from: env_broad_scale
+      env_local_scale:
+        populated_from: env_local_scale
+      env_medium:
+        populated_from: env_medium
+      collection_date:
+        populated_from: collection_date
+      depth_value:
+        expr: 'float(depth.split(" ")[0])'
+      depth_unit:
+        expr: 'depth.split(" ")[1]'

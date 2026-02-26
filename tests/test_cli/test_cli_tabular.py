@@ -14,6 +14,12 @@ TABULAR_TEST_DIR = Path(__file__).parent.parent / "input" / "examples" / "tabula
 TABULAR_DATA_DIR = TABULAR_TEST_DIR / "data"
 TABULAR_SOURCE_SCHEMA = TABULAR_TEST_DIR / "source" / "person_flat.yaml"
 TABULAR_TRANSFORM = TABULAR_TEST_DIR / "transform" / "person_to_agent.transform.yaml"
+NMDC_MULTI_OUTPUT_DIR = Path(__file__).parent.parent / "input" / "examples" / "nmdc_multi_output"
+NMDC_MULTI_OUTPUT_DATA = NMDC_MULTI_OUTPUT_DIR / "data" / "BiosampleRaw.tsv"
+NMDC_MULTI_OUTPUT_SCHEMA = NMDC_MULTI_OUTPUT_DIR / "source" / "nmdc_biosample_source.yaml"
+NMDC_MULTI_OUTPUT_TRANSFORM = (
+    NMDC_MULTI_OUTPUT_DIR / "transform" / "nmdc_biosample.transform.yaml"
+)
 
 
 @pytest.fixture
@@ -473,6 +479,55 @@ def test_additional_output_stdout_primary(
     # Additional JSON file
     json_data = json.loads(extra_json.read_text())
     assert len(json_data) == 2
+
+
+def test_additional_output_nmdc_style_fixture(
+    runner: CliRunner,
+    tmp_path: Path,
+) -> None:
+    """Test NMDC-style tabular transform with primary and additional outputs."""
+    primary_jsonl = tmp_path / "biosample_flat.jsonl"
+    extra_tsv = tmp_path / "biosample_flat.tsv"
+    extra_json = tmp_path / "biosample_flat.json"
+    result = runner.invoke(
+        main,
+        [
+            "map-data",
+            "-T",
+            str(NMDC_MULTI_OUTPUT_TRANSFORM),
+            "-s",
+            str(NMDC_MULTI_OUTPUT_SCHEMA),
+            "--source-type",
+            "BiosampleRaw",
+            "--unrestricted-eval",
+            "-f",
+            "jsonl",
+            "-o",
+            str(primary_jsonl),
+            "-O",
+            str(extra_tsv),
+            "-O",
+            str(extra_json),
+            str(NMDC_MULTI_OUTPUT_DATA),
+        ],
+    )
+    assert result.exit_code == 0, result.stderr
+
+    lines = [line for line in primary_jsonl.read_text().strip().split("\n") if line]
+    assert len(lines) == 2
+    first = json.loads(lines[0])
+    assert first["biosample_id"] == "nmdc:bsm-11-abc123"
+    assert first["depth_value"] == 5.0
+    assert first["depth_unit"] == "m"
+
+    tsv_lines = extra_tsv.read_text().strip().split("\n")
+    assert len(tsv_lines) == 3
+    assert tsv_lines[0].startswith("biosample_id\tbiosample_name")
+
+    json_data = json.loads(extra_json.read_text())
+    assert len(json_data) == 2
+    assert json_data[1]["biosample_id"] == "nmdc:bsm-11-def456"
+    assert json_data[1]["depth_value"] == 12.5
 
 
 class TestMapDataWithExistingTestData:

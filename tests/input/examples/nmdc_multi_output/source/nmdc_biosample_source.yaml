@@ -1,0 +1,17 @@
+id: https://example.org/nmdc-biosample-source
+name: nmdc_biosample_source
+prefixes:
+  ex: https://example.org/
+default_prefix: ex
+default_range: string
+classes:
+  BiosampleRaw:
+    attributes:
+      id:
+        identifier: true
+      name:
+      env_broad_scale:
+      env_local_scale:
+      env_medium:
+      depth:
+      collection_date:
