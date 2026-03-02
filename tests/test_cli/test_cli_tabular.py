@@ -351,6 +351,130 @@ class TestMapDataOutputFile:
         assert len(data) == 2
 
 
+def test_additional_output_tsv_and_json(
+    runner: CliRunner,
+    sample_tsv_data: Path,
+    sample_schema: Path,
+    sample_transform: Path,
+    tmp_path: Path,
+) -> None:
+    """Test writing primary JSONL to file plus additional TSV and JSON outputs."""
+    primary = tmp_path / "primary.jsonl"
+    extra_tsv = tmp_path / "extra.tsv"
+    extra_json = tmp_path / "extra.json"
+    result = runner.invoke(
+        main,
+        [
+            "map-data",
+            "-T",
+            str(sample_transform),
+            "-s",
+            str(sample_schema),
+            "--source-type",
+            "Person",
+            "-o",
+            str(primary),
+            "-O",
+            str(extra_tsv),
+            "-O",
+            str(extra_json),
+            str(sample_tsv_data),
+        ],
+    )
+    assert result.exit_code == 0, result.stderr
+
+    # Primary JSONL
+    jsonl_lines = [line for line in primary.read_text().strip().split("\n") if line]
+    assert len(jsonl_lines) == 2
+    for line in jsonl_lines:
+        obj = json.loads(line)
+        assert "id" in obj
+
+    # Additional TSV
+    tsv_lines = extra_tsv.read_text().strip().split("\n")
+    assert len(tsv_lines) == 3  # header + 2 rows
+    assert "\t" in tsv_lines[0]
+
+    # Additional JSON
+    json_data = json.loads(extra_json.read_text())
+    assert len(json_data) == 2
+
+
+def test_additional_output_format_inferred(
+    runner: CliRunner,
+    sample_tsv_data: Path,
+    sample_schema: Path,
+    sample_transform: Path,
+    tmp_path: Path,
+) -> None:
+    """Test that format is correctly inferred from extension for -O."""
+    extra_jsonl = tmp_path / "out.jsonl"
+    result = runner.invoke(
+        main,
+        [
+            "map-data",
+            "-T",
+            str(sample_transform),
+            "-s",
+            str(sample_schema),
+            "--source-type",
+            "Person",
+            "-f",
+            "yaml",
+            "-O",
+            str(extra_jsonl),
+            str(sample_tsv_data),
+        ],
+    )
+    assert result.exit_code == 0, result.stderr
+
+    # stdout should have YAML
+    assert "label:" in result.stdout
+
+    # Additional JSONL file
+    jsonl_lines = [line for line in extra_jsonl.read_text().strip().split("\n") if line]
+    assert len(jsonl_lines) == 2
+    for line in jsonl_lines:
+        json.loads(line)  # should not raise
+
+
+def test_additional_output_stdout_primary(
+    runner: CliRunner,
+    sample_tsv_data: Path,
+    sample_schema: Path,
+    sample_transform: Path,
+    tmp_path: Path,
+) -> None:
+    """Test -O with primary output going to stdout (no -o)."""
+    extra_json = tmp_path / "extra.json"
+    result = runner.invoke(
+        main,
+        [
+            "map-data",
+            "-T",
+            str(sample_transform),
+            "-s",
+            str(sample_schema),
+            "--source-type",
+            "Person",
+            "-f",
+            "jsonl",
+            "-O",
+            str(extra_json),
+            str(sample_tsv_data),
+        ],
+    )
+    assert result.exit_code == 0, result.stderr
+
+    # stdout should have JSONL
+    stdout_lines = [line for line in result.stdout.strip().split("\n") if line]
+    assert len(stdout_lines) == 2
+
+    # Additional JSON file
+    json_data = json.loads(extra_json.read_text())
+    assert len(json_data) == 2
+
+
 class TestMapDataWithExistingTestData:
     """Tests using the existing test fixtures."""
 
