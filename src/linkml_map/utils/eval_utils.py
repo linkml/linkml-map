@@ -113,6 +113,47 @@ FUNCTIONS: dict[str, Any] = {
 }
 
 
+def _maybe_coerce_numeric(left: Any, right: Any) -> tuple[Any, Any]:  # noqa: ANN401
+    """
+    Coerce a numeric-string operand to match the other operand's numeric type.
+
+    If both operands are already the same type, or neither is a numeric/string
+    mismatch, return them unchanged.
+
+    >>> _maybe_coerce_numeric(1, '1')
+    (1, 1)
+    >>> _maybe_coerce_numeric('3.14', 3.14)
+    (3.14, 3.14)
+    >>> _maybe_coerce_numeric(1, 'abc')
+    (1, 'abc')
+    >>> _maybe_coerce_numeric('a', 'b')
+    ('a', 'b')
+    """
+    if type(left) is type(right):
+        return left, right
+    if isinstance(left, (int, float)) and isinstance(right, str):
+        try:
+            return left, type(left)(right)
+        except (ValueError, TypeError):
+            return left, right
+    if isinstance(right, (int, float)) and isinstance(left, str):
+        try:
+            return type(right)(left), right
+        except (ValueError, TypeError):
+            return left, right
+    return left, right
+
+
+def _coercing(op):  # noqa: ANN001, ANN202
+    """Wrap a comparison operator to coerce numeric strings before comparing."""
+
+    def wrapper(left: Any, right: Any) -> Any:  # noqa: ANN401
+        left, right = _maybe_coerce_numeric(left, right)
+        return op(left, right)
+
+    return wrapper
+
+
 class LinkMLEvaluator(EvalWithCompoundTypes):
     """
     Expression evaluator with LinkML-specific extensions.
@@ -121,7 +162,13 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
 
     - Distribution over lists/dicts on attribute access
     - ``{x}`` null-propagation via overridden set evaluation
+    - Numeric-string coercion for comparison operators
     """
+
+    def __init__(self, **kwargs: Any) -> None:  # noqa: ANN401
+        super().__init__(**kwargs)
+        for op_type in (ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE):
+            self.operators[op_type] = _coercing(self.operators[op_type])
 
     def _eval_name(self, node: ast.Name) -> Any:  # noqa: ANN401
         """
