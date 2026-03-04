@@ -115,7 +115,7 @@ class Bindings(Mapping):
 
         return self.bindings.get(name)
 
-    def _resolve_join(self, table_name: str) -> DynObj | None:
+    def _resolve_join(self, table_name: str) -> Optional[DynObj]:
         """Resolve a cross-table lookup, returning a DynObj or None."""
         spec = self.join_specs[table_name]
         source_key = spec.source_key or spec.join_on
