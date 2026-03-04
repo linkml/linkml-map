@@ -14,6 +14,7 @@ from linkml_runtime.utils.yamlutils import YAMLRoot
 from pydantic import BaseModel
 
 from linkml_map.datamodel.transformer_model import (
+    AliasedClass,
     ClassDerivation,
     CollectionType,
     PivotDirectionType,
@@ -46,6 +47,7 @@ class Bindings(Mapping):
         source_type: str,
         sv: SchemaView,
         bindings: dict,
+        join_specs: Optional[dict[str, AliasedClass]] = None,
     ) -> None:
         self.object_transformer: ObjectTransformer = object_transformer
         self.source_obj: OBJECT_TYPE = source_obj
@@ -53,6 +55,7 @@ class Bindings(Mapping):
         self.source_type: str = source_type
         self.sv: SchemaView = sv
         self.bindings: dict = {}
+        self.join_specs: dict[str, AliasedClass] = join_specs or {}
         if bindings:
             self.bindings.update(bindings)
 
@@ -105,9 +108,28 @@ class Bindings(Mapping):
 
     def __getitem__(self, name: Any) -> Any:
         if name not in self.bindings:
-            _ = self.get_ctxt_obj_and_dict({name: self.source_obj[name]})
+            if name in self.join_specs and self.object_transformer.lookup_index is not None:
+                self.bindings[name] = self._resolve_join(name)
+            else:
+                _ = self.get_ctxt_obj_and_dict({name: self.source_obj[name]})
 
         return self.bindings.get(name)
+
+    def _resolve_join(self, table_name: str) -> DynObj | None:
+        """Resolve a cross-table lookup, returning a DynObj or None."""
+        spec = self.join_specs[table_name]
+        source_key = spec.source_key or spec.join_on
+        lookup_key = spec.lookup_key or spec.join_on
+        if not source_key or not lookup_key:
+            msg = f"Join spec for {table_name!r} must specify 'on' or both 'source_key' and 'lookup_key'"
+            raise ValueError(msg)
+        key_val = self.source_obj.get(source_key)
+        if key_val is None:
+            return None
+        row = self.object_transformer.lookup_index.lookup_row(table_name, lookup_key, key_val)
+        if row is None:
+            return None
+        return DynObj(**row)
 
     def __setitem__(self, name: Any, value: Any) -> None:
         del name, value
@@ -124,6 +146,7 @@ class ObjectTransformer(Transformer):
     """
 
     object_index: ObjectIndex = None
+    lookup_index: Any = None  # Optional[LookupIndex] — lazy import to avoid hard duckdb dep
 
     def index(self, source_obj: Any, target: Optional[str] = None) -> None:
         """
@@ -264,6 +287,7 @@ class ObjectTransformer(Transformer):
                         source_type=source_type,
                         sv=sv,
                         bindings={"NULL": None},
+                        join_specs=class_deriv.joins if class_deriv.joins else None,
                     )
 
                 try:

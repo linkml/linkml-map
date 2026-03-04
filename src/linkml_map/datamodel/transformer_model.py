@@ -263,7 +263,7 @@ class ClassDerivation(ElementDerivation):
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
     joins: Optional[Dict[str, AliasedClass]] = Field(default_factory=dict, description="""Additional classes to be joined to derive instances of the target class""", json_schema_extra = { "linkml_meta": {'alias': 'joins',
-         'comments': ['not yet implemented'],
+         'comments': ['supports cross-table lookups via source_key/lookup_key or on shorthand'],
          'domain_of': ['ClassDerivation']} })
     slot_derivations: Optional[Dict[str, SlotDerivation]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'alias': 'slot_derivations',
          'domain_of': ['TransformationSpecification', 'ClassDerivation']} })
@@ -341,6 +341,9 @@ class AliasedClass(ConfiguredBaseModel):
 
     alias: str = Field(default=..., description="""name of the class to be aliased""", json_schema_extra = { "linkml_meta": {'alias': 'alias', 'domain_of': ['AliasedClass']} })
     class_named: Optional[str] = Field(default=None, description="""local alias for the class""", json_schema_extra = { "linkml_meta": {'alias': 'class_named', 'domain_of': ['AliasedClass']} })
+    source_key: Optional[str] = Field(default=None, description="""column in the primary (populated_from) table used as the join key""", json_schema_extra = { "linkml_meta": {'alias': 'source_key', 'domain_of': ['AliasedClass']} })
+    lookup_key: Optional[str] = Field(default=None, description="""column in the secondary (joined) table used as the join key""", json_schema_extra = { "linkml_meta": {'alias': 'lookup_key', 'domain_of': ['AliasedClass']} })
+    join_on: Optional[str] = Field(default=None, description="""shorthand for source_key and lookup_key when both share the same column name""", json_schema_extra = { "linkml_meta": {'alias': 'join_on', 'domain_of': ['AliasedClass']} })
 
 
 class SlotDerivation(ElementDerivation):
