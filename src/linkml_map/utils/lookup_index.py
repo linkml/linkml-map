@@ -71,7 +71,7 @@ class LookupIndex:
         if result is None:
             return None
         columns = [desc[0] for desc in self._conn.description]
-        return dict(zip(columns, result, strict=True))
+        return dict(zip(columns, result))
 
     def drop(self, table: str) -> None:
         """Drop a registered table, releasing memory."""
