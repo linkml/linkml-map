@@ -263,7 +263,8 @@ class ClassDerivation(ElementDerivation):
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
     joins: Optional[Dict[str, AliasedClass]] = Field(default_factory=dict, description="""Additional classes to be joined to derive instances of the target class""", json_schema_extra = { "linkml_meta": {'alias': 'joins',
-         'comments': ['supports cross-table lookups via source_key/lookup_key or on shorthand'],
+         'comments': ['supports cross-table lookups via source_key/lookup_key or on '
+                      'shorthand'],
          'domain_of': ['ClassDerivation']} })
     slot_derivations: Optional[Dict[str, SlotDerivation]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'alias': 'slot_derivations',
          'domain_of': ['TransformationSpecification', 'ClassDerivation']} })
