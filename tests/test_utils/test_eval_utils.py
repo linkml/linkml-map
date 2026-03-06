@@ -604,3 +604,24 @@ def test_uuid5_eval_expr_with_concatenation() -> None:
     result = eval_expr('uuid5("https://example.org/X", "pre_" + {name})', name="alice")
     assert UUID_RE.match(result)
     assert result == _uuid5("https://example.org/X", "pre_alice")
+
+
+# ---- Numeric-string coercion integration ----
+
+
+def test_case_with_numeric_string_coercion() -> None:
+    """case() works when numeric variables are compared to string literals (#133)."""
+    expr = "case(({status} == '1', 'active'), (True, 'inactive'))"
+    assert eval_expr(expr, status=1) == "active"
+    assert eval_expr(expr, status=0) == "inactive"
+
+
+def test_ordering_comparison_with_numeric_string_coercion() -> None:
+    """Ordering comparisons coerce numeric strings (#133)."""
+    assert eval_expr("{x} < '2'", x=1) is True
+
+
+def test_bool_not_coerced_as_numeric() -> None:
+    """Booleans should not be coerced via numeric-string path (#135)."""
+    assert eval_expr("{flag} == '0'", flag=True) is False
+    assert eval_expr("{flag} == '1'", flag=False) is False
