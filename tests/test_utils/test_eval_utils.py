@@ -587,3 +587,9 @@ def test_case_with_numeric_string_coercion() -> None:
 def test_ordering_comparison_with_numeric_string_coercion() -> None:
     """Ordering comparisons coerce numeric strings (#133)."""
     assert eval_expr("{x} < '2'", x=1) is True
+
+
+def test_bool_not_coerced_as_numeric() -> None:
+    """Booleans should not be coerced via numeric-string path (#135)."""
+    assert eval_expr("{flag} == '0'", flag=True) is False
+    assert eval_expr("{flag} == '1'", flag=False) is False

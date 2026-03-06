@@ -128,15 +128,17 @@ def _maybe_coerce_numeric(left: Any, right: Any) -> tuple[Any, Any]:  # noqa: AN
     (1, 'abc')
     >>> _maybe_coerce_numeric('a', 'b')
     ('a', 'b')
+    >>> _maybe_coerce_numeric(True, '0')
+    (True, '0')
     """
     if type(left) is type(right):
         return left, right
-    if isinstance(left, (int, float)) and isinstance(right, str):
+    if isinstance(left, (int, float)) and not isinstance(left, bool) and isinstance(right, str):
         try:
             return left, type(left)(right)
         except (ValueError, TypeError):
             return left, right
-    if isinstance(right, (int, float)) and isinstance(left, str):
+    if isinstance(right, (int, float)) and not isinstance(right, bool) and isinstance(left, str):
         try:
             return type(right)(left), right
         except (ValueError, TypeError):
