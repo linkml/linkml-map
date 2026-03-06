@@ -185,7 +185,7 @@ classes:
         inlined: true
         description: Additional classes to be joined to derive instances of the target class
         comments:
-          - supports cross-table lookups via source_key/lookup_key or on shorthand
+          - supports cross-table lookups via source_key/lookup_key or the join_on field
       slot_derivations:
         range: SlotDerivation
         multivalued: true

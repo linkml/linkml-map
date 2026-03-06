@@ -108,7 +108,10 @@ class Bindings(Mapping):
 
     def __getitem__(self, name: Any) -> Any:
         if name not in self.bindings:
-            if name in self.join_specs and self.object_transformer.lookup_index is not None:
+            if name in self.join_specs:
+                if self.object_transformer.lookup_index is None:
+                    msg = f"Join configured for {name!r} but lookup_index has not been initialized"
+                    raise ValueError(msg)
                 self.bindings[name] = self._resolve_join(name)
             else:
                 _ = self.get_ctxt_obj_and_dict({name: self.source_obj[name]})
@@ -121,7 +124,7 @@ class Bindings(Mapping):
         source_key = spec.source_key or spec.join_on
         lookup_key = spec.lookup_key or spec.join_on
         if not source_key or not lookup_key:
-            msg = f"Join spec for {table_name!r} must specify 'on' or both 'source_key' and 'lookup_key'"
+            msg = f"Join spec for {table_name!r} must specify 'join_on' or both 'source_key' and 'lookup_key'"
             raise ValueError(msg)
         key_val = self.source_obj.get(source_key)
         if key_val is None:

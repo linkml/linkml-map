@@ -248,7 +248,7 @@ class DataLoader:
         if path is None:
             msg = f"No data file found for identifier {identifier!r} under {self.base_path}"
             raise FileNotFoundError(msg)
-        return path
+        return path.resolve()
 
     def __contains__(self, identifier: str) -> bool:
         """Check if a data file exists for the given identifier."""

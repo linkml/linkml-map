@@ -44,10 +44,11 @@ class LookupIndex:
         file_path = Path(file_path)
         self._conn.execute(
             f"CREATE OR REPLACE TABLE {name} AS "  # noqa: S608
-            f"SELECT * FROM read_csv_auto('{file_path}', all_varchar=true)"
+            "SELECT * FROM read_csv_auto(?, all_varchar=true)",
+            [str(file_path)]
         )
         self._conn.execute(
-            f"CREATE INDEX IF NOT EXISTS idx_{name}_{key_column} ON {name} ({key_column})"
+            f"CREATE INDEX IF NOT EXISTS idx_{name}_{key_column} ON {name} ({key_column})"  # noqa: S608
         )
         self._tables[name] = key_column
 
@@ -76,7 +77,7 @@ class LookupIndex:
     def drop(self, table: str) -> None:
         """Drop a registered table, releasing memory."""
         _validate_identifier(table)
-        self._conn.execute(f"DROP TABLE IF EXISTS {table}")
+        self._conn.execute(f"DROP TABLE IF EXISTS {table}")  # noqa: S608
         self._tables.pop(table, None)
 
     def is_registered(self, table: str) -> bool:
