@@ -206,6 +206,38 @@ def test_list_variable_concatenation() -> None:
     assert eval_expr("{x} + {y}", x=["a", "b"], y=["c", "d"]) == ["a", "b", "c", "d"]
 
 
+# ---- Curly-braced attribute access (cross-table syntax) ----
+
+
+def test_curly_attribute_access() -> None:
+    """{obj.attr} resolves attribute access with null propagation."""
+    from linkml_map.utils.dynamic_object import DynObj
+
+    demo = DynObj(age=30, name="Alice")
+    assert eval_expr("{demo.age} * 365", demo=demo) == 30 * 365
+
+
+def test_curly_attribute_null_propagation_none_obj() -> None:
+    """{obj.attr} propagates None when the object itself is None."""
+    assert eval_expr("{demo.age} * 365", demo=None) is None
+
+
+def test_curly_attribute_null_propagation_missing_attr() -> None:
+    """{obj.attr} propagates None when the attribute is missing."""
+    from linkml_map.utils.dynamic_object import DynObj
+
+    demo = DynObj(name="Alice")  # no 'age' attribute
+    assert eval_expr("{demo.age} * 365", demo=demo) is None
+
+
+def test_curly_attribute_in_string_concat() -> None:
+    """{obj.attr} works in string concatenation expressions."""
+    from linkml_map.utils.dynamic_object import DynObj
+
+    demo = DynObj(prefix="Dr")
+    assert eval_expr("{demo.prefix} + '. Smith'", demo=demo) == "Dr. Smith"
+
+
 # ---- Functions ----
 
 

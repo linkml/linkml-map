@@ -236,6 +236,20 @@ class DataLoader:
 
         return None
 
+    def get_path(self, identifier: str) -> Path:
+        """
+        Return the resolved file path for *identifier*.
+
+        :param identifier: Logical table/file name (without extension).
+        :returns: Absolute path to the matching data file.
+        :raises FileNotFoundError: If no matching file is found.
+        """
+        path = self._find_file(identifier)
+        if path is None:
+            msg = f"No data file found for identifier {identifier!r} under {self.base_path}"
+            raise FileNotFoundError(msg)
+        return path.resolve()
+
     def __contains__(self, identifier: str) -> bool:
         """Check if a data file exists for the given identifier."""
         if self.is_single_file:

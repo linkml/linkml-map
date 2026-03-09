@@ -195,12 +195,13 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
             msg = "The {} must enclose a single variable"
             raise ValueError(msg)
         e = node.elts[0]
-        if not isinstance(e, ast.Name):
+        if not isinstance(e, (ast.Name, ast.Attribute)):
             msg = "The {} must enclose a variable"
             raise TypeError(msg)
         v = self._eval(e)
         if v is None:
-            msg = f"{e.id} is not set"
+            label = ast.dump(e) if isinstance(e, ast.Attribute) else e.id
+            msg = f"{label} is not set"
             raise UnsetValueError(msg)
         return v
 
