@@ -73,7 +73,7 @@ TRANSFORM_SPEC = {
 
 
 def _make_transformer():
-    tr = ObjectTransformer(unrestricted_eval=True)
+    tr = ObjectTransformer()
     tr.source_schemaview = SchemaView(SOURCE_SCHEMA)
     tr.target_schemaview = SchemaView(TARGET_SCHEMA)
     tr.create_transformer_specification(copy.deepcopy(TRANSFORM_SPEC))

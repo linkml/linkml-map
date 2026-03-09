@@ -11,7 +11,6 @@ column naming conventions match those already used in the NMDC lakehouse
 Value types covered:
 - QuantityValue (has_numeric_value, has_unit, has_raw_value)
 - ControlledIdentifiedTermValue (term.id, term.name, has_raw_value)
-- ControlledTermValue (same structure, term optional)
 - GeolocationValue (latitude, longitude, has_raw_value)
 - TimestampValue (has_raw_value only)
 - PersonValue (name, email, orcid)
@@ -23,7 +22,6 @@ See also:
 
 import copy
 
-import pytest
 from linkml_runtime import SchemaView
 
 from linkml_map.transformer.object_transformer import ObjectTransformer
