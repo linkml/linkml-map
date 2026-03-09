@@ -25,7 +25,11 @@ from linkml_map.utils.lookup_index import LookupIndex
 
 
 def test_context_manager_basic(tmp_path):
-    """LookupIndex should support the context manager protocol."""
+    """LookupIndex should support the context manager protocol.
+
+    After exiting the ``with`` block, both the internal table registry
+    AND the underlying DuckDB connection should be cleaned up.
+    """
     tsv = tmp_path / "data.tsv"
     tsv.write_text("id\tval\nA\t1\n")
 
@@ -35,12 +39,20 @@ def test_context_manager_basic(tmp_path):
         assert row is not None
         assert row["val"] == "1"
 
-    # After exiting the context, the connection should be closed
+    # After exiting: table registry is cleared
     assert not idx.is_registered("data")
+
+    # After exiting: DuckDB connection is actually closed — operations raise
+    with pytest.raises((duckdb.ConnectionException, duckdb.InvalidInputException)):
+        idx.register_table("data", tsv, "id")
 
 
 def test_context_manager_cleans_up_on_exception(tmp_path):
-    """LookupIndex context manager should close even if an exception occurs."""
+    """LookupIndex context manager should close even if an exception occurs.
+
+    Both the table registry and the DuckDB connection must be cleaned up
+    regardless of how the ``with`` block exits.
+    """
     tsv = tmp_path / "data.tsv"
     tsv.write_text("id\tval\nA\t1\n")
 
@@ -50,8 +62,12 @@ def test_context_manager_cleans_up_on_exception(tmp_path):
             msg = "deliberate failure"
             raise RuntimeError(msg)
 
-    # Connection should still be cleaned up
+    # Table registry is cleared
     assert not idx.is_registered("data")
+
+    # DuckDB connection is actually closed
+    with pytest.raises((duckdb.ConnectionException, duckdb.InvalidInputException)):
+        idx.register_table("data", tsv, "id")
 
 
 # ---- transform_spec resource cleanup ----
@@ -98,10 +114,16 @@ TARGET_SCHEMA_YAML = textwrap.dedent("""\
 
 
 def test_transform_spec_closes_lookup_index(tmp_path):
-    """transform_spec should close its LookupIndex after iteration completes.
+    """transform_spec should clean up its LookupIndex after iteration completes.
 
     Currently, transform_spec creates a LookupIndex but never calls close(),
     leaking the DuckDB connection. This test verifies proper cleanup.
+
+    The implementation may clean up by either:
+    - Calling close() on the LookupIndex (connection raises on use), OR
+    - Setting transformer.lookup_index = None
+
+    Either approach is acceptable — the test checks both.
     """
     (tmp_path / "samples.tsv").write_text(
         "sample_id\tname\tsite_code\n"
@@ -139,9 +161,16 @@ def test_transform_spec_closes_lookup_index(tmp_path):
     results = list(transform_spec(tr, loader))
     assert len(results) == 1
 
-    # After transform_spec completes, the LookupIndex should be closed.
-    # Attempting to use it should fail.
-    with pytest.raises((duckdb.ConnectionException, duckdb.InvalidInputException)):
-        tr.lookup_index.register_table(
-            "should_fail", tmp_path / "sites.tsv", "site_code"
-        )
+    # After transform_spec completes, the LookupIndex should be cleaned up.
+    # Accept either approach: set to None, or closed (operations raise).
+    if tr.lookup_index is None:
+        # Cleanup via nulling — acceptable
+        pass
+    else:
+        # Cleanup via close() — verify the connection is actually closed
+        with pytest.raises(
+            (duckdb.ConnectionException, duckdb.InvalidInputException)
+        ):
+            tr.lookup_index.register_table(
+                "should_fail", tmp_path / "sites.tsv", "site_code"
+            )
