@@ -206,6 +206,38 @@ def test_list_variable_concatenation() -> None:
     assert eval_expr("{x} + {y}", x=["a", "b"], y=["c", "d"]) == ["a", "b", "c", "d"]
 
 
+# ---- Curly-braced attribute access (cross-table syntax) ----
+
+
+def test_curly_attribute_access() -> None:
+    """{obj.attr} resolves attribute access with null propagation."""
+    from linkml_map.utils.dynamic_object import DynObj
+
+    demo = DynObj(age=30, name="Alice")
+    assert eval_expr("{demo.age} * 365", demo=demo) == 30 * 365
+
+
+def test_curly_attribute_null_propagation_none_obj() -> None:
+    """{obj.attr} propagates None when the object itself is None."""
+    assert eval_expr("{demo.age} * 365", demo=None) is None
+
+
+def test_curly_attribute_null_propagation_missing_attr() -> None:
+    """{obj.attr} propagates None when the attribute is missing."""
+    from linkml_map.utils.dynamic_object import DynObj
+
+    demo = DynObj(name="Alice")  # no 'age' attribute
+    assert eval_expr("{demo.age} * 365", demo=demo) is None
+
+
+def test_curly_attribute_in_string_concat() -> None:
+    """{obj.attr} works in string concatenation expressions."""
+    from linkml_map.utils.dynamic_object import DynObj
+
+    demo = DynObj(prefix="Dr")
+    assert eval_expr("{demo.prefix} + '. Smith'", demo=demo) == "Dr. Smith"
+
+
 # ---- Functions ----
 
 
@@ -572,3 +604,24 @@ def test_uuid5_eval_expr_with_concatenation() -> None:
     result = eval_expr('uuid5("https://example.org/X", "pre_" + {name})', name="alice")
     assert UUID_RE.match(result)
     assert result == _uuid5("https://example.org/X", "pre_alice")
+
+
+# ---- Numeric-string coercion integration ----
+
+
+def test_case_with_numeric_string_coercion() -> None:
+    """case() works when numeric variables are compared to string literals (#133)."""
+    expr = "case(({status} == '1', 'active'), (True, 'inactive'))"
+    assert eval_expr(expr, status=1) == "active"
+    assert eval_expr(expr, status=0) == "inactive"
+
+
+def test_ordering_comparison_with_numeric_string_coercion() -> None:
+    """Ordering comparisons coerce numeric strings (#133)."""
+    assert eval_expr("{x} < '2'", x=1) is True
+
+
+def test_bool_not_coerced_as_numeric() -> None:
+    """Booleans should not be coerced via numeric-string path (#135)."""
+    assert eval_expr("{flag} == '0'", flag=True) is False
+    assert eval_expr("{flag} == '1'", flag=False) is False

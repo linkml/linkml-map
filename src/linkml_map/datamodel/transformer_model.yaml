@@ -185,7 +185,7 @@ classes:
         inlined: true
         description: Additional classes to be joined to derive instances of the target class
         comments:
-          - not yet implemented
+          - supports cross-table lookups via source_key/lookup_key or the join_on field
       slot_derivations:
         range: SlotDerivation
         multivalued: true
@@ -220,6 +220,12 @@ classes:
         description: name of the class to be aliased
       class_named:
         description: local alias for the class
+      source_key:
+        description: column in the primary (populated_from) table used as the join key
+      lookup_key:
+        description: column in the secondary (joined) table used as the join key
+      join_on:
+        description: shorthand for source_key and lookup_key when both share the same column name
 
   SlotDerivation:
     is_a: ElementDerivation

@@ -16,6 +16,19 @@ from flatten_dict.reducers import make_reducer
 logger = logging.getLogger(__name__)
 
 
+def _strip_nulls(obj: Any) -> Any:
+    """Remove None values from dicts so JSON output matches YAML behavior.
+
+    :param obj: Object to strip nulls from.
+    :returns: Cleaned object with None values removed from dicts.
+    """
+    if isinstance(obj, dict):
+        return {k: _strip_nulls(v) for k, v in obj.items() if v is not None}
+    if isinstance(obj, list):
+        return [_strip_nulls(item) for item in obj]
+    return obj
+
+
 class OutputFormat(str, Enum):
     """Supported output formats for streaming."""
 
@@ -104,7 +117,7 @@ class JSONStreamWriter(StreamWriter):
         for obj in chunk:
             prefix = "" if self._first_object else ",\n"
             self._first_object = False
-            yield prefix + json.dumps(obj, ensure_ascii=False, indent=2)
+            yield prefix + json.dumps(_strip_nulls(obj), ensure_ascii=False, indent=2)
 
     def finalize(self) -> Iterator[str]:
         """
@@ -136,7 +149,7 @@ class JSONLStreamWriter(StreamWriter):
         :yield: JSONL string lines.
         """
         for obj in chunk:
-            yield json.dumps(obj, ensure_ascii=False) + "\n"
+            yield json.dumps(_strip_nulls(obj), ensure_ascii=False) + "\n"
 
     def finalize(self) -> Iterator[str]:
         """
@@ -254,7 +267,7 @@ def json_stream(
         for obj in chunk:
             prefix = "" if first_chunk else ",\n"
             first_chunk = False
-            yield prefix + json.dumps(obj, ensure_ascii=False, indent=2)
+            yield prefix + json.dumps(_strip_nulls(obj), ensure_ascii=False, indent=2)
 
     if key_name:
         yield "\n]}\n"
@@ -277,7 +290,7 @@ def jsonl_stream(
     """
     for chunk in chunks:
         for obj in chunk:
-            yield json.dumps(obj, ensure_ascii=False) + "\n"
+            yield json.dumps(_strip_nulls(obj), ensure_ascii=False) + "\n"
 
 
 class TabularStreamWriter(StreamWriter):

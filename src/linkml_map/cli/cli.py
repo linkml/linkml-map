@@ -435,16 +435,20 @@ def dump_output(
         msg = "No output to be printed"
         raise ValueError(msg)
 
+    from linkml_map.writers.output_streams import _strip_nulls
+
     text_dump = output_data
     if output_format == "yaml":
         text_dump = yaml_dumper.dumps(output_data)
     elif output_format == "json":
-        text_dump = json.dumps(output_data, indent=2, ensure_ascii=False)
+        text_dump = json.dumps(_strip_nulls(output_data), indent=2, ensure_ascii=False) + "\n"
     elif output_format == "jsonl":
         if isinstance(output_data, list):
-            text_dump = "\n".join(json.dumps(item, ensure_ascii=False) for item in output_data)
+            text_dump = "\n".join(
+                json.dumps(_strip_nulls(item), ensure_ascii=False) for item in output_data
+            ) + "\n"
         else:
-            text_dump = json.dumps(output_data, ensure_ascii=False)
+            text_dump = json.dumps(_strip_nulls(output_data), ensure_ascii=False) + "\n"
     elif output_format in ("tsv", "csv"):
         separator = "\t" if output_format == "tsv" else ","
         reducer = make_reducer("__")
