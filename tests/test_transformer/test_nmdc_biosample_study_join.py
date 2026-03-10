@@ -5,7 +5,7 @@ enriched with Study metadata (PI name, ecosystem, study name) by joining
 on ``associated_studies``. This is the pattern needed for NMDC lakehouse
 tables where biosample rows carry denormalized study context.
 
-This test requires the ``cross-table-lookup`` branch (PR #136).
+This test requires the cross-table join feature introduced in PR #136.
 
 See also:
 - PR #136 (cross-table lookup support)
