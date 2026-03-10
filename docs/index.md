@@ -1,12 +1,17 @@
 # LinkML-Map
 
-LinkML Map is a framework for specifying and executing mappings between data models.
+LinkML Map is a framework for specifying and executing declarative mappings between data models.
+
+The core of LinkML Map is the **TransformationSpecification** — a YAML-based language for describing
+how to map one data model to another. This specification is independent of how the transformation
+is executed or what format the data lives in.
 
 Features:
 
-- YAML-based lightweight syntax
+- YAML-based lightweight transformation syntax
 - Python library for executing mappings on data files
-- Ability to compile to other frameworks (SQL/DuckDB)
+- Streaming support for large tabular datasets (TSV/CSV)
+- Multiple text serialization formats (YAML, JSON, JSONL, TSV, CSV)
 - Derivation of target (implicit) schemas, allowing easy customization of data models (*profiling*)
 - Simple YAML dictionaries for simple mappings
 - Automatic unit conversion
@@ -15,7 +20,23 @@ Features:
 - Mappings are reversible (provided all expressions used are reversible)
 - Compatibility with SSSOM
 
-This documentation are available at:
+## Architecture
+
+The TransformationSpecification acts as a declarative intermediate representation that can be
+interpreted by different execution backends:
+
+- **ObjectTransformer** (Python) — interprets the spec row-by-row, supports the full feature set
+  including Python expressions, unit conversion, and cross-class lookups.
+- **SQLCompiler / DuckDBTransformer** (SQL) — compiles the spec to SQL for set-based execution.
+  This backend is **experimental** and supports a limited subset of the specification today.
+  See the [SQL Compilation tutorial](examples/Tutorial-SQLCompiler.ipynb) for current capabilities.
+
+The output serialization formats (YAML, JSON, JSONL, TSV, CSV) are intentionally limited to
+text-based representations of transformed data. For loading results into analytical stores
+(DuckDB, Parquet, databases), use the appropriate downstream tool — e.g., DuckDB's native
+`read_json()` or `read_csv()` functions work directly on linkml-map output files.
+
+This documentation is available at:
 
 - [linkml.io/linkml-map/](https://linkml.io/linkml-map/)
 
@@ -129,19 +150,22 @@ The command line has subcommands for:
     - `markdown` - for generating static sites
     - `graphviz` - for generating visualizations
     - `python` - (partial)
-    - forthcoming: `r2rml`, ...
- 
+    - `sql` - SQL/DuckDB (experimental, limited subset)
+
 ## Details
 
 This repo contains both:
 
 - A [data model](schema/) for a data model *transformation language*
-- A reference python implementation
+- A reference Python implementation (ObjectTransformer)
+- An experimental SQL compilation backend (SQLCompiler / DuckDBTransformer)
 
 The transformation language is specified in terms of [LinkML](https://linkml.io) schemas.
-It is intended to be a *ployglot* transformation language, used for
+It is intended to be a *polyglot* transformation language, used for
 specifying how to map data models independent of underlying representation
-(TSVs, JSON/YAML, RDF, SQL Database, ...).
+(TSVs, JSON/YAML, RDF, SQL Database, ...). The same TransformationSpecification
+can be interpreted in Python (full feature support) or compiled to SQL
+(experimental, limited subset).
 
 Use cases include:
 
