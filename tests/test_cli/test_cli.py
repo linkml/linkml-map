@@ -1,5 +1,6 @@
 """Tests all command-line subcommands."""
 
+import json
 from collections.abc import Generator
 from pathlib import Path
 import re
@@ -276,3 +277,36 @@ def test_dump_output_supported_formats(
     elif output_format in ("tsv", "csv"):
         assert "name" in captured.out
         assert "value" in captured.out
+
+
+@pytest.mark.parametrize("output_format", ["json", "jsonl"])
+def test_dump_output_json_trailing_newline(
+    capsys: Generator[pytest.CaptureFixture, None, None],
+    output_format: str,
+) -> None:
+    """JSON and JSONL output should end with a newline character."""
+    dump_output({"name": "test"}, output_format, None)
+    captured = capsys.readouterr()
+    assert captured.out.endswith("\n")
+
+
+def test_dump_output_json_omits_null_values(
+    capsys: Generator[pytest.CaptureFixture, None, None],
+) -> None:
+    """JSON output should omit keys with None values, matching YAML behavior."""
+    dump_output({"name": "Alice", "email": None}, "json", None)
+    captured = capsys.readouterr()
+    data = json.loads(captured.out)
+    assert data == {"name": "Alice"}
+    assert "email" not in data
+
+
+def test_dump_output_jsonl_omits_null_values(
+    capsys: Generator[pytest.CaptureFixture, None, None],
+) -> None:
+    """JSONL output should omit keys with None values, matching YAML behavior."""
+    dump_output([{"a": 1, "b": None}, {"a": None, "b": 2}], "jsonl", None)
+    captured = capsys.readouterr()
+    lines = [json.loads(line) for line in captured.out.strip().split("\n")]
+    assert lines[0] == {"a": 1}
+    assert lines[1] == {"b": 2}
