@@ -113,6 +113,9 @@ The schema mapping (aka [TransformationSpecification](schema/TransformationSpeci
 The schema mapping is a collection of one or more [ClassDerivation](schema/ClassDerivation.md) objects,
 which themselves consist of one or more [SlotDerivation](schema/SlotDerivation.md) objects.
 
+A single specification can contain derivations for multiple target classes, and multiple
+derivations can target the same class (their slot derivations are merged):
+
 Transform the data:
 
 ```bash
@@ -132,7 +135,7 @@ aliases: Janey|Janie
 Installation and command line usage:
 
 ```bash
-pip[x] install linkml-map
+pip install linkml-map  # or: uv add linkml-map
 cd tests/input/examples/personinfo_basic
 linkml-map map-data \
   -T transform/personinfo-to-agent.transform.yaml \
@@ -325,6 +328,26 @@ linkml-map map-data \
   -f jsonl \
   large_dataset.tsv
 ```
+
+#### Multi-Format Output
+
+Use `-O`/`--additional-output` to write multiple output formats simultaneously
+from a single transformation pass:
+
+```bash
+linkml-map map-data \
+  -T transform.yaml \
+  -s schema.yaml \
+  -f jsonl \
+  -o output.jsonl \
+  -O output.tsv \
+  -O output.json \
+  people.tsv
+```
+
+The primary output uses `-f`/`-o` as usual. Each `-O` flag adds an additional
+output file whose format is inferred from the file extension (`.json`, `.jsonl`,
+`.yaml`, `.yml`, `.tsv`, `.csv`). All outputs are written in a single streaming pass.
 
 ### derive-schema
 

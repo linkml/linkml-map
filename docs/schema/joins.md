@@ -41,7 +41,7 @@ URI: [linkmltr:joins](https://w3id.org/linkml/transformer/joins)
 
 ## Comments
 
-* not yet implemented
+* supports cross-table lookups via source_key/lookup_key or the join_on field
 
 ## Identifier and Mapping Information
 
@@ -66,7 +66,7 @@ URI: [linkmltr:joins](https://w3id.org/linkml/transformer/joins)
 name: joins
 description: Additional classes to be joined to derive instances of the target class
 comments:
-- not yet implemented
+- supports cross-table lookups via source_key/lookup_key or the join_on field
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 multivalued: true
