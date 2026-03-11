@@ -37,6 +37,7 @@ nav:
       - Compiler: api/compiler.md
       # - Importer: api/importer.md
       - Inference: api/inference.md
+      - Expressions: api/expressions.md
       - Functions: api/functions.md
       # - Subsetter: api/subsetter.md
   - FAQ: faq.md
