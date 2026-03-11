@@ -347,7 +347,7 @@ linkml-map map-data \
 
 The primary output uses `-f`/`-o` as usual. Each `-O` flag adds an additional
 output file whose format is inferred from the file extension (`.json`, `.jsonl`,
-`.yaml`, `.tsv`, `.csv`). All outputs are written in a single streaming pass.
+`.yaml`, `.yml`, `.tsv`, `.csv`). All outputs are written in a single streaming pass.
 
 ### derive-schema
 

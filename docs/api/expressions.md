@@ -100,7 +100,8 @@ slot_derivations:
 
 `uuid5(namespace, name)` generates a deterministic UUID v5 (RFC 4122). The same
 namespace and name always produce the same UUID, making it suitable for generating
-stable identifiers during transformation.
+stable identifiers during transformation. The `name` argument must be a string —
+use `str()` to convert if needed (e.g. `uuid5("https://example.org/Person", str({id}))`).
 
 ## Collection Distribution
 
@@ -149,8 +150,9 @@ slot_derivations:
 
 !!! warning "Security"
     Unrestricted eval allows arbitrary Python execution within asteval's sandbox.
-    Only use this with trusted transformation specifications. It is not currently
-    exposed as a CLI flag — it must be enabled programmatically.
+    Only use this with trusted transformation specifications. It can be enabled
+    programmatically (e.g. `ObjectTransformer(unrestricted_eval=True)`) or via
+    the `--unrestricted-eval` / `--no-unrestricted-eval` flags on `linkml-map map-data`.
 
 ## Operators
 
