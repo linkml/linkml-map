@@ -121,6 +121,37 @@ like numbers are automatically coerced for comparison operators. This means
 expressions like `age > 18` work correctly even when `age` arrives as the
 string `"25"` from a TSV file.
 
+## Unrestricted Eval Mode
+
+By default, expressions are evaluated in a sandboxed environment that supports
+single-expression Python. For complex multi-statement logic (list comprehensions
+with filters, if/else blocks, variable assignment), you can enable
+`unrestricted_eval` mode:
+
+```python
+transformer = ObjectTransformer(unrestricted_eval=True)
+```
+
+This falls back to [asteval](https://newville.github.io/asteval/) for expressions
+that exceed simpleeval's capabilities. In unrestricted mode, complex expressions
+use a `target = ...` convention to set the result, and `src` to access the full
+source object:
+
+```yaml
+slot_derivations:
+  driving_test_date:
+    expr: |
+      d_test = [x.important_event_date for x in src.has_important_life_events
+                if str(x.event_name) == "PASSED_DRIVING_TEST"]
+      if len(d_test):
+          target = d_test[0]
+```
+
+!!! warning "Security"
+    Unrestricted eval allows arbitrary Python execution within asteval's sandbox.
+    Only use this with trusted transformation specifications. It is not currently
+    exposed as a CLI flag — it must be enabled programmatically.
+
 ## Operators
 
 Standard Python operators are supported:

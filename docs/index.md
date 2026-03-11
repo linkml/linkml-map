@@ -135,7 +135,7 @@ aliases: Janey|Janie
 Installation and command line usage:
 
 ```bash
-pip[x] install linkml-map
+pip install linkml-map  # or: uv add linkml-map
 cd tests/input/examples/personinfo_basic
 linkml-map map-data \
   -T transform/personinfo-to-agent.transform.yaml \
