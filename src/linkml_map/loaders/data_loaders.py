@@ -83,16 +83,25 @@ class TsvFileLoader(BaseFileLoader):
         self,
         source: str | Path,
         skip_empty_rows: bool = True,
+        schema_path: str | Path | None = None,
+        target_class: str | None = None,
     ) -> None:
         """Initialize TSV loader."""
         super().__init__(source)
         self.skip_empty_rows = skip_empty_rows
+        self.schema_path = schema_path
+        self.target_class = target_class
 
     def iter_instances(self) -> Iterator[dict[str, Any]]:
         """Iterate over rows from the TSV file."""
         from linkml.validator.loaders import TsvLoader
 
-        loader = TsvLoader(str(self.source), skip_empty_rows=self.skip_empty_rows)
+        loader = TsvLoader(
+            str(self.source),
+            skip_empty_rows=self.skip_empty_rows,
+            schema_path=self.schema_path,
+            target_class=self.target_class,
+        )
         yield from loader.iter_instances()
 
 
@@ -103,22 +112,34 @@ class CsvFileLoader(BaseFileLoader):
         self,
         source: str | Path,
         skip_empty_rows: bool = True,
+        schema_path: str | Path | None = None,
+        target_class: str | None = None,
     ) -> None:
         """Initialize CSV loader."""
         super().__init__(source)
         self.skip_empty_rows = skip_empty_rows
+        self.schema_path = schema_path
+        self.target_class = target_class
 
     def iter_instances(self) -> Iterator[dict[str, Any]]:
         """Iterate over rows from the CSV file."""
         from linkml.validator.loaders import CsvLoader
 
-        loader = CsvLoader(str(self.source), skip_empty_rows=self.skip_empty_rows)
+        loader = CsvLoader(
+            str(self.source),
+            skip_empty_rows=self.skip_empty_rows,
+            schema_path=self.schema_path,
+            target_class=self.target_class,
+        )
         yield from loader.iter_instances()
 
 
 def get_file_loader(
     path: str | Path,
     file_format: FileFormat | None = None,
+    *,
+    schema_path: str | Path | None = None,
+    target_class: str | None = None,
     **kwargs: Any,
 ) -> BaseFileLoader:
     """
@@ -126,6 +147,8 @@ def get_file_loader(
 
     :param path: Path to the file
     :param file_format: Explicit file format (auto-detected from extension if not provided)
+    :param schema_path: Path to the LinkML schema (enables schema-aware type coercion for TSV/CSV)
+    :param target_class: Target class name within the schema
     :param kwargs: Additional arguments passed to the loader
     :return: Appropriate file loader instance
     """
@@ -143,6 +166,10 @@ def get_file_loader(
     if loader_class is None:
         msg = f"No loader available for format: {file_format}"
         raise ValueError(msg)
+
+    if file_format in (FileFormat.TSV, FileFormat.CSV):
+        kwargs["schema_path"] = schema_path
+        kwargs["target_class"] = target_class
 
     return loader_class(path, **kwargs)
 
@@ -175,6 +202,8 @@ class DataLoader:
         base_path: str | Path,
         default_format: FileFormat | None = None,
         skip_empty_rows: bool = True,
+        schema_path: str | Path | None = None,
+        target_class: str | None = None,
     ) -> None:
         """
         Initialize the data loader.
@@ -182,6 +211,8 @@ class DataLoader:
         :param base_path: Base directory containing data files, or a single file path
         :param default_format: Default format to use when extension is ambiguous
         :param skip_empty_rows: Skip empty rows in tabular files (default: True)
+        :param schema_path: Path to the LinkML schema (enables schema-aware type coercion for TSV/CSV)
+        :param target_class: Target class name within the schema
         :raises FileNotFoundError: If the path does not exist
         """
         self.base_path = Path(base_path)
@@ -190,6 +221,8 @@ class DataLoader:
             raise FileNotFoundError(msg)
         self.default_format = default_format
         self.skip_empty_rows = skip_empty_rows
+        self.schema_path = schema_path
+        self.target_class = target_class
 
     @property
     def is_single_file(self) -> bool:
@@ -282,7 +315,9 @@ class DataLoader:
         if file_format in (FileFormat.TSV, FileFormat.CSV):
             loader_kwargs["skip_empty_rows"] = self.skip_empty_rows
 
-        loader = get_file_loader(file_path, **loader_kwargs)
+        loader = get_file_loader(
+            file_path, schema_path=self.schema_path, target_class=self.target_class, **loader_kwargs
+        )
         return loader.iter_instances()
 
     def __iter__(self) -> Iterator[dict[str, Any]]:
@@ -296,7 +331,9 @@ class DataLoader:
         if file_format in (FileFormat.TSV, FileFormat.CSV):
             loader_kwargs["skip_empty_rows"] = self.skip_empty_rows
 
-        loader = get_file_loader(self.base_path, **loader_kwargs)
+        loader = get_file_loader(
+            self.base_path, schema_path=self.schema_path, target_class=self.target_class, **loader_kwargs
+        )
         yield from loader.iter_instances()
 
     def get_available_identifiers(self) -> list[str]:
