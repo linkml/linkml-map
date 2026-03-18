@@ -134,6 +134,8 @@ class Transformer(ABC):
                 continue
             slot_derivations = class_spec.get("slot_derivations", {})
             for slot, slot_spec in slot_derivations.items():
+                if slot_spec.get("value") is not None and slot_spec.get("range") is None:
+                    slot_spec["range"] = "string"
                 # Check for nested object_derivations
                 object_derivations = slot_spec.get("object_derivations", [])
                 for i, od in enumerate(object_derivations):

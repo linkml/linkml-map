@@ -1,5 +1,7 @@
 """A Transformer that works on in-memory dict objects."""
 
+from __future__ import annotations
+
 import json
 import logging
 from collections.abc import Iterator, Mapping
@@ -10,6 +12,7 @@ import yaml
 from asteval import Interpreter
 from linkml_runtime import SchemaView
 from linkml_runtime.index.object_index import ObjectIndex
+from linkml_runtime.linkml_model import SlotDefinition
 from linkml_runtime.utils.yamlutils import YAMLRoot
 from pydantic import BaseModel
 
@@ -26,7 +29,7 @@ from linkml_map.functions.unit_conversion import UnitSystem, convert_units
 from linkml_map.transformer.transformer import OBJECT_TYPE, Transformer
 from linkml_map.utils.dynamic_object import DynObj, dynamic_object
 from linkml_map.utils.eval_utils import _uuid5, eval_expr, eval_expr_with_mapping
-from linkml_map.utils.fk_utils import resolve_fk_path
+from linkml_map.utils.fk_utils import FKResolution, resolve_fk_path
 
 DICT_OBJ = dict[str, Any]
 
@@ -41,7 +44,7 @@ class Bindings(Mapping):
 
     def __init__(  # noqa: PLR0913
         self,
-        object_transformer: "ObjectTransformer",
+        object_transformer: ObjectTransformer,
         source_obj: OBJECT_TYPE,
         source_obj_typed: OBJECT_TYPE,
         source_type: str,
@@ -58,6 +61,19 @@ class Bindings(Mapping):
         self.join_specs: dict[str, AliasedClass] = join_specs or {}
         if bindings:
             self.bindings.update(bindings)
+
+    @classmethod
+    def from_context(cls, transformer: ObjectTransformer, context: DerivationContext) -> Bindings:
+        """Create Bindings from a DerivationContext."""
+        return cls(
+            transformer,
+            source_obj=context.source_obj,
+            source_obj_typed=context.source_obj_typed,
+            source_type=context.source_type,
+            sv=context.sv,
+            bindings={"NULL": None},
+            join_specs=context.class_deriv.joins or None,
+        )
 
     def get_ctxt_obj_and_dict(self, source_obj: OBJECT_TYPE = None) -> tuple[DynObj, OBJECT_TYPE]:
         """
@@ -138,6 +154,17 @@ class Bindings(Mapping):
         del name, value
         msg = f"__setitem__ not allowed on class {self.__class__.__name__}"
         raise RuntimeError(msg)
+
+
+@dataclass(frozen=True)
+class DerivationContext:
+    """Immutable context for slot derivation within a single map_object call."""
+
+    source_obj: DICT_OBJ
+    source_obj_typed: Optional[Any]
+    source_type: str
+    sv: SchemaView
+    class_deriv: ClassDerivation
 
 
 @dataclass
@@ -247,6 +274,7 @@ class ObjectTransformer(Transformer):
         if source_type in sv.all_enums():
             # TODO: enum derivations
             return self.transform_enum(source_obj, source_type, source_obj)
+
         source_obj_typed = None
         if isinstance(source_obj, (BaseModel, YAMLRoot)):
             # ensure dict
@@ -263,6 +291,13 @@ class ObjectTransformer(Transformer):
                 class_deriv.pivot_operation, source_obj, class_deriv, sv, source_type
             )
 
+        context = DerivationContext(
+            source_obj=source_obj,
+            source_obj_typed=source_obj_typed,
+            source_type=source_type,
+            sv=sv,
+            class_deriv=class_deriv,
+        )
         tgt_attrs = {}
         bindings = None
         # map each slot assignment in source_obj, if there is a slot_derivation
@@ -271,154 +306,41 @@ class ObjectTransformer(Transformer):
             source_class_slot = None
             if slot_derivation.value is not None:
                 v = slot_derivation.value
-                if slot_derivation.range is None:
-                    slot_derivation.range = "string"
             elif slot_derivation.unit_conversion:
-                v = self._perform_unit_conversion(slot_derivation, source_obj, sv, source_type)
+                v = self._perform_unit_conversion(slot_derivation, context)
             elif slot_derivation.pivot_operation:
                 # MELT operation: wide format to EAV/long format
-                v = self._perform_melt(
-                    slot_derivation.pivot_operation, source_obj, slot_derivation
-                )
-            # EXTRACT: _derive_from_expr(slot_derivation, source_obj, source_obj_typed, source_type, sv) -> Any
+                v = self._perform_melt(slot_derivation.pivot_operation, source_obj, slot_derivation)
             elif slot_derivation.expr:
                 if bindings is None:
-                    bindings = Bindings(
-                        self,
-                        source_obj=source_obj,
-                        source_obj_typed=source_obj_typed,
-                        source_type=source_type,
-                        sv=sv,
-                        bindings={"NULL": None},
-                        join_specs=class_deriv.joins if class_deriv.joins else None,
-                    )
-
-                try:
-                    v = eval_expr_with_mapping(slot_derivation.expr, bindings)
-                except Exception as err:
-                    if not self.unrestricted_eval:
-                        msg = f"Expression not in safe subset: {slot_derivation.expr}"
-                        raise RuntimeError(msg) from err
-                    ctxt_obj, _ = bindings.get_ctxt_obj_and_dict()
-                    aeval = Interpreter(usersyms={"src": ctxt_obj, "target": None, "uuid5": _uuid5})
-                    aeval(slot_derivation.expr)
-                    v = aeval.symtable["target"]
-            # EXTRACT: _derive_from_populated_from(slot_derivation, source_obj, sv, source_type) -> tuple[Any, SlotDefinition]
+                    bindings = Bindings.from_context(self, context)
+                v = self._derive_from_expr(slot_derivation, bindings)
             elif slot_derivation.populated_from:
-                populated_from = slot_derivation.populated_from
-                fk_resolution = resolve_fk_path(sv, source_type, populated_from)
-
+                fk_resolution = resolve_fk_path(sv, source_type, slot_derivation.populated_from)
                 if fk_resolution:
                     fk_value = source_obj.get(fk_resolution.fk_slot_name)
-
-                    if fk_value is not None and self.object_index:
-                        cache_key = (fk_resolution.target_class, str(fk_value))
-                        referenced_obj = self.object_index._source_object_cache.get(cache_key)
-
-                        if referenced_obj:
-                            v = referenced_obj
-                            for attr in fk_resolution.remaining_path.split("."):
-                                if isinstance(v, dict):
-                                    v = v.get(attr)
-                                elif v is not None:
-                                    v = getattr(v, attr, None)
-                                if v is None:
-                                    break
-                        else:
-                            v = None
-                            logger.debug(
-                                f"FK reference not found for {slot_derivation.name}"
-                            )
-                    else:
-                        v = None
-                        if fk_value is not None and not self.object_index:
-                            logger.warning(
-                                f"Cross-class lookup requires object_index. "
-                                f"Call transformer.index(container_data) first."
-                            )
-
-                    source_class_slot = fk_resolution.final_slot
+                    (v, source_class_slot) = self._perform_fk_resolution(
+                        fk_resolution, slot_derivation, fk_value
+                    )
                 else:
-                    v = source_obj.get(populated_from, None)
-                    source_class_slot = sv.induced_slot(populated_from, source_type)
+                    v = source_obj.get(slot_derivation.populated_from, None)
+                    source_class_slot = sv.induced_slot(slot_derivation.populated_from, source_type)
 
                 if slot_derivation.value_mappings and v is not None:
                     mapped = slot_derivation.value_mappings.get(str(v), None)
                     v = mapped.value if mapped is not None else None
 
-                # ---- OFFSET HANDLING (SAFE) ----
-                if getattr(slot_derivation, "offset", None) and v is not None:
-                    off = slot_derivation.offset
-                    off_field_val = source_obj.get(getattr(off, "offset_field", None), None)
-
-                    if off_field_val is not None:
-                        try:
-                            delta = getattr(off, "offset_value", 0) * off_field_val
-                            v = v - delta if getattr(off, "offset_reverse", False) else v + delta
-                            logger.debug(
-                                f"Offset calculation for '{slot_derivation.name}': "
-                                f"{source_obj.get(slot_derivation.populated_from)} "
-                                f"{'-' if getattr(off, 'offset_reverse', False) else '+'} "
-                                f"({getattr(off, 'offset_value', 0)} * {off_field_val}) = {v}"
-                            )
-                        except (TypeError, ValueError) as e:
-                            raise TypeError(
-                                f"Cannot perform offset calculation for slot '{slot_derivation.name}': "
-                                f"values must be numeric (base={v}, offset_field={off_field_val})"
-                            ) from e
-                    else:
-                        logger.debug(
-                            f"Offset field '{getattr(off, 'offset_field', None)}' not found in source object; "
-                            f"skipping offset calculation for '{slot_derivation.name}'"
-                        )
-                # ---------------------------------
+                if slot_derivation.offset and v is not None:
+                    v = self._apply_offset(v, slot_derivation, source_obj)
 
                 logger.debug(
                     f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {source_obj}"
                 )
             elif slot_derivation.sources:
-                vmap = {s: source_obj.get(s, None) for s in slot_derivation.sources}
-                vmap = {k: v for k, v in vmap.items() if v is not None}
-                if len(vmap.keys()) > 1:
-                    msg = f"Multiple sources for {slot_derivation.name}: {vmap}"
-                    raise ValueError(msg)
-                if len(vmap.keys()) == 1:
-                    v = next(iter(vmap.values()))
-                    source_class_slot_name = next(iter(vmap.keys()))
-                    source_class_slot = sv.induced_slot(source_class_slot_name, source_type)
-                else:
-                    v = None
-                    source_class_slot = None
-
-                logger.debug(
-                    f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {source_obj}"
-                )
+                (v, source_class_slot) = self._resolve_sources(slot_derivation, context)
             # EXTRACT: _derive_from_object_derivations(slot_derivation, source_obj, source_type, target_type) -> Any
             elif slot_derivation.object_derivations:
-                # We'll collect all derived objects here
-                derived_objs = []
-
-                for obj_derivation in slot_derivation.object_derivations:
-                    for target_cls, cls_derivation in obj_derivation.class_derivations.items():
-                        # Determine the correct source object to use
-                        source_sub_obj = source_obj  # You may refine this if needed
-
-                        # Recursively map the sub-object
-                        nested_result = self.map_object(
-                            source_sub_obj,
-                            source_type=cls_derivation.populated_from,
-                            target_type=target_cls,
-                            class_derivation=cls_derivation,
-                        )
-                        derived_objs.append(nested_result)
-
-                # If the slot is multivalued, we assign the whole list
-                # Otherwise, just assign the first (for now; error/warning later if >1)
-                target_class_slot = self.target_schemaview.induced_slot(slot_derivation.name, target_type)
-                if target_class_slot.multivalued:
-                    v = derived_objs
-                else:
-                    v = derived_objs[0] if derived_objs else None
+                v = self._derive_nested_objects(slot_derivation, source_obj, target_type)
             else:
                 source_class_slot = sv.induced_slot(slot_derivation.name, source_type)
                 v = source_obj.get(slot_derivation.name, None)
@@ -472,21 +394,136 @@ class ObjectTransformer(Transformer):
             tgt_attrs[str(slot_derivation.name)] = v
         return tgt_attrs
 
+    def _derive_from_expr(self, slot_derivation: SlotDerivation, bindings: Bindings) -> Any:
+        try:
+            return eval_expr_with_mapping(slot_derivation.expr, bindings)
+        except Exception as err:
+            if not self.unrestricted_eval:
+                msg = f"Expression not in safe subset: {slot_derivation.expr}"
+                raise RuntimeError(msg) from err
+            ctxt_obj, _ = bindings.get_ctxt_obj_and_dict()
+            aeval = Interpreter(usersyms={"src": ctxt_obj, "target": None, "uuid5": _uuid5})
+            aeval(slot_derivation.expr)
+            return aeval.symtable["target"]
+
+    def _perform_fk_resolution(
+        self,
+        fk_resolution: FKResolution,
+        slot_derivation: SlotDerivation,
+        fk_value: Any,
+    ) -> tuple[Any, Optional[SlotDefinition]]:
+        if fk_value is not None and self.object_index:
+            cache_key = (fk_resolution.target_class, str(fk_value))
+            referenced_obj = self.object_index._source_object_cache.get(cache_key)
+
+            if referenced_obj:
+                v = referenced_obj
+                for attr in fk_resolution.remaining_path.split("."):
+                    if isinstance(v, dict):
+                        v = v.get(attr)
+                    elif v is not None:
+                        v = getattr(v, attr, None)
+                    if v is None:
+                        break
+            else:
+                v = None
+                logger.debug(f"FK reference not found for {slot_derivation.name}")
+        else:
+            v = None
+            if fk_value is not None and not self.object_index:
+                logger.warning(
+                    f"Cross-class lookup requires object_index. "
+                    f"Call transformer.index(container_data) first."
+                )
+
+        source_class_slot = fk_resolution.final_slot
+        return v, source_class_slot
+
+    def _apply_offset(
+        self, value: Any, slot_derivation: SlotDerivation, source_obj: DICT_OBJ
+    ) -> Any:
+        """Apply an offset calculation using a value from another source field."""
+        off = slot_derivation.offset
+        off_field_val = source_obj.get(off.offset_field)
+
+        if off_field_val is None:
+            logger.debug(
+                f"Offset field '{off.offset_field}' not found in source object; "
+                f"skipping offset for '{slot_derivation.name}'"
+            )
+            return value
+
+        delta = off.offset_value * off_field_val
+        result = value - delta if off.offset_reverse else value + delta
+        logger.debug(
+            f"Offset for '{slot_derivation.name}': "
+            f"{value} {'-' if off.offset_reverse else '+'} "
+            f"({off.offset_value} * {off_field_val}) = {result}"
+        )
+        return result
+
+    def _resolve_sources(self, slot_derivation: SlotDerivation, context: DerivationContext) -> tuple[Any, Optional[SlotDefinition]]:
+        vmap = {s: context.source_obj.get(s, None) for s in slot_derivation.sources}
+        vmap = {k: v for k, v in vmap.items() if v is not None}
+        if len(vmap.keys()) > 1:
+            msg = f"Multiple sources for {slot_derivation.name}: {vmap}"
+            raise ValueError(msg)
+        if len(vmap.keys()) == 1:
+            v = next(iter(vmap.values()))
+            source_class_slot_name = next(iter(vmap.keys()))
+            source_class_slot = context.sv.induced_slot(source_class_slot_name, context.source_type)
+        else:
+            v = None
+            source_class_slot = None
+
+        logger.debug(
+            f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {context.source_obj}"
+        )
+
+    def _derive_nested_objects(self, slot_derivation: SlotDerivation, source_obj: DICT_OBJ, target_type: str) -> Any:
+        derived_objs = []
+
+        for obj_derivation in slot_derivation.object_derivations:
+            for target_cls, cls_derivation in obj_derivation.class_derivations.items():
+                # Determine the correct source object to use
+                source_sub_obj = source_obj  # You may refine this if needed
+
+                # Recursively map the sub-object
+                nested_result = self.map_object(
+                    source_sub_obj,
+                    source_type=cls_derivation.populated_from,
+                    target_type=target_cls,
+                    class_derivation=cls_derivation,
+                )
+                derived_objs.append(nested_result)
+
+        # If the slot is multivalued, we assign the whole list
+        # Otherwise, just assign the first (for now; error/warning later if >1)
+        target_class_slot = self.target_schemaview.induced_slot(
+            slot_derivation.name, target_type
+        )
+        if target_class_slot.multivalued:
+            v = derived_objs
+        else:
+            v = derived_objs[0] if derived_objs else None
+        return v
+
     def _perform_unit_conversion(
-            self,
-            slot_derivation: SlotDerivation,
-            source_obj: Any,
-            sv: SchemaView,
-            source_type: str,
+        self,
+        slot_derivation: SlotDerivation,
+        context: DerivationContext,
     ) -> Union[float, dict, None]:
         uc = slot_derivation.unit_conversion
-        curr_v = source_obj.get(slot_derivation.populated_from, None)
+        curr_v = context.source_obj.get(slot_derivation.populated_from, None)
+
         if curr_v is None:
-            logger.debug(f"No value found for slot '{slot_derivation.populated_from}'; skipping conversion")
+            logger.debug(
+                f"No value found for slot '{slot_derivation.populated_from}'; skipping conversion"
+            )
             return None
 
         # Get the slot from schema
-        slot = sv.induced_slot(slot_derivation.populated_from, source_type)
+        slot = context.sv.induced_slot(slot_derivation.populated_from, context.source_type)
         schema_unit = None
         from_unit = None
         system = UnitSystem.UCUM
@@ -509,7 +546,8 @@ class ObjectTransformer(Transformer):
                 system = None
             else:
                 raise NotImplementedError(
-                    f"Cannot determine unit system for slot '{slot.name}' — all unit fields are None")
+                    f"Cannot determine unit system for slot '{slot.name}' — all unit fields are None"
+                )
 
         # --- Step 2: Get unit from transformer spec ---
         spec_unit = uc.source_unit if uc.source_unit else None
@@ -548,12 +586,14 @@ class ObjectTransformer(Transformer):
                 from_unit = from_unit_val
             else:
                 raise ValueError(
-                    f"Missing unit in structured value for slot '{slot_derivation.populated_from}': {curr_v}")
+                    f"Missing unit in structured value for slot '{slot_derivation.populated_from}': {curr_v}"
+                )
 
             magnitude = curr_v.get(uc.source_magnitude_slot)
             if magnitude is None:
                 raise ValueError(
-                    f"Missing magnitude in structured value for slot '{slot_derivation.populated_from}': {curr_v}")
+                    f"Missing magnitude in structured value for slot '{slot_derivation.populated_from}': {curr_v}"
+                )
         else:
             magnitude = curr_v
 
