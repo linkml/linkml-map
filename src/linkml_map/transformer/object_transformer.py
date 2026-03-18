@@ -338,59 +338,18 @@ class ObjectTransformer(Transformer):
                 )
             elif slot_derivation.sources:
                 (v, source_class_slot) = self._resolve_sources(slot_derivation, context)
-            # EXTRACT: _derive_from_object_derivations(slot_derivation, source_obj, source_type, target_type) -> Any
             elif slot_derivation.object_derivations:
                 v = self._derive_nested_objects(slot_derivation, source_obj, target_type)
             else:
                 source_class_slot = sv.induced_slot(slot_derivation.name, source_type)
                 v = source_obj.get(slot_derivation.name, None)
-            # EXTRACT: _post_process_slot_value(v, source_class_slot, slot_derivation, class_deriv) -> Any
+
             if source_class_slot and v is not None:
-                # slot is mapped and there is a value in the assignment
                 target_range = slot_derivation.range
-                source_class_slot_range = source_class_slot.range
-                if source_class_slot.multivalued:
-                    if isinstance(v, list):
-                        v = [self.map_object(v1, source_class_slot_range, target_range) for v1 in v]
-                    elif isinstance(v, dict):
-                        v = {
-                            k1: self.map_object(v1, source_class_slot_range, target_range)
-                            for k1, v1 in v.items()
-                        }
-                    else:
-                        v = [self.map_object(v, source_class_slot_range, target_range)]
-                else:
-                    v = self.map_object(v, source_class_slot_range, target_range)
-                if (
-                    self._is_coerce_to_multivalued(slot_derivation, class_deriv)
-                    and v is not None
-                    and not isinstance(v, list)
-                ):
-                    v = self._singlevalued_to_multivalued(v, slot_derivation)
-                if self._is_coerce_to_singlevalued(slot_derivation, class_deriv) and isinstance(
-                    v, list
-                ):
-                    v = self._multivalued_to_singlevalued(v, slot_derivation)
+                v = self._map_value_by_range(v, source_class_slot, target_range)
+                v = self._coerce_cardinality(v, slot_derivation, class_deriv)
                 v = self._coerce_datatype(v, target_range)
-                if slot_derivation.dictionary_key and isinstance(v, list):
-                    # List to CompactDict
-                    v = {v1[slot_derivation.dictionary_key]: v1 for v1 in v}
-                    for v1 in v.values():
-                        del v1[slot_derivation.dictionary_key]
-                elif (
-                    slot_derivation.cast_collection_as
-                    and slot_derivation.cast_collection_as == CollectionType.MultiValuedList
-                    and isinstance(v, dict)
-                ):
-                    # CompactDict to List
-                    src_rng = source_class_slot.range
-                    src_rng_id_slot = self.source_schemaview.get_identifier_slot(
-                        src_rng, use_key=True
-                    )
-                    if src_rng_id_slot:
-                        v = [{**v1, src_rng_id_slot.name: k} for k, v1 in v.items()]
-                    else:
-                        v = list(v.values())
+                v = self._reshape_collection(v, slot_derivation, source_class_slot)
             tgt_attrs[str(slot_derivation.name)] = v
         return tgt_attrs
 
@@ -462,7 +421,9 @@ class ObjectTransformer(Transformer):
         )
         return result
 
-    def _resolve_sources(self, slot_derivation: SlotDerivation, context: DerivationContext) -> tuple[Any, Optional[SlotDefinition]]:
+    def _resolve_sources(
+        self, slot_derivation: SlotDerivation, context: DerivationContext
+    ) -> tuple[Any, Optional[SlotDefinition]]:
         vmap = {s: context.source_obj.get(s, None) for s in slot_derivation.sources}
         vmap = {k: v for k, v in vmap.items() if v is not None}
         if len(vmap.keys()) > 1:
@@ -480,7 +441,9 @@ class ObjectTransformer(Transformer):
             f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {context.source_obj}"
         )
 
-    def _derive_nested_objects(self, slot_derivation: SlotDerivation, source_obj: DICT_OBJ, target_type: str) -> Any:
+    def _derive_nested_objects(
+        self, slot_derivation: SlotDerivation, source_obj: DICT_OBJ, target_type: str
+    ) -> Any:
         derived_objs = []
 
         for obj_derivation in slot_derivation.object_derivations:
@@ -499,13 +462,66 @@ class ObjectTransformer(Transformer):
 
         # If the slot is multivalued, we assign the whole list
         # Otherwise, just assign the first (for now; error/warning later if >1)
-        target_class_slot = self.target_schemaview.induced_slot(
-            slot_derivation.name, target_type
-        )
+        target_class_slot = self.target_schemaview.induced_slot(slot_derivation.name, target_type)
         if target_class_slot.multivalued:
             v = derived_objs
         else:
             v = derived_objs[0] if derived_objs else None
+        return v
+
+    def _map_value_by_range(
+        self, v: Any, source_class_slot: SlotDefinition, target_range: Optional[str]
+    ) -> Any:
+        source_class_slot_range = source_class_slot.range
+        if source_class_slot.multivalued:
+            if isinstance(v, list):
+                return [self.map_object(v1, source_class_slot_range, target_range) for v1 in v]
+            elif isinstance(v, dict):
+                return {
+                    k1: self.map_object(v1, source_class_slot_range, target_range)
+                    for k1, v1 in v.items()
+                }
+            else:
+                return [self.map_object(v, source_class_slot_range, target_range)]
+        else:
+            return self.map_object(v, source_class_slot_range, target_range)
+
+    def _coerce_cardinality(
+        self, v: Any, slot_derivation: SlotDerivation, class_derivation: ClassDerivation
+    ) -> Any:
+        if (
+            self._is_coerce_to_multivalued(slot_derivation, class_derivation)
+            and v is not None
+            and not isinstance(v, list)
+        ):
+            return self._singlevalued_to_multivalued(v, slot_derivation)
+        elif self._is_coerce_to_singlevalued(slot_derivation, class_derivation) and isinstance(
+            v, list
+        ):
+            return self._multivalued_to_singlevalued(v, slot_derivation)
+        return v
+
+    def _reshape_collection(
+        self, v: Any, slot_derivation: SlotDerivation, source_class_slot: SlotDefinition
+    ) -> Any:
+        if slot_derivation.dictionary_key and isinstance(v, list):
+            # List to CompactDict
+            v = {v1[slot_derivation.dictionary_key]: v1 for v1 in v}
+            for v1 in v.values():
+                del v1[slot_derivation.dictionary_key]
+            return v
+        elif (
+            slot_derivation.cast_collection_as
+            and slot_derivation.cast_collection_as == CollectionType.MultiValuedList
+            and isinstance(v, dict)
+        ):
+            # CompactDict to List
+            src_rng = source_class_slot.range
+            src_rng_id_slot = self.source_schemaview.get_identifier_slot(src_rng, use_key=True)
+            if src_rng_id_slot:
+                return [{**v1, src_rng_id_slot.name: k} for k, v1 in v.items()]
+            else:
+                return list(v.values())
         return v
 
     def _perform_unit_conversion(
