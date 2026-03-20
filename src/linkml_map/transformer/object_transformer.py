@@ -354,10 +354,16 @@ class ObjectTransformer(Transformer):
         return tgt_attrs
 
     def _derive_from_expr(self, slot_derivation: SlotDerivation, bindings: Bindings) -> Any:
+        """Evaluate a slot derivation expression, with fallback to asteval for unrestricted mode."""
         try:
             return eval_expr_with_mapping(slot_derivation.expr, bindings)
         except Exception as err:
+            # Broad catch is intentional: simpleeval raises various exception types
+            # (NameNotDefined, FeatureNotAvailable, etc.) for expressions outside its
+            # safe subset. Should also handle KeyError, TypeError in the future.
+            # TODO: narrow when non-strict error reporting is implemented.
             if not self.unrestricted_eval:
+                logger.warning(f"Expression evaluation failed for '{slot_derivation.name}': {err}")
                 msg = f"Expression not in safe subset: {slot_derivation.expr}"
                 raise RuntimeError(msg) from err
             ctxt_obj, _ = bindings.get_ctxt_obj_and_dict()
@@ -371,6 +377,7 @@ class ObjectTransformer(Transformer):
         slot_derivation: SlotDerivation,
         fk_value: Any,
     ) -> tuple[Any, Optional[SlotDefinition]]:
+        """Resolve a foreign key value through the object index and walk the remaining path."""
         if fk_value is not None and self.object_index:
             cache_key = (fk_resolution.target_class, str(fk_value))
             referenced_obj = self.object_index._source_object_cache.get(cache_key)
@@ -412,8 +419,14 @@ class ObjectTransformer(Transformer):
             )
             return value
 
-        delta = off.offset_value * off_field_val
-        result = value - delta if off.offset_reverse else value + delta
+        try:
+            delta = off.offset_value * off_field_val
+            result = value - delta if off.offset_reverse else value + delta
+        except (TypeError, ValueError) as e:
+            raise TypeError(
+                f"Cannot perform offset calculation for slot '{slot_derivation.name}': "
+                f"values must be numeric (base={value}, offset_field={off_field_val})"
+            ) from e
         logger.debug(
             f"Offset for '{slot_derivation.name}': "
             f"{value} {'-' if off.offset_reverse else '+'} "
@@ -424,6 +437,7 @@ class ObjectTransformer(Transformer):
     def _resolve_sources(
         self, slot_derivation: SlotDerivation, context: DerivationContext
     ) -> tuple[Any, Optional[SlotDefinition]]:
+        """Resolve a slot value from multiple candidate source slots (first available wins)."""
         vmap = {s: context.source_obj.get(s, None) for s in slot_derivation.sources}
         vmap = {k: v for k, v in vmap.items() if v is not None}
         if len(vmap.keys()) > 1:
@@ -440,10 +454,12 @@ class ObjectTransformer(Transformer):
         logger.debug(
             f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {context.source_obj}"
         )
+        return v, source_class_slot
 
     def _derive_nested_objects(
         self, slot_derivation: SlotDerivation, source_obj: DICT_OBJ, target_type: str
     ) -> Any:
+        """Build nested objects from explicit object_derivation declarations."""
         derived_objs = []
 
         for obj_derivation in slot_derivation.object_derivations:
@@ -472,6 +488,7 @@ class ObjectTransformer(Transformer):
     def _map_value_by_range(
         self, v: Any, source_class_slot: SlotDefinition, target_range: Optional[str]
     ) -> Any:
+        """Recursively map nested values based on the source slot's range type."""
         source_class_slot_range = source_class_slot.range
         if source_class_slot.multivalued:
             if isinstance(v, list):
@@ -489,6 +506,7 @@ class ObjectTransformer(Transformer):
     def _coerce_cardinality(
         self, v: Any, slot_derivation: SlotDerivation, class_derivation: ClassDerivation
     ) -> Any:
+        """Coerce between single-valued and multi-valued based on target schema and spec."""
         if (
             self._is_coerce_to_multivalued(slot_derivation, class_derivation)
             and v is not None
@@ -504,6 +522,7 @@ class ObjectTransformer(Transformer):
     def _reshape_collection(
         self, v: Any, slot_derivation: SlotDerivation, source_class_slot: SlotDefinition
     ) -> Any:
+        """Reshape between list and compact-dict collection formats."""
         if slot_derivation.dictionary_key and isinstance(v, list):
             # List to CompactDict
             v = {v1[slot_derivation.dictionary_key]: v1 for v1 in v}
