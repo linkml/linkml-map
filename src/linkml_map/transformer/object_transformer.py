@@ -233,13 +233,6 @@ class ObjectTransformer(Transformer):
                     raise ValueError(msg)
         return source_type
 
-    # Developer Note:
-    # This method has grown large. When modifying it, consider extracting to
-    # private methods and adding tests using the scaffold-based testing pattern.
-    # See EXTRACT markers below for candidates.
-    #
-    # See: tests/README.md for testing guidance
-    # Tracking: https://github.com/linkml/linkml-map/issues/104
     def map_object(
         self,
         source_obj: OBJECT_TYPE,
@@ -272,8 +265,7 @@ class ObjectTransformer(Transformer):
                     return self.compress_uri(source_obj)
             return source_obj
         if source_type in sv.all_enums():
-            # TODO: enum derivations
-            return self.transform_enum(source_obj, source_type, source_obj)
+            return self.transform_enum(source_obj, [source_type], source_obj)
 
         source_obj_typed = None
         if isinstance(source_obj, (BaseModel, YAMLRoot)):
@@ -346,7 +338,7 @@ class ObjectTransformer(Transformer):
 
             if source_class_slot and v is not None:
                 target_range = slot_derivation.range
-                v = self._map_value_by_range(v, source_class_slot, target_range)
+                v = self._map_value_by_range(v, source_class_slot, target_range, source_obj)
                 v = self._coerce_cardinality(v, slot_derivation, class_deriv)
                 v = self._coerce_datatype(v, target_range)
                 v = self._reshape_collection(v, slot_derivation, source_class_slot)
@@ -486,10 +478,24 @@ class ObjectTransformer(Transformer):
         return v
 
     def _map_value_by_range(
-        self, v: Any, source_class_slot: SlotDefinition, target_range: Optional[str]
+        self,
+        v: Any,
+        source_class_slot: SlotDefinition,
+        target_range: Optional[str],
+        source_obj: DICT_OBJ,
     ) -> Any:
         """Recursively map nested values based on the source slot's range type."""
         source_class_slot_range = source_class_slot.range
+        sv = self.source_schemaview
+
+        # Check for enum ranges (direct or via any_of)
+        if source_class_slot_range is None or source_class_slot_range == "Any":
+            any_of_enums = self._get_any_of_enum_names(source_class_slot, sv)
+            if any_of_enums:
+                if source_class_slot.multivalued and isinstance(v, list):
+                    return [self.transform_enum(v1, any_of_enums, source_obj) for v1 in v]
+                return self.transform_enum(v, any_of_enums, source_obj)
+
         if source_class_slot.multivalued:
             if isinstance(v, list):
                 return [self.map_object(v1, source_class_slot_range, target_range) for v1 in v]
@@ -543,6 +549,19 @@ class ObjectTransformer(Transformer):
                 return list(v.values())
         return v
 
+    @staticmethod
+    def _get_any_of_enum_names(slot: Any, sv: SchemaView) -> list[str]:
+        """Extract enum names from a slot's any_of constraints.
+
+        :param slot: An induced slot definition (from SchemaView.induced_slot).
+        :param sv: Source schema view.
+        :return: List of enum names found in any_of, empty if none.
+        """
+        if not hasattr(slot, "any_of") or not slot.any_of:
+            return []
+        all_enums = sv.all_enums()
+        return [ao.range for ao in slot.any_of if ao.range in all_enums]
+
     def _perform_unit_conversion(
         self,
         slot_derivation: SlotDerivation,
@@ -557,13 +576,11 @@ class ObjectTransformer(Transformer):
             )
             return None
 
-        # Get the slot from schema
         slot = context.sv.induced_slot(slot_derivation.populated_from, context.source_type)
         schema_unit = None
         from_unit = None
         system = UnitSystem.UCUM
 
-        # --- Step 1: Get unit from schema ---
         if slot.unit:
             if slot.unit.ucum_code:
                 schema_unit = slot.unit.ucum_code
@@ -584,10 +601,8 @@ class ObjectTransformer(Transformer):
                     f"Cannot determine unit system for slot '{slot.name}' — all unit fields are None"
                 )
 
-        # --- Step 2: Get unit from transformer spec ---
         spec_unit = uc.source_unit if uc.source_unit else None
 
-        # --- Step 3: Validate unit source ---
         if schema_unit and spec_unit:
             if schema_unit != spec_unit:
                 raise ValueError(
@@ -600,8 +615,6 @@ class ObjectTransformer(Transformer):
         elif spec_unit:
             from_unit = spec_unit
         else:
-            # Handle structured unit slot case: don't raise here if source_unit_slot is set,
-            # defer unit extraction to Step 4
             if uc.source_unit_slot:
                 from_unit = None
             else:
@@ -609,7 +622,6 @@ class ObjectTransformer(Transformer):
                     f"No source unit provided in schema or transformation spec for slot '{slot_derivation.populated_from}'"
                 )
 
-        # --- Step 4: Determine magnitude and possibly from_unit ---
         if uc.source_unit_slot:
             # Structured input, e.g., {"value": 120, "unit": "cm"}
             from_unit_val = curr_v.get(uc.source_unit_slot)
@@ -632,14 +644,12 @@ class ObjectTransformer(Transformer):
         else:
             magnitude = curr_v
 
-        # --- Step 5: Convert ---
         to_unit = uc.target_unit or from_unit
         if from_unit == to_unit:
             result = magnitude
         else:
             result = convert_units(magnitude, from_unit=from_unit, to_unit=to_unit, system=system)
 
-        # --- Step 6: Structure result if needed ---
         if uc.target_magnitude_slot:
             return {uc.target_magnitude_slot: result, uc.target_unit_slot: to_unit}
         return result
@@ -719,25 +729,41 @@ class ObjectTransformer(Transformer):
         tr_obj_dict = self.map_object(source_obj, source_type_name)
         return target_class(**tr_obj_dict)
 
-    def transform_enum(self, source_value: str, enum_name: str, source_obj: Any) -> Optional[str]:
-        enum_deriv = self._get_enum_derivation(enum_name)
-        if enum_deriv.expr:
-            try:
-                if enum_deriv.expr:
+    def transform_enum(
+        self, source_value: str, enum_names: list[str], source_obj: Any
+    ) -> Optional[str]:
+        """Transform a source enum value through one or more enum derivations.
+
+        Iterates *enum_names* in order. For each enum derivation, tries
+        expression evaluation first, then permissible-value mappings.
+        If mirror_source is set on a derivation and no mapping matched,
+        returns the source value unchanged without trying further enums.
+
+        :param source_value: The source enum value to transform.
+        :param enum_names: Ordered list of source enum names to try.
+        :param source_obj: The full source object (used for expr evaluation).
+        :return: Transformed value, or None if no mapping found.
+        """
+        for enum_name in enum_names:
+            enum_deriv = self._get_enum_derivation(enum_name)
+            if enum_deriv.expr:
+                try:
                     v = eval_expr(enum_deriv.expr, **source_obj, NULL=None)
-            except Exception:
-                aeval = Interpreter(usersyms={"src": source_obj, "target": None, "uuid5": _uuid5})
-                aeval(enum_deriv.expr)
-                v = aeval.symtable["target"]
-            if v is not None:
-                return v
-        for pv_deriv in enum_deriv.permissible_value_derivations.values():
-            if source_value == pv_deriv.populated_from:
-                return pv_deriv.name
-            if source_value in pv_deriv.sources:
-                return pv_deriv.name
-        if enum_deriv.mirror_source:
-            return str(source_value)
+                except Exception:
+                    aeval = Interpreter(
+                        usersyms={"src": source_obj, "target": None, "uuid5": _uuid5}
+                    )
+                    aeval(enum_deriv.expr)
+                    v = aeval.symtable["target"]
+                if v is not None:
+                    return v
+            for pv_deriv in enum_deriv.permissible_value_derivations.values():
+                if source_value == pv_deriv.populated_from:
+                    return pv_deriv.name
+                if source_value in pv_deriv.sources:
+                    return pv_deriv.name
+            if enum_deriv.mirror_source:
+                return str(source_value)
         return None
 
     def _perform_pivot_operation(
