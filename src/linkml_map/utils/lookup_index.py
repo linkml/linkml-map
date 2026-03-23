@@ -84,6 +84,14 @@ class LookupIndex:
         """Check whether *table* has been registered."""
         return table in self._tables
 
+    def __enter__(self) -> LookupIndex:
+        """Enter the context manager."""
+        return self
+
+    def __exit__(self, *exc_info: object) -> None:
+        """Exit the context manager, closing the DuckDB connection."""
+        self.close()
+
     def close(self) -> None:
         """Close the DuckDB connection."""
         self._conn.close()
