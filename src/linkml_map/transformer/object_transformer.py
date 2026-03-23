@@ -488,7 +488,7 @@ class ObjectTransformer(Transformer):
         source_class_slot_range = source_class_slot.range
         sv = self.source_schemaview
 
-        # Check for enum ranges (direct or via any_of)
+        # Check for enums defined via any_of when the range is None or "Any"
         if source_class_slot_range is None or source_class_slot_range == "Any":
             any_of_enums = self._get_any_of_enum_names(source_class_slot, sv)
             if any_of_enums:

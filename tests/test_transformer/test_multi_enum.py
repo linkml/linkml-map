@@ -289,3 +289,19 @@ def test_null_color_stays_none():
     source = {"id": "light1", "color": None}
     result = tr.map_object(source, source_type="Light")
     assert result["color"] is None
+
+
+def test_explicit_range_any_with_any_of():
+    """Slots with explicit range: Any plus any_of enum ranges are mapped correctly."""
+    schema = SOURCE_SCHEMA.replace(
+        "      color:\n        any_of:",
+        "      color:\n        range: Any\n        any_of:",
+    )
+    tr = ObjectTransformer()
+    tr.source_schemaview = SchemaView(schema)
+    tr.target_schemaview = SchemaView(TARGET_SCHEMA)
+    tr.create_transformer_specification(copy.deepcopy(TRANSFORM_SPEC))
+
+    source = {"id": "light1", "color": "light_red"}
+    result = tr.map_object(source, source_type="Light")
+    assert result["color"] == "red"
