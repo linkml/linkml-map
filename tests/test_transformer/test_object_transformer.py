@@ -26,7 +26,7 @@ from linkml_map.datamodel.transformer_model import (
     SlotDerivation,
     TransformationSpecification,
 )
-from linkml_map.transformer.object_transformer import ObjectTransformer
+from linkml_map.transformer.object_transformer import DerivationContext, ObjectTransformer
 from linkml_map.transformer.transformer import Transformer
 from linkml_map.utils.dynamic_object import dynamic_object
 from tests import (
@@ -566,6 +566,70 @@ def test_cardinalities(source_multivalued: bool, target_multivalued: bool, expli
     assert [val] if target_multivalued else val == target_instance[att_name]
 
 
+def test_normalize_defaults_range_for_literal_value() -> None:
+    """Range should default to 'string' when a literal value is set and range is None."""
+    spec = {
+        "class_derivations": {
+            "MyClass": {
+                "name": "MyClass",
+                "slot_derivations": {
+                    "my_slot": {
+                        "name": "my_slot",
+                        "value": "hello",
+                    }
+                },
+            }
+        }
+    }
+    Transformer._normalize_spec_dict(spec)
+    class_deriv = spec["class_derivations"][0]
+    slot = class_deriv["slot_derivations"]["my_slot"]
+    assert slot["range"] == "string"
+
+
+def test_derive_from_expr_unrestricted_fallback() -> None:
+    """The asteval fallback path is used when unrestricted_eval=True and simpleeval rejects the expression."""
+    source_schema: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_SRC_SCHEMA)))
+    target_schema: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TGT_SCHEMA)))
+    transform_spec: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TR)))
+
+    # Assignment syntax is rejected by simpleeval but handled by asteval
+    transform_spec.setdefault("class_derivations", {}).setdefault("Agent", {}) \
+                  .setdefault("slot_derivations", {})["label"] = {
+                      "expr": "target = name",
+                  }
+
+    obj_tr = ObjectTransformer(unrestricted_eval=True)
+    obj_tr.source_schemaview = SchemaView(yaml.dump(source_schema))
+    obj_tr.target_schemaview = SchemaView(yaml.dump(target_schema))
+    obj_tr.create_transformer_specification(transform_spec)
+
+    person_dict: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_DATA)))
+    result = obj_tr.map_object(person_dict, source_type="Person")
+    assert result["label"] == person_dict["name"]
+
+
+def test_derive_from_expr_restricted_raises() -> None:
+    """Expressions rejected by simpleeval raise RuntimeError when unrestricted_eval=False."""
+    source_schema: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_SRC_SCHEMA)))
+    target_schema: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TGT_SCHEMA)))
+    transform_spec: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TR)))
+
+    transform_spec.setdefault("class_derivations", {}).setdefault("Agent", {}) \
+                  .setdefault("slot_derivations", {})["label"] = {
+                      "expr": "target = name",
+                  }
+
+    obj_tr = ObjectTransformer(unrestricted_eval=False)
+    obj_tr.source_schemaview = SchemaView(yaml.dump(source_schema))
+    obj_tr.target_schemaview = SchemaView(yaml.dump(target_schema))
+    obj_tr.create_transformer_specification(transform_spec)
+
+    person_dict: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_DATA)))
+    with pytest.raises(RuntimeError, match="Expression not in safe subset"):
+        obj_tr.map_object(person_dict, source_type="Person")
+
+
 def test_self_transform() -> None:
     tr = ObjectTransformer()
     tr.source_schemaview = SchemaView(str(TR_SCHEMA))
@@ -606,7 +670,11 @@ def test_perform_unit_conversion_basic(obj_tr: ObjectTransformer):
     obj_tr.source_schemaview.induced_slot = MagicMock(return_value=slot_mock)
 
     # Call the method
-    result = obj_tr._perform_unit_conversion(slot_derivation, source_obj, obj_tr.source_schemaview, source_type="SomeType")
+    context = DerivationContext(
+        source_obj=source_obj, source_obj_typed=None,
+        source_type="SomeType", sv=obj_tr.source_schemaview, class_deriv=MagicMock(),
+    )
+    result = obj_tr._perform_unit_conversion(slot_derivation, context)
 
     # 120 cm -> 1.2 m expected (assuming convert_units works as expected)
     # If convert_units not mocked, this test depends on it.
@@ -641,7 +709,11 @@ def test_perform_unit_conversion_structured_value(obj_tr: ObjectTransformer):
 
     obj_tr.source_schemaview.induced_slot = MagicMock(return_value=slot_mock)
 
-    result = obj_tr._perform_unit_conversion(slot_derivation, source_obj, obj_tr.source_schemaview, source_type="SomeType")
+    context = DerivationContext(
+        source_obj=source_obj, source_obj_typed=None,
+        source_type="SomeType", sv=obj_tr.source_schemaview, class_deriv=MagicMock(),
+    )
+    result = obj_tr._perform_unit_conversion(slot_derivation, context)
 
     # Should return a dict with converted value and unit
     assert isinstance(result, dict)
@@ -668,7 +740,11 @@ def test_perform_unit_conversion_missing_value(obj_tr: ObjectTransformer):
     source_obj = {}  # no 'missing_length' key
 
     # Should return None if source value missing
-    result = obj_tr._perform_unit_conversion(slot_derivation, source_obj, obj_tr.source_schemaview, source_type="SomeType")
+    context = DerivationContext(
+        source_obj=source_obj, source_obj_typed=None,
+        source_type="SomeType", sv=obj_tr.source_schemaview, class_deriv=MagicMock(),
+    )
+    result = obj_tr._perform_unit_conversion(slot_derivation, context)
     assert result is None
 
 
@@ -698,8 +774,12 @@ def test_perform_unit_conversion_raise_on_unit_mismatch(obj_tr: ObjectTransforme
 
     obj_tr.source_schemaview.induced_slot = MagicMock(return_value=slot_mock)
 
+    context = DerivationContext(
+        source_obj=source_obj, source_obj_typed=None,
+        source_type="SomeType", sv=obj_tr.source_schemaview, class_deriv=MagicMock(),
+    )
     with pytest.raises(ValueError, match="Mismatch in source units"):
-        obj_tr._perform_unit_conversion(slot_derivation, source_obj, obj_tr.source_schemaview, source_type="SomeType")
+        obj_tr._perform_unit_conversion(slot_derivation, context)
 
 def test_offset_skipped_when_offset_field_missing():
     sb_source = SchemaBuilder()
