@@ -253,20 +253,24 @@ class DataLoader:
     def __contains__(self, identifier: str) -> bool:
         """Check if a data file exists for the given identifier."""
         if self.is_single_file:
-            return False
+            return identifier == self.base_path.stem
         return self._find_file(identifier) is not None
 
     def __getitem__(self, identifier: str) -> Iterator[dict[str, Any]]:
         """
         Load instances from the data file corresponding to the identifier.
 
+        For single-file mode, the identifier must match the file stem.
+
         :param identifier: The populated_from identifier to load
         :return: Iterator over data instances
         :raises FileNotFoundError: If no matching file is found
         """
         if self.is_single_file:
-            msg = "Cannot use identifier-based access on single-file loader"
-            raise ValueError(msg)
+            if identifier == self.base_path.stem:
+                return iter(self)
+            msg = f"Single-file loader has no data for identifier '{identifier}' (file stem is '{self.base_path.stem}')"
+            raise FileNotFoundError(msg)
 
         file_path = self._find_file(identifier)
         if file_path is None:

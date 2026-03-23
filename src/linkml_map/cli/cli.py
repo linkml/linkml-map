@@ -3,7 +3,6 @@
 import logging
 import os
 import sys
-from collections.abc import Iterator
 from contextlib import nullcontext
 from pathlib import Path
 from typing import Any, Optional, Union
@@ -19,6 +18,7 @@ from linkml_map.compiler.python_compiler import PythonCompiler
 from linkml_map.inference.inverter import TransformationSpecificationInverter
 from linkml_map.inference.schema_mapper import SchemaMapper
 from linkml_map.loaders import DataLoader
+from linkml_map.transformer.engine import transform_spec
 from linkml_map.transformer.object_transformer import ObjectTransformer
 from linkml_map.writers import (
     EXTENSION_FORMAT_MAP,
@@ -39,6 +39,9 @@ output_option = click.option("-o", "--output", help="Output file.")
 schema_option = click.option("-s", "--schema", help="Path to source schema.")
 transformer_specification_option = click.option(
     "-T", "--transformer-specification", help="Path to transformer specification."
+)
+target_schema_option = click.option(
+    "--target-schema", help="Path to target schema (required for nested object_derivations)."
 )
 
 logger = logging.getLogger(__name__)
@@ -66,6 +69,7 @@ def main(verbose: int, quiet: bool) -> None:
 @output_option
 @transformer_specification_option
 @schema_option
+@target_schema_option
 @click.option("--source-type", help="Source type/class name for the input data.")
 @click.option(
     "--unrestricted-eval/--no-unrestricted-eval",
@@ -103,6 +107,7 @@ def map_data(
     output_format: Optional[str],
     chunk_size: int,
     additional_output: tuple,
+    target_schema: Optional[str] = None,
     **kwargs: dict[str, Any],
 ) -> None:
     """
@@ -160,6 +165,7 @@ def map_data(
             output_format=output_format,
             chunk_size=chunk_size,
             additional_output=additional_output,
+            target_schema=target_schema,
             **kwargs,
         )
     else:
@@ -171,6 +177,7 @@ def map_data(
             transformer_specification=transformer_specification,
             output=output,
             output_format=output_format,
+            target_schema=target_schema,
             **kwargs,
         )
 
@@ -182,12 +189,15 @@ def _map_data_single(
     transformer_specification: str,
     output: Optional[str],
     output_format: str,
+    target_schema: Optional[str] = None,
     **kwargs: dict[str, Any],
 ) -> None:
     """Original single-object transformation logic."""
     tr = ObjectTransformer(**kwargs)
     tr.source_schemaview = SchemaView(schema)
     tr.load_transformer_specification(transformer_specification)
+    if target_schema:
+        tr.target_schemaview = SchemaView(target_schema)
 
     # Load input data (YAML or JSON)
     with open(input_data) as file:
@@ -203,24 +213,6 @@ def _map_data_single(
     tr_obj = tr.map_object(input_obj, source_type)
     dump_output(tr_obj, output_format, output)
 
-
-def _transform_iterator(
-    data_loader: DataLoader,
-    transformer: ObjectTransformer,
-    source_type: Optional[str],
-) -> Iterator[dict[str, Any]]:
-    """Iterate over data and yield transformed objects."""
-    for identifier, rows in data_loader.iter_sources():
-        # Use explicit source_type if provided, otherwise use identifier from filename
-        effective_type = source_type if source_type else identifier
-        logger.info(f"Processing {identifier} as {effective_type}")
-        for row in rows:
-            try:
-                mapped = transformer.map_object(row, source_type=effective_type)
-                yield mapped
-            except Exception as e:
-                logger.warning(f"Error transforming row from {identifier}: {e}")
-                raise
 
 
 def _build_additional_outputs(
@@ -253,6 +245,7 @@ def _map_data_streaming(
     output_format: str,
     chunk_size: int,
     additional_output: tuple = (),
+    target_schema: Optional[str] = None,
     **kwargs: dict[str, Any],
 ) -> None:
     """Streaming transformation for tabular/directory input."""
@@ -260,12 +253,14 @@ def _map_data_streaming(
     tr = ObjectTransformer(**kwargs)
     tr.source_schemaview = SchemaView(schema)
     tr.load_transformer_specification(transformer_specification)
+    if target_schema:
+        tr.target_schemaview = SchemaView(target_schema)
 
     # Initialize data loader
     data_loader = DataLoader(input_path)
 
     # Create transform iterator and chunk it
-    transform_iter = _transform_iterator(data_loader, tr, source_type)
+    transform_iter = transform_spec(tr, data_loader, source_type)
     chunks = chunked(transform_iter, chunk_size)
 
     # Resolve output format
