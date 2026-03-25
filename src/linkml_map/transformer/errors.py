@@ -16,7 +16,7 @@ class TransformationError(Exception):
     Context is added incrementally as the error propagates up the stack:
 
     - **``map_object``** adds ``class_derivation_name``, ``slot_derivation_name``, and ``source_row``
-    - **``transform_spec``** (engine) adds ``row_index``
+    - **``transform_spec``** (engine) adds ``row_index`` when an ``on_error`` callback is provided
     """
 
     message: str

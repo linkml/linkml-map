@@ -1,7 +1,7 @@
 """Tests for --continue-on-error / TransformationError error handling.
 
 Tests verify that:
-1. TransformationError carries structured context (operation, slot, class, row)
+1. TransformationError carries structured context (class, slot, source_row, row_index, cause)
 2. engine.transform_spec collects errors via on_error callback
 3. Default behavior (no callback) preserves fail-fast semantics
 """

@@ -627,7 +627,7 @@ def test_derive_from_expr_restricted_raises() -> None:
     obj_tr.create_transformer_specification(transform_spec)
 
     person_dict: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_DATA)))
-    with pytest.raises(TransformationError):
+    with pytest.raises(TransformationError, match="Expression not in safe subset"):
         obj_tr.map_object(person_dict, source_type="Person")
 
 
