@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
+from linkml_map.transformer.errors import TransformationError
 from linkml_map.utils.lookup_index import LookupIndex
 
 if TYPE_CHECKING:
@@ -20,6 +22,7 @@ def transform_spec(
     transformer: ObjectTransformer,
     data_loader: DataLoader,
     source_type: str | None = None,
+    on_error: Callable[[TransformationError], None] | None = None,
 ) -> Iterator[dict[str, Any]]:
     """
     Iterate class_derivation blocks and stream transformed rows.
@@ -35,6 +38,10 @@ def transform_spec(
     :param transformer: A configured :class:`ObjectTransformer`.
     :param data_loader: Loader that can resolve table names to file paths.
     :param source_type: Optional explicit source type override.
+    :param on_error: Optional callback for row-level errors. When provided,
+        :class:`TransformationError` is caught, enriched with row context,
+        and passed to the callback. When ``None`` (default), errors propagate
+        immediately (fail-fast).
     :returns: Iterator of transformed row dicts.
     """
     spec = transformer.derived_specification
@@ -64,18 +71,23 @@ def transform_spec(
                         )
                         raise ValueError(msg)
                     join_path = data_loader.get_path(join_name)
-                    transformer.lookup_index.register_table(
-                        join_name, join_path, lookup_key
-                    )
+                    transformer.lookup_index.register_table(join_name, join_path, lookup_key)
                     joined_tables.append(join_name)
 
             # Stream primary table rows
-            for row in data_loader[table_name]:
-                yield transformer.map_object(
-                    row,
-                    source_type=source_type or table_name,
-                    class_derivation=class_deriv,
-                )
+            for row_idx, row in enumerate(data_loader[table_name]):
+                try:
+                    yield transformer.map_object(
+                        row,
+                        source_type=source_type or table_name,
+                        class_derivation=class_deriv,
+                    )
+                except TransformationError as err:
+                    if on_error is None:
+                        raise
+                    err.row_index = row_idx
+                    err.class_derivation_name = err.class_derivation_name or class_deriv.name
+                    on_error(err)
         finally:
             for jt in joined_tables:
                 transformer.lookup_index.drop(jt)

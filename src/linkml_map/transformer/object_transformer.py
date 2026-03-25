@@ -26,6 +26,7 @@ from linkml_map.datamodel.transformer_model import (
     SlotDerivation,
 )
 from linkml_map.functions.unit_conversion import UnitSystem, convert_units
+from linkml_map.transformer.errors import TransformationError
 from linkml_map.transformer.transformer import OBJECT_TYPE, Transformer
 from linkml_map.utils.dynamic_object import DynObj, dynamic_object
 from linkml_map.utils.eval_utils import _uuid5, eval_expr, eval_expr_with_mapping
@@ -294,54 +295,65 @@ class ObjectTransformer(Transformer):
         bindings = None
         # map each slot assignment in source_obj, if there is a slot_derivation
         for slot_derivation in class_deriv.slot_derivations.values():
-            v = None
-            source_class_slot = None
-            if slot_derivation.value is not None:
-                v = slot_derivation.value
-            elif slot_derivation.unit_conversion:
-                v = self._perform_unit_conversion(slot_derivation, context)
-            elif slot_derivation.pivot_operation:
-                # MELT operation: wide format to EAV/long format
-                v = self._perform_melt(slot_derivation.pivot_operation, source_obj, slot_derivation)
-            elif slot_derivation.expr:
-                if bindings is None:
-                    bindings = Bindings.from_context(self, context)
-                v = self._derive_from_expr(slot_derivation, bindings)
-            elif slot_derivation.populated_from:
-                fk_resolution = resolve_fk_path(sv, source_type, slot_derivation.populated_from)
-                if fk_resolution:
-                    fk_value = source_obj.get(fk_resolution.fk_slot_name)
-                    (v, source_class_slot) = self._perform_fk_resolution(
-                        fk_resolution, slot_derivation, fk_value
+            try:
+                v = None
+                source_class_slot = None
+                if slot_derivation.value is not None:
+                    v = slot_derivation.value
+                elif slot_derivation.unit_conversion:
+                    v = self._perform_unit_conversion(slot_derivation, context)
+                elif slot_derivation.pivot_operation:
+                    # MELT operation: wide format to EAV/long format
+                    v = self._perform_melt(slot_derivation.pivot_operation, source_obj, slot_derivation)
+                elif slot_derivation.expr:
+                    if bindings is None:
+                        bindings = Bindings.from_context(self, context)
+                    v = self._derive_from_expr(slot_derivation, bindings)
+                elif slot_derivation.populated_from:
+                    fk_resolution = resolve_fk_path(sv, source_type, slot_derivation.populated_from)
+                    if fk_resolution:
+                        fk_value = source_obj.get(fk_resolution.fk_slot_name)
+                        (v, source_class_slot) = self._perform_fk_resolution(
+                            fk_resolution, slot_derivation, fk_value
+                        )
+                    else:
+                        v = source_obj.get(slot_derivation.populated_from, None)
+                        source_class_slot = sv.induced_slot(slot_derivation.populated_from, source_type)
+
+                    if slot_derivation.value_mappings and v is not None:
+                        mapped = slot_derivation.value_mappings.get(str(v), None)
+                        v = mapped.value if mapped is not None else None
+
+                    if slot_derivation.offset and v is not None:
+                        v = self._apply_offset(v, slot_derivation, source_obj)
+
+                    logger.debug(
+                        f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {source_obj}"
                     )
+                elif slot_derivation.sources:
+                    (v, source_class_slot) = self._resolve_sources(slot_derivation, context)
+                elif slot_derivation.object_derivations:
+                    v = self._derive_nested_objects(slot_derivation, source_obj, target_type)
                 else:
-                    v = source_obj.get(slot_derivation.populated_from, None)
-                    source_class_slot = sv.induced_slot(slot_derivation.populated_from, source_type)
+                    source_class_slot = sv.induced_slot(slot_derivation.name, source_type)
+                    v = source_obj.get(slot_derivation.name, None)
 
-                if slot_derivation.value_mappings and v is not None:
-                    mapped = slot_derivation.value_mappings.get(str(v), None)
-                    v = mapped.value if mapped is not None else None
-
-                if slot_derivation.offset and v is not None:
-                    v = self._apply_offset(v, slot_derivation, source_obj)
-
-                logger.debug(
-                    f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {source_obj}"
-                )
-            elif slot_derivation.sources:
-                (v, source_class_slot) = self._resolve_sources(slot_derivation, context)
-            elif slot_derivation.object_derivations:
-                v = self._derive_nested_objects(slot_derivation, source_obj, target_type)
-            else:
-                source_class_slot = sv.induced_slot(slot_derivation.name, source_type)
-                v = source_obj.get(slot_derivation.name, None)
-
-            if source_class_slot and v is not None:
-                target_range = slot_derivation.range
-                v = self._map_value_by_range(v, source_class_slot, target_range, source_obj)
-                v = self._coerce_cardinality(v, slot_derivation, class_deriv)
-                v = self._coerce_datatype(v, target_range)
-                v = self._reshape_collection(v, slot_derivation, source_class_slot)
+                if source_class_slot and v is not None:
+                    target_range = slot_derivation.range
+                    v = self._map_value_by_range(v, source_class_slot, target_range, source_obj)
+                    v = self._coerce_cardinality(v, slot_derivation, class_deriv)
+                    v = self._coerce_datatype(v, target_range)
+                    v = self._reshape_collection(v, slot_derivation, source_class_slot)
+            except TransformationError:
+                raise
+            except Exception as exc:
+                raise TransformationError(
+                    message=str(exc),
+                    class_derivation_name=class_deriv.name,
+                    slot_derivation_name=slot_derivation.name,
+                    source_row=source_obj,
+                    cause=exc,
+                ) from exc
             tgt_attrs[str(slot_derivation.name)] = v
         return tgt_attrs
 
@@ -353,7 +365,6 @@ class ObjectTransformer(Transformer):
             # Broad catch is intentional: simpleeval raises various exception types
             # (NameNotDefined, FeatureNotAvailable, etc.) for expressions outside its
             # safe subset. Should also handle KeyError, TypeError in the future.
-            # TODO: narrow when non-strict error reporting is implemented.
             if not self.unrestricted_eval:
                 logger.warning(f"Expression evaluation failed for '{slot_derivation.name}': {err}")
                 msg = f"Expression not in safe subset: {slot_derivation.expr}"
@@ -411,14 +422,8 @@ class ObjectTransformer(Transformer):
             )
             return value
 
-        try:
-            delta = off.offset_value * off_field_val
-            result = value - delta if off.offset_reverse else value + delta
-        except (TypeError, ValueError) as e:
-            raise TypeError(
-                f"Cannot perform offset calculation for slot '{slot_derivation.name}': "
-                f"values must be numeric (base={value}, offset_field={off_field_val})"
-            ) from e
+        delta = off.offset_value * off_field_val
+        result = value - delta if off.offset_reverse else value + delta
         logger.debug(
             f"Offset for '{slot_derivation.name}': "
             f"{value} {'-' if off.offset_reverse else '+'} "
@@ -567,6 +572,7 @@ class ObjectTransformer(Transformer):
         slot_derivation: SlotDerivation,
         context: DerivationContext,
     ) -> Union[float, dict, None]:
+        """Perform unit conversion for a slot derivation."""
         uc = slot_derivation.unit_conversion
         curr_v = context.source_obj.get(slot_derivation.populated_from, None)
 

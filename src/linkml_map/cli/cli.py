@@ -19,6 +19,7 @@ from linkml_map.inference.inverter import TransformationSpecificationInverter
 from linkml_map.inference.schema_mapper import SchemaMapper
 from linkml_map.loaders import DataLoader
 from linkml_map.transformer.engine import transform_spec
+from linkml_map.transformer.errors import TransformationError
 from linkml_map.transformer.object_transformer import ObjectTransformer
 from linkml_map.writers import (
     EXTENSION_FORMAT_MAP,
@@ -97,6 +98,12 @@ def main(verbose: int, quiet: bool) -> None:
     multiple=True,
     help="Additional output files. Format inferred from extension. Can be repeated.",
 )
+@click.option(
+    "--continue-on-error",
+    is_flag=True,
+    default=False,
+    help="Continue processing when a row fails to transform. Report errors at end.",
+)
 @click.argument("input_data")
 def map_data(
     input_data: str,
@@ -107,6 +114,7 @@ def map_data(
     output_format: Optional[str],
     chunk_size: int,
     additional_output: tuple,
+    continue_on_error: bool = False,
     target_schema: Optional[str] = None,
     **kwargs: dict[str, Any],
 ) -> None:
@@ -166,6 +174,7 @@ def map_data(
             chunk_size=chunk_size,
             additional_output=additional_output,
             target_schema=target_schema,
+            continue_on_error=continue_on_error,
             **kwargs,
         )
     else:
@@ -178,6 +187,7 @@ def map_data(
             output=output,
             output_format=output_format,
             target_schema=target_schema,
+            continue_on_error=continue_on_error,
             **kwargs,
         )
 
@@ -190,6 +200,7 @@ def _map_data_single(
     output: Optional[str],
     output_format: str,
     target_schema: Optional[str] = None,
+    continue_on_error: bool = False,
     **kwargs: dict[str, Any],
 ) -> None:
     """Original single-object transformation logic."""
@@ -210,7 +221,14 @@ def _map_data_single(
             input_obj = json.loads(content)
 
     tr.index(input_obj, source_type)
-    tr_obj = tr.map_object(input_obj, source_type)
+    try:
+        tr_obj = tr.map_object(input_obj, source_type)
+    except TransformationError as err:
+        if not continue_on_error:
+            raise
+        click.echo("\n1 transformation error:", err=True)
+        click.echo(f"  - {err}", err=True)
+        raise SystemExit(1) from err
     dump_output(tr_obj, output_format, output)
 
 
@@ -246,6 +264,7 @@ def _map_data_streaming(
     chunk_size: int,
     additional_output: tuple = (),
     target_schema: Optional[str] = None,
+    continue_on_error: bool = False,
     **kwargs: dict[str, Any],
 ) -> None:
     """Streaming transformation for tabular/directory input."""
@@ -259,8 +278,12 @@ def _map_data_streaming(
     # Initialize data loader
     data_loader = DataLoader(input_path)
 
+    # Set up error collection when continue-on-error is enabled
+    errors: list[TransformationError] = []
+    on_error = errors.append if continue_on_error else None
+
     # Create transform iterator and chunk it
-    transform_iter = transform_spec(tr, data_loader, source_type)
+    transform_iter = transform_spec(tr, data_loader, source_type, on_error=on_error)
     chunks = chunked(transform_iter, chunk_size)
 
     # Resolve output format
@@ -305,6 +328,13 @@ def _map_data_streaming(
                 ):
                     dst.write(line)
             os.replace(tmp_path, output)
+
+    # Report collected errors
+    if errors:
+        click.echo(f"\n{len(errors)} transformation error(s):", err=True)
+        for err in errors:
+            click.echo(f"  - {err}", err=True)
+        raise SystemExit(1)
 
 
 @main.command()

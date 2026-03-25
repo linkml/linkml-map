@@ -39,6 +39,7 @@ from linkml_map.datamodel.transformer_model import (
     TransformationSpecification,
 )
 from linkml_map.functions.unit_conversion import DimensionalityError, UndefinedUnitError
+from linkml_map.transformer.errors import TransformationError
 from linkml_map.inference.inverter import TransformationSpecificationInverter
 from linkml_map.inference.schema_mapper import SchemaMapper
 from linkml_map.transformer.object_transformer import ObjectTransformer
@@ -174,7 +175,7 @@ def map_object(
     if index:
         mapper.index(source_object, target=source_root)
     if raises_error:
-        with pytest.raises(raises_error):
+        with pytest.raises((raises_error, TransformationError)):
             target_object = mapper.map_object(source_object)
             # FIXME: should only have a single line in a `pytest.raises` block
             logger.debug(f"Unexpected Target Object: {target_object}")
