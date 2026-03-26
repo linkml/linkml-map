@@ -29,7 +29,7 @@ def test_register_and_lookup(index, tmp_tsv):
     row = index.lookup_row("demo", "id", "P001")
     assert row is not None
     assert row["name"] == "Alice"
-    assert row["age"] == "30"
+    assert row["age"] == 30
 
 
 def test_lookup_missing_row(index, tmp_tsv):
@@ -64,7 +64,7 @@ def test_csv_format(index, tmp_path):
     index.register_table("data", csv, "id")
     row = index.lookup_row("data", "id", "X2")
     assert row is not None
-    assert row["value"] == "200"
+    assert row["value"] == 200
 
 
 def test_invalid_identifier(index):
@@ -73,12 +73,12 @@ def test_invalid_identifier(index):
         index.register_table("drop table;--", "/dev/null", "id")
 
 
-def test_all_varchar_coercion(index, tmp_path):
-    """Numeric-looking values are stored as VARCHAR due to all_varchar=true."""
+def test_numeric_coercion(index, tmp_path):
+    """Numeric-looking values are coerced to int/float by lookup_row."""
     tsv = tmp_path / "nums.tsv"
     tsv.write_text("id\tcount\n1\t42\n2\t99\n")
     index.register_table("nums", tsv, "id")
     row = index.lookup_row("nums", "id", "1")
     assert row is not None
-    assert row["count"] == "42"
-    assert isinstance(row["count"], str)
+    assert row["count"] == 42
+    assert isinstance(row["count"], int)

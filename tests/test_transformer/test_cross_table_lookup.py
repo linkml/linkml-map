@@ -143,14 +143,14 @@ def test_cross_table_on_shorthand(data_dir, source_sv, target_sv):
     # S001 → P001 → age 30, sex F
     r0 = results[0]
     assert r0["sample_id"] == "S001"
-    assert str(r0["analyte_value"]) == "5.5"
-    assert r0["age_at_observation"] == "30"
+    assert r0["analyte_value"] == 5.5
+    assert r0["age_at_observation"] == 30
     assert r0["participant_sex"] == "F"
 
     # S002 → P002 → age 45, sex M
     r1 = results[1]
     assert r1["sample_id"] == "S002"
-    assert r1["age_at_observation"] == "45"
+    assert r1["age_at_observation"] == 45
     assert r1["participant_sex"] == "M"
 
 
@@ -174,8 +174,8 @@ def test_cross_table_explicit_keys(data_dir, source_sv, target_sv):
     loader = DataLoader(data_dir)
     results = list(transform_spec(tr, loader))
 
-    assert results[0]["age_at_observation"] == "30"
-    assert results[1]["age_at_observation"] == "45"
+    assert results[0]["age_at_observation"] == 30
+    assert results[1]["age_at_observation"] == 45
 
 
 def test_null_propagation_no_match(data_dir, source_sv, target_sv):
@@ -235,15 +235,16 @@ def test_expression_with_joined_column(data_dir, source_sv, target_sv):
               sample_id:
                 populated_from: sample_id
               age_at_observation:
-                expr: "int({demographics.age_at_exam}) * 365"
+                expr: "{demographics.age_at_exam} * 365"
     """)
     tr = _make_transformer(source_sv, t_sv, spec)
     loader = DataLoader(data_dir)
     results = list(transform_spec(tr, loader))
 
+    # Numeric coercion in lookup_row means multiplication works without int() wrapper
     assert results[0]["age_at_observation"] == 30 * 365
     assert results[1]["age_at_observation"] == 45 * 365
-    # P999 → null propagation through int() would raise, but {..} catches it first
+    # P999 → no demographics row → null propagation
     assert results[2].get("age_at_observation") is None
 
 
@@ -322,7 +323,7 @@ def test_multiple_joined_tables(data_dir, source_sv, target_sv, tmp_path):
     results = list(transform_spec(tr, loader))
 
     assert len(results) == 1
-    assert results[0]["age_at_observation"] == "30"
+    assert results[0]["age_at_observation"] == 30
     assert results[0]["participant_sex"] == "F"
     assert results[0]["site_name"] == "Boston Medical"
 
@@ -375,12 +376,12 @@ def test_populated_from_cross_table(data_dir, source_sv, target_sv):
 
     # S001 → P001 → age 30, sex F
     assert results[0]["sample_id"] == "S001"
-    assert results[0]["age_at_observation"] == "30"
+    assert results[0]["age_at_observation"] == 30
     assert results[0]["participant_sex"] == "F"
 
     # S002 → P002 → age 45, sex M
     assert results[1]["sample_id"] == "S002"
-    assert results[1]["age_at_observation"] == "45"
+    assert results[1]["age_at_observation"] == 45
     assert results[1]["participant_sex"] == "M"
 
 
@@ -508,5 +509,5 @@ def test_populated_from_join_priority_over_fk(data_dir, source_sv, target_sv):
     results = list(transform_spec(tr, loader))
 
     # Should use join (LookupIndex), not FK resolution (object_index)
-    assert results[0]["age_at_observation"] == "30"
-    assert results[1]["age_at_observation"] == "45"
+    assert results[0]["age_at_observation"] == 30
+    assert results[1]["age_at_observation"] == 45

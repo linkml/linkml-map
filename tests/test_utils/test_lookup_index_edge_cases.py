@@ -62,7 +62,7 @@ def test_duplicate_keys_unique_rows_unaffected(index, tmp_path):
     index.register_table("dupes", tsv, "id")
     row = index.lookup_row("dupes", "id", "B")
     assert row is not None
-    assert row["value"] == "3"
+    assert row["value"] == 3
 
 
 # ---- Empty tables ----
