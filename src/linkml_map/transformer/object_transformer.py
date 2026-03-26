@@ -17,7 +17,6 @@ from linkml_runtime.utils.yamlutils import YAMLRoot
 from pydantic import BaseModel
 
 from linkml_map.datamodel.transformer_model import (
-    AliasedClass,
     ClassDerivation,
     CollectionType,
     PivotDirectionType,
@@ -50,7 +49,7 @@ class Bindings(Mapping):
         source_type: str,
         sv: SchemaView,
         bindings: dict,
-        join_specs: Optional[dict[str, AliasedClass]] = None,
+        class_deriv: Optional[ClassDerivation] = None,
     ) -> None:
         self.object_transformer: ObjectTransformer = object_transformer
         self.source_obj: OBJECT_TYPE = source_obj
@@ -58,7 +57,7 @@ class Bindings(Mapping):
         self.source_type: str = source_type
         self.sv: SchemaView = sv
         self.bindings: dict = {}
-        self.join_specs: dict[str, AliasedClass] = join_specs or {}
+        self.class_deriv: Optional[ClassDerivation] = class_deriv
         if bindings:
             self.bindings.update(bindings)
 
@@ -72,7 +71,7 @@ class Bindings(Mapping):
             source_type=context.source_type,
             sv=context.sv,
             bindings={"NULL": None},
-            join_specs=context.class_deriv.joins or None,
+            class_deriv=context.class_deriv,
         )
 
     def get_ctxt_obj_and_dict(self, source_obj: OBJECT_TYPE = None) -> tuple[DynObj, OBJECT_TYPE]:
@@ -122,12 +121,16 @@ class Bindings(Mapping):
     def __iter__(self) -> Iterator:
         return iter(self._all_keys())
 
+    @property
+    def _join_specs(self) -> dict:
+        """Active join specs from the class derivation, or empty dict."""
+        if self.class_deriv and self.class_deriv.joins:
+            return self.class_deriv.joins
+        return {}
+
     def __getitem__(self, name: Any) -> Any:
         if name not in self.bindings:
-            if name in self.join_specs:
-                if self.object_transformer.lookup_index is None:
-                    msg = f"Join configured for {name!r} but lookup_index has not been initialized"
-                    raise ValueError(msg)
+            if name in self._join_specs:
                 self.bindings[name] = self._resolve_join(name)
             else:
                 _ = self.get_ctxt_obj_and_dict({name: self.source_obj[name]})
@@ -136,16 +139,9 @@ class Bindings(Mapping):
 
     def _resolve_join(self, table_name: str) -> Optional[DynObj]:
         """Resolve a cross-table lookup, returning a DynObj or None."""
-        spec = self.join_specs[table_name]
-        source_key = spec.source_key or spec.join_on
-        lookup_key = spec.lookup_key or spec.join_on
-        if not source_key or not lookup_key:
-            msg = f"Join spec for {table_name!r} must specify 'join_on' or both 'source_key' and 'lookup_key'"
-            raise ValueError(msg)
-        key_val = self.source_obj.get(source_key)
-        if key_val is None:
-            return None
-        row = self.object_transformer.lookup_index.lookup_row(table_name, lookup_key, key_val)
+        row = self.object_transformer._resolve_joined_row(
+            table_name, self.source_obj, self.class_deriv
+        )
         if row is None:
             return None
         return DynObj(**row)
@@ -308,15 +304,36 @@ class ObjectTransformer(Transformer):
                     bindings = Bindings.from_context(self, context)
                 v = self._derive_from_expr(slot_derivation, bindings)
             elif slot_derivation.populated_from:
-                fk_resolution = resolve_fk_path(sv, source_type, slot_derivation.populated_from)
-                if fk_resolution:
-                    fk_value = source_obj.get(fk_resolution.fk_slot_name)
-                    (v, source_class_slot) = self._perform_fk_resolution(
-                        fk_resolution, slot_derivation, fk_value
-                    )
+                populated_from = slot_derivation.populated_from
+                if "." in populated_from:
+                    table_name, field_path = populated_from.split(".", 1)
+                    if class_deriv.joins and table_name in class_deriv.joins:
+                        (v, source_class_slot) = self._perform_join_resolution(
+                            table_name, field_path, context
+                        )
+                    else:
+                        fk_resolution = resolve_fk_path(sv, source_type, populated_from)
+                        if fk_resolution:
+                            fk_value = source_obj.get(fk_resolution.fk_slot_name)
+                            (v, source_class_slot) = self._perform_fk_resolution(
+                                fk_resolution, slot_derivation, fk_value
+                            )
+                        else:
+                            msg = (
+                                f"Dot-notation '{populated_from}' in populated_from "
+                                f"requires a matching join spec or FK path, but neither was found"
+                            )
+                            raise ValueError(msg)
                 else:
-                    v = source_obj.get(slot_derivation.populated_from, None)
-                    source_class_slot = sv.induced_slot(slot_derivation.populated_from, source_type)
+                    fk_resolution = resolve_fk_path(sv, source_type, populated_from)
+                    if fk_resolution:
+                        fk_value = source_obj.get(fk_resolution.fk_slot_name)
+                        (v, source_class_slot) = self._perform_fk_resolution(
+                            fk_resolution, slot_derivation, fk_value
+                        )
+                    else:
+                        v = source_obj.get(populated_from, None)
+                        source_class_slot = sv.induced_slot(populated_from, source_type)
 
                 if slot_derivation.value_mappings and v is not None:
                     mapped = slot_derivation.value_mappings.get(str(v), None)
@@ -395,6 +412,64 @@ class ObjectTransformer(Transformer):
                 )
 
         source_class_slot = fk_resolution.final_slot
+        return v, source_class_slot
+
+    def _resolve_joined_row(
+        self,
+        table_name: str,
+        source_obj: DICT_OBJ,
+        class_deriv: ClassDerivation,
+    ) -> dict | None:
+        """Resolve a row from a joined table using LookupIndex.
+
+        This is the single source of truth for cross-table join resolution.
+        Both ``Bindings._resolve_join`` (for ``expr:``) and
+        ``_perform_join_resolution`` (for ``populated_from:``) delegate here.
+
+        :param table_name: Join name (key in ``class_deriv.joins``).
+        :param source_obj: Current primary-table row.
+        :param class_deriv: The active ClassDerivation (carries join specs).
+        :returns: Matched row as a dict, or ``None`` if no match found.
+        :raises ValueError: If join spec is missing keys or lookup_index is not initialized.
+        """
+        spec = class_deriv.joins[table_name]
+        source_key = spec.source_key or spec.join_on
+        lookup_key = spec.lookup_key or spec.join_on
+        if not source_key or not lookup_key:
+            msg = (
+                f"Join spec for {table_name!r} must specify 'join_on' or both "
+                f"'source_key' and 'lookup_key'"
+            )
+            raise ValueError(msg)
+        key_val = source_obj.get(source_key)
+        if key_val is None:
+            return None
+        if self.lookup_index is None:
+            msg = f"Join configured for {table_name!r} but lookup_index has not been initialized"
+            raise ValueError(msg)
+        return self.lookup_index.lookup_row(table_name, lookup_key, key_val)
+
+    def _perform_join_resolution(
+        self,
+        table_name: str,
+        field_path: str,
+        context: DerivationContext,
+    ) -> tuple[Any, Optional[SlotDefinition]]:
+        """Resolve a slot value via cross-table join lookup.
+
+        :param table_name: Join name (key in ``class_deriv.joins``).
+        :param field_path: Column name within the joined table.
+        :param context: Current derivation context.
+        :returns: Tuple of (resolved value, source slot definition or None).
+        """
+        row = self._resolve_joined_row(table_name, context.source_obj, context.class_deriv)
+        v = row.get(field_path) if row else None
+        # Best-effort source_class_slot from joined class schema
+        joined_class = context.class_deriv.joins[table_name].class_named or table_name
+        source_class_slot = None
+        if joined_class in context.sv.all_classes():
+            if field_path in context.sv.class_induced_slots(joined_class):
+                source_class_slot = context.sv.induced_slot(field_path, joined_class)
         return v, source_class_slot
 
     def _apply_offset(
