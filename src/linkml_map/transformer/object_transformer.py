@@ -305,6 +305,7 @@ class ObjectTransformer(Transformer):
                 v = self._derive_from_expr(slot_derivation, bindings)
             elif slot_derivation.populated_from:
                 populated_from = slot_derivation.populated_from
+
                 if "." in populated_from:
                     table_name, field_path = populated_from.split(".", 1)
                     if class_deriv.joins and table_name in class_deriv.joins:
@@ -312,28 +313,14 @@ class ObjectTransformer(Transformer):
                             table_name, field_path, context
                         )
                     else:
-                        fk_resolution = resolve_fk_path(sv, source_type, populated_from)
-                        if fk_resolution:
-                            fk_value = source_obj.get(fk_resolution.fk_slot_name)
-                            (v, source_class_slot) = self._perform_fk_resolution(
-                                fk_resolution, slot_derivation, fk_value
-                            )
-                        else:
-                            msg = (
-                                f"Dot-notation '{populated_from}' in populated_from "
-                                f"requires a matching join spec or FK path, but neither was found"
-                            )
-                            raise ValueError(msg)
-                else:
-                    fk_resolution = resolve_fk_path(sv, source_type, populated_from)
-                    if fk_resolution:
-                        fk_value = source_obj.get(fk_resolution.fk_slot_name)
-                        (v, source_class_slot) = self._perform_fk_resolution(
-                            fk_resolution, slot_derivation, fk_value
+                        (v, source_class_slot) = self._resolve_fk_or_literal(
+                            populated_from, slot_derivation, sv, source_type, source_obj,
+                            require_fk=True,
                         )
-                    else:
-                        v = source_obj.get(populated_from, None)
-                        source_class_slot = sv.induced_slot(populated_from, source_type)
+                else:
+                    (v, source_class_slot) = self._resolve_fk_or_literal(
+                        populated_from, slot_derivation, sv, source_type, source_obj,
+                    )
 
                 if slot_derivation.value_mappings and v is not None:
                     mapped = slot_derivation.value_mappings.get(str(v), None)
@@ -414,6 +401,41 @@ class ObjectTransformer(Transformer):
         source_class_slot = fk_resolution.final_slot
         return v, source_class_slot
 
+    def _resolve_fk_or_literal(
+        self,
+        populated_from: str,
+        slot_derivation: SlotDerivation,
+        sv: SchemaView,
+        source_type: str,
+        source_obj: DICT_OBJ,
+        *,
+        require_fk: bool = False,
+    ) -> tuple[Any, Optional[SlotDefinition]]:
+        """Resolve a populated_from value via FK path or direct field lookup.
+
+        :param populated_from: The populated_from string (may contain dots for FK paths).
+        :param slot_derivation: The active slot derivation.
+        :param sv: Source schema view.
+        :param source_type: Source class name.
+        :param source_obj: Current source row.
+        :param require_fk: If True, raise ValueError when no FK path is found
+            (used for dot-notation without a matching join).
+        :returns: Tuple of (resolved value, source slot definition or None).
+        """
+        fk_resolution = resolve_fk_path(sv, source_type, populated_from)
+        if fk_resolution:
+            fk_value = source_obj.get(fk_resolution.fk_slot_name)
+            return self._perform_fk_resolution(fk_resolution, slot_derivation, fk_value)
+        if require_fk:
+            msg = (
+                f"Dot-notation '{populated_from}' in populated_from "
+                f"requires a matching join spec or FK path, but neither was found"
+            )
+            raise ValueError(msg)
+        v = source_obj.get(populated_from, None)
+        source_class_slot = sv.induced_slot(populated_from, source_type)
+        return v, source_class_slot
+
     def _resolve_joined_row(
         self,
         table_name: str,
@@ -464,7 +486,6 @@ class ObjectTransformer(Transformer):
         """
         row = self._resolve_joined_row(table_name, context.source_obj, context.class_deriv)
         v = row.get(field_path) if row else None
-        # Best-effort source_class_slot from joined class schema
         joined_class = context.class_deriv.joins[table_name].class_named or table_name
         source_class_slot = None
         if joined_class in context.sv.all_classes():

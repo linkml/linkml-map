@@ -40,7 +40,6 @@ def induce_missing_values(
 
                 populated_from_slot = sd.populated_from
 
-                # Cross-table join path: table.field — resolve range from the joined class
                 source_induced_slot_range = None
                 if "." in populated_from_slot and cd.joins:
                     table_name, field_path = populated_from_slot.split(".", 1)
