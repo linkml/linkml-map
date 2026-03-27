@@ -143,14 +143,14 @@ def test_cross_table_on_shorthand(data_dir, source_sv, target_sv):
     # S001 → P001 → age 30, sex F
     r0 = results[0]
     assert r0["sample_id"] == "S001"
-    assert str(r0["analyte_value"]) == "5.5"
-    assert r0["age_at_observation"] == "30"
+    assert r0["analyte_value"] == 5.5
+    assert r0["age_at_observation"] == 30
     assert r0["participant_sex"] == "F"
 
     # S002 → P002 → age 45, sex M
     r1 = results[1]
     assert r1["sample_id"] == "S002"
-    assert r1["age_at_observation"] == "45"
+    assert r1["age_at_observation"] == 45
     assert r1["participant_sex"] == "M"
 
 
@@ -174,8 +174,8 @@ def test_cross_table_explicit_keys(data_dir, source_sv, target_sv):
     loader = DataLoader(data_dir)
     results = list(transform_spec(tr, loader))
 
-    assert results[0]["age_at_observation"] == "30"
-    assert results[1]["age_at_observation"] == "45"
+    assert results[0]["age_at_observation"] == 30
+    assert results[1]["age_at_observation"] == 45
 
 
 def test_null_propagation_no_match(data_dir, source_sv, target_sv):
@@ -235,15 +235,16 @@ def test_expression_with_joined_column(data_dir, source_sv, target_sv):
               sample_id:
                 populated_from: sample_id
               age_at_observation:
-                expr: "int({demographics.age_at_exam}) * 365"
+                expr: "{demographics.age_at_exam} * 365"
     """)
     tr = _make_transformer(source_sv, t_sv, spec)
     loader = DataLoader(data_dir)
     results = list(transform_spec(tr, loader))
 
+    # Numeric coercion in lookup_row means multiplication works without int() wrapper
     assert results[0]["age_at_observation"] == 30 * 365
     assert results[1]["age_at_observation"] == 45 * 365
-    # P999 → null propagation through int() would raise, but {..} catches it first
+    # P999 → no demographics row → null propagation
     assert results[2].get("age_at_observation") is None
 
 
@@ -322,7 +323,7 @@ def test_multiple_joined_tables(data_dir, source_sv, target_sv, tmp_path):
     results = list(transform_spec(tr, loader))
 
     assert len(results) == 1
-    assert results[0]["age_at_observation"] == "30"
+    assert results[0]["age_at_observation"] == 30
     assert results[0]["participant_sex"] == "F"
     assert results[0]["site_name"] == "Boston Medical"
 
@@ -345,3 +346,168 @@ def test_join_spec_missing_key_raises(source_sv, target_sv, data_dir):
     loader = DataLoader(data_dir)
     with pytest.raises(ValueError, match="must specify"):
         list(transform_spec(tr, loader))
+
+
+# ---- populated_from cross-table tests ----
+
+
+def test_populated_from_cross_table(data_dir, source_sv, target_sv):
+    """populated_from: table.field resolves via join spec + LookupIndex."""
+    spec = textwrap.dedent("""\
+        class_derivations:
+          MeasurementObservation:
+            populated_from: lab_results
+            joins:
+              demographics:
+                join_on: participant_id
+            slot_derivations:
+              sample_id:
+                populated_from: sample_id
+              age_at_observation:
+                populated_from: demographics.age_at_exam
+              participant_sex:
+                populated_from: demographics.sex
+    """)
+    tr = _make_transformer(source_sv, target_sv, spec)
+    loader = DataLoader(data_dir)
+    results = list(transform_spec(tr, loader))
+
+    assert len(results) == 3
+
+    # S001 → P001 → age 30, sex F
+    assert results[0]["sample_id"] == "S001"
+    assert results[0]["age_at_observation"] == 30
+    assert results[0]["participant_sex"] == "F"
+
+    # S002 → P002 → age 45, sex M
+    assert results[1]["sample_id"] == "S002"
+    assert results[1]["age_at_observation"] == 45
+    assert results[1]["participant_sex"] == "M"
+
+
+def test_populated_from_cross_table_no_match(data_dir, source_sv, target_sv):
+    """When join key has no match in secondary table, populated_from returns None."""
+    spec = textwrap.dedent("""\
+        class_derivations:
+          MeasurementObservation:
+            populated_from: lab_results
+            joins:
+              demographics:
+                join_on: participant_id
+            slot_derivations:
+              sample_id:
+                populated_from: sample_id
+              age_at_observation:
+                populated_from: demographics.age_at_exam
+    """)
+    tr = _make_transformer(source_sv, target_sv, spec)
+    loader = DataLoader(data_dir)
+    results = list(transform_spec(tr, loader))
+
+    # S003 → P999 → no demographics row → None
+    assert results[2]["sample_id"] == "S003"
+    assert results[2].get("age_at_observation") is None
+
+
+def test_populated_from_cross_table_missing_field(data_dir, source_sv, target_sv):
+    """When joined row exists but the requested field doesn't, return None."""
+    spec = textwrap.dedent("""\
+        class_derivations:
+          MeasurementObservation:
+            populated_from: lab_results
+            joins:
+              demographics:
+                join_on: participant_id
+            slot_derivations:
+              sample_id:
+                populated_from: sample_id
+              nonexistent:
+                populated_from: demographics.nonexistent_column
+    """)
+    tr = _make_transformer(source_sv, target_sv, spec)
+    loader = DataLoader(data_dir)
+    results = list(transform_spec(tr, loader))
+
+    assert results[0]["sample_id"] == "S001"
+    assert results[0].get("nonexistent") is None
+
+
+def test_populated_from_with_value_mappings(data_dir, source_sv, target_sv):
+    """Cross-table populated_from values flow through value_mappings."""
+    spec = textwrap.dedent("""\
+        class_derivations:
+          MeasurementObservation:
+            populated_from: lab_results
+            joins:
+              demographics:
+                join_on: participant_id
+            slot_derivations:
+              sample_id:
+                populated_from: sample_id
+              participant_sex:
+                populated_from: demographics.sex
+                value_mappings:
+                  F:
+                    value: Female
+                  M:
+                    value: Male
+    """)
+    tr = _make_transformer(source_sv, target_sv, spec)
+    loader = DataLoader(data_dir)
+    results = list(transform_spec(tr, loader))
+
+    assert results[0]["participant_sex"] == "Female"  # F → Female
+    assert results[1]["participant_sex"] == "Male"  # M → Male
+
+
+def test_populated_from_join_priority_over_fk(data_dir, source_sv, target_sv):
+    """When a join name matches a potential FK slot, the join takes priority."""
+    # Use a schema where 'demographics' could be an FK slot on lab_results
+    # (slot named 'demographics' with range pointing to demographics class).
+    # The join should still win.
+    fk_schema_yaml = textwrap.dedent("""\
+        id: https://example.org/fk-test
+        name: fk_test
+        prefixes:
+          linkml: https://w3id.org/linkml/
+        imports:
+          - linkml:types
+        default_range: string
+        classes:
+          lab_results:
+            attributes:
+              sample_id:
+                identifier: true
+              participant_id: {}
+              demographics:
+                range: demographics
+              result_value: {}
+          demographics:
+            attributes:
+              participant_id:
+                identifier: true
+              age_at_exam: {}
+              sex: {}
+    """)
+    s_sv = SchemaView(fk_schema_yaml)
+
+    spec = textwrap.dedent("""\
+        class_derivations:
+          MeasurementObservation:
+            populated_from: lab_results
+            joins:
+              demographics:
+                join_on: participant_id
+            slot_derivations:
+              sample_id:
+                populated_from: sample_id
+              age_at_observation:
+                populated_from: demographics.age_at_exam
+    """)
+    tr = _make_transformer(s_sv, target_sv, spec)
+    loader = DataLoader(data_dir)
+    results = list(transform_spec(tr, loader))
+
+    # Should use join (LookupIndex), not FK resolution (object_index)
+    assert results[0]["age_at_observation"] == 30
+    assert results[1]["age_at_observation"] == 45
