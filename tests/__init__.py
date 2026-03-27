@@ -35,10 +35,8 @@ FLATTENING_TR = FLATTENING_BASIC_EXAMPLE_DIR / TR / "denormalize.transform.yaml"
 FLATTENING_DATA = FLATTENING_BASIC_EXAMPLE_DIR / DATA / "MappingSet-001.yaml"
 
 BIOLINK_BASIC_EXAMPLE_DIR = Path(EXAMPLE_DIR) / "biolink"
-BIOLINK_SRC_SCHEMA = BIOLINK_BASIC_EXAMPLE_DIR / SRC / "biolink.yaml"
-BIOLINK_TGT_SCHEMA = BIOLINK_BASIC_EXAMPLE_DIR / TGT / "monarch.yaml"
+BIOLINK_SRC_SCHEMA = BIOLINK_BASIC_EXAMPLE_DIR / SRC / "biolink-model.yaml"
 BIOLINK_TR = BIOLINK_BASIC_EXAMPLE_DIR / TR / "biolink-example-profile.transform.yaml"
-BIOLINK_DATA = BIOLINK_BASIC_EXAMPLE_DIR / DATA / "Association-001.yaml"
 
 
 # TODO: migrate these to example dir
