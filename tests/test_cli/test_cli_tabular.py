@@ -617,3 +617,115 @@ class TestTransformSpecEngine:
         assert len(lines) == 1
         obj = json.loads(lines[0])
         assert obj["label"] == "Alice"
+
+
+class TestContinueOnError:
+    """Tests for --continue-on-error flag."""
+
+    def test_error_without_flag_fails(
+        self,
+        runner: CliRunner,
+        sample_schema: Path,
+        tmp_path: Path,
+    ) -> None:
+        """Without --continue-on-error, a bad expr causes non-zero exit."""
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        (data_dir / "Person.tsv").write_text(
+            "id\tname\tprimary_email\tage_in_years\tgender\n"
+            "P:001\tAlice\talice@example.com\t30\tcisgender woman\n"
+        )
+        transform_path = tmp_path / "bad_transform.yaml"
+        transform = {
+            "id": "bad-transform",
+            "class_derivations": {
+                "Agent": {
+                    "populated_from": "Person",
+                    "slot_derivations": {
+                        "id": {},
+                        "bad": {"expr": "undefined_var + 1"},
+                    },
+                }
+            },
+        }
+        transform_path.write_text(yaml.dump(transform))
+
+        result = runner.invoke(
+            main,
+            [
+                "map-data",
+                "-T", str(transform_path),
+                "-s", str(sample_schema),
+                "-f", "jsonl",
+                str(data_dir),
+            ],
+        )
+        assert result.exit_code != 0
+
+    def test_continue_on_error_reports_and_exits_1(
+        self,
+        runner: CliRunner,
+        sample_schema: Path,
+        tmp_path: Path,
+    ) -> None:
+        """With --continue-on-error, errors are reported to stderr and exit code is 1."""
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        (data_dir / "Person.tsv").write_text(
+            "id\tname\tprimary_email\tage_in_years\tgender\n"
+            "P:001\tAlice\talice@example.com\t30\tcisgender woman\n"
+            "P:002\tBob\tbob@example.com\t25\tcisgender man\n"
+        )
+        transform_path = tmp_path / "bad_transform.yaml"
+        transform = {
+            "id": "bad-transform",
+            "class_derivations": {
+                "Agent": {
+                    "populated_from": "Person",
+                    "slot_derivations": {
+                        "id": {},
+                        "bad": {"expr": "undefined_var + 1"},
+                    },
+                }
+            },
+        }
+        transform_path.write_text(yaml.dump(transform))
+
+        result = runner.invoke(
+            main,
+            [
+                "map-data",
+                "-T", str(transform_path),
+                "-s", str(sample_schema),
+                "-f", "jsonl",
+                "--continue-on-error",
+                str(data_dir),
+            ],
+        )
+        assert result.exit_code == 1
+        # Error summary should be in stderr
+        assert "2 transformation error(s)" in result.stderr
+        assert "slot_derivation=bad" in result.stderr
+
+    def test_continue_on_error_no_errors_exits_0(
+        self,
+        runner: CliRunner,
+        sample_schema: Path,
+        sample_transform: Path,
+        sample_tsv_data: Path,
+    ) -> None:
+        """With --continue-on-error and no errors, exit code is 0."""
+        result = runner.invoke(
+            main,
+            [
+                "map-data",
+                "-T", str(sample_transform),
+                "-s", str(sample_schema),
+                "-f", "jsonl",
+                "--continue-on-error",
+                str(sample_tsv_data),
+            ],
+        )
+        assert result.exit_code == 0
+        lines = [line for line in result.stdout.strip().split("\n") if line]
+        assert len(lines) == 2
