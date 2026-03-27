@@ -1,6 +1,5 @@
 """Tests of biolink subsetting."""
 
-from collections.abc import Generator
 from pathlib import Path
 
 import pytest
@@ -16,9 +15,8 @@ from linkml_map.datamodel.transformer_model import (
 )
 from linkml_map.inference.schema_mapper import SchemaMapper
 from linkml_map.session import Session
-from src.linkml_map.utils.loaders import load_specification
-
-REPO_ROOT = Path(__file__).resolve().parent.parent
+from linkml_map.utils.loaders import load_specification
+from tests import BIOLINK_SRC_SCHEMA, BIOLINK_TR
 
 
 def get_biolink_class_derivations(sv: SchemaView, subset_classes: list) -> list:
@@ -45,25 +43,22 @@ def get_biolink_class_derivations(sv: SchemaView, subset_classes: list) -> list:
 @pytest.fixture
 def biolink_schema() -> SchemaView:
     """
-    Fixture to load Biolink schema.
+    Fixture to load Biolink schema from vendored local copy.
 
-    :return: SchemaView object named `biolink-schema`
+    :return: SchemaView object for biolink-model
     """
-    schema_url = "https://raw.githubusercontent.com/biolink/biolink-model/master/biolink-model.yaml"
-    return SchemaView(schema_url)
+    return SchemaView(str(BIOLINK_SRC_SCHEMA))
 
 
 def test_biolink_subsetting_manual(
-    biolink_schema: SchemaView, tmp_path: Generator[Path, None, None]
+    biolink_schema: SchemaView, tmp_path: Path
 ) -> None:
     """
     Test to subset the Biolink schema manually.
 
     :param biolink_schema: Fixture to load Biolink schema
     """
-    transform_file = (
-        REPO_ROOT / "input/examples/biolink/transform/biolink-example-profile.transform.yaml"
-    )
+    transform_file = BIOLINK_TR
     # Initialize Session and SchemaBuilder
     session = Session()
 
@@ -89,11 +84,23 @@ def test_biolink_subsetting_manual(
 
     transformed_sv = SchemaView(dump_output)
 
-    for class_name in transformed_sv.all_classes():
-        print(class_name)
-    print()
-    for slot_name in transformed_sv.all_slots():
-        print(slot_name)
+    derived_classes = set(transformed_sv.all_classes())
+    expected_classes = {
+        "NamedThing",
+        "Gene",
+        "Disease",
+        "PhenotypicFeature",
+        "Association",
+        "GeneToPhenotypicFeatureAssociation",
+    }
+    assert expected_classes <= derived_classes, f"Missing classes: {expected_classes - derived_classes}"
+
+    derived_slots = set(transformed_sv.all_slots())
+    assert "id" in derived_slots
+    assert "symbol" in derived_slots
+    assert "subject" in derived_slots
+    assert "predicate" in derived_slots
+    assert "object" in derived_slots
 
 
 def test_biolink_subset_auto(biolink_schema: SchemaView, tmp_path: Path) -> None:
@@ -146,12 +153,20 @@ def test_biolink_subset_auto(biolink_schema: SchemaView, tmp_path: Path) -> None
 
     transformed_sv = SchemaView(dump_output)
 
-    for class_name in transformed_sv.all_classes():
-        print(class_name)
-    for slot_name in transformed_sv.all_slots():
-        print(slot_name)
-    for type_name in transformed_sv.all_types():
-        print(type_name)
+    derived_classes = set(transformed_sv.all_classes())
+    expected_classes = {
+        "Gene",
+        "Disease",
+        "CaseToPhenotypicFeatureAssociation",
+        "GeneToDiseaseAssociation",
+        "GeneToPhenotypicFeatureAssociation",
+        "Case",
+        "PhenotypicFeature",
+    }
+    assert expected_classes <= derived_classes, f"Missing classes: {expected_classes - derived_classes}"
 
-    for slot in transformed_sv.get_class("Gene").slots:
-        print(slot)
+    assert len(transformed_sv.all_slots()) > 0, "Derived schema should have slots"
+    assert len(transformed_sv.all_types()) > 0, "Derived schema should have types"
+
+    gene_slots = transformed_sv.class_induced_slots("Gene")
+    assert len(list(gene_slots)) > 0, "Gene class should have induced slots"
