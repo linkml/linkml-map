@@ -26,6 +26,7 @@ from linkml_map.datamodel.transformer_model import (
     SlotDerivation,
     TransformationSpecification,
 )
+from linkml_map.transformer.errors import TransformationError
 from linkml_map.transformer.object_transformer import DerivationContext, ObjectTransformer
 from linkml_map.transformer.transformer import Transformer
 from linkml_map.utils.dynamic_object import dynamic_object
@@ -626,7 +627,7 @@ def test_derive_from_expr_restricted_raises() -> None:
     obj_tr.create_transformer_specification(transform_spec)
 
     person_dict: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_DATA)))
-    with pytest.raises(RuntimeError, match="Expression not in safe subset"):
+    with pytest.raises(TransformationError, match="Expression not in safe subset"):
         obj_tr.map_object(person_dict, source_type="Person")
 
 
