@@ -84,11 +84,23 @@ def test_biolink_subsetting_manual(
 
     transformed_sv = SchemaView(dump_output)
 
-    for class_name in transformed_sv.all_classes():
-        print(class_name)
-    print()
-    for slot_name in transformed_sv.all_slots():
-        print(slot_name)
+    derived_classes = set(transformed_sv.all_classes())
+    expected_classes = {
+        "NamedThing",
+        "Gene",
+        "Disease",
+        "PhenotypicFeature",
+        "Association",
+        "GeneToPhenotypicFeatureAssociation",
+    }
+    assert expected_classes <= derived_classes, f"Missing classes: {expected_classes - derived_classes}"
+
+    derived_slots = set(transformed_sv.all_slots())
+    assert "id" in derived_slots
+    assert "symbol" in derived_slots
+    assert "subject" in derived_slots
+    assert "predicate" in derived_slots
+    assert "object" in derived_slots
 
 
 def test_biolink_subset_auto(biolink_schema: SchemaView, tmp_path: Path) -> None:
@@ -141,12 +153,20 @@ def test_biolink_subset_auto(biolink_schema: SchemaView, tmp_path: Path) -> None
 
     transformed_sv = SchemaView(dump_output)
 
-    for class_name in transformed_sv.all_classes():
-        print(class_name)
-    for slot_name in transformed_sv.all_slots():
-        print(slot_name)
-    for type_name in transformed_sv.all_types():
-        print(type_name)
+    derived_classes = set(transformed_sv.all_classes())
+    expected_classes = {
+        "Gene",
+        "Disease",
+        "CaseToPhenotypicFeatureAssociation",
+        "GeneToDiseaseAssociation",
+        "GeneToPhenotypicFeatureAssociation",
+        "Case",
+        "PhenotypicFeature",
+    }
+    assert expected_classes <= derived_classes, f"Missing classes: {expected_classes - derived_classes}"
 
-    for slot in transformed_sv.get_class("Gene").slots:
-        print(slot)
+    assert len(transformed_sv.all_slots()) > 0, "Derived schema should have slots"
+    assert len(transformed_sv.all_types()) > 0, "Derived schema should have types"
+
+    gene_slots = transformed_sv.class_induced_slots("Gene")
+    assert len(list(gene_slots)) > 0, "Gene class should have induced slots"
