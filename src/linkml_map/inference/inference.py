@@ -40,18 +40,34 @@ def induce_missing_values(
 
                 populated_from_slot = sd.populated_from
 
-                fk_resolution = resolve_fk_path(
-                    source_schemaview, cd.populated_from, populated_from_slot
-                )
-                if fk_resolution:
-                    if not fk_resolution.final_slot:
-                        continue
-                    source_induced_slot_range = fk_resolution.final_slot.range
-                else:
-                    source_induced_slot = source_schemaview.induced_slot(
-                        populated_from_slot, cd.populated_from
+                source_induced_slot_range = None
+                if "." in populated_from_slot and cd.joins:
+                    table_name, field_path = populated_from_slot.split(".", 1)
+                    if table_name in cd.joins:
+                        joined_class = cd.joins[table_name].class_named or table_name
+                        if joined_class not in source_schemaview.all_classes():
+                            continue
+                        if field_path in source_schemaview.class_induced_slots(joined_class):
+                            source_induced_slot = source_schemaview.induced_slot(
+                                field_path, joined_class
+                            )
+                            source_induced_slot_range = source_induced_slot.range
+                        else:
+                            continue
+
+                if source_induced_slot_range is None:
+                    fk_resolution = resolve_fk_path(
+                        source_schemaview, cd.populated_from, populated_from_slot
                     )
-                    source_induced_slot_range = source_induced_slot.range
+                    if fk_resolution:
+                        if not fk_resolution.final_slot:
+                            continue
+                        source_induced_slot_range = fk_resolution.final_slot.range
+                    else:
+                        source_induced_slot = source_schemaview.induced_slot(
+                            populated_from_slot, cd.populated_from
+                        )
+                        source_induced_slot_range = source_induced_slot.range
 
                 for range_cd in specification.class_derivations:
                     if range_cd.populated_from == source_induced_slot_range:
