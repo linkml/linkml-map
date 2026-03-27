@@ -1,0 +1,76 @@
+# Sample TransformationSpecification instance for testing transformation to FAIR Mappings Schema
+# This example includes both metadata AND actual transformation content.
+# When transformed to FAIR Mappings Schema, only the metadata elements are extracted;
+# the class_derivations, enum_derivations etc. are linkml-map specific and not part of FAIR Mappings.
+#
+# NOTE: class_derivations and enum_derivations are commented out below due to a bug
+# in dynamic_object.py that doesn't handle key-based (vs identifier-based) classes.
+# The actual transformation would ignore these anyway since FAIR Mappings Schema
+# doesn't have equivalents for these linkml-map specific elements.
+
+id: https://example.org/transformations/gene-expression-mapping
+title: Gene Expression Data Transformation
+description: |-
+  A transformation specification that maps gene expression data from
+  a legacy format to a standardized biomedical data model.
+
+  This specification includes class derivations for:
+  - GeneExpressionMixin (from GeneExpressionRecord)
+  - OrganismTaxon (from SampleMetadata)
+  - Study (from ExperimentInfo)
+
+  And enum derivations for:
+  - ExpressionLevelCategory (from LegacyExpressionLevel)
+publication_date: "2024-01-15"
+license: https://creativecommons.org/licenses/by/4.0/
+version: "1.0.0"
+mapping_method: semapv:ManualMappingCuration
+documentation: https://example.org/docs/gene-expression-mapping
+content_url: https://example.org/content/gene-expression-mapping.yaml
+
+# Using Person type for creator/author/reviewer
+creator:
+  - type: Person
+    id: orcid:0000-0002-1234-5678
+    name: Jane Doe
+
+author:
+  - type: Person
+    id: orcid:0000-0003-9876-5432
+    name: John Smith
+
+reviewer:
+  - type: Person
+    id: orcid:0000-0001-1111-2222
+    name: Alice Johnson
+
+# source_schema and target_schema (simple strings in linkml-map)
+source_schema: legacy_gene_expression.yaml
+target_schema: biolink_model.yaml
+
+# ============================================================================
+# ACTUAL TRANSFORMATION CONTENT (commented out due to dynamic_object bug)
+# These elements are linkml-map specific and won't appear in FAIR Mappings output
+# ============================================================================
+#
+# class_derivations:
+#   GeneExpressionMixin:
+#     populated_from: GeneExpressionRecord
+#     slot_derivations:
+#       id:
+#         populated_from: record_id
+#       gene_id:
+#         populated_from: gene_symbol
+#
+#   OrganismTaxon:
+#     populated_from: SampleMetadata
+#     slot_derivations:
+#       id:
+#         populated_from: taxon_id
+#
+# enum_derivations:
+#   ExpressionLevelCategory:
+#     populated_from: LegacyExpressionLevel
+#     permissible_value_derivations:
+#       HIGH:
+#         populated_from: H
