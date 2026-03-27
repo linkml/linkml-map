@@ -509,3 +509,111 @@ class TestMapDataWithExistingTestData:
         first = json.loads(lines[0])
         assert "id" in first
         assert "label" in first
+
+
+class TestTransformSpecEngine:
+    """Tests verifying the CLI uses transform_spec engine correctly.
+
+    These cover the bugs from issue #155: multiple derivations sharing
+    the same populated_from, and extra data files with no derivation.
+    """
+
+    def test_multiple_derivations_same_populated_from(
+        self,
+        runner: CliRunner,
+        sample_schema: Path,
+        tmp_path: Path,
+    ) -> None:
+        """Two class_derivations with the same populated_from should both produce output."""
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        (data_dir / "Person.tsv").write_text(
+            "id\tname\tprimary_email\tage_in_years\tgender\n"
+            "P:001\tAlice\talice@example.com\t30\tcisgender woman\n"
+        )
+
+        transform_path = tmp_path / "transform.yaml"
+        transform = {
+            "id": "multi-deriv",
+            "class_derivations": {
+                "NameRecord": {
+                    "populated_from": "Person",
+                    "slot_derivations": {
+                        "id": {},
+                        "label": {"populated_from": "name"},
+                    },
+                },
+                "EmailRecord": {
+                    "populated_from": "Person",
+                    "slot_derivations": {
+                        "id": {},
+                        "email": {"populated_from": "primary_email"},
+                    },
+                },
+            },
+        }
+        transform_path.write_text(yaml.dump(transform))
+
+        result = runner.invoke(
+            main,
+            [
+                "map-data",
+                "-T",
+                str(transform_path),
+                "-s",
+                str(sample_schema),
+                "-f",
+                "jsonl",
+                str(data_dir),
+            ],
+        )
+        assert result.exit_code == 0, result.stderr
+        lines = [line for line in result.stdout.strip().split("\n") if line]
+        # One row from each derivation = 2 output lines
+        assert len(lines) == 2
+        objs = [json.loads(line) for line in lines]
+        # Both derivations should produce output (order depends on YAML dict ordering)
+        labels = [o.get("label") for o in objs]
+        emails = [o.get("email") for o in objs]
+        assert "Alice" in labels
+        assert "alice@example.com" in emails
+
+    def test_extra_data_files_skipped(
+        self,
+        runner: CliRunner,
+        sample_schema: Path,
+        sample_transform: Path,
+        tmp_path: Path,
+    ) -> None:
+        """Data files with no matching derivation should be silently skipped."""
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        (data_dir / "Person.tsv").write_text(
+            "id\tname\tprimary_email\tage_in_years\tgender\n"
+            "P:001\tAlice\talice@example.com\t30\tcisgender woman\n"
+        )
+        # Extra file with no matching class_derivation
+        (data_dir / "Organization.tsv").write_text(
+            "id\tname\n"
+            "O:001\tAcme Corp\n"
+        )
+
+        result = runner.invoke(
+            main,
+            [
+                "map-data",
+                "-T",
+                str(sample_transform),
+                "-s",
+                str(sample_schema),
+                "-f",
+                "jsonl",
+                str(data_dir),
+            ],
+        )
+        assert result.exit_code == 0, result.stderr
+        lines = [line for line in result.stdout.strip().split("\n") if line]
+        # Only Person rows should appear (Organization is ignored)
+        assert len(lines) == 1
+        obj = json.loads(lines[0])
+        assert obj["label"] == "Alice"
