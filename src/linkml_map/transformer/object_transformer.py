@@ -599,6 +599,8 @@ class ObjectTransformer(Transformer):
             # No range and no any_of enums: nothing to recurse into for scalars
             if not isinstance(v, (dict, list)):
                 return v
+            if isinstance(v, list) and all(not isinstance(v1, (dict, list)) for v1 in v):
+                return v
 
         if source_class_slot.multivalued:
             if isinstance(v, list):
