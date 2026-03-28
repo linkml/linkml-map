@@ -596,6 +596,9 @@ class ObjectTransformer(Transformer):
                 if source_class_slot.multivalued and isinstance(v, list):
                     return [self.transform_enum(v1, any_of_enums, source_obj) for v1 in v]
                 return self.transform_enum(v, any_of_enums, source_obj)
+            # No range and no any_of enums: nothing to recurse into for scalars
+            if not isinstance(v, (dict, list)):
+                return v
 
         if source_class_slot.multivalued:
             if isinstance(v, list):
