@@ -3,6 +3,7 @@
 from typing import Any
 
 from linkml_runtime import SchemaView
+from linkml_runtime.utils.formatutils import camelcase
 
 
 class DynObj:
@@ -47,5 +48,7 @@ def dynamic_object(obj: dict, sv: SchemaView, target: str):
         else:
             v = dynamic_object(v, sv, rng)
         attrs[k] = v
-    cls = type(target, (DynObj,), {})
+    # Use camelcase so the Python type name matches ObjectIndex._class_map,
+    # which is keyed by SchemaView.class_name_mappings() (camelcase).
+    cls = type(camelcase(target), (DynObj,), {})
     return cls(**attrs)
