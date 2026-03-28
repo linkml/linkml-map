@@ -8,8 +8,6 @@ See: https://github.com/linkml/linkml-map/issues/170
 
 import textwrap
 
-import pytest
-import yaml
 from linkml_runtime import SchemaView
 
 from linkml_map.transformer.object_transformer import ObjectTransformer
