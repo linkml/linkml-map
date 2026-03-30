@@ -60,6 +60,16 @@ jobs:
           # Run tests to make sure everything works
           make test
 
+      - name: Check generated artifacts are up to date
+        if: github.event_name == 'pull_request'
+        run: |
+          if ! git diff --quiet src/linkml_map/datamodel/; then
+            echo "::error::Generated files in src/linkml_map/datamodel/ are out of date."
+            echo "Run 'make src/linkml_map/datamodel/transformer_model.py' and commit the result."
+            git diff --stat src/linkml_map/datamodel/
+            exit 1
+          fi
+
       - name: Auto-commit regenerated artifacts
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
