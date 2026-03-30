@@ -50,9 +50,7 @@ def biolink_schema() -> SchemaView:
     return SchemaView(str(BIOLINK_SRC_SCHEMA))
 
 
-def test_biolink_subsetting_manual(
-    biolink_schema: SchemaView, tmp_path: Path
-) -> None:
+def test_biolink_subsetting_manual(biolink_schema: SchemaView, tmp_path: Path) -> None:
     """
     Test to subset the Biolink schema manually.
 
@@ -105,7 +103,7 @@ def test_biolink_subsetting_manual(
 
 def test_biolink_subset_auto(biolink_schema: SchemaView, tmp_path: Path) -> None:
     """
-    Test to subset the Biolink schema automatically by deriving the class definitions from biolink via a collection of class names to subset.
+    Test subsetting the Biolink schema by deriving class definitions from a collection of class names.
 
     :param biolink_schema: Fixture to load Biolink schema
     """
@@ -131,9 +129,7 @@ def test_biolink_subset_auto(biolink_schema: SchemaView, tmp_path: Path) -> None
         for type_name, type_def in biolink_schema.all_types().items()
     }
 
-    ts = TransformationSpecification(
-        class_derivations=class_derivations, copy_directives=copy_type_directives
-    )
+    ts = TransformationSpecification(class_derivations=class_derivations, copy_directives=copy_type_directives)
 
     mapper = SchemaMapper()
     mapper.source_schemaview = biolink_schema

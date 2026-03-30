@@ -15,9 +15,7 @@ class FKResolution(NamedTuple):
     final_slot: Optional[SlotDefinition]
 
 
-def resolve_fk_path(
-    schemaview: SchemaView, source_class: str, path: str
-) -> Optional[FKResolution]:
+def resolve_fk_path(schemaview: SchemaView, source_class: str, path: str) -> Optional[FKResolution]:
     """
     Resolve a dot-notation FK path to its components.
 

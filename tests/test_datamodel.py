@@ -1,7 +1,6 @@
 """Tests the data model."""
 
 import pytest
-import yaml
 from linkml_runtime import SchemaView
 
 from linkml_map.datamodel.transformer_model import (
@@ -48,10 +47,12 @@ def test_datamodel() -> None:
     assert agent_slots["age"].expr == "str({age_in_years}) + ' years'"
 
     # multi-line expr
-    assert (
-        agent_slots["driving_since"].expr
-        == 'd_test = [x.important_event_date for x in src.has_important_life_events if str(x.event_name) == "PASSED_DRIVING_TEST"]\nif len(d_test):\n    target = d_test[0]\n'
+    expected_expr = (
+        "d_test = [x.important_event_date for x in src.has_important_life_events"
+        ' if str(x.event_name) == "PASSED_DRIVING_TEST"]\n'
+        "if len(d_test):\n    target = d_test[0]\n"
     )
+    assert agent_slots["driving_since"].expr == expected_expr
 
     assert agent_slots["primary_email"].expr is None
     assert agent_slots["secondary_email"].expr == "NULL"
@@ -63,10 +64,7 @@ def test_datamodel() -> None:
 
     # enum derivations
     assert len(trs.enum_derivations) == 1
-    assert (
-        trs.enum_derivations["MyFamilialRelationshipType"].populated_from
-        == "FamilialRelationshipType"
-    )
+    assert trs.enum_derivations["MyFamilialRelationshipType"].populated_from == "FamilialRelationshipType"
     assert {"SIBLING_OF", "CHILD_OF"} == set(
         trs.enum_derivations["MyFamilialRelationshipType"].permissible_value_derivations.keys()
     )
@@ -151,15 +149,11 @@ def test_append_class_derivation() -> None:
     """Test that class_derivations can be appended to after construction."""
     spec = TransformationSpecification(id="append-test")
     assert spec.class_derivations == []
-    spec.class_derivations.append(
-        ClassDerivation(name="Agent", populated_from="Person")
-    )
+    spec.class_derivations.append(ClassDerivation(name="Agent", populated_from="Person"))
     assert len(spec.class_derivations) == 1
     assert spec.class_derivations[0].name == "Agent"
     # Append a second with the same name (the core use case)
-    spec.class_derivations.append(
-        ClassDerivation(name="Agent", populated_from="Employee")
-    )
+    spec.class_derivations.append(ClassDerivation(name="Agent", populated_from="Employee"))
     assert len(spec.class_derivations) == 2
 
 

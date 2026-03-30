@@ -6,9 +6,7 @@ from linkml_map.datamodel.transformer_model import TransformationSpecification
 from linkml_map.utils.fk_utils import resolve_fk_path
 
 
-def induce_missing_values(
-    specification: TransformationSpecification, source_schemaview: SchemaView
-) -> None:
+def induce_missing_values(specification: TransformationSpecification, source_schemaview: SchemaView) -> None:
     """
     Infer missing values in a specification.
 
@@ -24,8 +22,8 @@ def induce_missing_values(
     for cd in specification.class_derivations:
         for sd in cd.slot_derivations.values():
             if sd.object_derivations:
-                #skip inference for object derivations, inferencese come from class derivation later
-                #TODO: we may need to do the inference for the internal class slots
+                # skip inference for object derivations, inferences come from class derivation later
+                # TODO: we may need to do the inference for the internal class slots
                 continue
             # for null mappings, assume that the slot is copied from the same slot in the source
             # TODO: decide if this is the desired behavior
@@ -48,25 +46,19 @@ def induce_missing_values(
                         if joined_class not in source_schemaview.all_classes():
                             continue
                         if field_path in source_schemaview.class_induced_slots(joined_class):
-                            source_induced_slot = source_schemaview.induced_slot(
-                                field_path, joined_class
-                            )
+                            source_induced_slot = source_schemaview.induced_slot(field_path, joined_class)
                             source_induced_slot_range = source_induced_slot.range
                         else:
                             continue
 
                 if source_induced_slot_range is None:
-                    fk_resolution = resolve_fk_path(
-                        source_schemaview, cd.populated_from, populated_from_slot
-                    )
+                    fk_resolution = resolve_fk_path(source_schemaview, cd.populated_from, populated_from_slot)
                     if fk_resolution:
                         if not fk_resolution.final_slot:
                             continue
                         source_induced_slot_range = fk_resolution.final_slot.range
                     else:
-                        source_induced_slot = source_schemaview.induced_slot(
-                            populated_from_slot, cd.populated_from
-                        )
+                        source_induced_slot = source_schemaview.induced_slot(populated_from_slot, cd.populated_from)
                         source_induced_slot_range = source_induced_slot.range
 
                 for range_cd in specification.class_derivations:

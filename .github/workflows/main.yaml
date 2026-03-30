@@ -15,24 +15,22 @@ on:
           - ready_for_review
 
 jobs:
-  lint:
+  quality-checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Install dependencies
-        run: |
-          pip install tox
-
-      - name: Check code quality with ruff
-        run: tox -e lint_stats
+      - name: Run pre-commit checks
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files
 
   test:
+    needs: [quality-checks]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -53,24 +51,17 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
-      - name: Generate LinkML-Map Transformation Model artifacts
+      - name: Regenerate datamodel and check for drift
+        if: github.event_name == 'pull_request'
         run: |
-          # Force regenerate by removing the target file first
           rm -f src/linkml_map/datamodel/transformer_model.py
           make src/linkml_map/datamodel/transformer_model.py
-          
-          # Run tests to make sure everything works
-          make test
-          
-          # Check if there are any changes and commit them
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add src/
-          
-          # Only commit if there are changes
-          if ! git diff --cached --quiet; then
-            git commit -m "Regenerate artifacts from linkml-map transformer_model.yaml"
-            git push
-          else
-            echo "No changes to commit"
+          if ! git diff --quiet src/linkml_map/datamodel/; then
+            echo "::error::Generated files in src/linkml_map/datamodel/ are out of date."
+            echo "Run 'make src/linkml_map/datamodel/transformer_model.py' and commit the result."
+            git diff --stat src/linkml_map/datamodel/
+            exit 1
           fi
+
+      - name: Run tests
+        run: make test

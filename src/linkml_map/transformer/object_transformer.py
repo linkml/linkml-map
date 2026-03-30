@@ -99,9 +99,7 @@ class Bindings(Mapping):
             self.object_transformer.object_index.clear_proxy_object_cache()
 
             ctxt_obj = self.object_transformer.object_index.bless(source_obj_dyn)
-            ctxt_dict = {
-                k: getattr(ctxt_obj, k) for k in ctxt_obj._attributes() if not k.startswith("_")
-            }
+            ctxt_dict = {k: getattr(ctxt_obj, k) for k in ctxt_obj._attributes() if not k.startswith("_")}
         else:
             do = dynamic_object(source_obj, self.sv, self.source_type)
             ctxt_obj = do
@@ -140,9 +138,7 @@ class Bindings(Mapping):
 
     def _resolve_join(self, table_name: str) -> Optional[DynObj]:
         """Resolve a cross-table lookup, returning a DynObj or None."""
-        row = self.object_transformer._resolve_joined_row(
-            table_name, self.source_obj, self.class_deriv
-        )
+        row = self.object_transformer._resolve_joined_row(table_name, self.source_obj, self.class_deriv)
         if row is None:
             return None
         return DynObj(**row)
@@ -184,9 +180,7 @@ class ObjectTransformer(Transformer):
         """
         if isinstance(source_obj, dict):
             if target is None:
-                [target] = [
-                    c.name for c in self.source_schemaview.all_classes().values() if c.tree_root
-                ]
+                [target] = [c.name for c in self.source_schemaview.all_classes().values() if c.tree_root]
             if target is None:
                 msg = f"target must be passed if source_obj is dict: {source_obj}"
                 raise ValueError(msg)
@@ -195,9 +189,7 @@ class ObjectTransformer(Transformer):
         else:
             self.object_index = ObjectIndex(source_obj, schemaview=self.source_schemaview)
 
-    def _resolve_source_type(
-        self, source_type: Optional[str], sv: Optional[SchemaView]
-    ) -> Optional[str]:
+    def _resolve_source_type(self, source_type: Optional[str], sv: Optional[SchemaView]) -> Optional[str]:
         """
         Resolve the source type when not explicitly provided.
 
@@ -276,9 +268,7 @@ class ObjectTransformer(Transformer):
 
         # Handle class-level pivot operations (UNMELT from EAV to wide format)
         if class_deriv.pivot_operation:
-            return self._perform_pivot_operation(
-                class_deriv.pivot_operation, source_obj, class_deriv, sv, source_type
-            )
+            return self._perform_pivot_operation(class_deriv.pivot_operation, source_obj, class_deriv, sv, source_type)
 
         context = DerivationContext(
             source_obj=source_obj,
@@ -311,17 +301,23 @@ class ObjectTransformer(Transformer):
                     if "." in populated_from:
                         table_name, field_path = populated_from.split(".", 1)
                         if class_deriv.joins and table_name in class_deriv.joins:
-                            (v, source_class_slot) = self._perform_join_resolution(
-                                table_name, field_path, context
-                            )
+                            (v, source_class_slot) = self._perform_join_resolution(table_name, field_path, context)
                         else:
                             (v, source_class_slot) = self._resolve_fk_or_literal(
-                                populated_from, slot_derivation, sv, source_type, source_obj,
+                                populated_from,
+                                slot_derivation,
+                                sv,
+                                source_type,
+                                source_obj,
                                 require_fk=True,
                             )
                     else:
                         (v, source_class_slot) = self._resolve_fk_or_literal(
-                            populated_from, slot_derivation, sv, source_type, source_obj,
+                            populated_from,
+                            slot_derivation,
+                            sv,
+                            source_type,
+                            source_obj,
                         )
 
                     if slot_derivation.value_mappings and v is not None:
@@ -405,8 +401,7 @@ class ObjectTransformer(Transformer):
             v = None
             if fk_value is not None and not self.object_index:
                 logger.warning(
-                    f"Cross-class lookup requires object_index. "
-                    f"Call transformer.index(container_data) first."
+                    "Cross-class lookup requires object_index. Call transformer.index(container_data) first."
                 )
 
         source_class_slot = fk_resolution.final_slot
@@ -469,10 +464,7 @@ class ObjectTransformer(Transformer):
         source_key = spec.source_key or spec.join_on
         lookup_key = spec.lookup_key or spec.join_on
         if not source_key or not lookup_key:
-            msg = (
-                f"Join spec for {table_name!r} must specify 'join_on' or both "
-                f"'source_key' and 'lookup_key'"
-            )
+            msg = f"Join spec for {table_name!r} must specify 'join_on' or both 'source_key' and 'lookup_key'"
             raise ValueError(msg)
         key_val = source_obj.get(source_key)
         if key_val is None:
@@ -504,9 +496,7 @@ class ObjectTransformer(Transformer):
                 source_class_slot = context.sv.induced_slot(field_path, joined_class)
         return v, source_class_slot
 
-    def _apply_offset(
-        self, value: Any, slot_derivation: SlotDerivation, source_obj: DICT_OBJ
-    ) -> Any:
+    def _apply_offset(self, value: Any, slot_derivation: SlotDerivation, source_obj: DICT_OBJ) -> Any:
         """Apply an offset calculation using a value from another source field."""
         off = slot_derivation.offset
         off_field_val = source_obj.get(off.offset_field)
@@ -549,9 +539,7 @@ class ObjectTransformer(Transformer):
         )
         return v, source_class_slot
 
-    def _derive_nested_objects(
-        self, slot_derivation: SlotDerivation, source_obj: DICT_OBJ, target_type: str
-    ) -> Any:
+    def _derive_nested_objects(self, slot_derivation: SlotDerivation, source_obj: DICT_OBJ, target_type: str) -> Any:
         """Build nested objects from explicit object_derivation declarations."""
         derived_objs = []
 
@@ -606,18 +594,13 @@ class ObjectTransformer(Transformer):
             if isinstance(v, list):
                 return [self.map_object(v1, source_class_slot_range, target_range) for v1 in v]
             elif isinstance(v, dict):
-                return {
-                    k1: self.map_object(v1, source_class_slot_range, target_range)
-                    for k1, v1 in v.items()
-                }
+                return {k1: self.map_object(v1, source_class_slot_range, target_range) for k1, v1 in v.items()}
             else:
                 return [self.map_object(v, source_class_slot_range, target_range)]
         else:
             return self.map_object(v, source_class_slot_range, target_range)
 
-    def _coerce_cardinality(
-        self, v: Any, slot_derivation: SlotDerivation, class_derivation: ClassDerivation
-    ) -> Any:
+    def _coerce_cardinality(self, v: Any, slot_derivation: SlotDerivation, class_derivation: ClassDerivation) -> Any:
         """Coerce between single-valued and multi-valued based on target schema and spec."""
         if (
             self._is_coerce_to_multivalued(slot_derivation, class_derivation)
@@ -625,15 +608,11 @@ class ObjectTransformer(Transformer):
             and not isinstance(v, list)
         ):
             return self._singlevalued_to_multivalued(v, slot_derivation)
-        elif self._is_coerce_to_singlevalued(slot_derivation, class_derivation) and isinstance(
-            v, list
-        ):
+        elif self._is_coerce_to_singlevalued(slot_derivation, class_derivation) and isinstance(v, list):
             return self._multivalued_to_singlevalued(v, slot_derivation)
         return v
 
-    def _reshape_collection(
-        self, v: Any, slot_derivation: SlotDerivation, source_class_slot: SlotDefinition
-    ) -> Any:
+    def _reshape_collection(self, v: Any, slot_derivation: SlotDerivation, source_class_slot: SlotDefinition) -> Any:
         """Reshape between list and compact-dict collection formats."""
         if slot_derivation.dictionary_key and isinstance(v, list):
             # List to CompactDict
@@ -678,9 +657,7 @@ class ObjectTransformer(Transformer):
         curr_v = context.source_obj.get(slot_derivation.populated_from, None)
 
         if curr_v is None:
-            logger.debug(
-                f"No value found for slot '{slot_derivation.populated_from}'; skipping conversion"
-            )
+            logger.debug(f"No value found for slot '{slot_derivation.populated_from}'; skipping conversion")
             return None
 
         slot = context.sv.induced_slot(slot_derivation.populated_from, context.source_type)
@@ -725,17 +702,17 @@ class ObjectTransformer(Transformer):
             if uc.source_unit_slot:
                 from_unit = None
             else:
-                raise ValueError(
-                    f"No source unit provided in schema or transformation spec for slot '{slot_derivation.populated_from}'"
-                )
+                slot_name = slot_derivation.populated_from
+                raise ValueError(f"No source unit provided in schema or transformation spec for slot '{slot_name}'")
 
         if uc.source_unit_slot:
             # Structured input, e.g., {"value": 120, "unit": "cm"}
             from_unit_val = curr_v.get(uc.source_unit_slot)
             if from_unit_val:
                 if from_unit and from_unit_val != from_unit:
+                    slot_name = slot_derivation.populated_from
                     raise ValueError(
-                        f"Value unit '{from_unit_val}' does not match expected '{from_unit}' for slot '{slot_derivation.populated_from}'"
+                        f"Value unit '{from_unit_val}' does not match expected '{from_unit}' for slot '{slot_name}'"
                     )
                 from_unit = from_unit_val
             else:
@@ -836,9 +813,7 @@ class ObjectTransformer(Transformer):
         tr_obj_dict = self.map_object(source_obj, source_type_name)
         return target_class(**tr_obj_dict)
 
-    def transform_enum(
-        self, source_value: str, enum_names: list[str], source_obj: Any
-    ) -> Optional[str]:
+    def transform_enum(self, source_value: str, enum_names: list[str], source_obj: Any) -> Optional[str]:
         """Transform a source enum value through one or more enum derivations.
 
         Iterates *enum_names* in order. For each enum derivation, tries
@@ -857,9 +832,7 @@ class ObjectTransformer(Transformer):
                 try:
                     v = eval_expr(enum_deriv.expr, **source_obj, NULL=None)
                 except Exception:
-                    aeval = Interpreter(
-                        usersyms={"src": source_obj, "target": None, "uuid5": _uuid5}
-                    )
+                    aeval = Interpreter(usersyms={"src": source_obj, "target": None, "uuid5": _uuid5})
                     aeval(enum_deriv.expr)
                     v = aeval.symtable["target"]
                 if v is not None:
@@ -928,9 +901,7 @@ class ObjectTransformer(Transformer):
 
         # Check if source_obj itself is an EAV record (has variable and value slots)
         if variable_slot in source_obj and value_slot in source_obj:
-            return self._unmelt_single_record(
-                pivot_op, source_obj, variable_slot, value_slot, unit_slot, template
-            )
+            return self._unmelt_single_record(pivot_op, source_obj, variable_slot, value_slot, unit_slot, template)
 
         # Otherwise, look for a collection of EAV records in the source
         # Try to find a multivalued slot containing EAV records
@@ -941,9 +912,7 @@ class ObjectTransformer(Transformer):
                     return self._unmelt_collection(pivot_op, slot_value)
 
         # Fallback: treat source_obj as a single EAV record
-        return self._unmelt_single_record(
-            pivot_op, source_obj, variable_slot, value_slot, unit_slot, template
-        )
+        return self._unmelt_single_record(pivot_op, source_obj, variable_slot, value_slot, unit_slot, template)
 
     def _unmelt_single_record(
         self,
@@ -986,9 +955,7 @@ class ObjectTransformer(Transformer):
 
         # Validate against target schema if unmelt_to_class specified
         if pivot_op.unmelt_to_class and self.target_schemaview:
-            valid_slots = [
-                s.name for s in self.target_schemaview.class_induced_slots(pivot_op.unmelt_to_class)
-            ]
+            valid_slots = [s.name for s in self.target_schemaview.class_induced_slots(pivot_op.unmelt_to_class)]
             if pivot_op.unmelt_to_slots:
                 valid_slots = [s for s in valid_slots if s in pivot_op.unmelt_to_slots]
 
@@ -1071,9 +1038,7 @@ class ObjectTransformer(Transformer):
             slots_to_melt = list(pivot_op.source_slots)
         elif pivot_op.unmelt_to_class and self.target_schemaview:
             # Infer from target class
-            slots_to_melt = [
-                s.name for s in self.target_schemaview.class_induced_slots(pivot_op.unmelt_to_class)
-            ]
+            slots_to_melt = [s.name for s in self.target_schemaview.class_induced_slots(pivot_op.unmelt_to_class)]
         else:
             # Melt all non-ID slots
             id_slots = set(pivot_op.id_slots or [])

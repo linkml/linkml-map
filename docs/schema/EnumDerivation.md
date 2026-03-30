@@ -18,62 +18,62 @@ URI: [linkmltr:EnumDerivation](https://w3id.org/linkml/transformer/EnumDerivatio
  classDiagram
     class EnumDerivation
       ElementDerivation <|-- EnumDerivation
-      
+
       EnumDerivation : comments
-        
+
       EnumDerivation : copy_directives
-        
+
           EnumDerivation --> CopyDirective : copy_directives
-        
+
       EnumDerivation : description
-        
+
           EnumDerivation --> None : description
-        
+
       EnumDerivation : expr
-        
+
       EnumDerivation : expression_to_expression_mappings
-        
+
           EnumDerivation --> KeyVal : expression_to_expression_mappings
-        
+
       EnumDerivation : expression_to_value_mappings
-        
+
           EnumDerivation --> KeyVal : expression_to_value_mappings
-        
+
       EnumDerivation : hide
-        
+
       EnumDerivation : implements
-        
+
       EnumDerivation : is_a
-        
+
           EnumDerivation --> ElementDerivation : is_a
-        
+
       EnumDerivation : mirror_source
-        
+
       EnumDerivation : mixins
-        
+
           EnumDerivation --> ElementDerivation : mixins
-        
+
       EnumDerivation : name
-        
+
           EnumDerivation --> None : name
-        
+
       EnumDerivation : overrides
-        
+
           EnumDerivation --> Any : overrides
-        
+
       EnumDerivation : permissible_value_derivations
-        
+
           EnumDerivation --> PermissibleValueDerivation : permissible_value_derivations
-        
+
       EnumDerivation : populated_from
-        
+
       EnumDerivation : sources
-        
+
       EnumDerivation : value_mappings
-        
+
           EnumDerivation --> KeyVal : value_mappings
-        
-      
+
+
 ```
 
 

@@ -33,6 +33,3 @@ URI: [xsd:integer](http://www.w3.org/2001/XMLSchema#integer)
 
 
 * from schema: https://w3id.org/linkml/transformer
-
-
-

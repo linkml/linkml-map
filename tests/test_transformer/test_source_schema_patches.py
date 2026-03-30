@@ -61,15 +61,7 @@ classes:
     }
 
     transform_spec = {
-        "source_schema_patches": {
-            "classes": {
-                "Person": {
-                    "attributes": {
-                        "org_id": {"range": "Organization"}
-                    }
-                }
-            }
-        },
+        "source_schema_patches": {"classes": {"Person": {"attributes": {"org_id": {"range": "Organization"}}}}},
         "class_derivations": {
             "FlatPerson": {
                 "populated_from": "Person",

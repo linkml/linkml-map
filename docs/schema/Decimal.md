@@ -33,6 +33,3 @@ URI: [xsd:decimal](http://www.w3.org/2001/XMLSchema#decimal)
 
 
 * from schema: https://w3id.org/linkml/transformer
-
-
-

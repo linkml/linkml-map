@@ -1,6 +1,4 @@
-"""
-Transformers (aka data mappers) are used to transform objects from one class to another using a transformation specification.
-"""
+"""Transformers transform objects from one class to another using a transformation specification."""
 
 import logging
 from abc import ABC
@@ -66,9 +64,7 @@ class Transformer(ABC):
 
     _curie_converter: Converter = None
 
-    def map_object(
-        self, obj: OBJECT_TYPE, source_type: Optional[str] = None, **kwargs: dict[str, Any]
-    ) -> OBJECT_TYPE:
+    def map_object(self, obj: OBJECT_TYPE, source_type: Optional[str] = None, **kwargs: dict[str, Any]) -> OBJECT_TYPE:
         """
         Transform source object into an instance of the target class.
 
@@ -114,11 +110,7 @@ class Transformer(ABC):
             self.specification = TransformationSpecification(**obj)
 
     @classmethod
-    def normalize_transform_spec(
-        cls,
-        obj: dict[str, Any],
-        normalizer: ReferenceValidator
-    ) -> dict:
+    def normalize_transform_spec(cls, obj: dict[str, Any], normalizer: ReferenceValidator) -> dict:
         """
         Recursively normalize class_derivations and their nested object_derivations.
         """
@@ -163,9 +155,7 @@ class Transformer(ABC):
         :param obj: Raw specification dict (e.g. from YAML or user code).
         """
         cls._preprocess_class_derivations(obj)
-        normalizer = ReferenceValidator(
-            package_schemaview("linkml_map.datamodel.transformer_model")
-        )
+        normalizer = ReferenceValidator(package_schemaview("linkml_map.datamodel.transformer_model"))
         normalizer.expand_all = True
         normalized = cls.normalize_transform_spec(obj, normalizer)
         obj.clear()
@@ -295,8 +285,7 @@ class Transformer(ABC):
         matching_tgt_enum_derivs = [
             deriv
             for deriv in spec.enum_derivations.values()
-            if deriv.populated_from == target_enum_name
-            or (not deriv.populated_from and target_enum_name == deriv.name)
+            if deriv.populated_from == target_enum_name or (not deriv.populated_from and target_enum_name == deriv.name)
         ]
         logger.debug(f"Target enum derivations={matching_tgt_enum_derivs}")
         if len(matching_tgt_enum_derivs) != 1:
@@ -304,9 +293,7 @@ class Transformer(ABC):
             raise ValueError(msg)
         return matching_tgt_enum_derivs[0]
 
-    def _is_coerce_to_multivalued(
-        self, slot_derivation: SlotDerivation, class_derivation: ClassDerivation
-    ) -> bool:
+    def _is_coerce_to_multivalued(self, slot_derivation: SlotDerivation, class_derivation: ClassDerivation) -> bool:
         cast_as = slot_derivation.cast_collection_as
         if cast_as and cast_as in [
             CollectionType.MultiValued,
@@ -323,9 +310,7 @@ class Transformer(ABC):
                 return True
         return False
 
-    def _is_coerce_to_singlevalued(
-        self, slot_derivation: SlotDerivation, class_derivation: ClassDerivation
-    ) -> bool:
+    def _is_coerce_to_singlevalued(self, slot_derivation: SlotDerivation, class_derivation: ClassDerivation) -> bool:
         cast_as = slot_derivation.cast_collection_as
         if cast_as and cast_as == CollectionType(CollectionType.SingleValued):
             return True

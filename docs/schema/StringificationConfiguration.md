@@ -13,16 +13,16 @@ URI: [linkmltr:StringificationConfiguration](https://w3id.org/linkml/transformer
  classDiagram
     class StringificationConfiguration
       StringificationConfiguration : delimiter
-        
+
       StringificationConfiguration : over_slots
-        
+
       StringificationConfiguration : reversed
-        
+
       StringificationConfiguration : syntax
-        
+
           StringificationConfiguration --> SerializationSyntaxType : syntax
-        
-      
+
+
 ```
 
 

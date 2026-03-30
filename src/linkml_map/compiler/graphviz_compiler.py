@@ -29,12 +29,7 @@ class Record(BaseModel):
         <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
             <TR><TD><B>{self.name}</B></TD></TR>
         """
-            + "".join(
-                [
-                    f'<TR><TD SIDES="LRB" PORT="{f[0]}">{f[0]} : {f[1]}</TD></TR>'
-                    for f in self.fields
-                ]
-            )
+            + "".join([f'<TR><TD SIDES="LRB" PORT="{f[0]}">{f[0]} : {f[1]}</TD></TR>' for f in self.fields])
             + """
         </TABLE>>"""
         )

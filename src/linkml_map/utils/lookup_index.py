@@ -65,7 +65,7 @@ class LookupIndex:
         self._conn.execute(
             f"CREATE OR REPLACE TABLE {name} AS "  # noqa: S608
             "SELECT * FROM read_csv_auto(?, all_varchar=true)",
-            [str(file_path)]
+            [str(file_path)],
         )
         self._conn.execute(
             f"CREATE INDEX IF NOT EXISTS idx_{name}_{key_column} ON {name} ({key_column})"  # noqa: S608
@@ -73,7 +73,10 @@ class LookupIndex:
         self._tables[name] = key_column
 
     def lookup_row(
-        self, table: str, key_col: str, key_val: Any  # noqa: ANN401
+        self,
+        table: str,
+        key_col: str,
+        key_val: Any,  # noqa: ANN401
     ) -> dict[str, Any] | None:
         """
         Return the first row matching *key_val* on *key_col*, or ``None``.

@@ -37,6 +37,7 @@ dev = [
     "mkdocs-windmill",
     "mkdocstrings[crystal,python]",
     "mknotebooks>=0.8",
+    "pre-commit>=4.3.0",
     "pytest>=8",
     "ruff>=0.11",
     "tox>=4",
@@ -73,114 +74,31 @@ ignore-regex = '(^\s*"image/\S+": ".*|\b(KEGG.BRITE|mor.nlm.nih.gov)\b)'
 ignore-words-list = 'infarction,amination,assertIn,brite,ehr,mor,brite,nin,mirgate'
 
 [tool.ruff]
-line-length = 100
-target-version = "py312"
-
-[tool.ruff.format]
-exclude = [
-  "docs/",
-  "src/linkml_map/datamodel",
-  "tests/input"
+line-length = 120
+target-version = "py39"
+extend-exclude = [
+    "docs/",
+    "src/linkml_map/datamodel",
+    "tests/input",
 ]
+force-exclude = true
 
 [tool.ruff.lint]
-exclude = [
-  "docs/",
-  "src/linkml_map/datamodel",
-  "tests/input"
-]
-
 select = [
-    # core
-    "F", # Pyflakes
-    "E", # pycodestyle errors
-    "W", # pycodestyle warnings
-    "C90", # mccabe +
-    "I", # isort
-    "N", # pep8-naming
-    "D", # pydocstyle
+    "E",  # pycodestyle errors
+    "F",  # Pyflakes
+    "I",  # isort
     "UP", # pyupgrade
-    # extensions
-    "YTT", # flake8-2020
-    "ANN", # flake8-annotations
-    "ASYNC", # flake8-async
-    "S", # flake8-bandit
-    "BLE", # flake8-blind-except
-    "FBT", # flake8-boolean-trap
-    "B", # flake8-bugbear
-    "A", # flake8-builtins
-    # "COM", # flake8-commas
-    # "CPY", # flake8-copyright
-    "C4", # flake8-comprehensions
-    "DTZ", # flake8-datetimez
-    "T10", # flake8-debugger
-    # "DJ", # flake8-django
-    "EM", # flake8-errmsg
-    "EXE", # flake8-executable
-    "FA", # flake8-future-annotations
-    "ISC", # flake8-implicit-str-concat
-    "ICN", # flake8-import-conventions
-    "G", # flake8-logging-format
-    "INP", # flake8-no-pep420
-    "PIE", # flake8-pie
-    "T20", # flake8-print
-    "PYI", # flake8-pyi
-    "PT", # flake8-pytest-style
-    "Q", # flake8-quotes
-    "RSE", # flake8-raise
-    "RET", # flake8-return
-    "SLF", # flake8-self
-    "SLOT", # flake8-slots
-    "SIM", # flake8-simplify
-    "TID", # flake8-tidy-imports
-    "TCH", # flake8-type-checking
-    "INT", # flake8-gettext
-    "ARG", # flake8-unused-arguments
-    # "PTH", # flake8-use-pathlib
-    # "TD", # flake8-todos
-    # "FIX", # flake8-fixme
-    "ERA", # eradicate
-    "PD", # pandas-vet
-    "PGH", # pygrep-hooks
-    "PL", # Pylint
-    "TRY", # tryceratops
-    "FLY", # flynt
-    "NPY", # NumPy-specific rules
-    "AIR", # Airflow
-    "PERF", # Perflint
-    "FURB", # refurb
-    "LOG", # flake8-logging
-    "RUF", # Ruff-specific rules
 ]
 
 ignore = [
-    # UP007: non-pep604-annotation-union - fix when 3.9 is dropped
+    # UP007: non-pep604-annotation-union - requires Python 3.10+
     "UP007",
-    # D200: unnecessary-multiline-docstring
-    "D200",
-    # D203: one-blank-line-before-class (conflicts with D211)
-    "D203",
-    # D212: multi-line-summary-first-line (conflicts with D213)
-    "D212",
+    # UP038: non-pep604-isinstance - requires Python 3.10+
+    "UP038",
     # E203: whitespace before ',', ';', or ':'
     "E203",
-    # E501: line length (specified elsewhere)
-    "E501",
-    # ISC001: conflicts with Ruff's formatter
-    "ISC001",
-    # C901: complex-structure - needs code change
-    "C901",
-    # E731: lambda-assignment - needs code change
-    "E731",
-    # B024: abstract-base-class-without-abstract-method
-    "B024",
-    # T201: print
-    "T201"
 ]
 
-[tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["S101"] # use of assert
-
-[tool.ruff.lint.mccabe]
-# Flag errors (`C901`) whenever the complexity level exceeds 15.
-max-complexity = 15
+[tool.ruff.lint.isort]
+known-first-party = ["linkml_map"]

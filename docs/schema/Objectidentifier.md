@@ -38,6 +38,3 @@ URI: [shex:iri](http://www.w3.org/ns/shex#iri)
 
 
 * from schema: https://w3id.org/linkml/transformer
-
-
-

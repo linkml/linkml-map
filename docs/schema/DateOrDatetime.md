@@ -34,6 +34,3 @@ URI: [linkml:DateOrDatetime](https://w3id.org/linkml/DateOrDatetime)
 
 
 * from schema: https://w3id.org/linkml/transformer
-
-
-

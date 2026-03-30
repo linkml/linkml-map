@@ -65,10 +65,7 @@ def transform_spec(
                     lookup_key = join_spec.lookup_key or join_spec.join_on
                     source_key = join_spec.source_key or join_spec.join_on
                     if not lookup_key or not source_key:
-                        msg = (
-                            f"Join {join_name!r} must specify 'join_on' or both "
-                            f"'source_key' and 'lookup_key'"
-                        )
+                        msg = f"Join {join_name!r} must specify 'join_on' or both 'source_key' and 'lookup_key'"
                         raise ValueError(msg)
                     join_path = data_loader.get_path(join_name)
                     transformer.lookup_index.register_table(join_name, join_path, lookup_key)

@@ -47,7 +47,7 @@ Not all parts of the model are implemented in the reference Python framework.
 
 ## Basic idea
 
-Given the LinkML schema 
+Given the LinkML schema
 
 ```yaml
 id: https://w3id.org/linkml/examples/personinfo
@@ -355,4 +355,3 @@ output file whose format is inferred from the file extension (`.json`, `.jsonl`,
 cd tests/input/examples/personinfo_basic
 linkml-map derive-schema -T transform/personinfo-to-agent.transform.yaml source/personinfo.yaml
 ```
-
