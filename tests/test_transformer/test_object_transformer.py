@@ -820,8 +820,11 @@ def test_perform_unit_conversion_numeric_string(obj_tr: ObjectTransformer):
     obj_tr.source_schemaview.induced_slot = MagicMock(return_value=slot_mock)
 
     context = DerivationContext(
-        source_obj=source_obj, source_obj_typed=None,
-        source_type="SomeType", sv=obj_tr.source_schemaview, class_deriv=MagicMock(),
+        source_obj=source_obj,
+        source_obj_typed=None,
+        source_type="SomeType",
+        sv=obj_tr.source_schemaview,
+        class_deriv=MagicMock(),
     )
     result = obj_tr._perform_unit_conversion(slot_derivation, context)
     assert abs(result - 1.2) < 1e-6
@@ -855,8 +858,11 @@ def test_perform_unit_conversion_non_numeric_raises(obj_tr: ObjectTransformer):
     obj_tr.source_schemaview.induced_slot = MagicMock(return_value=slot_mock)
 
     context = DerivationContext(
-        source_obj=source_obj, source_obj_typed=None,
-        source_type="SomeType", sv=obj_tr.source_schemaview, class_deriv=MagicMock(),
+        source_obj=source_obj,
+        source_obj_typed=None,
+        source_type="SomeType",
+        sv=obj_tr.source_schemaview,
+        class_deriv=MagicMock(),
     )
     with pytest.raises(ValueError):
         obj_tr._perform_unit_conversion(slot_derivation, context)
@@ -890,8 +896,11 @@ def test_perform_unit_conversion_none_if_non_numeric(obj_tr: ObjectTransformer):
     obj_tr.source_schemaview.induced_slot = MagicMock(return_value=slot_mock)
 
     context = DerivationContext(
-        source_obj=source_obj, source_obj_typed=None,
-        source_type="SomeType", sv=obj_tr.source_schemaview, class_deriv=MagicMock(),
+        source_obj=source_obj,
+        source_obj_typed=None,
+        source_type="SomeType",
+        sv=obj_tr.source_schemaview,
+        class_deriv=MagicMock(),
     )
     result = obj_tr._perform_unit_conversion(slot_derivation, context)
     assert result is None

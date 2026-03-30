@@ -9,7 +9,7 @@ see `<https://github.com/dalito/ucumvert>`_.
 
 from enum import Enum
 from functools import lru_cache
-from typing import Any, Optional, Union
+from typing import Optional, Union
 
 import lark
 import pint
@@ -55,7 +55,7 @@ class DimensionalityError(Exception):
 
 def convert_units(
     magnitude: Union[float, int, str], from_unit: str, to_unit: str, system: Optional[UnitSystem] = None
-) -> Any:
+) -> float:
     """
     Convert a quantity between units.
 
