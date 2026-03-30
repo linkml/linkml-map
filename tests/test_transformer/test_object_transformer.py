@@ -792,6 +792,111 @@ def test_perform_unit_conversion_raise_on_unit_mismatch(obj_tr: ObjectTransforme
         obj_tr._perform_unit_conversion(slot_derivation, context)
 
 
+def test_perform_unit_conversion_numeric_string(obj_tr: ObjectTransformer):
+    """Numeric strings from tabular input should be coerced to float."""
+    uc_mock = MagicMock()
+    uc_mock.source_unit = "cm"
+    uc_mock.target_unit = "m"
+    uc_mock.source_unit_slot = None
+    uc_mock.source_magnitude_slot = None
+    uc_mock.target_magnitude_slot = None
+    uc_mock.target_unit_slot = None
+    uc_mock.none_if_non_numeric = False
+
+    slot_derivation = MagicMock()
+    slot_derivation.unit_conversion = uc_mock
+    slot_derivation.populated_from = "length"
+
+    source_obj = {"length": "120"}
+
+    slot_mock = MagicMock()
+    slot_mock.unit.ucum_code = "cm"
+    slot_mock.unit.iec61360code = None
+    slot_mock.unit.symbol = None
+    slot_mock.unit.abbreviation = None
+    slot_mock.unit.descriptive_name = None
+    slot_mock.name = "length"
+
+    obj_tr.source_schemaview.induced_slot = MagicMock(return_value=slot_mock)
+
+    context = DerivationContext(
+        source_obj=source_obj, source_obj_typed=None,
+        source_type="SomeType", sv=obj_tr.source_schemaview, class_deriv=MagicMock(),
+    )
+    result = obj_tr._perform_unit_conversion(slot_derivation, context)
+    assert abs(result - 1.2) < 1e-6
+
+
+def test_perform_unit_conversion_non_numeric_raises(obj_tr: ObjectTransformer):
+    """Non-numeric strings should raise when none_if_non_numeric is False."""
+    uc_mock = MagicMock()
+    uc_mock.source_unit = "cm"
+    uc_mock.target_unit = "m"
+    uc_mock.source_unit_slot = None
+    uc_mock.source_magnitude_slot = None
+    uc_mock.target_magnitude_slot = None
+    uc_mock.target_unit_slot = None
+    uc_mock.none_if_non_numeric = False
+
+    slot_derivation = MagicMock()
+    slot_derivation.unit_conversion = uc_mock
+    slot_derivation.populated_from = "length"
+
+    source_obj = {"length": "A"}
+
+    slot_mock = MagicMock()
+    slot_mock.unit.ucum_code = "cm"
+    slot_mock.unit.iec61360code = None
+    slot_mock.unit.symbol = None
+    slot_mock.unit.abbreviation = None
+    slot_mock.unit.descriptive_name = None
+    slot_mock.name = "length"
+
+    obj_tr.source_schemaview.induced_slot = MagicMock(return_value=slot_mock)
+
+    context = DerivationContext(
+        source_obj=source_obj, source_obj_typed=None,
+        source_type="SomeType", sv=obj_tr.source_schemaview, class_deriv=MagicMock(),
+    )
+    with pytest.raises(ValueError):
+        obj_tr._perform_unit_conversion(slot_derivation, context)
+
+
+def test_perform_unit_conversion_none_if_non_numeric(obj_tr: ObjectTransformer):
+    """Non-numeric strings should return None when none_if_non_numeric is True."""
+    uc_mock = MagicMock()
+    uc_mock.source_unit = "cm"
+    uc_mock.target_unit = "m"
+    uc_mock.source_unit_slot = None
+    uc_mock.source_magnitude_slot = None
+    uc_mock.target_magnitude_slot = None
+    uc_mock.target_unit_slot = None
+    uc_mock.none_if_non_numeric = True
+
+    slot_derivation = MagicMock()
+    slot_derivation.unit_conversion = uc_mock
+    slot_derivation.populated_from = "length"
+
+    source_obj = {"length": "A"}
+
+    slot_mock = MagicMock()
+    slot_mock.unit.ucum_code = "cm"
+    slot_mock.unit.iec61360code = None
+    slot_mock.unit.symbol = None
+    slot_mock.unit.abbreviation = None
+    slot_mock.unit.descriptive_name = None
+    slot_mock.name = "length"
+
+    obj_tr.source_schemaview.induced_slot = MagicMock(return_value=slot_mock)
+
+    context = DerivationContext(
+        source_obj=source_obj, source_obj_typed=None,
+        source_type="SomeType", sv=obj_tr.source_schemaview, class_deriv=MagicMock(),
+    )
+    result = obj_tr._perform_unit_conversion(slot_derivation, context)
+    assert result is None
+
+
 def test_offset_skipped_when_offset_field_missing():
     sb_source = SchemaBuilder()
     sb_source.add_class("Person")

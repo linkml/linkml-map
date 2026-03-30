@@ -590,6 +590,7 @@ class UnitConversionConfiguration(ConfiguredBaseModel):
     source_magnitude_slot: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'source_magnitude_slot', 'domain_of': ['UnitConversionConfiguration']} })
     target_unit_slot: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'target_unit_slot', 'domain_of': ['UnitConversionConfiguration']} })
     target_magnitude_slot: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'alias': 'target_magnitude_slot', 'domain_of': ['UnitConversionConfiguration']} })
+    none_if_non_numeric: Optional[bool] = Field(default=None, description="""If true, return None when the source value cannot be coerced to a numeric type instead of raising an error. This is an explicit opt-in for columns that contain non-numeric coded values (e.g. 'A', 'M') mixed with numeric data.""", json_schema_extra = { "linkml_meta": {'alias': 'none_if_non_numeric', 'domain_of': ['UnitConversionConfiguration']} })
 
 
 class Offset(ConfiguredBaseModel):

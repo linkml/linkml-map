@@ -728,6 +728,12 @@ class ObjectTransformer(Transformer):
         else:
             magnitude = curr_v
 
+        if uc.none_if_non_numeric:
+            try:
+                float(magnitude)
+            except (TypeError, ValueError):
+                return None
+
         to_unit = uc.target_unit or from_unit
         if from_unit == to_unit:
             result = magnitude

@@ -71,12 +71,17 @@ def convert_units(magnitude: float, from_unit: str, to_unit: str, system: Option
     10000.0
     >>> convert_units(1.0, "km2", "m2", system=UnitSystem.UCUM)
     1000000.0
+    >>> convert_units("100", "m", "cm")
+    10000.0
+    >>> convert_units("3.14", "m", "cm")
+    314.0
 
     :param magnitude:
     :param from_unit:
     :param to_unit:
     :return: converted magnitude
     """
+    magnitude = float(magnitude)
     ureg: pint.UnitRegistry = get_unit_registry(system)
     from_unit = normalize_unit(from_unit, system)
     to_unit = normalize_unit(to_unit, system)
