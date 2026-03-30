@@ -60,7 +60,9 @@ jobs:
           # Run tests to make sure everything works
           make test
 
-          # Check if there are any changes and commit them
+      - name: Auto-commit regenerated artifacts
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add src/
