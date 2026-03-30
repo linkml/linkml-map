@@ -268,8 +268,6 @@ def test_dump_output_supported_formats(
         lines = captured.out.strip().split("\n")
         assert len(lines) == 1
         # Verify it's valid JSON
-        import json
-
         json.loads(lines[0])
     elif output_format in ("tsv", "csv"):
         assert "name" in captured.out
