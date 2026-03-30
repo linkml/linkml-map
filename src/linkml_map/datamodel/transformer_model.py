@@ -234,7 +234,7 @@ class TransformationSpecification(SpecificationComponent):
 
 class ElementDerivation(SpecificationComponent):
     """
-    An abstract grouping for classes that provide a specification of how to  derive a target element from a source element.
+    An abstract grouping for classes that provide a specification of how to derive a target element from a source element.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True, 'from_schema': 'https://w3id.org/linkml/transformer'})
 
@@ -392,7 +392,7 @@ class SlotDerivation(ElementDerivation):
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    object_derivations: Optional[List[ObjectDerivation]] = Field(default_factory=list, description="""One or more object derivations used to construct the slot value(s),  which must be instances of a class.""", json_schema_extra = { "linkml_meta": {'alias': 'object_derivations', 'domain_of': ['SlotDerivation']} })
+    object_derivations: Optional[List[ObjectDerivation]] = Field(default_factory=list, description="""One or more object derivations used to construct the slot value(s), which must be instances of a class.""", json_schema_extra = { "linkml_meta": {'alias': 'object_derivations', 'domain_of': ['SlotDerivation']} })
     derived_from: Optional[List[str]] = Field(default_factory=list, description="""Source slots that are used to derive this slot. This can be computed from the expr, if the expr is declarative.""", json_schema_extra = { "linkml_meta": {'alias': 'derived_from', 'domain_of': ['SlotDerivation']} })
     expr: Optional[str] = Field(default=None, description="""An expression to be evaluated on the source object to derive the target slot. Should be specified using the LinkML expression language.""", json_schema_extra = { "linkml_meta": {'alias': 'expr',
          'domain_of': ['SlotDerivation',
@@ -762,7 +762,7 @@ class CopyDirective(ConfiguredBaseModel):
     """
     Instructs a Schema Mapper in how to map to a target schema. Not used for data transformation.
     This is the process to process a directive: 1. If `copy_all`, add all sub-elements to the list of sub-elements to be copied. 2. If `exclude`, remove the specified sub-elements from the above list. 3. If `exclude_all`, clean-up the above list. Effectively making previous steps useless. 4. If `include`, add the specified sub-elements from the list result of previous steps.
-    Implementations might decide to somehow report (error, warning,...) meaningless combinations (like specifying `copy_all` and `exclude_all`). 
+    Implementations might decide to somehow report (error, warning,...) meaningless combinations (like specifying `copy_all` and `exclude_all`).
     Validation on the correctness of the resulting derived schema might be done optionally by the implementation. For example, removing a slot but keeping a class that requires it would invalidate the derived-schema. It is always possible to validate the schema with the LinkML linter after derivation.
     What are the considered sub-elements depends on the calls of Element to be transformed. For example, for a class they are `slots` and `attributes`.
     """
