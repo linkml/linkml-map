@@ -22,7 +22,7 @@ def induce_missing_values(specification: TransformationSpecification, source_sch
     for cd in specification.class_derivations:
         for sd in cd.slot_derivations.values():
             if sd.object_derivations:
-                # skip inference for object derivations, inferencese come from class derivation later
+                # skip inference for object derivations, inferences come from class derivation later
                 # TODO: we may need to do the inference for the internal class slots
                 continue
             # for null mappings, assume that the slot is copied from the same slot in the source
