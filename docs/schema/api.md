@@ -6,4 +6,3 @@
 
 
 ::: linkml_map.transformer.transformer.Transformer
-

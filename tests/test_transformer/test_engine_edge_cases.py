@@ -19,7 +19,6 @@ from linkml_map.loaders.data_loaders import DataLoader
 from linkml_map.transformer.engine import transform_spec
 from linkml_map.transformer.object_transformer import ObjectTransformer
 
-
 # ---- shared schemas ----
 
 SOURCE_SCHEMA_YAML = textwrap.dedent("""\
@@ -80,11 +79,7 @@ def test_engine_no_joins(tmp_path):
     This is a regression test ensuring the join machinery doesn't break
     the common case where joins are not used.
     """
-    (tmp_path / "samples.tsv").write_text(
-        "sample_id\tname\tsite_code\n"
-        "S001\tAlpha\tSITE_A\n"
-        "S002\tBeta\tSITE_B\n"
-    )
+    (tmp_path / "samples.tsv").write_text("sample_id\tname\tsite_code\nS001\tAlpha\tSITE_A\nS002\tBeta\tSITE_B\n")
 
     spec = textwrap.dedent("""\
         class_derivations:
@@ -134,10 +129,7 @@ def test_engine_no_joins_no_data(tmp_path):
 
 def test_join_with_empty_secondary_table(tmp_path):
     """When a joined table has headers but no data rows, lookups return None."""
-    (tmp_path / "samples.tsv").write_text(
-        "sample_id\tname\tsite_code\n"
-        "S001\tAlpha\tSITE_A\n"
-    )
+    (tmp_path / "samples.tsv").write_text("sample_id\tname\tsite_code\nS001\tAlpha\tSITE_A\n")
     # sites.tsv has headers only — no data rows
     (tmp_path / "sites.tsv").write_text("site_code\tsite_name\n")
 
@@ -175,14 +167,8 @@ def test_join_with_empty_secondary_table(tmp_path):
 
 def test_mixed_derivations_with_and_without_joins(tmp_path):
     """Multiple class_derivations can coexist: some with joins, some without."""
-    (tmp_path / "samples.tsv").write_text(
-        "sample_id\tname\tsite_code\n"
-        "S001\tAlpha\tSITE_A\n"
-    )
-    (tmp_path / "sites.tsv").write_text(
-        "site_code\tsite_name\n"
-        "SITE_A\tBoston Medical\n"
-    )
+    (tmp_path / "samples.tsv").write_text("sample_id\tname\tsite_code\nS001\tAlpha\tSITE_A\n")
+    (tmp_path / "sites.tsv").write_text("site_code\tsite_name\nSITE_A\tBoston Medical\n")
 
     # Two target classes: one uses joins, one doesn't
     target_yaml = textwrap.dedent("""\

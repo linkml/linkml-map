@@ -1,16 +1,27 @@
-from linkml_runtime import SchemaView
 from pathlib import Path
+from typing import Callable
+
 import pytest
-from tests.scaffold import (SOURCE_SCHEMA, TARGET_SCHEMA, TRANSFORM_SPEC, INPUT_DATA, EXPECTED_DATA)
+import yaml
+from linkml_runtime import SchemaView
+
+from tests.scaffold import EXPECTED_DATA, INPUT_DATA, SOURCE_SCHEMA, TARGET_SCHEMA, TRANSFORM_SPEC
 from tests.scaffold_container import (
-    SOURCE_SCHEMA as CONTAINER_SOURCE_SCHEMA,
-    TARGET_SCHEMA as CONTAINER_TARGET_SCHEMA,
-    TRANSFORM_SPEC as CONTAINER_TRANSFORM_SPEC,
-    INPUT_DATA as CONTAINER_INPUT_DATA,
     EXPECTED_DATA as CONTAINER_EXPECTED_DATA,
 )
-from typing import Callable
-import yaml
+from tests.scaffold_container import (
+    INPUT_DATA as CONTAINER_INPUT_DATA,
+)
+from tests.scaffold_container import (
+    SOURCE_SCHEMA as CONTAINER_SOURCE_SCHEMA,
+)
+from tests.scaffold_container import (
+    TARGET_SCHEMA as CONTAINER_TARGET_SCHEMA,
+)
+from tests.scaffold_container import (
+    TRANSFORM_SPEC as CONTAINER_TRANSFORM_SPEC,
+)
+
 
 def yaml_load(file_path: Path) -> dict:
     return yaml.safe_load(file_path.read_text())
@@ -33,10 +44,7 @@ class StrictDict(dict):
     def __setitem__(self, key, value):
         """Set an item, disallowing overwrites with different values."""
         if key in self and self[key] != value:
-            raise ValueError(
-                f"Duplicate assignment to expected key '{key}': "
-                f"existing={self[key]!r}, new={value!r}"
-            )
+            raise ValueError(f"Duplicate assignment to expected key '{key}': existing={self[key]!r}, new={value!r}")
         super().__setitem__(key, value)
 
     def update(self, *args, **kwargs):
@@ -49,17 +57,17 @@ class StrictDict(dict):
 @pytest.fixture
 def scaffold():
     """Fresh scaffold per test."""
-    return make_scaffold(
-        SOURCE_SCHEMA, TARGET_SCHEMA, TRANSFORM_SPEC, INPUT_DATA, EXPECTED_DATA
-    )
+    return make_scaffold(SOURCE_SCHEMA, TARGET_SCHEMA, TRANSFORM_SPEC, INPUT_DATA, EXPECTED_DATA)
 
 
 TEST_SETUP_FUNCTIONS = []
+
 
 def add_to_test_setup(func: Callable) -> Callable:
     """Decorator to register a setup function for test scaffold."""
     TEST_SETUP_FUNCTIONS.append(func)
     return func
+
 
 @pytest.fixture
 def integration_scaffold(scaffold):
@@ -83,10 +91,12 @@ def container_scaffold():
 
 CONTAINER_TEST_SETUP_FUNCTIONS = []
 
+
 def add_to_container_test_setup(func: Callable) -> Callable:
     """Decorator to register a setup function for container scaffold."""
     CONTAINER_TEST_SETUP_FUNCTIONS.append(func)
     return func
+
 
 @pytest.fixture
 def integration_container_scaffold(container_scaffold):

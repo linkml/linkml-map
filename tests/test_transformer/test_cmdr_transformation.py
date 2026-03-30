@@ -20,9 +20,7 @@ def test_denormalizingl(tmp_path: Generator[Path, None, None]) -> None:
     """
     input_schema = REPO_ROOT / "input/examples/flattening/source/normalized.yaml"
     # output_schema = REPO_ROOT / "input/examples/flattening/target/denormalized.yaml"
-    transformation_specification_file = (
-        REPO_ROOT / "input/examples/flattening/transform/denormalize.transform.yaml"
-    )
+    transformation_specification_file = REPO_ROOT / "input/examples/flattening/transform/denormalize.transform.yaml"
     # Initialize Session and SchemaBuilder
     session = Session()
 

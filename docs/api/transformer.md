@@ -7,4 +7,3 @@
 ## ObjectTransformer
 
 ::: linkml_map.transformer.object_transformer.ObjectTransformer
-

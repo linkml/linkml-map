@@ -18,14 +18,14 @@ URI: [linkmltr:Inverse](https://w3id.org/linkml/transformer/Inverse)
  classDiagram
     class Inverse
       Inverse : class_name
-        
+
           Inverse --> None : class_name
-        
+
       Inverse : slot_name
-        
+
           Inverse --> None : slot_name
-        
-      
+
+
 ```
 
 

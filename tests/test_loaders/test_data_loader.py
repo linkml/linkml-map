@@ -212,9 +212,7 @@ class TestIterSources:
         person_rows = list(sources["Person"])
         assert len(person_rows) == 2
 
-    def test_iter_sources_unifies_single_and_directory(
-        self, sample_tsv_file: Path, sample_data_dir: Path
-    ) -> None:
+    def test_iter_sources_unifies_single_and_directory(self, sample_tsv_file: Path, sample_data_dir: Path) -> None:
         """Both modes should work identically through iter_sources."""
         # Single file
         single_loader = DataLoader(sample_tsv_file)

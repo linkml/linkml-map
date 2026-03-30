@@ -189,9 +189,7 @@ class YAMLStreamWriter(StreamWriter):
             return
 
         if self.key_name:
-            yaml_str = yaml.dump(
-                {self.key_name: chunk}, default_flow_style=False, allow_unicode=True
-            )
+            yaml_str = yaml.dump({self.key_name: chunk}, default_flow_style=False, allow_unicode=True)
             if self._first_chunk:
                 yield yaml_str
                 self._first_chunk = False
@@ -341,9 +339,7 @@ class TabularStreamWriter(StreamWriter):
                 yield self.separator.join(self.headers) + "\n"
 
             # Emit data row
-            row = self.separator.join(
-                self._escape_value(flat.get(h, "")) for h in self.headers
-            )
+            row = self.separator.join(self._escape_value(flat.get(h, "")) for h in self.headers)
             yield row + "\n"
 
     def finalize(self) -> Iterator[str]:
@@ -606,16 +602,10 @@ class MultiStreamWriter:
 
         # Post-process tabular Path outputs that had header changes
         for writer, target in self.outputs:
-            if (
-                isinstance(target, Path)
-                and isinstance(writer, TabularStreamWriter)
-                and writer.headers_changed
-            ):
+            if isinstance(target, Path) and isinstance(writer, TabularStreamWriter) and writer.headers_changed:
                 logger.info("Rewriting %s with updated headers", target)
                 tmp_path = str(target) + ".tmp"
                 with open(target, encoding="utf-8") as src, open(tmp_path, "w", encoding="utf-8") as dst:
-                    for line in rewrite_header_and_pad(
-                        iter(src), writer.get_final_headers(), writer.separator
-                    ):
+                    for line in rewrite_header_and_pad(iter(src), writer.get_final_headers(), writer.separator):
                         dst.write(line)
                 os.replace(tmp_path, str(target))

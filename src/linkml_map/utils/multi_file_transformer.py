@@ -93,9 +93,7 @@ class MultiFileTransformer:
         if not source_schema_directory.exists():
             msg = f"Expected {source_schema_directory}"
             raise ValueError(msg)
-        transform_specification_directory = (
-            root_directory / self.transform_specification_directory_base
-        )
+        transform_specification_directory = root_directory / self.transform_specification_directory_base
         if not transform_specification_directory.exists():
             msg = f"Expected {transform_specification_directory}"
             raise ValueError(msg)
@@ -104,9 +102,7 @@ class MultiFileTransformer:
         if not input_schemas:
             msg = f"Expected schemas in {source_schema_directory}"
             raise ValueError(msg)
-        transform_files = glob.glob(
-            os.path.join(str(transform_specification_directory), "*.transform.yaml")
-        )
+        transform_files = glob.glob(os.path.join(str(transform_specification_directory), "*.transform.yaml"))
         instructions = Instructions(description="auto-inducted")
         for input_schema in input_schemas:
             for transform_file in transform_files:
@@ -126,9 +122,7 @@ class MultiFileTransformer:
                     if src not in input_schema:
                         continue
                 instructions.transformations.append(tr)
-                data_files = glob.glob(
-                    os.path.join(str(root_directory / self.source_data_directory_base), "*.yaml")
-                )
+                data_files = glob.glob(os.path.join(str(root_directory / self.source_data_directory_base), "*.yaml"))
                 for data_file in data_files:
                     if target_schema_base and target_schema_base not in data_file:
                         continue

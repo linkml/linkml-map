@@ -34,12 +34,7 @@ def test_duplicate_keys_returns_a_row(index, tmp_path):
     This test documents the behavior without asserting which duplicate wins.
     """
     tsv = tmp_path / "dupes.tsv"
-    tsv.write_text(
-        "participant_id\tname\tage\n"
-        "P001\tAlice\t30\n"
-        "P001\tAlice-v2\t31\n"
-        "P002\tBob\t25\n"
-    )
+    tsv.write_text("participant_id\tname\tage\nP001\tAlice\t30\nP001\tAlice-v2\t31\nP002\tBob\t25\n")
     index.register_table("dupes", tsv, "participant_id")
     row = index.lookup_row("dupes", "participant_id", "P001")
 
@@ -53,12 +48,7 @@ def test_duplicate_keys_returns_a_row(index, tmp_path):
 def test_duplicate_keys_unique_rows_unaffected(index, tmp_path):
     """Rows with unique keys are unaffected by the presence of duplicates elsewhere."""
     tsv = tmp_path / "dupes.tsv"
-    tsv.write_text(
-        "id\tvalue\n"
-        "A\t1\n"
-        "A\t2\n"
-        "B\t3\n"
-    )
+    tsv.write_text("id\tvalue\nA\t1\nA\t2\nB\t3\n")
     index.register_table("dupes", tsv, "id")
     row = index.lookup_row("dupes", "id", "B")
     assert row is not None

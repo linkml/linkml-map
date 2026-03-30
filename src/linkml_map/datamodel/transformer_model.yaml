@@ -3,14 +3,14 @@ name: linkml-map
 title: LinkML Map Data Model
 description: |-
   Datamodel for LinkML schema mappings and transformations.
-  
+
   A mapper generates instances of a *target* data model from
   instances of a *source* data model. This transformation process
   is guided by a *TransformationSpecification*.
-  
+
   The specification is independent of any one method for transforming
   data. It allows different approaches, including:
-  
+
   - direct implementation, transforming python or json objects
   - translation of the specification into SQL commands, to operate on relations
   - translation of the specification into SPARQL CONSTRUCTs, to operate on triples
@@ -165,7 +165,7 @@ classes:
     is_a: SpecificationComponent
     abstract: true
     description: >-
-      An abstract grouping for classes that provide a specification of how to 
+      An abstract grouping for classes that provide a specification of how to
       derive a target element from a source element.
     attributes:
       name:
@@ -287,7 +287,7 @@ classes:
         multivalued: true
       object_derivations:
         description: >-
-          One or more object derivations used to construct the slot value(s), 
+          One or more object derivations used to construct the slot value(s),
           which must be instances of a class.
         range: ObjectDerivation
         multivalued: true
@@ -611,7 +611,7 @@ classes:
       3. If `exclude_all`, clean-up the above list. Effectively making previous steps useless.
       4. If `include`, add the specified sub-elements from the list result of previous steps.
 
-      Implementations might decide to somehow report (error, warning,...) meaningless combinations (like specifying `copy_all` and `exclude_all`). 
+      Implementations might decide to somehow report (error, warning,...) meaningless combinations (like specifying `copy_all` and `exclude_all`).
 
       Validation on the correctness of the resulting derived schema might be done optionally by the implementation.
       For example, removing a slot but keeping a class that requires it would invalidate the derived-schema.

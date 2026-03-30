@@ -18,58 +18,58 @@ URI: [linkmltr:PermissibleValueDerivation](https://w3id.org/linkml/transformer/P
  classDiagram
     class PermissibleValueDerivation
       ElementDerivation <|-- PermissibleValueDerivation
-      
+
       PermissibleValueDerivation : comments
-        
+
       PermissibleValueDerivation : copy_directives
-        
+
           PermissibleValueDerivation --> CopyDirective : copy_directives
-        
+
       PermissibleValueDerivation : description
-        
+
           PermissibleValueDerivation --> None : description
-        
+
       PermissibleValueDerivation : expr
-        
+
       PermissibleValueDerivation : expression_to_expression_mappings
-        
+
           PermissibleValueDerivation --> KeyVal : expression_to_expression_mappings
-        
+
       PermissibleValueDerivation : expression_to_value_mappings
-        
+
           PermissibleValueDerivation --> KeyVal : expression_to_value_mappings
-        
+
       PermissibleValueDerivation : hide
-        
+
       PermissibleValueDerivation : implements
-        
+
       PermissibleValueDerivation : is_a
-        
+
           PermissibleValueDerivation --> ElementDerivation : is_a
-        
+
       PermissibleValueDerivation : mirror_source
-        
+
       PermissibleValueDerivation : mixins
-        
+
           PermissibleValueDerivation --> ElementDerivation : mixins
-        
+
       PermissibleValueDerivation : name
-        
+
           PermissibleValueDerivation --> None : name
-        
+
       PermissibleValueDerivation : overrides
-        
+
           PermissibleValueDerivation --> Any : overrides
-        
+
       PermissibleValueDerivation : populated_from
-        
+
       PermissibleValueDerivation : sources
-        
+
       PermissibleValueDerivation : value_mappings
-        
+
           PermissibleValueDerivation --> KeyVal : value_mappings
-        
-      
+
+
 ```
 
 

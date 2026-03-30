@@ -528,8 +528,7 @@ class TestTransformSpecEngine:
         data_dir = tmp_path / "data"
         data_dir.mkdir()
         (data_dir / "Person.tsv").write_text(
-            "id\tname\tprimary_email\tage_in_years\tgender\n"
-            "P:001\tAlice\talice@example.com\t30\tcisgender woman\n"
+            "id\tname\tprimary_email\tage_in_years\tgender\nP:001\tAlice\talice@example.com\t30\tcisgender woman\n"
         )
 
         transform_path = tmp_path / "transform.yaml"
@@ -589,14 +588,10 @@ class TestTransformSpecEngine:
         data_dir = tmp_path / "data"
         data_dir.mkdir()
         (data_dir / "Person.tsv").write_text(
-            "id\tname\tprimary_email\tage_in_years\tgender\n"
-            "P:001\tAlice\talice@example.com\t30\tcisgender woman\n"
+            "id\tname\tprimary_email\tage_in_years\tgender\nP:001\tAlice\talice@example.com\t30\tcisgender woman\n"
         )
         # Extra file with no matching class_derivation
-        (data_dir / "Organization.tsv").write_text(
-            "id\tname\n"
-            "O:001\tAcme Corp\n"
-        )
+        (data_dir / "Organization.tsv").write_text("id\tname\nO:001\tAcme Corp\n")
 
         result = runner.invoke(
             main,
@@ -632,8 +627,7 @@ class TestContinueOnError:
         data_dir = tmp_path / "data"
         data_dir.mkdir()
         (data_dir / "Person.tsv").write_text(
-            "id\tname\tprimary_email\tage_in_years\tgender\n"
-            "P:001\tAlice\talice@example.com\t30\tcisgender woman\n"
+            "id\tname\tprimary_email\tage_in_years\tgender\nP:001\tAlice\talice@example.com\t30\tcisgender woman\n"
         )
         transform_path = tmp_path / "bad_transform.yaml"
         transform = {
@@ -654,9 +648,12 @@ class TestContinueOnError:
             main,
             [
                 "map-data",
-                "-T", str(transform_path),
-                "-s", str(sample_schema),
-                "-f", "jsonl",
+                "-T",
+                str(transform_path),
+                "-s",
+                str(sample_schema),
+                "-f",
+                "jsonl",
                 str(data_dir),
             ],
         )
@@ -695,9 +692,12 @@ class TestContinueOnError:
             main,
             [
                 "map-data",
-                "-T", str(transform_path),
-                "-s", str(sample_schema),
-                "-f", "jsonl",
+                "-T",
+                str(transform_path),
+                "-s",
+                str(sample_schema),
+                "-f",
+                "jsonl",
                 "--continue-on-error",
                 str(data_dir),
             ],
@@ -719,9 +719,12 @@ class TestContinueOnError:
             main,
             [
                 "map-data",
-                "-T", str(sample_transform),
-                "-s", str(sample_schema),
-                "-f", "jsonl",
+                "-T",
+                str(sample_transform),
+                "-s",
+                str(sample_schema),
+                "-f",
+                "jsonl",
                 "--continue-on-error",
                 str(sample_tsv_data),
             ],

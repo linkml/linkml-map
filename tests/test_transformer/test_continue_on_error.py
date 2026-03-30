@@ -19,7 +19,6 @@ from linkml_map.transformer.engine import transform_spec
 from linkml_map.transformer.errors import TransformationError
 from linkml_map.transformer.object_transformer import ObjectTransformer
 
-
 SCHEMA_YAML = textwrap.dedent("""\
     id: https://example.org/error-test
     name: error_test
@@ -150,9 +149,7 @@ def test_on_error_good_rows_yielded(data_dir_with_bad_row):
     # we get no results. Let's use a spec where only some rows fail instead.
     data_dir = data_dir_with_bad_row
     # Overwrite with mixed data: one row with valid expr input, one without
-    (data_dir / "Person.tsv").write_text(
-        "id\tname\tage\nP001\tAlice\t30\nP002\tBob\tnot_a_number\n"
-    )
+    (data_dir / "Person.tsv").write_text("id\tname\tage\nP001\tAlice\t30\nP002\tBob\tnot_a_number\n")
 
     # Use a spec with a simple populated_from that works for all rows
     spec_yaml = textwrap.dedent("""\
@@ -179,9 +176,7 @@ def test_multiple_errors_across_rows(tmp_path):
     """Multiple errors from different rows are all collected."""
     data_dir = tmp_path / "data"
     data_dir.mkdir()
-    (data_dir / "Person.tsv").write_text(
-        "id\tname\tage\nP001\tAlice\t30\nP002\tBob\t25\nP003\tCharlie\t35\n"
-    )
+    (data_dir / "Person.tsv").write_text("id\tname\tage\nP001\tAlice\t30\nP002\tBob\t25\nP003\tCharlie\t35\n")
 
     spec_yaml = textwrap.dedent("""\
         class_derivations:

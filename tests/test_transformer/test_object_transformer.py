@@ -51,16 +51,17 @@ TARGET_DATA = yaml.safe_load(open(str(PERSONINFO_TGT_DATA)))
 TARGET_OBJECT = yaml_loader.load(str(PERSONINFO_TGT_DATA), target_class=tgt_dm.Agent)
 
 CONTAINER_DATA = yaml.safe_load(open(str(PERSONINFO_CONTAINER_TGT_DATA)))
-CONTAINER_OBJECT = yaml_loader.load(
-    str(PERSONINFO_CONTAINER_TGT_DATA), target_class=tgt_dm.Container
-)
+CONTAINER_OBJECT = yaml_loader.load(str(PERSONINFO_CONTAINER_TGT_DATA), target_class=tgt_dm.Container)
+
 
 def inject_slot(schema_dict: dict, class_name: str, slot_name: str, slot_def: dict):
     schema_dict.setdefault("slots", {})[slot_name] = slot_def
     schema_dict["classes"][class_name].setdefault("slots", []).append(slot_name)
 
+
 def inject_enum(schema: dict, enum_name: str, values: list[str]) -> None:
-    schema["enums"][enum_name] = { "permissible_values": {val: {} for val in values} }
+    schema["enums"][enum_name] = {"permissible_values": {val: {} for val in values}}
+
 
 @pytest.fixture
 def obj_tr() -> ObjectTransformer:
@@ -122,6 +123,7 @@ def test_coerce(obj_tr: ObjectTransformer) -> None:
     x = obj_tr._coerce_datatype(5, "integer")  # noqa: SLF001
     assert x == 5
 
+
 def test_constant_value_slot_derivation() -> None:
     """
     Tests transforming using a constant value (via `value:` field).
@@ -133,11 +135,12 @@ def test_constant_value_slot_derivation() -> None:
     inject_slot(target_schema, "Agent", "study_name", {"range": "string"})
 
     transform_spec: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TR)))
-    transform_spec.setdefault("class_derivations", {}).setdefault("Agent", {}) \
-                  .setdefault("slot_derivations", {})["study_name"] = {
-                      "value": "Framingham",
-                      "range": "string",
-                  }
+    transform_spec.setdefault("class_derivations", {}).setdefault("Agent", {}).setdefault("slot_derivations", {})[
+        "study_name"
+    ] = {
+        "value": "Framingham",
+        "range": "string",
+    }
 
     obj_tr = ObjectTransformer(unrestricted_eval=True)
     obj_tr.source_schemaview = SchemaView(yaml.dump(source_schema))
@@ -151,12 +154,13 @@ def test_constant_value_slot_derivation() -> None:
     expected["study_name"] = "Framingham"
     assert target_dict == expected
 
+
 def test_value_mappings() -> None:
     """
     Tests transforming using value mappings.
     """
     source_schema: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_SRC_SCHEMA)))
-    work_int_dict = { "range": "integer", "minimum_value": 1, "maximum_value": 2}
+    work_int_dict = {"range": "integer", "minimum_value": 1, "maximum_value": 2}
     inject_slot(source_schema, "Person", "work_type", work_int_dict)
 
     target_schema: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TGT_SCHEMA)))
@@ -165,12 +169,10 @@ def test_value_mappings() -> None:
     inject_slot(target_schema, "Agent", "work_value", work_enum_dict)
 
     transform_spec: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TR)))
-    transform_spec_dict = {
-        "populated_from": "work_type",
-        "value_mappings": { "1": "Home", "2": "Office" }
-    }
-    transform_spec.setdefault("class_derivations", {}).setdefault("Agent", {}) \
-              .setdefault("slot_derivations", {})["work_value"] = transform_spec_dict
+    transform_spec_dict = {"populated_from": "work_type", "value_mappings": {"1": "Home", "2": "Office"}}
+    transform_spec.setdefault("class_derivations", {}).setdefault("Agent", {}).setdefault("slot_derivations", {})[
+        "work_value"
+    ] = transform_spec_dict
 
     obj_tr = ObjectTransformer(unrestricted_eval=True)
     obj_tr.source_schemaview = SchemaView(yaml.dump(source_schema))
@@ -183,6 +185,7 @@ def test_value_mappings() -> None:
     assert target_dict["work_value"] == "Home"
     TARGET_DATA["work_value"] = "Home"
     assert target_dict == TARGET_DATA
+
 
 def test_object_derivations() -> None:
     """
@@ -197,7 +200,8 @@ def test_object_derivations() -> None:
     sb_source.add_slot("phv00159573", range="string")
     sb_source.add_slot("phv00159578", range="integer")
     sb_source.add_slot("phv00159579", range="string")
-    sb_source.add_class("Person", slots=["phv00159563", "phv00159568", "phv00159569", "phv00159573", "phv00159578", "phv00159579"])
+    person_slots = ["phv00159563", "phv00159568", "phv00159569", "phv00159573", "phv00159578", "phv00159579"]
+    sb_source.add_class("Person", slots=person_slots)
     sb_source.add_defaults()
     source_schema = sb_source.schema
 
@@ -270,10 +274,10 @@ def test_object_derivations() -> None:
                 "condition_concept": "HP:0001683",
                 "condition_status": "ABSENT",
                 "condition_providence": "2",
-            }
-        ]
+            },
+        ],
     }
-    
+
     # Create ObjectTransformer and apply transformation
     transformer = ObjectTransformer(unrestricted_eval=True)
     transformer.source_schemaview = SchemaView(source_schema)
@@ -356,9 +360,7 @@ def test_transform_container_object(obj_tr: ObjectTransformer) -> None:
 
 
 def test_transform_object_container(obj_tr: ObjectTransformer) -> None:
-    """
-    Tests transforming a Container object holding several Person objects into Container object holding several Agent objects.
-    """
+    """Test transforming a Container of Person objects into a Container of Agent objects."""
     container_obj = yaml_loader.load(str(PERSONINFO_CONTAINER_DATA), target_class=src_dm.Container)
     target_obj = obj_tr.transform_object(container_obj, target_class=tgt_dm.Container)
     assert target_obj.agents[0] == TARGET_OBJECT
@@ -408,9 +410,7 @@ def test_index_dict() -> None:
 
 def test_index_obj() -> None:
     sv = SchemaView(NORM_SCHEMA)
-    mset: sssom_src_dm.MappingSet = yaml_loader.load(
-        str(FLATTENING_DATA), target_class=sssom_src_dm.MappingSet
-    )
+    mset: sssom_src_dm.MappingSet = yaml_loader.load(str(FLATTENING_DATA), target_class=sssom_src_dm.MappingSet)
     m = mset.mappings[0]
     tr = ObjectTransformer()
     tr.source_schemaview = sv
@@ -483,9 +483,7 @@ def test_denormalized_object_transform() -> None:
     tr.target_schemaview = SchemaView(DENORM_SCHEMA)
     tr.target_module = sssom_tgt_dm
     tr.load_transformer_specification(DENORM_SPECIFICATION)
-    mset: sssom_src_dm.MappingSet = yaml_loader.load(
-        str(FLATTENING_DATA), target_class=sssom_src_dm.MappingSet
-    )
+    mset: sssom_src_dm.MappingSet = yaml_loader.load(str(FLATTENING_DATA), target_class=sssom_src_dm.MappingSet)
     mapping = mset.mappings[0]
     assert mapping.subject == "X:1"
     assert mapping.object == "Y:1"
@@ -495,9 +493,7 @@ def test_denormalized_object_transform() -> None:
     mset_proxy = tr.object_index.bless(mset)
     assert mset_proxy.mappings[0].subject.id == "X:1"
     assert mset_proxy.mappings[0].subject.name == "x1"
-    target_obj: sssom_tgt_dm.MappingSet = tr.transform_object(
-        mset, target_class=sssom_tgt_dm.MappingSet
-    )
+    target_obj: sssom_tgt_dm.MappingSet = tr.transform_object(mset, target_class=sssom_tgt_dm.MappingSet)
     mapping = target_obj.mappings[0]
     assert mapping.subject_id == "X:1"
     assert mapping.subject_name == "x1"
@@ -552,9 +548,7 @@ def test_cardinalities(source_multivalued: bool, target_multivalued: bool, expli
     cd = ClassDerivation(name=class_name, populated_from=class_name)
     sd = SlotDerivation(name=att_name, populated_from=att_name)
     if explicit:
-        sd.cast_collection_as = (
-            CollectionType.MultiValued if target_multivalued else CollectionType.SingleValued
-        )
+        sd.cast_collection_as = CollectionType.MultiValued if target_multivalued else CollectionType.SingleValued
     specification.class_derivations.append(cd)
     cd.slot_derivations[att_name] = sd
     source_instance = {att_name: [val] if source_multivalued else val}
@@ -595,10 +589,11 @@ def test_derive_from_expr_unrestricted_fallback() -> None:
     transform_spec: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TR)))
 
     # Assignment syntax is rejected by simpleeval but handled by asteval
-    transform_spec.setdefault("class_derivations", {}).setdefault("Agent", {}) \
-                  .setdefault("slot_derivations", {})["label"] = {
-                      "expr": "target = name",
-                  }
+    transform_spec.setdefault("class_derivations", {}).setdefault("Agent", {}).setdefault("slot_derivations", {})[
+        "label"
+    ] = {
+        "expr": "target = name",
+    }
 
     obj_tr = ObjectTransformer(unrestricted_eval=True)
     obj_tr.source_schemaview = SchemaView(yaml.dump(source_schema))
@@ -616,10 +611,11 @@ def test_derive_from_expr_restricted_raises() -> None:
     target_schema: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TGT_SCHEMA)))
     transform_spec: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TR)))
 
-    transform_spec.setdefault("class_derivations", {}).setdefault("Agent", {}) \
-                  .setdefault("slot_derivations", {})["label"] = {
-                      "expr": "target = name",
-                  }
+    transform_spec.setdefault("class_derivations", {}).setdefault("Agent", {}).setdefault("slot_derivations", {})[
+        "label"
+    ] = {
+        "expr": "target = name",
+    }
 
     obj_tr = ObjectTransformer(unrestricted_eval=False)
     obj_tr.source_schemaview = SchemaView(yaml.dump(source_schema))
@@ -640,6 +636,7 @@ def test_self_transform() -> None:
     derived = tr.map_object(source_object)
     print(derived)
     print(yaml.dump(derived))
+
 
 def test_perform_unit_conversion_basic(obj_tr: ObjectTransformer):
     # Prepare a SlotDerivation with a unit_conversion object mock
@@ -672,8 +669,11 @@ def test_perform_unit_conversion_basic(obj_tr: ObjectTransformer):
 
     # Call the method
     context = DerivationContext(
-        source_obj=source_obj, source_obj_typed=None,
-        source_type="SomeType", sv=obj_tr.source_schemaview, class_deriv=MagicMock(),
+        source_obj=source_obj,
+        source_obj_typed=None,
+        source_type="SomeType",
+        sv=obj_tr.source_schemaview,
+        class_deriv=MagicMock(),
     )
     result = obj_tr._perform_unit_conversion(slot_derivation, context)
 
@@ -711,8 +711,11 @@ def test_perform_unit_conversion_structured_value(obj_tr: ObjectTransformer):
     obj_tr.source_schemaview.induced_slot = MagicMock(return_value=slot_mock)
 
     context = DerivationContext(
-        source_obj=source_obj, source_obj_typed=None,
-        source_type="SomeType", sv=obj_tr.source_schemaview, class_deriv=MagicMock(),
+        source_obj=source_obj,
+        source_obj_typed=None,
+        source_type="SomeType",
+        sv=obj_tr.source_schemaview,
+        class_deriv=MagicMock(),
     )
     result = obj_tr._perform_unit_conversion(slot_derivation, context)
 
@@ -742,8 +745,11 @@ def test_perform_unit_conversion_missing_value(obj_tr: ObjectTransformer):
 
     # Should return None if source value missing
     context = DerivationContext(
-        source_obj=source_obj, source_obj_typed=None,
-        source_type="SomeType", sv=obj_tr.source_schemaview, class_deriv=MagicMock(),
+        source_obj=source_obj,
+        source_obj_typed=None,
+        source_type="SomeType",
+        sv=obj_tr.source_schemaview,
+        class_deriv=MagicMock(),
     )
     result = obj_tr._perform_unit_conversion(slot_derivation, context)
     assert result is None
@@ -776,11 +782,15 @@ def test_perform_unit_conversion_raise_on_unit_mismatch(obj_tr: ObjectTransforme
     obj_tr.source_schemaview.induced_slot = MagicMock(return_value=slot_mock)
 
     context = DerivationContext(
-        source_obj=source_obj, source_obj_typed=None,
-        source_type="SomeType", sv=obj_tr.source_schemaview, class_deriv=MagicMock(),
+        source_obj=source_obj,
+        source_obj_typed=None,
+        source_type="SomeType",
+        sv=obj_tr.source_schemaview,
+        class_deriv=MagicMock(),
     )
     with pytest.raises(ValueError, match="Mismatch in source units"):
         obj_tr._perform_unit_conversion(slot_derivation, context)
+
 
 def test_offset_skipped_when_offset_field_missing():
     sb_source = SchemaBuilder()
@@ -796,15 +806,7 @@ def test_offset_skipped_when_offset_field_missing():
         "class_derivations": {
             "Person": {
                 "populated_from": "Person",
-                "slot_derivations": {
-                    "age": {
-                        "value": 30,
-                        "offset": {
-                            "offset_field": "days",
-                            "offset_value": 1
-                        }
-                    }
-                }
+                "slot_derivations": {"age": {"value": 30, "offset": {"offset_field": "days", "offset_value": 1}}},
             }
         }
     }
@@ -817,6 +819,7 @@ def test_offset_skipped_when_offset_field_missing():
     result = transformer.map_object({}, source_type="Person")
 
     assert result["age"] == 30
+
 
 def test_offset_applied_addition():
     sb_source = SchemaBuilder()
@@ -842,7 +845,7 @@ def test_offset_applied_addition():
                             "offset_value": 1,
                         },
                     }
-                }
+                },
             }
         }
     }
@@ -852,12 +855,10 @@ def test_offset_applied_addition():
     transformer.target_schemaview = SchemaView(sb_target.schema)
     transformer.create_transformer_specification(transform_spec)
 
-    result = transformer.map_object(
-        {"age_at_start": 30, "days": 5},
-        source_type="Person"
-    )
+    result = transformer.map_object({"age_at_start": 30, "days": 5}, source_type="Person")
 
     assert result["age"] == 35
+
 
 def test_offset_reverse_subtraction():
     sb_source = SchemaBuilder()
@@ -884,7 +885,7 @@ def test_offset_reverse_subtraction():
                             "offset_reverse": True,
                         },
                     }
-                }
+                },
             }
         }
     }
@@ -894,9 +895,6 @@ def test_offset_reverse_subtraction():
     transformer.target_schemaview = SchemaView(sb_target.schema)
     transformer.create_transformer_specification(transform_spec)
 
-    result = transformer.map_object(
-        {"age_at_measurement": 30, "days": 5},
-        source_type="Person"
-    )
+    result = transformer.map_object({"age_at_measurement": 30, "days": 5}, source_type="Person")
 
     assert result["age_at_start"] == 25

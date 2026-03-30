@@ -1,10 +1,10 @@
 """Tests all command-line subcommands."""
 
 import json
+import re
 from collections.abc import Generator
 from pathlib import Path
-import re
-from typing import Any, Optional, Union
+from typing import Optional, Union
 
 import pytest
 import yaml
@@ -121,9 +121,7 @@ def test_compile(
 
 
 @pytest.mark.parametrize("output", [None, "output.yaml"])
-def test_derive_schema(
-    runner: CliRunner, output: Optional[str], tmp_path: Generator[Path, None, None]
-) -> None:
+def test_derive_schema(runner: CliRunner, output: Optional[str], tmp_path: Generator[Path, None, None]) -> None:
     """
     Test schema derivation.
 
@@ -215,9 +213,7 @@ def test_dump_output(
 
     # if there is no `output_format` key, this data cannot be dumped
     if output_format not in EXPECTED_OUTPUT[output_data]:
-        with pytest.raises(
-            TypeError, match=re.escape(f"write() argument must be str, not {output_data}")
-        ):
+        with pytest.raises(TypeError, match=re.escape(f"write() argument must be str, not {output_data}")):
             dump_output(EXPECTED_OUTPUT[output_data]["input"], output_format, file_path)
         return
 
@@ -273,6 +269,7 @@ def test_dump_output_supported_formats(
         assert len(lines) == 1
         # Verify it's valid JSON
         import json
+
         json.loads(lines[0])
     elif output_format in ("tsv", "csv"):
         assert "name" in captured.out

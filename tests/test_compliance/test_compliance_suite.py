@@ -39,9 +39,9 @@ from linkml_map.datamodel.transformer_model import (
     TransformationSpecification,
 )
 from linkml_map.functions.unit_conversion import DimensionalityError, UndefinedUnitError
-from linkml_map.transformer.errors import TransformationError
 from linkml_map.inference.inverter import TransformationSpecificationInverter
 from linkml_map.inference.schema_mapper import SchemaMapper
+from linkml_map.transformer.errors import TransformationError
 from linkml_map.transformer.object_transformer import ObjectTransformer
 
 today = date.today()
@@ -101,9 +101,7 @@ def build_transformer(**kwargs: dict[str, Any]) -> TransformationSpecification:
     return mapper.specification
 
 
-def create_compilers(
-    spec: TransformationSpecification, expected_map: dict[ModuleType, str]
-) -> None:
+def create_compilers(spec: TransformationSpecification, expected_map: dict[ModuleType, str]) -> None:
     """
     Test compilation of transformation specifications to other languages.
 
@@ -182,9 +180,7 @@ def map_object(
         target_object = None
     else:
         target_object = mapper.map_object(source_object)
-    assert target_object == expected_target_object, (
-        f"failed to map {source_object} to {expected_target_object}"
-    )
+    assert target_object == expected_target_object, f"failed to map {source_object} to {expected_target_object}"
     assert not DeepDiff(target_object, expected_target_object), "unexpected differences"
     print("**Object Transformation**:\n")
     if raises_error:
@@ -211,9 +207,7 @@ def map_object(
         inv_target_object = inv_mapper.map_object(target_object)
         if roundtrip_object is None:
             roundtrip_object = source_object
-        assert inv_target_object == roundtrip_object, (
-            f"failed to invert {target_object} to {source_object}"
-        )
+        assert inv_target_object == roundtrip_object, f"failed to invert {target_object} to {source_object}"
     return State(
         schema_mapper=schema_mapper,
         object_transformer=mapper,
@@ -223,12 +217,8 @@ def map_object(
 
 def ensure_validates(target_schema: SchemaDefinition, target_object: Any) -> None:
     """Run the JsonSchema validator on a target_object."""
-    target_validator = Validator(
-        yaml_dumper.dumps(target_schema), validation_plugins=[JsonschemaValidationPlugin()]
-    )
-    assert list(target_validator.iter_results(target_object)) == [], (
-        f"failed to validate {target_object}"
-    )
+    target_validator = Validator(yaml_dumper.dumps(target_schema), validation_plugins=[JsonschemaValidationPlugin()])
+    assert list(target_validator.iter_results(target_object)) == [], f"failed to validate {target_object}"
 
 
 @pytest.fixture
@@ -388,14 +378,10 @@ def test_map_collections(
     else:
         print("Should coerce datatype\n")
     source_collection_type = (
-        CollectionType.MultiValuedList
-        if isinstance(source_value, list)
-        else CollectionType.MultiValuedDict
+        CollectionType.MultiValuedList if isinstance(source_value, list) else CollectionType.MultiValuedDict
     )
     target_collection_type = (
-        CollectionType.MultiValuedList
-        if isinstance(target_value, list)
-        else CollectionType.MultiValuedDict
+        CollectionType.MultiValuedList if isinstance(target_value, list) else CollectionType.MultiValuedDict
     )
     classes = {
         "C": {

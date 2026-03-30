@@ -17,7 +17,6 @@ from linkml_map.loaders.data_loaders import DataLoader
 from linkml_map.transformer.engine import transform_spec
 from linkml_map.transformer.object_transformer import ObjectTransformer
 
-
 # ---- fixtures ----
 
 SOURCE_SCHEMA_YAML = textwrap.dedent("""\
@@ -80,16 +79,9 @@ def data_dir(tmp_path):
         "S003\tP999\tglucose\t6.1\n"  # P999 has no demographics row
     )
     demo = tmp_path / "demographics.tsv"
-    demo.write_text(
-        "participant_id\tage_at_exam\tsex\n"
-        "P001\t30\tF\n"
-        "P002\t45\tM\n"
-    )
+    demo.write_text("participant_id\tage_at_exam\tsex\nP001\t30\tF\nP002\t45\tM\n")
     site = tmp_path / "site_info.tsv"
-    site.write_text(
-        "site_code\tsite_name\n"
-        "SITE_A\tBoston Medical\n"
-    )
+    site.write_text("site_code\tsite_name\nSITE_A\tBoston Medical\n")
     return tmp_path
 
 
@@ -252,19 +244,10 @@ def test_multiple_joined_tables(data_dir, source_sv, target_sv, tmp_path):
     """Multiple secondary tables can be joined in a single class_derivation."""
     # Add a site_code column to lab_results
     lab = tmp_path / "lab_results.tsv"
-    lab.write_text(
-        "sample_id\tparticipant_id\tanalyte\tresult_value\tsite_code\n"
-        "S001\tP001\tglucose\t5.5\tSITE_A\n"
-    )
+    lab.write_text("sample_id\tparticipant_id\tanalyte\tresult_value\tsite_code\nS001\tP001\tglucose\t5.5\tSITE_A\n")
     # Copy demographics and site_info to tmp_path (already in data_dir fixture)
-    (tmp_path / "demographics.tsv").write_text(
-        "participant_id\tage_at_exam\tsex\n"
-        "P001\t30\tF\n"
-    )
-    (tmp_path / "site_info.tsv").write_text(
-        "site_code\tsite_name\n"
-        "SITE_A\tBoston Medical\n"
-    )
+    (tmp_path / "demographics.tsv").write_text("participant_id\tage_at_exam\tsex\nP001\t30\tF\n")
+    (tmp_path / "site_info.tsv").write_text("site_code\tsite_name\nSITE_A\tBoston Medical\n")
 
     # Extend source schema to include site_code on lab_results
     src_yaml = textwrap.dedent("""\

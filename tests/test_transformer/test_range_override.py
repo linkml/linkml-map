@@ -32,6 +32,7 @@ from linkml_map.transformer.object_transformer import ObjectTransformer
 # Schema helpers
 # ---------------------------------------------------------------------------
 
+
 def _source_schema_flat() -> SchemaBuilder:
     """Source schema with separate depth_value / depth_unit string fields."""
     sb = SchemaBuilder()
@@ -99,10 +100,7 @@ TRANSFORM_CONSTRUCT: dict[str, Any] = {
             "slot_derivations": {
                 "id": {},
                 "depth": {
-                    "expr": (
-                        '{"has_numeric_value": float(depth_value),'
-                        ' "has_unit": depth_unit}'
-                    ),
+                    "expr": ('{"has_numeric_value": float(depth_value), "has_unit": depth_unit}'),
                 },
             },
         },
@@ -116,10 +114,7 @@ TRANSFORM_PARSE: dict[str, Any] = {
             "slot_derivations": {
                 "id": {},
                 "depth": {
-                    "expr": (
-                        '{"has_numeric_value": float(depth.split(" ")[0]),'
-                        ' "has_unit": depth.split(" ")[1]}'
-                    ),
+                    "expr": ('{"has_numeric_value": float(depth.split(" ")[0]), "has_unit": depth.split(" ")[1]}'),
                 },
             },
         },
@@ -130,6 +125,7 @@ TRANSFORM_PARSE: dict[str, Any] = {
 # ---------------------------------------------------------------------------
 # Helper
 # ---------------------------------------------------------------------------
+
 
 def _run(
     source_schema: SchemaBuilder,
@@ -150,6 +146,7 @@ def _run(
 # Test A -- string -> string passthrough (baseline)
 # ---------------------------------------------------------------------------
 
+
 def test_passthrough_string_to_string() -> None:
     """Depth stays a plain string when both schemas use range: string."""
     result = _run(
@@ -165,6 +162,7 @@ def test_passthrough_string_to_string() -> None:
 # ---------------------------------------------------------------------------
 # Test B -- construct QuantityValue from separate sub-fields via expr
 # ---------------------------------------------------------------------------
+
 
 def test_construct_object_from_subfields() -> None:
     """Build a QuantityValue dict from depth_value and depth_unit via expr."""
@@ -186,6 +184,7 @@ def test_construct_object_from_subfields() -> None:
 # Test C -- parse "5 m" string into QuantityValue via expr
 # ---------------------------------------------------------------------------
 
+
 def test_parse_string_into_object() -> None:
     """Parse a composite '5 m' string into a QuantityValue dict via expr."""
     result = _run(
@@ -205,6 +204,7 @@ def test_parse_string_into_object() -> None:
 # ---------------------------------------------------------------------------
 # Test D -- malformed parse inputs yield None
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.parametrize(
     "depth_input",
@@ -232,6 +232,7 @@ def test_parse_expr_malformed_input_yields_none(depth_input: Optional[str]) -> N
 # Test E -- non-numeric depth_value in construct expr
 # ---------------------------------------------------------------------------
 
+
 def test_construct_non_numeric_depth_value_yields_none() -> None:
     """float('five') fails; simpleeval catches the error and returns None."""
     result = _run(
@@ -248,6 +249,7 @@ def test_construct_non_numeric_depth_value_yields_none() -> None:
 # ---------------------------------------------------------------------------
 # Test F -- validation gap: wrong keys pass through unchecked
 # ---------------------------------------------------------------------------
+
 
 def test_wrong_keys_pass_without_validation() -> None:
     """

@@ -38,6 +38,3 @@ URI: [xsd:anyURI](http://www.w3.org/2001/XMLSchema#anyURI)
 
 
 * from schema: https://w3id.org/linkml/transformer
-
-
-

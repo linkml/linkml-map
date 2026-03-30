@@ -143,9 +143,7 @@ def map_data(
         linkml-map map-data -T transform.yaml -s schema.yaml -f jsonl -O out.tsv -O out.json input.tsv
 
     """
-    logger.info(
-        f"Transforming {input_data} conforming to {schema} using {transformer_specification}"
-    )
+    logger.info(f"Transforming {input_data} conforming to {schema} using {transformer_specification}")
 
     input_path = Path(input_data)
 
@@ -230,7 +228,6 @@ def _map_data_single(
         click.echo(f"  - {err}", err=True)
         raise SystemExit(1) from err
     dump_output(tr_obj, output_format, output)
-
 
 
 def _build_additional_outputs(
@@ -323,9 +320,7 @@ def _map_data_streaming(
             tmp_path = output + ".tmp"
             with open(output, encoding="utf-8") as src, open(tmp_path, "w", encoding="utf-8") as dst:
                 separator = "\t" if output_format == "tsv" else ","
-                for line in rewrite_header_and_pad(
-                    iter(src), stream_writer.headers, separator, chunk_size
-                ):
+                for line in rewrite_header_and_pad(iter(src), stream_writer.headers, separator, chunk_size):
                     dst.write(line)
             os.replace(tmp_path, output)
 
@@ -469,9 +464,7 @@ def dump_output(
         text_dump = json.dumps(_strip_nulls(output_data), indent=2, ensure_ascii=False) + "\n"
     elif output_format == "jsonl":
         if isinstance(output_data, list):
-            text_dump = "\n".join(
-                json.dumps(_strip_nulls(item), ensure_ascii=False) for item in output_data
-            ) + "\n"
+            text_dump = "\n".join(json.dumps(_strip_nulls(item), ensure_ascii=False) for item in output_data) + "\n"
         else:
             text_dump = json.dumps(_strip_nulls(output_data), ensure_ascii=False) + "\n"
     elif output_format in ("tsv", "csv"):

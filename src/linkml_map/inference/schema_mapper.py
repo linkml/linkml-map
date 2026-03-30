@@ -45,9 +45,7 @@ class SchemaMapper:
 
     transformer: Transformer = None
 
-    source_to_target_class_mappings: dict[str, list[str]] = field(
-        default_factory=lambda: defaultdict(list)
-    )
+    source_to_target_class_mappings: dict[str, list[str]] = field(default_factory=lambda: defaultdict(list))
 
     slot_info: dict[tuple[str, str], Any] = field(default_factory=dict)
 
@@ -223,9 +221,7 @@ class SchemaMapper:
         if class_derivation.mixins:
             target_class.mixins = class_derivation.mixins
         if class_derivation.target_definition:
-            spec_defn = ClassDefinition(
-                name=target_class.name, **class_derivation.target_definition
-            )
+            spec_defn = ClassDefinition(name=target_class.name, **class_derivation.target_definition)
             for k, v in vars(spec_defn).items():
                 curr_v = getattr(target_class, k, None)
                 if curr_v is None or curr_v in ([], {}):
@@ -238,9 +234,7 @@ class SchemaMapper:
             target_class = ClassDefinition(**curr)
         return target_class
 
-    def _merge_class_definition(
-        self, existing: ClassDefinition, incoming: ClassDefinition
-    ) -> None:
+    def _merge_class_definition(self, existing: ClassDefinition, incoming: ClassDefinition) -> None:
         """
         Merge an incoming ClassDefinition into an existing one.
 
@@ -261,8 +255,7 @@ class SchemaMapper:
                 continue
             if attr_name in existing.attributes:
                 logger.warning(
-                    "Slot '%s' in class '%s' defined by multiple derivations; "
-                    "later derivation wins",
+                    "Slot '%s' in class '%s' defined by multiple derivations; later derivation wins",
                     attr_name,
                     existing.name,
                 )
@@ -362,9 +355,7 @@ class SchemaMapper:
         if slot_derivation.dictionary_key:
             target_slot.inlined = True
             target_slot.inlined_as_list = False
-            self.slot_info[(target_slot.range, slot_derivation.dictionary_key)] = {
-                "identifier": True
-            }
+            self.slot_info[(target_slot.range, slot_derivation.dictionary_key)] = {"identifier": True}
         if slot_derivation.cast_collection_as:
             if slot_derivation.cast_collection_as == CollectionType.MultiValued:
                 target_slot.inlined = True
@@ -386,9 +377,7 @@ class SchemaMapper:
         mixins = [self._rewire_parent(class_definition, m) for m in class_definition.mixins]
         class_definition.mixins = [m for m in mixins if m is not None]
 
-    def _rewire_parent(
-        self, class_definition: ClassDefinition, parent: ClassDefinitionName
-    ) -> Optional[str]:
+    def _rewire_parent(self, class_definition: ClassDefinition, parent: ClassDefinitionName) -> Optional[str]:
         if parent in self.source_to_target_class_mappings:
             new_parents = self.source_to_target_class_mappings[parent]
             if len(new_parents) > 1:
