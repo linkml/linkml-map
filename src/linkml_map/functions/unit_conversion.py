@@ -53,7 +53,9 @@ class DimensionalityError(Exception):
     """
 
 
-def convert_units(magnitude: float, from_unit: str, to_unit: str, system: Optional[UnitSystem] = None) -> Any:
+def convert_units(
+    magnitude: Union[float, int, str], from_unit: str, to_unit: str, system: Optional[UnitSystem] = None
+) -> Any:
     """
     Convert a quantity between units.
 
