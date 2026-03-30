@@ -415,6 +415,13 @@ classes:
       source_magnitude_slot:
       target_unit_slot:
       target_magnitude_slot:
+      none_if_non_numeric:
+        range: boolean
+        description: >-
+          If true, return None when the source value cannot be coerced to a
+          numeric type instead of raising an error. This is an explicit opt-in
+          for columns that contain non-numeric coded values (e.g. 'A', 'M')
+          mixed with numeric data.
 
   Offset:
     description: >-
