@@ -42,9 +42,10 @@ def dynamic_object(obj: dict, sv: SchemaView, target: str):
                 v = [dynamic_object(x, sv, rng) for x in v]
             if isinstance(v, dict):
                 v = {xk: dynamic_object(x, sv, rng) for xk, x in v.items()}
-                id_slot = sv.get_identifier_slot(slot.range)
-                for k1, v1 in v.items():
-                    setattr(v1, id_slot.name, k1)
+                id_slot = sv.get_identifier_slot(slot.range) or sv.get_identifier_slot(slot.range, use_key=True)
+                if id_slot is not None:
+                    for k1, v1 in v.items():
+                        setattr(v1, id_slot.name, k1)
         else:
             v = dynamic_object(v, sv, rng)
         attrs[k] = v
