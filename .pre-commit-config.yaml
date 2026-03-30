@@ -3,11 +3,11 @@ repos:
     rev: v4.4.0
     hooks:
       - id: end-of-file-fixer
-        exclude: ^tests/input/
+        exclude: ^(tests/input/|src/linkml_map/datamodel/)
       - id: check-yaml
       - id: check-toml
       - id: trailing-whitespace
-        exclude: ^tests/input/
+        exclude: ^(tests/input/|src/linkml_map/datamodel/)
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.11.13
