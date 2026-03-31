@@ -193,9 +193,18 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
         for op_type in (ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE):
             self.operators[op_type] = _coercing(self.operators[op_type])
         for op_type in (
-            ast.Add, ast.Sub, ast.Mult, ast.Div, ast.FloorDiv,
-            ast.Mod, ast.Pow, ast.LShift, ast.RShift,
-            ast.BitXor, ast.BitOr, ast.BitAnd,
+            ast.Add,
+            ast.Sub,
+            ast.Mult,
+            ast.Div,
+            ast.FloorDiv,
+            ast.Mod,
+            ast.Pow,
+            ast.LShift,
+            ast.RShift,
+            ast.BitXor,
+            ast.BitOr,
+            ast.BitAnd,
         ):
             self.operators[op_type] = _null_propagating(self.operators[op_type])
         for op_type in (ast.USub, ast.UAdd, ast.Invert):
