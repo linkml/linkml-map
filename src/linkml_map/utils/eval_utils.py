@@ -4,8 +4,9 @@ Restricted expression evaluator for LinkML transformation expressions.
 Built on `simpleeval <https://github.com/danthedeckie/simpleeval>`_, with
 LinkML-specific extensions:
 
-- ``{x}`` null-propagation syntax: if any ``{var}`` resolves to None,
-  the entire expression evaluates to None.
+- SQL-style NULL propagation: None flows through arithmetic and function
+  calls (returning None) while comparisons evaluate naturally (None == "x"
+  is False).  Both ``{x}`` and bare ``x`` resolve identically.
 - Distribution over collections: ``container.persons.name`` returns a list
   of names when ``persons`` is a list.
 - Accepts any ``collections.abc.Mapping`` as variable bindings (for lazy resolution).
@@ -20,10 +21,6 @@ from collections.abc import Mapping
 from typing import Any
 
 from simpleeval import EvalWithCompoundTypes, NameNotDefined
-
-
-class UnsetValueError(Exception):
-    """Raise when a required ``{variable}`` binding is None."""
 
 
 def eval_conditional(*conds: tuple[bool, Any]) -> Any:  # noqa: ANN401
@@ -74,12 +71,27 @@ def _uuid5(namespace: str, name: str) -> str:
     return str(uuid.uuid5(ns, name))
 
 
+def _null_safe(func):  # noqa: ANN001, ANN202
+    """Wrap a function to return None if any argument is None."""
+
+    def wrapper(*args: Any) -> Any:  # noqa: ANN401
+        if any(a is None for a in args):
+            return None
+        return func(*args)
+
+    wrapper.__name__ = func.__name__
+    return wrapper
+
+
 def _distributing(func):  # noqa: ANN001, ANN202
-    """Wrap a scalar function so it distributes over list arguments."""
+    """Wrap a scalar function so it distributes over lists and propagates None."""
 
     def wrapper(*args: Any) -> Any:  # noqa: ANN401
         if args and isinstance(args[0], list):
-            return [func(x, *args[1:]) for x in args[0]]
+            tail = args[1:]
+            return [_null_safe(func)(x, *tail) for x in args[0]]
+        if any(a is None for a in args):
+            return None
         return func(*args)
 
     wrapper.__name__ = func.__name__
@@ -88,9 +100,9 @@ def _distributing(func):  # noqa: ANN001, ANN202
 
 #: Functions that accept a list as their first argument (no distribution).
 _LIST_FUNCTIONS: dict[str, Any] = {
-    "max": max,
-    "min": min,
-    "len": len,
+    "max": _null_safe(max),
+    "min": _null_safe(min),
+    "len": _null_safe(len),
 }
 
 #: Functions that operate on scalars and should distribute over lists.
@@ -146,6 +158,28 @@ def _maybe_coerce_numeric(left: Any, right: Any) -> tuple[Any, Any]:  # noqa: AN
     return left, right
 
 
+def _null_propagating(op):  # noqa: ANN001, ANN202
+    """Wrap a binary operator to return None if either operand is None."""
+
+    def wrapper(left: Any, right: Any) -> Any:  # noqa: ANN401
+        if left is None or right is None:
+            return None
+        return op(left, right)
+
+    return wrapper
+
+
+def _null_propagating_unary(op):  # noqa: ANN001, ANN202
+    """Wrap a unary operator to return None if the operand is None."""
+
+    def wrapper(operand: Any) -> Any:  # noqa: ANN401
+        if operand is None:
+            return None
+        return op(operand)
+
+    return wrapper
+
+
 def _coercing(op):  # noqa: ANN001, ANN202
     """Wrap a comparison operator to coerce numeric strings before comparing."""
 
@@ -162,8 +196,8 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
 
     Extends ``simpleeval.EvalWithCompoundTypes`` with:
 
+    - SQL-style NULL propagation for arithmetic and function calls
     - Distribution over lists/dicts on attribute access
-    - ``{x}`` null-propagation via overridden set evaluation
     - Numeric-string coercion for comparison operators
     """
 
@@ -171,6 +205,23 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
         super().__init__(**kwargs)
         for op_type in (ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE):
             self.operators[op_type] = _coercing(self.operators[op_type])
+        for op_type in (
+            ast.Add,
+            ast.Sub,
+            ast.Mult,
+            ast.Div,
+            ast.FloorDiv,
+            ast.Mod,
+            ast.Pow,
+            ast.LShift,
+            ast.RShift,
+            ast.BitXor,
+            ast.BitOr,
+            ast.BitAnd,
+        ):
+            self.operators[op_type] = _null_propagating(self.operators[op_type])
+        for op_type in (ast.USub, ast.UAdd, ast.Invert):
+            self.operators[op_type] = _null_propagating_unary(self.operators[op_type])
 
     def _eval_name(self, node: ast.Name) -> Any:  # noqa: ANN401
         """
@@ -186,10 +237,11 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
 
     def _eval_set(self, node: ast.Set) -> Any:  # noqa: ANN401
         """
-        Override set evaluation for ``{x}`` null-propagation syntax.
+        Override set evaluation for ``{x}`` variable reference syntax.
 
-        In the LinkML expression language, ``{x}`` is not a set literal —
-        it means "resolve x, but if x is None, abort the entire expression."
+        In the LinkML expression language, ``{x}`` resolves the variable x.
+        If x is None, None is returned (SQL-style null propagation).
+        ``{x}`` and bare ``x`` are equivalent.
         """
         if len(node.elts) != 1:
             msg = "The {} must enclose a single variable"
@@ -198,12 +250,7 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
         if not isinstance(e, (ast.Name, ast.Attribute)):
             msg = "The {} must enclose a variable"
             raise TypeError(msg)
-        v = self._eval(e)
-        if v is None:
-            label = ast.dump(e) if isinstance(e, ast.Attribute) else e.id
-            msg = f"{label} is not set"
-            raise UnsetValueError(msg)
-        return v
+        return self._eval(e)
 
     def _eval_attribute(self, node: ast.Attribute) -> Any:  # noqa: ANN401
         """
@@ -260,10 +307,7 @@ def eval_expr_with_mapping(expr: str, mapping: Mapping) -> Any:  # noqa: ANN401
     if expr == "None":
         return None
     evaluator = _make_evaluator(names=mapping)
-    try:
-        return evaluator.eval(expr)
-    except UnsetValueError:
-        return None
+    return evaluator.eval(expr)
 
 
 def eval_expr(expr: str, **kwargs: Any) -> Any:  # noqa: ANN401
@@ -285,17 +329,30 @@ def eval_expr(expr: str, **kwargs: Any) -> Any:  # noqa: ANN401
 
     Variables:
 
-    variables can be passed
+    variables can be passed using ``{x}`` or bare ``x`` — both are equivalent
 
     >>> eval_expr('{x} + {y}', x=1, y=2)
+    3
+    >>> eval_expr('x + y', x=1, y=2)
     3
 
     Nulls:
 
-    - If a variable is enclosed in {}s then entire expression will eval to None if variable is unset
+    None propagates through arithmetic and function calls (SQL-style):
 
     >>> print(eval_expr('{x} + {y}', x=None, y=2))
     None
+    >>> print(eval_expr('x + 1', x=None))
+    None
+    >>> print(eval_expr('float(x)', x=None))
+    None
+
+    But comparisons work naturally, enabling case() branching on null values:
+
+    >>> eval_expr('case((x == "1", "YES"), (True, "NO"))', x=None)
+    'NO'
+    >>> eval_expr('case(({x} == "1", "YES"), (True, "NO"))', x=None)
+    'NO'
 
     Comparisons:
 
