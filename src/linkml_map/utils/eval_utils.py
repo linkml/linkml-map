@@ -198,7 +198,8 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
 
     Extends ``simpleeval.EvalWithCompoundTypes`` with:
 
-    - SQL-style NULL propagation for arithmetic and function calls
+    - SQL-style NULL propagation for arithmetic, ordering comparisons,
+      membership tests, and function calls
     - Distribution over lists/dicts on attribute access
     - Numeric-string coercion for comparison operators
     """
