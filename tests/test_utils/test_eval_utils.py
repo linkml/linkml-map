@@ -8,7 +8,7 @@ from typing import Any, Optional
 
 import pytest
 
-from linkml_map.utils.eval_utils import UnsetValueError, _uuid5, eval_expr
+from linkml_map.utils.eval_utils import _uuid5, eval_expr
 
 # -- helpers for path / attribute tests --
 
@@ -212,19 +212,35 @@ def test_curly_variable() -> None:
 
 
 def test_null_propagation() -> None:
-    """If a {var} is None, the entire expression evaluates to None."""
+    """None propagates through arithmetic: {x} + {y} returns None if either is None."""
     assert eval_expr("{x} + {y}", x=None, y=2) is None
 
 
 def test_null_propagation_both_none() -> None:
-    """Null propagation works when all variables are None."""
+    """None propagates through arithmetic when all variables are None."""
     assert eval_expr("{x} + {y}", x=None, y=None) is None
 
 
-def test_bare_none_no_propagation() -> None:
-    """Bare variables (no braces) do NOT trigger null propagation."""
+def test_bare_null_propagation() -> None:
+    """Bare variables propagate None through arithmetic, same as {x}."""
+    assert eval_expr("x + 1", x=None) is None
+    assert eval_expr("x + y", x=None, y=2) is None
+    assert eval_expr("x + y", x=1, y=None) is None
+
+
+def test_null_in_conditional() -> None:
+    """None values work in conditionals and case() branching."""
     assert eval_expr("'NOT_NULL' if x else 'NULL'", x=None) == "NULL"
     assert eval_expr("'NOT_NULL' if x else 'NULL'", x=1) == "NOT_NULL"
+    assert eval_expr('case((x == "1", "YES"), (True, "NO"))', x=None) == "NO"
+    assert eval_expr('case(({x} == "1", "YES"), (True, "NO"))', x=None) == "NO"
+
+
+def test_null_in_function_call() -> None:
+    """None propagates through function calls."""
+    assert eval_expr("float(x)", x=None) is None
+    assert eval_expr("strlen(x)", x=None) is None
+    assert eval_expr("abs(x)", x=None) is None
 
 
 def test_unbound_variable() -> None:
@@ -498,13 +514,12 @@ def test_set_must_enclose_name() -> None:
         eval_expr("{1 + 2}")
 
 
-def test_unset_value_error_raised() -> None:
-    """UnsetValueError is raised for None-valued {var} references."""
+def test_curly_braces_resolve_none() -> None:
+    """{x} resolves to None when the variable is None (no exception)."""
     from linkml_map.utils.eval_utils import LinkMLEvaluator
 
     evaluator = LinkMLEvaluator(names={"x": None})
-    with pytest.raises(UnsetValueError):
-        evaluator.eval("{x}")
+    assert evaluator.eval("{x}") is None
 
 
 # ---- Mapping integration ----

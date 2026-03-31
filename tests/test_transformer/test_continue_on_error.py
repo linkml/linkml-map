@@ -98,7 +98,7 @@ def data_dir_with_bad_row(tmp_path):
 
 def test_on_error_collects_errors(data_dir_with_bad_row):
     """With on_error callback, bad rows are collected and good rows are yielded."""
-    # Use an expr that will fail on every row (references undefined variable)
+    # Use an expr that will fail on every row (division by zero)
     spec_yaml = textwrap.dedent("""\
         class_derivations:
           Person:
@@ -106,7 +106,7 @@ def test_on_error_collects_errors(data_dir_with_bad_row):
             slot_derivations:
               id: {}
               computed:
-                expr: "undefined_var + 1"
+                expr: "1 / 0"
     """)
     tr = _make_transformer(spec_yaml)
     loader = DataLoader(data_dir_with_bad_row)
@@ -114,7 +114,7 @@ def test_on_error_collects_errors(data_dir_with_bad_row):
     errors: list[TransformationError] = []
     results = list(transform_spec(tr, loader, on_error=errors.append))
 
-    # All rows should fail (expr references undefined var)
+    # All rows should fail (division by zero)
     assert len(errors) == 2
     assert len(results) == 0
 
@@ -134,7 +134,7 @@ def test_on_error_none_preserves_fail_fast(data_dir_with_bad_row):
             slot_derivations:
               id: {}
               computed:
-                expr: "undefined_var + 1"
+                expr: "1 / 0"
     """)
     tr = _make_transformer(spec_yaml)
     loader = DataLoader(data_dir_with_bad_row)
@@ -185,7 +185,7 @@ def test_multiple_errors_across_rows(tmp_path):
             slot_derivations:
               id: {}
               bad_field:
-                expr: "nonexistent + 1"
+                expr: "1 / 0"
     """)
     tr = _make_transformer(spec_yaml)
     loader = DataLoader(data_dir)
