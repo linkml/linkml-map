@@ -71,12 +71,25 @@ def _uuid5(namespace: str, name: str) -> str:
     return str(uuid.uuid5(ns, name))
 
 
+def _null_safe(func):  # noqa: ANN001, ANN202
+    """Wrap a function to return None if any argument is None."""
+
+    def wrapper(*args: Any) -> Any:  # noqa: ANN401
+        if any(a is None for a in args):
+            return None
+        return func(*args)
+
+    wrapper.__name__ = func.__name__
+    return wrapper
+
+
 def _distributing(func):  # noqa: ANN001, ANN202
     """Wrap a scalar function so it distributes over lists and propagates None."""
 
     def wrapper(*args: Any) -> Any:  # noqa: ANN401
         if args and isinstance(args[0], list):
-            return [func(x, *args[1:]) for x in args[0]]
+            tail = args[1:]
+            return [_null_safe(func)(x, *tail) for x in args[0]]
         if any(a is None for a in args):
             return None
         return func(*args)
@@ -87,9 +100,9 @@ def _distributing(func):  # noqa: ANN001, ANN202
 
 #: Functions that accept a list as their first argument (no distribution).
 _LIST_FUNCTIONS: dict[str, Any] = {
-    "max": max,
-    "min": min,
-    "len": len,
+    "max": _null_safe(max),
+    "min": _null_safe(min),
+    "len": _null_safe(len),
 }
 
 #: Functions that operate on scalars and should distribute over lists.

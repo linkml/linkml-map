@@ -637,7 +637,7 @@ class TestContinueOnError:
                     "populated_from": "Person",
                     "slot_derivations": {
                         "id": {},
-                        "bad": {"expr": "undefined_var + 1"},
+                        "bad": {"expr": "1 / 0"},
                     },
                 }
             },
@@ -681,7 +681,7 @@ class TestContinueOnError:
                     "populated_from": "Person",
                     "slot_derivations": {
                         "id": {},
-                        "bad": {"expr": "undefined_var + 1"},
+                        "bad": {"expr": "1 / 0"},
                     },
                 }
             },
