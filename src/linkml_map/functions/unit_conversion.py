@@ -9,7 +9,7 @@ see `<https://github.com/dalito/ucumvert>`_.
 
 from enum import Enum
 from functools import lru_cache
-from typing import Any, Optional, Union
+from typing import Optional, Union
 
 import lark
 import pint
@@ -53,7 +53,9 @@ class DimensionalityError(Exception):
     """
 
 
-def convert_units(magnitude: float, from_unit: str, to_unit: str, system: Optional[UnitSystem] = None) -> Any:
+def convert_units(
+    magnitude: Union[float, int, str], from_unit: str, to_unit: str, system: Optional[UnitSystem] = None
+) -> float:
     """
     Convert a quantity between units.
 
@@ -71,12 +73,17 @@ def convert_units(magnitude: float, from_unit: str, to_unit: str, system: Option
     10000.0
     >>> convert_units(1.0, "km2", "m2", system=UnitSystem.UCUM)
     1000000.0
+    >>> convert_units("100", "m", "cm")
+    10000.0
+    >>> convert_units("3.14", "m", "cm")
+    314.0
 
     :param magnitude:
     :param from_unit:
     :param to_unit:
     :return: converted magnitude
     """
+    magnitude = float(magnitude)
     ureg: pint.UnitRegistry = get_unit_registry(system)
     from_unit = normalize_unit(from_unit, system)
     to_unit = normalize_unit(to_unit, system)
