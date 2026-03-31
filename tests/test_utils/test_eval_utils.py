@@ -236,6 +236,36 @@ def test_null_in_conditional() -> None:
     assert eval_expr('case(({x} == "1", "YES"), (True, "NO"))', x=None) == "NO"
 
 
+def test_null_in_ordering_comparison() -> None:
+    """None propagates through ordering comparisons (<, <=, >, >=)."""
+    assert eval_expr("x <= 0", x=None) is None
+    assert eval_expr("x > 5", x=None) is None
+    assert eval_expr("x < 100", x=None) is None
+    assert eval_expr("x >= 0", x=None) is None
+    assert eval_expr("{x} <= 0", x=None) is None
+    # Eq/NotEq still use Python's native None handling
+    assert eval_expr("x == 1", x=None) is False
+    assert eval_expr("x != 1", x=None) is True
+
+
+def test_null_in_membership() -> None:
+    """None propagates through in/not-in when either operand is None."""
+    assert eval_expr("x in [1, 2, 3]", x=None) is None
+    assert eval_expr("x not in [1, 2, 3]", x=None) is None
+    assert eval_expr("1 in x", x=None) is None
+    assert eval_expr("1 not in x", x=None) is None
+    # Non-None cases still work normally
+    assert eval_expr("1 in [1, 2, 3]") is True
+    assert eval_expr("4 not in [1, 2, 3]") is True
+
+
+def test_null_in_numeric_guard_pattern() -> None:
+    """The common dm-bip pattern case(({x} <= 0, None), (True, ...)) works with null input."""
+    assert eval_expr("case(({x} <= 0, None), (True, {x} * 2.54))", x=None) is None
+    assert eval_expr("case(({x} <= 0, None), (True, {x} * 2.54))", x=65) == 165.1
+    assert eval_expr("case(({x} <= 0, None), (True, {x} * 2.54))", x=0) is None
+
+
 def test_null_in_function_call() -> None:
     """None propagates through function calls."""
     assert eval_expr("float(x)", x=None) is None

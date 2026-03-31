@@ -4,9 +4,11 @@ Restricted expression evaluator for LinkML transformation expressions.
 Built on `simpleeval <https://github.com/danthedeckie/simpleeval>`_, with
 LinkML-specific extensions:
 
-- SQL-style NULL propagation: None flows through arithmetic and function
-  calls (returning None) while comparisons evaluate naturally (None == "x"
-  is False).  Both ``{x}`` and bare ``x`` resolve identically.
+- SQL-style NULL propagation: None flows through arithmetic, ordering
+  comparisons, membership tests, and function calls (returning None).
+  Equality (``==``, ``!=``) uses Python's native None handling
+  (``None == "x"`` is ``False``).  Both ``{x}`` and bare ``x`` resolve
+  identically.
 - Distribution over collections: ``container.persons.name`` returns a list
   of names when ``persons`` is a list.
 - Accepts any ``collections.abc.Mapping`` as variable bindings (for lazy resolution).
@@ -196,7 +198,8 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
 
     Extends ``simpleeval.EvalWithCompoundTypes`` with:
 
-    - SQL-style NULL propagation for arithmetic and function calls
+    - SQL-style NULL propagation for arithmetic, ordering comparisons,
+      membership tests, and function calls
     - Distribution over lists/dicts on attribute access
     - Numeric-string coercion for comparison operators
     """
@@ -205,6 +208,8 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
         super().__init__(**kwargs)
         for op_type in (ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE):
             self.operators[op_type] = _coercing(self.operators[op_type])
+        for op_type in (ast.Lt, ast.LtE, ast.Gt, ast.GtE, ast.In, ast.NotIn):
+            self.operators[op_type] = _null_propagating(self.operators[op_type])
         for op_type in (
             ast.Add,
             ast.Sub,
@@ -338,16 +343,20 @@ def eval_expr(expr: str, **kwargs: Any) -> Any:  # noqa: ANN401
 
     Nulls:
 
-    None propagates through arithmetic and function calls (SQL-style):
+    None propagates through arithmetic, ordering comparisons, membership
+    tests, and function calls (SQL-style).  Equality (==, !=) uses Python's
+    native None handling (None == "x" is False):
 
     >>> print(eval_expr('{x} + {y}', x=None, y=2))
     None
     >>> print(eval_expr('x + 1', x=None))
     None
+    >>> print(eval_expr('x <= 0', x=None))
+    None
     >>> print(eval_expr('float(x)', x=None))
     None
 
-    But comparisons work naturally, enabling case() branching on null values:
+    case() branching works naturally with null values:
 
     >>> eval_expr('case((x == "1", "YES"), (True, "NO"))', x=None)
     'NO'
