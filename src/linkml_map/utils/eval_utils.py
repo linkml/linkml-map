@@ -205,6 +205,8 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
         super().__init__(**kwargs)
         for op_type in (ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE):
             self.operators[op_type] = _coercing(self.operators[op_type])
+        for op_type in (ast.Lt, ast.LtE, ast.Gt, ast.GtE):
+            self.operators[op_type] = _null_propagating(self.operators[op_type])
         for op_type in (
             ast.Add,
             ast.Sub,
