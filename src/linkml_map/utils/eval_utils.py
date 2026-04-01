@@ -23,9 +23,9 @@ import uuid
 from collections.abc import Mapping
 from typing import Any
 
-logger = logging.getLogger(__name__)
-
 from simpleeval import EvalWithCompoundTypes, NameNotDefined
+
+logger = logging.getLogger(__name__)
 
 
 def eval_conditional(*conds: tuple[bool, Any]) -> Any:  # noqa: ANN401
