@@ -350,7 +350,9 @@ class ObjectTransformer(Transformer):
                 raise TransformationError(
                     message=str(exc),
                     class_derivation_name=class_deriv.name,
+                    class_populated_from=class_deriv.populated_from,
                     slot_derivation_name=slot_derivation.name,
+                    slot_populated_from=slot_derivation.populated_from,
                     source_row=source_obj,
                     cause=exc,
                 ) from exc
