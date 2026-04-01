@@ -266,6 +266,38 @@ def test_null_in_numeric_guard_pattern() -> None:
     assert eval_expr("case(({x} <= 0, None), (True, {x} * 2.54))", x=0) is None
 
 
+def test_is_numeric() -> None:
+    """is_numeric() checks whether a value can be converted to float."""
+    assert eval_expr("is_numeric(x)", x="3.14") is True
+    assert eval_expr("is_numeric(x)", x="abc") is False
+    assert eval_expr("is_numeric(x)", x=5) is True
+    assert eval_expr("is_numeric(x)", x="") is False
+    assert eval_expr("is_numeric(x)", x=None) is False
+    assert eval_expr("is_numeric(x)", x="0") is True
+
+
+def test_is_numeric_guard_pattern() -> None:
+    """is_numeric() enables guarded numeric branching in case() expressions."""
+    expr = "case((is_numeric(x), x * 2.54), (True, None))"
+    assert eval_expr(expr, x="5") == 12.7
+    assert eval_expr(expr, x="abc") is None
+    assert eval_expr(expr, x="") is None
+    assert eval_expr(expr, x=None) is None
+
+
+def test_arithmetic_coerces_numeric_strings() -> None:
+    """Arithmetic operators coerce numeric strings to float."""
+    assert eval_expr("x / y * 10", x="100", y="50") == 20.0
+    assert eval_expr("{x} / 100.0 * {y}", x="200", y="50") == 100.0
+
+
+def test_arithmetic_non_numeric_string_returns_none() -> None:
+    """Non-numeric strings in arithmetic return None with a warning instead of crashing."""
+    assert eval_expr("x / y", x="100", y="abc") is None
+    assert eval_expr("x * y", x="abc", y="10") is None
+    assert eval_expr("x + y", x="abc", y=10) is None
+
+
 def test_null_in_function_call() -> None:
     """None propagates through function calls."""
     assert eval_expr("float(x)", x=None) is None

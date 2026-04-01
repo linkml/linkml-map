@@ -15,6 +15,7 @@ from linkml_runtime.index.object_index import ObjectIndex
 from linkml_runtime.linkml_model import SlotDefinition
 from linkml_runtime.utils.yamlutils import YAMLRoot
 from pydantic import BaseModel
+from simpleeval import InvalidExpression
 
 from linkml_map.datamodel.transformer_model import (
     ClassDerivation,
@@ -363,14 +364,9 @@ class ObjectTransformer(Transformer):
         """Evaluate a slot derivation expression, with fallback to asteval for unrestricted mode."""
         try:
             return eval_expr_with_mapping(slot_derivation.expr, bindings)
-        except Exception as err:
-            # Broad catch is intentional: simpleeval raises various exception types
-            # (NameNotDefined, FeatureNotAvailable, etc.) for expressions outside its
-            # safe subset. Should also handle KeyError, TypeError in the future.
+        except (InvalidExpression, TypeError, ValueError):
             if not self.unrestricted_eval:
-                logger.warning(f"Expression evaluation failed for '{slot_derivation.name}': {err}")
-                msg = f"Expression not in safe subset: {slot_derivation.expr}"
-                raise RuntimeError(msg) from err
+                raise
             ctxt_obj, _ = bindings.get_ctxt_obj_and_dict()
             aeval = Interpreter(usersyms={"src": ctxt_obj, "target": None, "uuid5": _uuid5})
             aeval(slot_derivation.expr)

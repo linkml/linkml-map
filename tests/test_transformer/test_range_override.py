@@ -20,7 +20,7 @@ F. **Validation gap** -- expr output with wrong keys passes through
 """
 
 import copy
-from typing import Any, Optional
+from typing import Any
 
 import pytest
 from linkml.utils.schema_builder import SchemaBuilder
@@ -133,9 +133,11 @@ def _run(
     transform_spec: dict[str, Any],
     input_data: dict[str, Any],
     source_type: str,
+    *,
+    unrestricted_eval: bool = True,
 ) -> dict[str, Any]:
     """Instantiate an ObjectTransformer and map a single object."""
-    tr = ObjectTransformer(unrestricted_eval=True)
+    tr = ObjectTransformer(unrestricted_eval=unrestricted_eval)
     tr.source_schemaview = SchemaView(source_schema.schema)
     tr.target_schemaview = SchemaView(target_schema.schema)
     tr.create_transformer_specification(copy.deepcopy(transform_spec))
@@ -206,26 +208,40 @@ def test_parse_string_into_object() -> None:
 # ---------------------------------------------------------------------------
 
 
+def test_parse_expr_null_input_yields_none() -> None:
+    """Null depth input propagates None through the expression."""
+    result = _run(
+        source_schema=_source_schema_string(),
+        target_schema=_target_schema_quantity(),
+        transform_spec=TRANSFORM_PARSE,
+        input_data={"id": "samp1", "depth": None},
+        source_type="StringSample",
+    )
+    assert result["id"] == "samp1"
+    assert result["depth"] is None
+
+
 @pytest.mark.parametrize(
     "depth_input",
     [
-        pytest.param(None, id="null_input"),
         pytest.param("", id="empty_string"),
         pytest.param("5", id="no_unit"),
         pytest.param("five m", id="non_numeric_value"),
     ],
 )
-def test_parse_expr_malformed_input_yields_none(depth_input: Optional[str]) -> None:
-    """Malformed depth strings cause expr evaluation errors caught by simpleeval."""
-    result = _run(
-        source_schema=_source_schema_string(),
-        target_schema=_target_schema_quantity(),
-        transform_spec=TRANSFORM_PARSE,
-        input_data={"id": "samp1", "depth": depth_input},
-        source_type="StringSample",
-    )
-    assert result["id"] == "samp1"
-    assert result["depth"] is None
+def test_parse_expr_malformed_input_raises(depth_input: str) -> None:
+    """Malformed depth strings raise TransformationError in restricted mode."""
+    from linkml_map.transformer.errors import TransformationError
+
+    with pytest.raises(TransformationError):
+        _run(
+            source_schema=_source_schema_string(),
+            target_schema=_target_schema_quantity(),
+            transform_spec=TRANSFORM_PARSE,
+            input_data={"id": "samp1", "depth": depth_input},
+            source_type="StringSample",
+            unrestricted_eval=False,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -233,17 +249,19 @@ def test_parse_expr_malformed_input_yields_none(depth_input: Optional[str]) -> N
 # ---------------------------------------------------------------------------
 
 
-def test_construct_non_numeric_depth_value_yields_none() -> None:
-    """float('five') fails; simpleeval catches the error and returns None."""
-    result = _run(
-        source_schema=_source_schema_flat(),
-        target_schema=_target_schema_quantity(),
-        transform_spec=TRANSFORM_CONSTRUCT,
-        input_data={"id": "samp1", "depth_value": "five", "depth_unit": "m"},
-        source_type="FlatSample",
-    )
-    assert result["id"] == "samp1"
-    assert result["depth"] is None
+def test_construct_non_numeric_depth_value_raises() -> None:
+    """float('five') raises TransformationError in restricted mode."""
+    from linkml_map.transformer.errors import TransformationError
+
+    with pytest.raises(TransformationError, match="could not convert string to float"):
+        _run(
+            source_schema=_source_schema_flat(),
+            target_schema=_target_schema_quantity(),
+            transform_spec=TRANSFORM_CONSTRUCT,
+            input_data={"id": "samp1", "depth_value": "five", "depth_unit": "m"},
+            source_type="FlatSample",
+            unrestricted_eval=False,
+        )
 
 
 # ---------------------------------------------------------------------------

@@ -606,7 +606,7 @@ def test_derive_from_expr_unrestricted_fallback() -> None:
 
 
 def test_derive_from_expr_restricted_raises() -> None:
-    """Expressions rejected by simpleeval raise RuntimeError when unrestricted_eval=False."""
+    """Expressions rejected by simpleeval raise TransformationError when unrestricted_eval=False."""
     source_schema: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_SRC_SCHEMA)))
     target_schema: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TGT_SCHEMA)))
     transform_spec: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TR)))
@@ -614,7 +614,7 @@ def test_derive_from_expr_restricted_raises() -> None:
     transform_spec.setdefault("class_derivations", {}).setdefault("Agent", {}).setdefault("slot_derivations", {})[
         "label"
     ] = {
-        "expr": "target = name",
+        "expr": "lambda x: x",
     }
 
     obj_tr = ObjectTransformer(unrestricted_eval=False)
@@ -623,7 +623,7 @@ def test_derive_from_expr_restricted_raises() -> None:
     obj_tr.create_transformer_specification(transform_spec)
 
     person_dict: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_DATA)))
-    with pytest.raises(TransformationError, match="Expression not in safe subset"):
+    with pytest.raises(TransformationError, match="(?i)lambda"):
         obj_tr.map_object(person_dict, source_type="Person")
 
 

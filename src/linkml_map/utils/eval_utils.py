@@ -18,11 +18,14 @@ See: https://github.com/linkml/linkml-map/issues/98
 """
 
 import ast
+import logging
 import uuid
 from collections.abc import Mapping
 from typing import Any
 
 from simpleeval import EvalWithCompoundTypes, NameNotDefined
+
+logger = logging.getLogger(__name__)
 
 
 def eval_conditional(*conds: tuple[bool, Any]) -> Any:  # noqa: ANN401
@@ -71,6 +74,57 @@ def _uuid5(namespace: str, name: str) -> str:
     """
     ns = uuid.uuid5(uuid.NAMESPACE_URL, namespace)
     return str(uuid.uuid5(ns, name))
+
+
+def _try_numeric(value: Any) -> Any:  # noqa: ANN401
+    """Attempt to coerce a value to a numeric type.
+
+    Returns the value as-is if already numeric (int/float, not bool),
+    coerces numeric strings to float, and returns None for anything else.
+
+    >>> _try_numeric(5)
+    5
+    >>> _try_numeric(3.14)
+    3.14
+    >>> _try_numeric("3.14")
+    3.14
+    >>> _try_numeric("abc")
+    >>> _try_numeric(None)
+    >>> _try_numeric(True)
+    """
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return value
+    if isinstance(value, str):
+        try:
+            return float(value)
+        except ValueError:
+            return None
+    return None
+
+
+def _is_numeric(value: Any) -> bool:  # noqa: ANN401
+    """
+    Check whether a value can be converted to float.
+
+    >>> _is_numeric("3.14")
+    True
+    >>> _is_numeric("abc")
+    False
+    >>> _is_numeric(5)
+    True
+    >>> _is_numeric("")
+    False
+    >>> _is_numeric(None)
+    False
+    >>> _is_numeric(True)
+    False
+
+    :param value: The value to check.
+    :return: True if float(value) would succeed, False otherwise.
+    """
+    return _try_numeric(value) is not None
 
 
 def _null_safe(func):  # noqa: ANN001, ANN202
@@ -124,6 +178,7 @@ FUNCTIONS: dict[str, Any] = {
     **_LIST_FUNCTIONS,
     **{name: _distributing(func) for name, func in _SCALAR_FUNCTIONS.items()},
     "case": eval_conditional,
+    "is_numeric": _is_numeric,
 }
 
 
@@ -161,12 +216,30 @@ def _maybe_coerce_numeric(left: Any, right: Any) -> tuple[Any, Any]:  # noqa: AN
 
 
 def _null_propagating(op):  # noqa: ANN001, ANN202
-    """Wrap a binary operator to return None if either operand is None."""
+    """Wrap a binary operator with null propagation and numeric coercion fallback.
+
+    Handles four cases:
+    - Either operand is None → None (null propagation)
+    - Operation succeeds natively → return result (e.g. str + str is concat)
+    - Operation fails but operands are numeric strings → coerce to float and retry
+    - Operands can't be made numeric → None with warning (enables case() guards)
+
+    Note: ``+`` on two strings succeeds natively as concatenation and is not
+    coerced. Use ``x + 0 + y`` or explicit ``float()`` if numeric addition of
+    string values is needed.
+    """
 
     def wrapper(left: Any, right: Any) -> Any:  # noqa: ANN401
         if left is None or right is None:
             return None
-        return op(left, right)
+        try:
+            return op(left, right)
+        except (TypeError, ValueError):
+            left_n, right_n = _try_numeric(left), _try_numeric(right)
+            if left_n is None or right_n is None:
+                logger.warning(f"Non-numeric operand in {op.__name__}: {left!r}, {right!r}; returning None")
+                return None
+            return op(left_n, right_n)
 
     return wrapper
 
