@@ -71,6 +71,36 @@ def test_transformation_error_str_minimal():
     assert str(err) == "oops"
 
 
+def test_transformation_error_str_with_populated_from():
+    """Source context (populated_from) appears in string representation."""
+    err = TransformationError(
+        message="bad value",
+        class_derivation_name="Quantity",
+        class_populated_from="pht004041",
+        slot_derivation_name="value_decimal",
+        slot_populated_from="phv00191041",
+        row_index=5,
+    )
+    s = str(err)
+    assert "class_derivation=Quantity (from pht004041)" in s
+    assert "slot_derivation=value_decimal (from phv00191041)" in s
+    assert "row=5" in s
+
+
+def test_transformation_error_str_partial_populated_from():
+    """populated_from only shown when present."""
+    err = TransformationError(
+        message="bad value",
+        class_derivation_name="Quantity",
+        slot_derivation_name="value_decimal",
+        slot_populated_from="phv00191041",
+    )
+    s = str(err)
+    assert "class_derivation=Quantity;" in s or "class_derivation=Quantity" in s
+    assert "(from" not in s.split("class_derivation=Quantity")[1].split(";")[0]
+    assert "slot_derivation=value_decimal (from phv00191041)" in s
+
+
 def test_transformation_error_is_exception():
     """TransformationError can be raised and caught as Exception."""
     with pytest.raises(TransformationError, match="test"):

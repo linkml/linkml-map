@@ -21,7 +21,9 @@ class TransformationError(Exception):
 
     message: str
     class_derivation_name: str | None = None
+    class_populated_from: str | None = None
     slot_derivation_name: str | None = None
+    slot_populated_from: str | None = None
     source_row: dict[str, Any] | None = field(default=None, repr=False)
     row_index: int | None = None
     cause: Exception | None = field(default=None, repr=False)
@@ -29,12 +31,22 @@ class TransformationError(Exception):
     def __post_init__(self) -> None:
         super().__init__(self.message)
 
+    def _format_derivation(self, label: str, name: str | None, populated_from: str | None) -> str:
+        """Format a derivation field with optional source context."""
+        if not name:
+            return ""
+        if populated_from:
+            return f"{label}={name} (from {populated_from})"
+        return f"{label}={name}"
+
     def __str__(self) -> str:
         parts = [self.message]
-        if self.class_derivation_name:
-            parts.append(f"class_derivation={self.class_derivation_name}")
-        if self.slot_derivation_name:
-            parts.append(f"slot_derivation={self.slot_derivation_name}")
+        class_part = self._format_derivation("class_derivation", self.class_derivation_name, self.class_populated_from)
+        if class_part:
+            parts.append(class_part)
+        slot_part = self._format_derivation("slot_derivation", self.slot_derivation_name, self.slot_populated_from)
+        if slot_part:
+            parts.append(slot_part)
         if self.row_index is not None:
             parts.append(f"row={self.row_index}")
         return "; ".join(parts)
