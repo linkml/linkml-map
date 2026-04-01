@@ -237,7 +237,7 @@ def _null_propagating(op):  # noqa: ANN001, ANN202
         except (TypeError, ValueError):
             left_n, right_n = _try_numeric(left), _try_numeric(right)
             if left_n is None or right_n is None:
-                logger.warning(f"Non-numeric operand in arithmetic: {left!r} {op.__name__} {right!r}; returning None")
+                logger.warning(f"Non-numeric operand in {op.__name__}: {left!r}, {right!r}; returning None")
                 return None
             return op(left_n, right_n)
 
