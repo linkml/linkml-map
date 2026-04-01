@@ -90,11 +90,13 @@ def _is_numeric(value: Any) -> bool:  # noqa: ANN401
     False
     >>> _is_numeric(None)
     False
+    >>> _is_numeric(True)
+    False
 
     :param value: The value to check.
     :return: True if float(value) would succeed, False otherwise.
     """
-    if value is None:
+    if value is None or isinstance(value, bool):
         return False
     try:
         float(value)
@@ -192,12 +194,17 @@ def _maybe_coerce_numeric(left: Any, right: Any) -> tuple[Any, Any]:  # noqa: AN
 
 
 def _null_propagating(op):  # noqa: ANN001, ANN202
-    """Wrap a binary operator to coerce numeric strings and return None on failure.
+    """Wrap a binary operator with null propagation and numeric coercion fallback.
 
-    Handles three cases:
+    Handles four cases:
     - Either operand is None → None (null propagation)
-    - Operands are numeric strings → coerced to float and computed
+    - Operation succeeds natively → return result (e.g. str + str is concat)
+    - Operation fails but operands are numeric strings → coerce to float and retry
     - Operands can't be made numeric → None with warning (enables case() guards)
+
+    Note: ``+`` on two strings succeeds natively as concatenation and is not
+    coerced. Use ``x + 0 + y`` or explicit ``float()`` if numeric addition of
+    string values is needed.
     """
 
     def _try_numeric(value: Any) -> Any:  # noqa: ANN401

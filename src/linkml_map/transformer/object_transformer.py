@@ -364,7 +364,7 @@ class ObjectTransformer(Transformer):
         """Evaluate a slot derivation expression, with fallback to asteval for unrestricted mode."""
         try:
             return eval_expr_with_mapping(slot_derivation.expr, bindings)
-        except (InvalidExpression, TypeError) as err:
+        except (InvalidExpression, TypeError, ValueError) as err:
             if not self.unrestricted_eval:
                 raise
             ctxt_obj, _ = bindings.get_ctxt_obj_and_dict()
