@@ -76,6 +76,34 @@ def _uuid5(namespace: str, name: str) -> str:
     return str(uuid.uuid5(ns, name))
 
 
+def _try_numeric(value: Any) -> Any:  # noqa: ANN401
+    """Attempt to coerce a value to a numeric type.
+
+    Returns the value as-is if already numeric (int/float, not bool),
+    coerces numeric strings to float, and returns None for anything else.
+
+    >>> _try_numeric(5)
+    5
+    >>> _try_numeric(3.14)
+    3.14
+    >>> _try_numeric("3.14")
+    3.14
+    >>> _try_numeric("abc")
+    >>> _try_numeric(None)
+    >>> _try_numeric(True)
+    """
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return value
+    if isinstance(value, str):
+        try:
+            return float(value)
+        except ValueError:
+            return None
+    return None
+
+
 def _is_numeric(value: Any) -> bool:  # noqa: ANN401
     """
     Check whether a value can be converted to float.
@@ -96,13 +124,7 @@ def _is_numeric(value: Any) -> bool:  # noqa: ANN401
     :param value: The value to check.
     :return: True if float(value) would succeed, False otherwise.
     """
-    if value is None or isinstance(value, bool):
-        return False
-    try:
-        float(value)
-    except (TypeError, ValueError):
-        return False
-    return True
+    return _try_numeric(value) is not None
 
 
 def _null_safe(func):  # noqa: ANN001, ANN202
@@ -206,16 +228,6 @@ def _null_propagating(op):  # noqa: ANN001, ANN202
     coerced. Use ``x + 0 + y`` or explicit ``float()`` if numeric addition of
     string values is needed.
     """
-
-    def _try_numeric(value: Any) -> Any:  # noqa: ANN401
-        if isinstance(value, (int, float)) and not isinstance(value, bool):
-            return value
-        if isinstance(value, str):
-            try:
-                return float(value)
-            except ValueError:
-                return None
-        return value
 
     def wrapper(left: Any, right: Any) -> Any:  # noqa: ANN401
         if left is None or right is None:
