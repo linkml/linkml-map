@@ -20,7 +20,7 @@ F. **Validation gap** -- expr output with wrong keys passes through
 """
 
 import copy
-from typing import Any, Optional
+from typing import Any
 
 import pytest
 from linkml.utils.schema_builder import SchemaBuilder
