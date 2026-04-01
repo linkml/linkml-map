@@ -18,9 +18,12 @@ See: https://github.com/linkml/linkml-map/issues/98
 """
 
 import ast
+import logging
 import uuid
 from collections.abc import Mapping
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 from simpleeval import EvalWithCompoundTypes, NameNotDefined
 
@@ -71,6 +74,33 @@ def _uuid5(namespace: str, name: str) -> str:
     """
     ns = uuid.uuid5(uuid.NAMESPACE_URL, namespace)
     return str(uuid.uuid5(ns, name))
+
+
+def _is_numeric(value: Any) -> bool:  # noqa: ANN401
+    """
+    Check whether a value can be converted to float.
+
+    >>> _is_numeric("3.14")
+    True
+    >>> _is_numeric("abc")
+    False
+    >>> _is_numeric(5)
+    True
+    >>> _is_numeric("")
+    False
+    >>> _is_numeric(None)
+    False
+
+    :param value: The value to check.
+    :return: True if float(value) would succeed, False otherwise.
+    """
+    if value is None:
+        return False
+    try:
+        float(value)
+    except (TypeError, ValueError):
+        return False
+    return True
 
 
 def _null_safe(func):  # noqa: ANN001, ANN202
@@ -124,6 +154,7 @@ FUNCTIONS: dict[str, Any] = {
     **_LIST_FUNCTIONS,
     **{name: _distributing(func) for name, func in _SCALAR_FUNCTIONS.items()},
     "case": eval_conditional,
+    "is_numeric": _is_numeric,
 }
 
 
@@ -161,12 +192,35 @@ def _maybe_coerce_numeric(left: Any, right: Any) -> tuple[Any, Any]:  # noqa: AN
 
 
 def _null_propagating(op):  # noqa: ANN001, ANN202
-    """Wrap a binary operator to return None if either operand is None."""
+    """Wrap a binary operator to coerce numeric strings and return None on failure.
+
+    Handles three cases:
+    - Either operand is None → None (null propagation)
+    - Operands are numeric strings → coerced to float and computed
+    - Operands can't be made numeric → None with warning (enables case() guards)
+    """
+
+    def _try_numeric(value: Any) -> Any:  # noqa: ANN401
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            try:
+                return float(value)
+            except ValueError:
+                return None
+        return value
 
     def wrapper(left: Any, right: Any) -> Any:  # noqa: ANN401
         if left is None or right is None:
             return None
-        return op(left, right)
+        try:
+            return op(left, right)
+        except (TypeError, ValueError):
+            left_n, right_n = _try_numeric(left), _try_numeric(right)
+            if left_n is None or right_n is None:
+                logger.warning(f"Non-numeric operand in arithmetic: {left!r} {op.__name__} {right!r}; returning None")
+                return None
+            return op(left_n, right_n)
 
     return wrapper
 

@@ -206,26 +206,39 @@ def test_parse_string_into_object() -> None:
 # ---------------------------------------------------------------------------
 
 
+def test_parse_expr_null_input_yields_none() -> None:
+    """Null depth input propagates None through the expression."""
+    result = _run(
+        source_schema=_source_schema_string(),
+        target_schema=_target_schema_quantity(),
+        transform_spec=TRANSFORM_PARSE,
+        input_data={"id": "samp1", "depth": None},
+        source_type="StringSample",
+    )
+    assert result["id"] == "samp1"
+    assert result["depth"] is None
+
+
 @pytest.mark.parametrize(
     "depth_input",
     [
-        pytest.param(None, id="null_input"),
         pytest.param("", id="empty_string"),
         pytest.param("5", id="no_unit"),
         pytest.param("five m", id="non_numeric_value"),
     ],
 )
-def test_parse_expr_malformed_input_yields_none(depth_input: Optional[str]) -> None:
-    """Malformed depth strings cause expr evaluation errors caught by simpleeval."""
-    result = _run(
-        source_schema=_source_schema_string(),
-        target_schema=_target_schema_quantity(),
-        transform_spec=TRANSFORM_PARSE,
-        input_data={"id": "samp1", "depth": depth_input},
-        source_type="StringSample",
-    )
-    assert result["id"] == "samp1"
-    assert result["depth"] is None
+def test_parse_expr_malformed_input_raises(depth_input: str) -> None:
+    """Malformed depth strings raise TransformationError with the actual error."""
+    from linkml_map.transformer.errors import TransformationError
+
+    with pytest.raises(TransformationError):
+        _run(
+            source_schema=_source_schema_string(),
+            target_schema=_target_schema_quantity(),
+            transform_spec=TRANSFORM_PARSE,
+            input_data={"id": "samp1", "depth": depth_input},
+            source_type="StringSample",
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -233,17 +246,18 @@ def test_parse_expr_malformed_input_yields_none(depth_input: Optional[str]) -> N
 # ---------------------------------------------------------------------------
 
 
-def test_construct_non_numeric_depth_value_yields_none() -> None:
-    """float('five') fails; simpleeval catches the error and returns None."""
-    result = _run(
-        source_schema=_source_schema_flat(),
-        target_schema=_target_schema_quantity(),
-        transform_spec=TRANSFORM_CONSTRUCT,
-        input_data={"id": "samp1", "depth_value": "five", "depth_unit": "m"},
-        source_type="FlatSample",
-    )
-    assert result["id"] == "samp1"
-    assert result["depth"] is None
+def test_construct_non_numeric_depth_value_raises() -> None:
+    """float('five') raises TransformationError with the actual ValueError."""
+    from linkml_map.transformer.errors import TransformationError
+
+    with pytest.raises(TransformationError, match="could not convert string to float"):
+        _run(
+            source_schema=_source_schema_flat(),
+            target_schema=_target_schema_quantity(),
+            transform_spec=TRANSFORM_CONSTRUCT,
+            input_data={"id": "samp1", "depth_value": "five", "depth_unit": "m"},
+            source_type="FlatSample",
+        )
 
 
 # ---------------------------------------------------------------------------
