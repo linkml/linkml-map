@@ -64,7 +64,7 @@ class Transformer(ABC):
 
     _curie_converter: Converter = None
 
-    def map_object(self, obj: OBJECT_TYPE, source_type: str | None = None, **kwargs: dict[str, Any]) -> OBJECT_TYPE:
+    def map_object(self, obj: OBJECT_TYPE, source_type: str | None = None, **kwargs: Any) -> OBJECT_TYPE:
         """
         Transform source object into an instance of the target class.
 

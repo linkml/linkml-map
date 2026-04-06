@@ -27,7 +27,7 @@ class DuckDBTransformer(Transformer):
         source_obj: OBJECT_TYPE,
         source_type: str | None = None,
         target_type: str | None = None,
-        **kwargs: dict[str, Any] | None,
+        **kwargs: Any,
     ) -> OBJECT_TYPE:
         """
         Transform a source object into a target object.
@@ -44,7 +44,7 @@ class DuckDBTransformer(Transformer):
         self,
         source_database: DATABASE,
         target_database: DATABASE | None = None,
-        **kwargs: dict[str, Any] | None,
+        **kwargs: Any,
     ) -> OBJECT_TYPE:
         """
         Transform source resource.

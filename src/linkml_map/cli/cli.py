@@ -342,7 +342,7 @@ def compile(
     transformer_specification: str,
     target: str,
     output: str | None,
-    **kwargs: dict[str, Any] | None,
+    **kwargs: Any,
 ) -> None:
     """
     Compiles a schema to another representation.
@@ -377,7 +377,7 @@ def derive_schema(
     schema: str,
     transformer_specification: str,
     output: str | None,
-    **kwargs: dict[str, Any] | None,
+    **kwargs: Any,
 ) -> None:
     """
     Derive a schema from a source schema and a transformation specification.
@@ -411,7 +411,7 @@ def invert(
     schema: str,
     transformer_specification: str,
     output: str | None,
-    **kwargs: dict[str, Any] | None,
+    **kwargs: Any,
 ) -> None:
     """
     Invert a transformation specification.
