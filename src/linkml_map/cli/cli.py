@@ -431,6 +431,39 @@ def invert(
     dump_output(inverted_spec, "yaml", output)
 
 
+@main.command(name="validate-spec")
+@click.argument("spec_files", nargs=-1, required=True, type=click.Path(exists=True))
+def validate_spec_cmd(
+    spec_files: tuple[str, ...],
+) -> None:
+    """Validate transformation specification YAML files.
+
+    Checks that each file conforms to the TransformationSpecification schema.
+    Exits with code 1 if any file has validation errors.
+
+    Example:
+
+        linkml-map validate-spec my-transform.yaml
+
+        linkml-map validate-spec specs/*.yaml
+    """
+    from linkml_map.validator import validate_spec_file
+
+    has_errors = False
+    for path in spec_files:
+        errors = validate_spec_file(path)
+        if errors:
+            has_errors = True
+            click.echo(f"{path}:", err=True)
+            for error in errors:
+                click.echo(f"  {error}", err=True)
+        else:
+            click.echo(f"{path}: ok")
+
+    if has_errors:
+        raise SystemExit(1)
+
+
 def dump_output(
     output_data: Union[dict[str, Any], list[Any], str],
     output_format: Optional[str] = None,
