@@ -5,7 +5,7 @@ readme = "README.md"
 authors = [
     {name = "cmungall", email = "cjm@berkeleybop.org"},
 ]
-requires-python = "<=3.13,>=3.9"
+requires-python = "<=3.13,>=3.10"
 dynamic = [ "version" ]
 
 dependencies = [
@@ -18,7 +18,7 @@ dependencies = [
     "graphviz>=0.20",
     "jinja2>=3",
     "lark>=1",
-    "linkml-runtime>=1.9.1",
+    "linkml-runtime>=1.10.0",
     "more-itertools>=10.0.0",
     "pint>=0.20",
     "pydantic>=2,<3",
@@ -32,7 +32,7 @@ dev = [
     "deepdiff>=6.0",
     "deptry>=0.23",
     "jupyter>=1.1",
-    "linkml>=1.8.7",
+    "linkml>=1.10.0",
     "mkdocs-mermaid2-plugin>=0.6",
     "mkdocs-windmill",
     "mkdocstrings[crystal,python]",
@@ -75,7 +75,7 @@ ignore-words-list = 'infarction,amination,assertIn,brite,ehr,mor,brite,nin,mirga
 
 [tool.ruff]
 line-length = 120
-target-version = "py39"
+target-version = "py310"
 extend-exclude = [
     "docs/",
     "src/linkml_map/datamodel",
@@ -92,10 +92,6 @@ select = [
 ]
 
 ignore = [
-    # UP007: non-pep604-annotation-union - requires Python 3.10+
-    "UP007",
-    # UP038: non-pep604-isinstance - requires Python 3.10+
-    "UP038",
     # E203: whitespace before ',', ';', or ':'
     "E203",
 ]

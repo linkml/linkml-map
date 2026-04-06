@@ -1,7 +1,7 @@
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 import yaml
 from linkml_runtime import SchemaView
@@ -31,16 +31,16 @@ class Session:
 
     """
 
-    transformer_specification: Optional[TransformationSpecification] = None
-    source_schemaview: Optional[SchemaView] = None
-    transformer: Optional[Transformer] = None
-    object_transformer: Optional[ObjectTransformer] = None
-    schema_mapper: Optional[SchemaMapper] = None
-    _target_schema: Optional[SchemaDefinition] = None
-    _target_schemaview: Optional[SchemaView] = None
+    transformer_specification: TransformationSpecification | None = None
+    source_schemaview: SchemaView | None = None
+    transformer: Transformer | None = None
+    object_transformer: ObjectTransformer | None = None
+    schema_mapper: SchemaMapper | None = None
+    _target_schema: SchemaDefinition | None = None
+    _target_schemaview: SchemaView | None = None
 
     def set_transformer_specification(
-        self, specification: Optional[Union[TransformationSpecification, dict, str, Path]] = None
+        self, specification: TransformationSpecification | dict | str | Path | None = None
     ) -> None:
         if isinstance(specification, Path):
             specification = str(specification)
@@ -56,7 +56,7 @@ class Session:
                 obj = yaml.safe_load(open(specification))
             self.set_transformer_specification(obj)
 
-    def set_source_schema(self, schema: Union[str, Path, dict, SchemaView, SchemaDefinition]) -> None:
+    def set_source_schema(self, schema: str | Path | dict | SchemaView | SchemaDefinition) -> None:
         """
         Set the schema from a path or SchemaView object.
         """
@@ -78,7 +78,7 @@ class Session:
 
     def set_transformer(
         self,
-        transformer: Optional[Union[Transformer, type[Transformer]]],
+        transformer: Transformer | type[Transformer] | None,
         **kwargs,
     ) -> None:
         if isinstance(transformer, type):
@@ -88,7 +88,7 @@ class Session:
 
     def set_object_transformer(
         self,
-        transformer: Optional[Union[ObjectTransformer, TransformationSpecification, dict, str, Path]] = None,
+        transformer: ObjectTransformer | TransformationSpecification | dict | str | Path | None = None,
     ) -> None:
         if transformer is None:
             if self.object_transformer is not None:

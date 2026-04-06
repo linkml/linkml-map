@@ -22,7 +22,7 @@ import re
 from dataclasses import dataclass
 from datetime import date
 from types import ModuleType
-from typing import Any, Optional, Union
+from typing import Any
 
 import pytest
 from deepdiff import DeepDiff
@@ -134,10 +134,10 @@ def map_object(
     source_sv: SchemaView,
     invertible: bool = False,  # noqa: FBT001, FBT002
     index: bool = False,  # noqa: FBT001, FBT002
-    source_root: Optional[str] = "Container",
-    roundtrip_object: Optional[Any] = None,
-    raises_error: Optional[Exception] = None,
-    supply_source_schema: Optional[bool] = True,
+    source_root: str | None = "Container",
+    roundtrip_object: Any | None = None,
+    raises_error: Exception | None = None,
+    supply_source_schema: bool | None = True,
 ) -> State:
     """
     Map a source object to a target object, and optionally invert the transformation and perform roundtrip.
@@ -276,8 +276,8 @@ def test_map_types(
     invocation_tracker,
     source_datatype: str,
     target_datatype: str,
-    source_value: Union[str, float],
-    target_value: Union[str, float, bool],
+    source_value: str | float,
+    target_value: str | float | bool,
     invertible: bool,  # noqa: FBT001
 ) -> None:
     """
@@ -355,8 +355,8 @@ def test_map_collections(
     invocation_tracker,
     source_datatype: str,
     target_datatype: str,
-    source_value: Union[list[dict[str, Any]], dict[str, Any]],
-    target_value: Union[list[dict[str, Any]], dict[str, Any]],
+    source_value: list[dict[str, Any]] | dict[str, Any],
+    target_value: list[dict[str, Any]] | dict[str, Any],
     invertible: bool,
 ) -> None:
     """
@@ -478,7 +478,7 @@ def test_expr(invocation_tracker, expr: str, source_object: Any, target_value: A
     """
     classes = {"C": {"tree_root": True, "attributes": {}}}
 
-    def infer_range(v: Any, typ: Optional[str] = None) -> str:
+    def infer_range(v: Any, typ: str | None = None) -> str:
         if isinstance(v, dict):
             if not typ:
                 typ = v.get("type", "D")
@@ -575,9 +575,9 @@ def test_simple_unit_conversion(
     target_unit: str,
     unit_metaslot: str,
     source_value: float,
-    target_value: Optional[float],
-    err: Optional[Exception],
-    skip: Optional[str],
+    target_value: float | None,
+    err: Exception | None,
+    skip: str | None,
 ) -> None:
     """
     Test unit conversion.
@@ -660,9 +660,9 @@ def test_complex_unit_conversion(
     source_unit: str,
     target_unit: str,
     source_value: float,
-    target_value: Optional[float],
-    roundtrip_object: Optional[dict[str, Any]],
-    err: Optional[Exception],
+    target_value: float | None,
+    roundtrip_object: dict[str, Any] | None,
+    err: Exception | None,
 ) -> None:
     """
     Test unit conversion, from complex object to simple scalar.
@@ -752,8 +752,8 @@ def test_complex_unit_conversion(
 )
 def test_stringify(
     invocation_tracker,
-    syntax: Optional[SerializationSyntaxType],
-    delimiter: Optional[str],
+    syntax: SerializationSyntaxType | None,
+    delimiter: str | None,
     source_value: list[str],
     target_value: str,
 ) -> None:
@@ -1043,7 +1043,7 @@ def test_map_enum(
     invocation_tracker,
     source_value: str,
     mapping: dict[str, Any],
-    target_value: Optional[str],
+    target_value: str | None,
     mirror_source: bool,  # noqa: FBT001
 ) -> None:
     """

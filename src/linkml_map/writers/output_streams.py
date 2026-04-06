@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from enum import Enum
 from pathlib import Path
-from typing import IO, Any, Optional, Union
+from typing import IO, Any
 
 import yaml
 from flatten_dict import flatten
@@ -90,7 +90,7 @@ class JSONStreamWriter(StreamWriter):
     :param key_name: Optional key to wrap the array, e.g. ``{"people": [...]}``.
     """
 
-    def __init__(self, key_name: Optional[str] = None) -> None:
+    def __init__(self, key_name: str | None = None) -> None:
         """Initialize with an optional wrapping key name."""
         self.key_name = key_name
         self._started = False
@@ -170,7 +170,7 @@ class YAMLStreamWriter(StreamWriter):
     :param key_name: Optional key to wrap all objects.
     """
 
-    def __init__(self, key_name: Optional[str] = None) -> None:
+    def __init__(self, key_name: str | None = None) -> None:
         """Initialize with an optional wrapping key name."""
         self.key_name = key_name
         self._first_chunk = True
@@ -212,7 +212,7 @@ class YAMLStreamWriter(StreamWriter):
 
 def yaml_stream(
     chunks: Iterator[list[dict[str, Any]]],
-    key_name: Optional[str] = None,
+    key_name: str | None = None,
 ) -> Iterator[str]:
     """
     Convert chunks of objects to YAML format.
@@ -244,7 +244,7 @@ def yaml_stream(
 
 def json_stream(
     chunks: Iterator[list[dict[str, Any]]],
-    key_name: Optional[str] = None,
+    key_name: str | None = None,
 ) -> Iterator[str]:
     """
     Convert chunks of objects to JSON format.
@@ -275,7 +275,7 @@ def json_stream(
 
 def jsonl_stream(
     chunks: Iterator[list[dict[str, Any]]],
-    key_name: Optional[str] = None,  # noqa: ARG001
+    key_name: str | None = None,  # noqa: ARG001
 ) -> Iterator[str]:
     """
     Convert chunks of objects to JSON Lines format.
@@ -355,7 +355,7 @@ class TabularStreamWriter(StreamWriter):
     def stream(
         self,
         chunks: Iterator[list[dict[str, Any]]],
-        key_name: Optional[str] = None,  # noqa: ARG002
+        key_name: str | None = None,  # noqa: ARG002
     ) -> Iterator[str]:
         """
         Stream objects as tabular data. Backward-compatible alias for ``process``.
@@ -374,7 +374,7 @@ class TabularStreamWriter(StreamWriter):
         """
         if value is None:
             return ""
-        if isinstance(value, (list, dict)):
+        if isinstance(value, list | dict):
             # Serialize complex values as JSON
             return json.dumps(value, ensure_ascii=False)
         str_value = str(value)
@@ -399,7 +399,7 @@ class TabularStreamWriter(StreamWriter):
 
 def tsv_stream(
     chunks: Iterator[list[dict[str, Any]]],
-    key_name: Optional[str] = None,
+    key_name: str | None = None,
 ) -> Iterator[str]:
     """
     Convert chunks of objects to TSV format.
@@ -418,7 +418,7 @@ def tsv_stream(
 
 def csv_stream(
     chunks: Iterator[list[dict[str, Any]]],
-    key_name: Optional[str] = None,
+    key_name: str | None = None,
 ) -> Iterator[str]:
     """
     Convert chunks of objects to CSV format.
@@ -524,8 +524,8 @@ EXTENSION_FORMAT_MAP = {
 
 def make_stream_writer(
     output_format: OutputFormat,
-    key_name: Optional[str] = None,
-    separator: Optional[str] = None,
+    key_name: str | None = None,
+    separator: str | None = None,
 ) -> StreamWriter:
     """
     Return the appropriate ``StreamWriter`` for a format.
@@ -562,7 +562,7 @@ class MultiStreamWriter:
     :param outputs: List of ``(StreamWriter, target)`` tuples.
     """
 
-    def __init__(self, outputs: list[tuple[StreamWriter, Union[Path, IO[str]]]]) -> None:
+    def __init__(self, outputs: list[tuple[StreamWriter, Path | IO[str]]]) -> None:
         """Initialize with a list of (writer, target) output pairs."""
         self.outputs = outputs
 

@@ -4,7 +4,6 @@ import logging
 import re
 from copy import copy
 from dataclasses import dataclass, field
-from typing import Optional
 
 from linkml_runtime import SchemaView
 
@@ -99,7 +98,7 @@ class TransformationSpecificationInverter:
 
     def invert_slot_derivation(
         self, sd: SlotDerivation, cd: ClassDerivation, spec: TransformationSpecification
-    ) -> Optional[SlotDerivation]:
+    ) -> SlotDerivation | None:
         """
         Invert a slot derivation.
 

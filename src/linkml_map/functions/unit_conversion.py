@@ -9,7 +9,6 @@ see `<https://github.com/dalito/ucumvert>`_.
 
 from enum import Enum
 from functools import lru_cache
-from typing import Optional, Union
 
 import lark
 import pint
@@ -54,7 +53,7 @@ class DimensionalityError(Exception):
 
 
 def convert_units(
-    magnitude: Union[float, int, str], from_unit: str, to_unit: str, system: Optional[UnitSystem] = None
+    magnitude: float | int | str, from_unit: str, to_unit: str, system: UnitSystem | None = None
 ) -> float:
     """
     Convert a quantity between units.
@@ -108,8 +107,8 @@ def convert_units(
 
 @lru_cache
 def get_unit_registry(
-    system: Optional[UnitSystem] = None,
-) -> Union[pint.UnitRegistry, PintUcumRegistry]:
+    system: UnitSystem | None = None,
+) -> pint.UnitRegistry | PintUcumRegistry:
     """
     Get a unit registry.
 
@@ -153,7 +152,7 @@ def get_unit_registry(
     raise NotImplementedError(msg)
 
 
-def normalize_unit(unit: str, system: Optional[UnitSystem] = None) -> str:
+def normalize_unit(unit: str, system: UnitSystem | None = None) -> str:
     """Normalize the unit to UnitSystem.UCUM, if possible."""
     if system is None or system != UnitSystem.UCUM:
         return unit

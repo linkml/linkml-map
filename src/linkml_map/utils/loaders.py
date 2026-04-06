@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Union
 
 import yaml
 
@@ -7,7 +6,7 @@ from linkml_map.datamodel.transformer_model import TransformationSpecification
 from linkml_map.transformer.transformer import Transformer
 
 
-def load_specification(path: Union[Path, str]) -> TransformationSpecification:
+def load_specification(path: Path | str) -> TransformationSpecification:
     if isinstance(path, Path):
         path = str(path)
     with open(path) as f:

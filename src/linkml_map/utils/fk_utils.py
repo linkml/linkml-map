@@ -1,6 +1,6 @@
 """Utilities for resolving foreign key paths in LinkML schemas."""
 
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 
 from linkml_runtime import SchemaView
 from linkml_runtime.linkml_model import SlotDefinition
@@ -12,10 +12,10 @@ class FKResolution(NamedTuple):
     fk_slot_name: str
     target_class: str
     remaining_path: str
-    final_slot: Optional[SlotDefinition]
+    final_slot: SlotDefinition | None
 
 
-def resolve_fk_path(schemaview: SchemaView, source_class: str, path: str) -> Optional[FKResolution]:
+def resolve_fk_path(schemaview: SchemaView, source_class: str, path: str) -> FKResolution | None:
     """
     Resolve a dot-notation FK path to its components.
 
