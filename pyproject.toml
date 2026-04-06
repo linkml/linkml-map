@@ -5,7 +5,7 @@ readme = "README.md"
 authors = [
     {name = "cmungall", email = "cjm@berkeleybop.org"},
 ]
-requires-python = "<=3.13,>=3.9"
+requires-python = "<=3.13,>=3.10"
 dynamic = [ "version" ]
 
 dependencies = [
@@ -18,7 +18,7 @@ dependencies = [
     "graphviz>=0.20",
     "jinja2>=3",
     "lark>=1",
-    "linkml-runtime>=1.9.1",
+    "linkml-runtime>=1.10.0",
     "more-itertools>=10.0.0",
     "pint>=0.20",
     "pydantic>=2,<3",
@@ -32,7 +32,7 @@ dev = [
     "deepdiff>=6.0",
     "deptry>=0.23",
     "jupyter>=1.1",
-    "linkml>=1.8.7",
+    "linkml>=1.10.0",
     "mkdocs-mermaid2-plugin>=0.6",
     "mkdocs-windmill",
     "mkdocstrings[crystal,python]",
