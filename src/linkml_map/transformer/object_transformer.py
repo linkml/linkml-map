@@ -6,7 +6,7 @@ import json
 import logging
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
-from typing import Any, Optional, Union
+from typing import Any
 
 import yaml
 from asteval import Interpreter
@@ -51,7 +51,7 @@ class Bindings(Mapping):
         source_type: str,
         sv: SchemaView,
         bindings: dict,
-        class_deriv: Optional[ClassDerivation] = None,
+        class_deriv: ClassDerivation | None = None,
     ) -> None:
         self.object_transformer: ObjectTransformer = object_transformer
         self.source_obj: OBJECT_TYPE = source_obj
@@ -59,7 +59,7 @@ class Bindings(Mapping):
         self.source_type: str = source_type
         self.sv: SchemaView = sv
         self.bindings: dict = {}
-        self.class_deriv: Optional[ClassDerivation] = class_deriv
+        self.class_deriv: ClassDerivation | None = class_deriv
         if bindings:
             self.bindings.update(bindings)
 
@@ -137,7 +137,7 @@ class Bindings(Mapping):
 
         return self.bindings.get(name)
 
-    def _resolve_join(self, table_name: str) -> Optional[DynObj]:
+    def _resolve_join(self, table_name: str) -> DynObj | None:
         """Resolve a cross-table lookup, returning a DynObj or None."""
         row = self.object_transformer._resolve_joined_row(table_name, self.source_obj, self.class_deriv)
         if row is None:
@@ -155,7 +155,7 @@ class DerivationContext:
     """Immutable context for slot derivation within a single map_object call."""
 
     source_obj: DICT_OBJ
-    source_obj_typed: Optional[Any]
+    source_obj_typed: Any | None
     source_type: str
     sv: SchemaView
     class_deriv: ClassDerivation
@@ -172,7 +172,7 @@ class ObjectTransformer(Transformer):
     object_index: ObjectIndex = None
     lookup_index: Any = None  # Optional[LookupIndex] — lazy import to avoid hard duckdb dep
 
-    def index(self, source_obj: Any, target: Optional[str] = None) -> None:
+    def index(self, source_obj: Any, target: str | None = None) -> None:
         """
         Create an index over a container object.
 
@@ -190,7 +190,7 @@ class ObjectTransformer(Transformer):
         else:
             self.object_index = ObjectIndex(source_obj, schemaview=self.source_schemaview)
 
-    def _resolve_source_type(self, source_type: Optional[str], sv: Optional[SchemaView]) -> Optional[str]:
+    def _resolve_source_type(self, source_type: str | None, sv: SchemaView | None) -> str | None:
         """
         Resolve the source type when not explicitly provided.
 
@@ -226,10 +226,10 @@ class ObjectTransformer(Transformer):
     def map_object(
         self,
         source_obj: OBJECT_TYPE,
-        source_type: Optional[str] = None,
-        target_type: Optional[str] = None,
-        class_derivation: Optional[ClassDerivation] = None,
-    ) -> Union[DICT_OBJ, Any]:
+        source_type: str | None = None,
+        target_type: str | None = None,
+        class_derivation: ClassDerivation | None = None,
+    ) -> DICT_OBJ | Any:
         """
         Transform a source object into a target object.
 
@@ -258,7 +258,7 @@ class ObjectTransformer(Transformer):
             return self.transform_enum(source_obj, [source_type], source_obj)
 
         source_obj_typed = None
-        if isinstance(source_obj, (BaseModel, YAMLRoot)):
+        if isinstance(source_obj, BaseModel | YAMLRoot):
             # ensure dict
             source_obj_typed = source_obj
             source_obj = vars(source_obj)
@@ -377,7 +377,7 @@ class ObjectTransformer(Transformer):
         fk_resolution: FKResolution,
         slot_derivation: SlotDerivation,
         fk_value: Any,
-    ) -> tuple[Any, Optional[SlotDefinition]]:
+    ) -> tuple[Any, SlotDefinition | None]:
         """Resolve a foreign key value through the object index and walk the remaining path."""
         if fk_value is not None and self.object_index:
             cache_key = (fk_resolution.target_class, str(fk_value))
@@ -414,7 +414,7 @@ class ObjectTransformer(Transformer):
         source_obj: DICT_OBJ,
         *,
         require_fk: bool = False,
-    ) -> tuple[Any, Optional[SlotDefinition]]:
+    ) -> tuple[Any, SlotDefinition | None]:
         """Resolve a populated_from value via FK path or direct field lookup.
 
         :param populated_from: The populated_from string (may contain dots for FK paths).
@@ -477,7 +477,7 @@ class ObjectTransformer(Transformer):
         table_name: str,
         field_path: str,
         context: DerivationContext,
-    ) -> tuple[Any, Optional[SlotDefinition]]:
+    ) -> tuple[Any, SlotDefinition | None]:
         """Resolve a slot value via cross-table join lookup.
 
         :param table_name: Join name (key in ``class_deriv.joins``).
@@ -517,7 +517,7 @@ class ObjectTransformer(Transformer):
 
     def _resolve_sources(
         self, slot_derivation: SlotDerivation, context: DerivationContext
-    ) -> tuple[Any, Optional[SlotDefinition]]:
+    ) -> tuple[Any, SlotDefinition | None]:
         """Resolve a slot value from multiple candidate source slots (first available wins)."""
         vmap = {s: context.source_obj.get(s, None) for s in slot_derivation.sources}
         vmap = {k: v for k, v in vmap.items() if v is not None}
@@ -568,7 +568,7 @@ class ObjectTransformer(Transformer):
         self,
         v: Any,
         source_class_slot: SlotDefinition,
-        target_range: Optional[str],
+        target_range: str | None,
         source_obj: DICT_OBJ,
     ) -> Any:
         """Recursively map nested values based on the source slot's range type."""
@@ -583,9 +583,9 @@ class ObjectTransformer(Transformer):
                     return [self.transform_enum(v1, any_of_enums, source_obj) for v1 in v]
                 return self.transform_enum(v, any_of_enums, source_obj)
             # No range and no any_of enums: nothing to recurse into for scalars
-            if not isinstance(v, (dict, list)):
+            if not isinstance(v, dict | list):
                 return v
-            if isinstance(v, list) and all(not isinstance(v1, (dict, list)) for v1 in v):
+            if isinstance(v, list) and all(not isinstance(v1, dict | list) for v1 in v):
                 return v
 
         if source_class_slot.multivalued:
@@ -649,7 +649,7 @@ class ObjectTransformer(Transformer):
         self,
         slot_derivation: SlotDerivation,
         context: DerivationContext,
-    ) -> Union[float, dict, None]:
+    ) -> float | dict | None:
         """Perform unit conversion for a slot derivation."""
         uc = slot_derivation.unit_conversion
         curr_v = context.source_obj.get(slot_derivation.populated_from, None)
@@ -790,9 +790,9 @@ class ObjectTransformer(Transformer):
 
     def transform_object(
         self,
-        source_obj: Union[YAMLRoot, BaseModel],
-        target_class: Optional[Union[type[YAMLRoot], type[BaseModel]]] = None,
-    ) -> Union[YAMLRoot, BaseModel]:
+        source_obj: YAMLRoot | BaseModel,
+        target_class: type[YAMLRoot] | type[BaseModel] | None = None,
+    ) -> YAMLRoot | BaseModel:
         """
         Transform an object into an object of class target_class.
 
@@ -818,7 +818,7 @@ class ObjectTransformer(Transformer):
         tr_obj_dict = self.map_object(source_obj, source_type_name)
         return target_class(**tr_obj_dict)
 
-    def transform_enum(self, source_value: str, enum_names: list[str], source_obj: Any) -> Optional[str]:
+    def transform_enum(self, source_value: str, enum_names: list[str], source_obj: Any) -> str | None:
         """Transform a source enum value through one or more enum derivations.
 
         Iterates *enum_names* in order. For each enum derivation, tries
@@ -858,7 +858,7 @@ class ObjectTransformer(Transformer):
         class_deriv: ClassDerivation,
         sv: SchemaView,
         source_type: str,
-    ) -> Union[DICT_OBJ, list[DICT_OBJ]]:
+    ) -> DICT_OBJ | list[DICT_OBJ]:
         """
         Perform a pivot (MELT or UNMELT) operation.
 
@@ -925,7 +925,7 @@ class ObjectTransformer(Transformer):
         record: DICT_OBJ,
         variable_slot: str,
         value_slot: str,
-        unit_slot: Optional[str],
+        unit_slot: str | None,
         template: str,
     ) -> DICT_OBJ:
         """
@@ -1021,7 +1021,7 @@ class ObjectTransformer(Transformer):
         self,
         pivot_op: PivotOperation,
         source_obj: DICT_OBJ,
-        slot_derivation: Optional[SlotDerivation] = None,
+        slot_derivation: SlotDerivation | None = None,
     ) -> list[DICT_OBJ]:
         """
         Transform wide format to EAV/long format.

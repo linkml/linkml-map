@@ -5,7 +5,7 @@ import os
 import sys
 from contextlib import nullcontext
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 import click
 import yaml
@@ -108,14 +108,14 @@ def main(verbose: int, quiet: bool) -> None:
 def map_data(
     input_data: str,
     schema: str,
-    source_type: Optional[str],
+    source_type: str | None,
     transformer_specification: str,
-    output: Optional[str],
-    output_format: Optional[str],
+    output: str | None,
+    output_format: str | None,
     chunk_size: int,
     additional_output: tuple,
     continue_on_error: bool = False,
-    target_schema: Optional[str] = None,
+    target_schema: str | None = None,
     **kwargs: dict[str, Any],
 ) -> None:
     """
@@ -193,11 +193,11 @@ def map_data(
 def _map_data_single(
     input_data: str,
     schema: str,
-    source_type: Optional[str],
+    source_type: str | None,
     transformer_specification: str,
-    output: Optional[str],
+    output: str | None,
     output_format: str,
-    target_schema: Optional[str] = None,
+    target_schema: str | None = None,
     continue_on_error: bool = False,
     **kwargs: dict[str, Any],
 ) -> None:
@@ -254,13 +254,13 @@ def _build_additional_outputs(
 def _map_data_streaming(
     input_path: Path,
     schema: str,
-    source_type: Optional[str],
+    source_type: str | None,
     transformer_specification: str,
-    output: Optional[str],
+    output: str | None,
     output_format: str,
     chunk_size: int,
     additional_output: tuple = (),
-    target_schema: Optional[str] = None,
+    target_schema: str | None = None,
     continue_on_error: bool = False,
     **kwargs: dict[str, Any],
 ) -> None:
@@ -341,8 +341,8 @@ def compile(
     schema: str,
     transformer_specification: str,
     target: str,
-    output: Optional[str],
-    **kwargs: Optional[dict[str, Any]],
+    output: str | None,
+    **kwargs: dict[str, Any] | None,
 ) -> None:
     """
     Compiles a schema to another representation.
@@ -376,8 +376,8 @@ def compile(
 def derive_schema(
     schema: str,
     transformer_specification: str,
-    output: Optional[str],
-    **kwargs: Optional[dict[str, Any]],
+    output: str | None,
+    **kwargs: dict[str, Any] | None,
 ) -> None:
     """
     Derive a schema from a source schema and a transformation specification.
@@ -410,8 +410,8 @@ def derive_schema(
 def invert(
     schema: str,
     transformer_specification: str,
-    output: Optional[str],
-    **kwargs: Optional[dict[str, Any]],
+    output: str | None,
+    **kwargs: dict[str, Any] | None,
 ) -> None:
     """
     Invert a transformation specification.
@@ -432,9 +432,9 @@ def invert(
 
 
 def dump_output(
-    output_data: Union[dict[str, Any], list[Any], str],
-    output_format: Optional[str] = None,
-    file_path: Optional[str] = None,
+    output_data: dict[str, Any] | list[Any] | str,
+    output_format: str | None = None,
+    file_path: str | None = None,
 ) -> None:
     """
     Dump output to a file or stdout.

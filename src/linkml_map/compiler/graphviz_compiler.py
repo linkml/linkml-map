@@ -1,6 +1,5 @@
 import re
 from dataclasses import dataclass
-from typing import Optional
 
 from graphviz import Digraph
 from linkml_runtime import SchemaView
@@ -54,9 +53,7 @@ class GraphvizCompiler(Compiler):
     Compile a Transformation Specification to GraphViz.
     """
 
-    def compile(
-        self, specification: TransformationSpecification, elements: Optional[list[str]] = None
-    ) -> GraphvizObject:
+    def compile(self, specification: TransformationSpecification, elements: list[str] | None = None) -> GraphvizObject:
         dg = Digraph(comment="UML Class Diagram", format="png")
         dg.attr(rankdir="LR")  # Set graph direction from left to right
         target_schemaview = self.derived_target_schemaview(specification)

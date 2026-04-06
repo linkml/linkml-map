@@ -8,7 +8,7 @@ import logging
 from collections import defaultdict
 from copy import copy
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import json_dumper
@@ -138,9 +138,9 @@ class SchemaMapper:
 
     def derive_schema(
         self,
-        specification: Optional[TransformationSpecification] = None,
-        target_schema_id: Optional[str] = None,
-        target_schema_name: Optional[str] = None,
+        specification: TransformationSpecification | None = None,
+        target_schema_id: str | None = None,
+        target_schema_name: str | None = None,
         suffix="-derived",
     ) -> SchemaDefinition:
         """
@@ -377,7 +377,7 @@ class SchemaMapper:
         mixins = [self._rewire_parent(class_definition, m) for m in class_definition.mixins]
         class_definition.mixins = [m for m in mixins if m is not None]
 
-    def _rewire_parent(self, class_definition: ClassDefinition, parent: ClassDefinitionName) -> Optional[str]:
+    def _rewire_parent(self, class_definition: ClassDefinition, parent: ClassDefinitionName) -> str | None:
         if parent in self.source_to_target_class_mappings:
             new_parents = self.source_to_target_class_mappings[parent]
             if len(new_parents) > 1:

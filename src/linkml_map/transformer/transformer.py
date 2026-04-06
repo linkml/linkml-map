@@ -5,7 +5,7 @@ from abc import ABC
 from copy import deepcopy
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 import yaml
 from curies import Converter
@@ -28,7 +28,7 @@ from linkml_map.utils.schema_patch import apply_schema_patch
 logger = logging.getLogger(__name__)
 
 
-OBJECT_TYPE = Union[dict[str, Any], BaseModel, YAMLRoot]
+OBJECT_TYPE = dict[str, Any] | BaseModel | YAMLRoot
 """An object can be a plain python dict, a pydantic object, or a linkml YAMLRoot"""
 
 
@@ -56,7 +56,7 @@ class Transformer(ABC):
     _source_schema_patched: bool = field(default=False)
     """Flag to track if source schema patches have been applied."""
 
-    target_schemaview: Optional[SchemaView] = None
+    target_schemaview: SchemaView | None = None
     """A view over the schema describing the output/target object."""
 
     unrestricted_eval: bool = field(default=False)
@@ -64,7 +64,7 @@ class Transformer(ABC):
 
     _curie_converter: Converter = None
 
-    def map_object(self, obj: OBJECT_TYPE, source_type: Optional[str] = None, **kwargs: dict[str, Any]) -> OBJECT_TYPE:
+    def map_object(self, obj: OBJECT_TYPE, source_type: str | None = None, **kwargs: dict[str, Any]) -> OBJECT_TYPE:
         """
         Transform source object into an instance of the target class.
 
@@ -75,7 +75,7 @@ class Transformer(ABC):
         raise NotImplementedError
 
     def map_database(
-        self, source_database: Any, target_database: Optional[Any] = None, **kwargs: dict[str, Any]
+        self, source_database: Any, target_database: Any | None = None, **kwargs: dict[str, Any]
     ) -> OBJECT_TYPE:
         """
         Transform source resource.
@@ -87,7 +87,7 @@ class Transformer(ABC):
         """
         raise NotImplementedError
 
-    def load_source_schema(self, path: Union[str, Path, dict]) -> None:
+    def load_source_schema(self, path: str | Path | dict) -> None:
         """
         Set source_schemaview from a schema path.
 
@@ -97,7 +97,7 @@ class Transformer(ABC):
             path = str(path)
         self.source_schemaview = SchemaView(path)
 
-    def load_transformer_specification(self, path: Union[str, Path]) -> None:
+    def load_transformer_specification(self, path: str | Path) -> None:
         """
         Set specification from a schema path.
 
@@ -188,7 +188,7 @@ class Transformer(ABC):
                 # form (``- name: Foo``).
                 if isinstance(item, dict) and len(item) == 1:
                     key, val = next(iter(item.items()))
-                    if key != "name" and isinstance(val, (dict, type(None))):
+                    if key != "name" and isinstance(val, dict | type(None)):
                         expanded = val if val is not None else {}
                         expanded.setdefault("name", key)
                         cd[i] = expanded
@@ -217,7 +217,7 @@ class Transformer(ABC):
         self._source_schema_patched = True
 
     @property
-    def derived_specification(self) -> Optional[TransformationSpecification]:
+    def derived_specification(self) -> TransformationSpecification | None:
         if self._derived_specification is None:
             if self.specification is None:
                 return None
@@ -323,7 +323,7 @@ class Transformer(ABC):
                 return True
         return False
 
-    def _coerce_datatype(self, v: Any, target_range: Optional[str]) -> Any:
+    def _coerce_datatype(self, v: Any, target_range: str | None) -> Any:
         if target_range is None:
             return v
         if isinstance(v, list):

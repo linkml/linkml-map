@@ -4,7 +4,6 @@ import json
 import re
 from collections.abc import Generator
 from pathlib import Path
-from typing import Optional, Union
 
 import pytest
 import yaml
@@ -52,7 +51,7 @@ def test_main_help(runner: CliRunner) -> None:
     assert result.exit_code == 0
 
 
-def check_result(result: Result, expected_file: Path, output_param: Optional[str] = None) -> None:
+def check_result(result: Result, expected_file: Path, output_param: str | None = None) -> None:
     """
     Check that the result of running a function matches the expected output.
 
@@ -77,8 +76,8 @@ def check_result(result: Result, expected_file: Path, output_param: Optional[str
 @pytest.mark.parametrize("target", [None, "python", "markdown", "klingon"])
 def test_compile(
     runner: CliRunner,
-    target: Optional[str],
-    output: Optional[str],
+    target: str | None,
+    output: str | None,
     tmp_path: Generator[Path, None, None],
 ) -> None:
     """
@@ -121,7 +120,7 @@ def test_compile(
 
 
 @pytest.mark.parametrize("output", [None, "output.yaml"])
-def test_derive_schema(runner: CliRunner, output: Optional[str], tmp_path: Generator[Path, None, None]) -> None:
+def test_derive_schema(runner: CliRunner, output: str | None, tmp_path: Generator[Path, None, None]) -> None:
     """
     Test schema derivation.
 
@@ -203,9 +202,9 @@ EXPECTED_OUTPUT = {
 def test_dump_output(
     capsys: Generator[pytest.CaptureFixture, None, None],
     tmp_path: Generator[Path, None, None],
-    file_path: Optional[str],
-    output_format: Optional[str],
-    output_data: Union[dict, list],
+    file_path: str | None,
+    output_format: str | None,
+    output_data: dict | list,
 ) -> None:
     """Ensure that the dump_output function does what it says."""
     if file_path:
@@ -237,7 +236,7 @@ def test_dump_output(
         ("file_path", "path/to/a/dir", FileNotFoundError, "No such file or directory"),
     ],
 )
-def test_dump_output_fail(param: str, value: Optional[str], error: Exception, message: str) -> None:
+def test_dump_output_fail(param: str, value: str | None, error: Exception, message: str) -> None:
     """
     Ensure that invalid input causes dump_output to fail.
     """

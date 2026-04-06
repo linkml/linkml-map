@@ -17,7 +17,6 @@ from abc import ABC
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 from types import ModuleType
-from typing import Optional
 
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper
@@ -31,7 +30,7 @@ from linkml_map.inference.schema_mapper import SchemaMapper
 class CompiledSpecification:
     serialization: str = field(default="")
 
-    _module: Optional[ModuleType] = None
+    _module: ModuleType | None = None
 
     @property
     def module(self) -> ModuleType:
