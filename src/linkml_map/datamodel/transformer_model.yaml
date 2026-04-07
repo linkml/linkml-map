@@ -220,10 +220,19 @@ classes:
       #  description: Name of the class in the target schema
       populated_from:
         range: ClassReference
-        description: Name of the class in the source schema
+        description: >-
+          Source class or classes to derive this target class from.
+          Accepts a single class name or a list of class names.
+          When a list is provided, each source class is processed using the
+          same slot_derivations.
       sources:
         range: ClassReference
         multivalued: true
+        deprecated: >-
+          Use populated_from (which now accepts a list) instead.
+          Will be removed in a future version.
+        description: >-
+          Deprecated. Use populated_from as a list instead.
       joins:
         range: AliasedClass
         multivalued: true
@@ -281,10 +290,19 @@ classes:
         description: Target slot name
       populated_from:
         range: SlotReference
-        description: Source slot name
+        description: >-
+          Source slot or slots to derive this target slot from.
+          Accepts a single slot name or a list of slot names.
+          When a list is provided, the transformer resolves from whichever
+          source slot is present in the current source object.
       sources:
         range: SlotReference
         multivalued: true
+        deprecated: >-
+          Use populated_from (which now accepts a list) instead.
+          Will be removed in a future version.
+        description: >-
+          Deprecated. Use populated_from as a list instead.
       object_derivations:
         description: >-
           One or more object derivations used to construct the slot value(s),
@@ -296,8 +314,13 @@ classes:
       derived_from:
         range: SlotReference
         multivalued: true
-        description: Source slots that are used to derive this slot. This can be computed from the expr,
-          if the expr is declarative.
+        deprecated: >-
+          This field is fully derivable from expr and is not used by the runtime.
+          It will be removed in a future version.
+        description: >-
+          Deprecated. Source slots that are used to derive this slot.
+          This information can be computed from the expr field and is not used
+          by the transformer runtime. Use populated_from or sources instead.
       expr:
         range: string
         description: >-
@@ -358,10 +381,20 @@ classes:
         description: Target enum name
       populated_from:
         range: EnumReference
-        description: Source enum name
+        description: >-
+          Source enum or enums to derive this target enum from.
+          Accepts a single enum name or a list of enum names.
+          When a list is provided, permissible values from any of the
+          listed source enums can be mapped by this derivation's
+          permissible_value_derivations.
       sources:
         range: EnumReference
         multivalued: true
+        deprecated: >-
+          Use populated_from (which now accepts a list) instead.
+          Will be removed in a future version.
+        description: >-
+          Deprecated. Use populated_from as a list instead.
       expr:
         range: string
         description: >-
@@ -389,10 +422,19 @@ classes:
         range: string
       populated_from:
         range: string
-        description: Source permissible value
+        description: >-
+          Source permissible value or values that map to this target
+          permissible value. Accepts a single value or a list of values.
+          When a list is provided, any of the listed source values will
+          map to this target permissible value.
       sources:
         range: string
         multivalued: true
+        deprecated: >-
+          Use populated_from (which now accepts a list) instead.
+          Will be removed in a future version.
+        description: >-
+          Deprecated. Use populated_from as a list instead.
       hide:
         range: boolean
 
