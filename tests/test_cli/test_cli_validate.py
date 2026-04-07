@@ -6,8 +6,6 @@ from click.testing import CliRunner
 from linkml_map.cli.cli import main
 from tests import FLATTENING_TR, PERSONINFO_TR
 
-EXAMPLE_DIR = PERSONINFO_TR.parent.parent.parent
-
 
 @pytest.fixture
 def runner() -> CliRunner:

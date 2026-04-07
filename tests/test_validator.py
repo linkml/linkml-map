@@ -3,12 +3,7 @@
 import pytest
 
 from linkml_map.validator import normalize_spec_dict, validate_spec, validate_spec_file
-from tests import (
-    PERSONINFO_TR,
-)
-
-EXAMPLE_DIR = PERSONINFO_TR.parent.parent.parent
-
+from tests import EXAMPLE_DIR
 
 # ---------------------------------------------------------------------------
 # Unit tests for normalize_spec_dict
@@ -59,11 +54,12 @@ def test_normalize_explicit_list_format():
     assert cd[0]["name"] == "Foo"
 
 
-def test_normalize_coerces_version():
-    """Float version values are coerced to string."""
-    raw = {"version": 0.1}
+@pytest.mark.parametrize("version,expected", [(0.1, "0.1"), (1, "1"), (2, "2")])
+def test_normalize_coerces_version(version, expected):
+    """Numeric version values are coerced to string."""
+    raw = {"version": version}
     result = normalize_spec_dict(raw)
-    assert result["version"] == "0.1"
+    assert result["version"] == expected
 
 
 def test_normalize_coerces_publication_date():

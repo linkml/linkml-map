@@ -20,7 +20,7 @@ import logging
 from datetime import date, datetime
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Union
+from typing import Any
 
 import jsonschema
 import yaml
@@ -79,9 +79,9 @@ def _coerce_yaml_types(obj: Any) -> Any:
         return {k: _coerce_yaml_types(v) for k, v in obj.items()}
     if isinstance(obj, list):
         return [_coerce_yaml_types(item) for item in obj]
-    if isinstance(obj, (date, datetime)):
+    if isinstance(obj, date | datetime):
         return obj.isoformat()
-    if isinstance(obj, float):
+    if isinstance(obj, int | float):
         return str(obj)
     return obj
 
@@ -145,7 +145,7 @@ def validate_spec(
 
 
 def validate_spec_file(
-    path: Union[str, Path],
+    path: str | Path,
     *,
     schema_path: str | None = None,
 ) -> list[str]:
