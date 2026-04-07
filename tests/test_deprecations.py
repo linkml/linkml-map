@@ -168,8 +168,85 @@ def test_sources_on_slot_emits_deprecation_warning():
     assert "name" in str(sources_warnings[0].message)
 
 
-def test_no_warning_without_derived_from():
-    """No deprecation warning when derived_from is not used."""
+def test_object_derivations_emits_deprecation_warning():
+    """Using object_derivations on a SlotDerivation emits a DeprecationWarning."""
+    source = """\
+id: https://example.org/source
+name: source
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+classes:
+  Person:
+    attributes:
+      name:
+        range: string
+      condition_name:
+        range: string
+"""
+    target = """\
+id: https://example.org/target
+name: target
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+classes:
+  Person:
+    attributes:
+      name:
+        range: string
+      conditions:
+        range: Condition
+        multivalued: true
+        inlined_as_list: true
+  Condition:
+    attributes:
+      name:
+        range: string
+"""
+    tr = ObjectTransformer()
+    tr.source_schemaview = SchemaView(source)
+    tr.target_schemaview = SchemaView(target)
+    spec = {
+        "class_derivations": {
+            "Person": {
+                "populated_from": "Person",
+                "slot_derivations": {
+                    "name": {"populated_from": "name"},
+                    "conditions": {
+                        "object_derivations": [
+                            {
+                                "class_derivations": {
+                                    "Condition": {
+                                        "populated_from": "Person",
+                                        "slot_derivations": {
+                                            "name": {"populated_from": "condition_name"},
+                                        },
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                },
+            },
+        },
+    }
+    tr.create_transformer_specification(spec)
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        _ = tr.derived_specification
+
+    deprecation_warnings = [w for w in caught if issubclass(w.category, DeprecationWarning)]
+    od_warnings = [w for w in deprecation_warnings if "object_derivations" in str(w.message)]
+    assert len(od_warnings) == 1
+    assert "conditions" in str(od_warnings[0].message)
+
+
+def test_no_warning_without_deprecated_fields():
+    """No deprecation warning when no deprecated fields are used."""
     tr = ObjectTransformer()
     tr.source_schemaview = SchemaView(SOURCE_SCHEMA)
     tr.target_schemaview = SchemaView(TARGET_SCHEMA)

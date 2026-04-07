@@ -256,7 +256,12 @@ classes:
 
   ObjectDerivation:
     is_a: ElementDerivation
-    description: Temporary placeholder for object_derivations
+    deprecated: >-
+      Use list-based class_derivations instead of nesting via object_derivations.
+      See https://github.com/linkml/linkml-map/issues/112
+    description: >-
+      Deprecated. A nested derivation for constructing slot values that are
+      class instances. Use list-based class_derivations instead.
     attributes:
       name:
         description: Name of the element in the target schema
@@ -304,7 +309,11 @@ classes:
         description: >-
           Deprecated. Use populated_from as a list instead.
       object_derivations:
+        deprecated: >-
+          Use list-based class_derivations instead of nesting via object_derivations.
+          See https://github.com/linkml/linkml-map/issues/112
         description: >-
+          Deprecated. Use list-based class_derivations instead.
           One or more object derivations used to construct the slot value(s),
           which must be instances of a class.
         range: ObjectDerivation

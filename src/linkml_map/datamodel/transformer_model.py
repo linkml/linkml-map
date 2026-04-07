@@ -281,9 +281,12 @@ class ClassDerivation(ElementDerivation):
 
 class ObjectDerivation(ElementDerivation):
     """
-    Temporary placeholder for object_derivations
+    Deprecated. A nested derivation for constructing slot values that are class instances. Use list-based class_derivations instead.
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/linkml/transformer'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'deprecated': 'Use list-based class_derivations instead of nesting via '
+                       'object_derivations. See '
+                       'https://github.com/linkml/linkml-map/issues/112',
+         'from_schema': 'https://w3id.org/linkml/transformer'})
 
     name: Optional[str] = Field(default=None, description="""Name of the element in the target schema""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation',
                        'ObjectDerivation',
@@ -340,7 +343,10 @@ class SlotDerivation(ElementDerivation):
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    object_derivations: Optional[list[ObjectDerivation]] = Field(default_factory=list, description="""One or more object derivations used to construct the slot value(s), which must be instances of a class.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation']} })
+    object_derivations: Optional[list[ObjectDerivation]] = Field(default_factory=list, description="""Deprecated. Use list-based class_derivations instead. One or more object derivations used to construct the slot value(s), which must be instances of a class.""", json_schema_extra = { "linkml_meta": {'deprecated': 'Use list-based class_derivations instead of nesting via '
+                       'object_derivations. See '
+                       'https://github.com/linkml/linkml-map/issues/112',
+         'domain_of': ['SlotDerivation']} })
     derived_from: Optional[list[str]] = Field(default_factory=list, description="""Deprecated. Source slots that are used to derive this slot. This information can be computed from the expr field and is not used by the transformer runtime. Use populated_from or sources instead.""", json_schema_extra = { "linkml_meta": {'deprecated': 'This field is fully derivable from expr and is not used by the '
                        'runtime. It will be removed in a future version.',
          'domain_of': ['SlotDerivation']} })

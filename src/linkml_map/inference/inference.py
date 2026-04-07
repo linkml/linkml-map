@@ -8,34 +8,38 @@ from linkml_map.datamodel.transformer_model import TransformationSpecification
 from linkml_map.utils.fk_utils import resolve_fk_path
 
 
-def _warn_deprecated_sources(specification: TransformationSpecification) -> None:
-    """Emit deprecation warnings for any use of the ``sources`` field.
+def _warn_deprecated_fields(specification: TransformationSpecification) -> None:
+    """Emit deprecation warnings for use of deprecated fields.
 
-    Checks class derivations, slot derivations, enum derivations, and
-    permissible value derivations.  The ``sources`` field is deprecated
-    in favor of list-based ``populated_from``.  Warnings are collapsed
-    to one per derivation type to avoid noise.
+    Checks for ``sources`` (deprecated in favor of list-based ``populated_from``)
+    and ``object_derivations`` (deprecated in favor of list-based
+    ``class_derivations``).  Warnings are collapsed to one per field per
+    derivation type to avoid noise.
     """
-    counts: dict[str, list[str]] = {
+    sources_counts: dict[str, list[str]] = {
         "ClassDerivation": [],
         "SlotDerivation": [],
         "EnumDerivation": [],
         "PermissibleValueDerivation": [],
     }
+    object_deriv_names: list[str] = []
+
     for cd in specification.class_derivations:
         if cd.sources:
-            counts["ClassDerivation"].append(cd.name)
+            sources_counts["ClassDerivation"].append(cd.name)
         for sd in cd.slot_derivations.values():
             if sd.sources:
-                counts["SlotDerivation"].append(sd.name)
+                sources_counts["SlotDerivation"].append(sd.name)
+            if sd.object_derivations:
+                object_deriv_names.append(sd.name)
     for ed in specification.enum_derivations.values():
         if ed.sources:
-            counts["EnumDerivation"].append(ed.name)
+            sources_counts["EnumDerivation"].append(ed.name)
         for pvd in ed.permissible_value_derivations.values():
             if pvd.sources:
-                counts["PermissibleValueDerivation"].append(pvd.name)
+                sources_counts["PermissibleValueDerivation"].append(pvd.name)
 
-    for deriv_type, names in counts.items():
+    for deriv_type, names in sources_counts.items():
         if names:
             names_str = ", ".join(names[:5])
             suffix = f" (and {len(names) - 5} more)" if len(names) > 5 else ""
@@ -47,6 +51,19 @@ def _warn_deprecated_sources(specification: TransformationSpecification) -> None
                 DeprecationWarning,
                 stacklevel=3,
             )
+
+    if object_deriv_names:
+        names_str = ", ".join(object_deriv_names[:5])
+        suffix = f" (and {len(object_deriv_names) - 5} more)" if len(object_deriv_names) > 5 else ""
+        warnings.warn(
+            f"{len(object_deriv_names)} SlotDerivation(s) use 'object_derivations', "
+            f"which is deprecated: {names_str}{suffix}. "
+            f"Use list-based class_derivations instead. "
+            f"'object_derivations' will be removed in a future version. "
+            f"See https://github.com/linkml/linkml-map/issues/112",
+            DeprecationWarning,
+            stacklevel=3,
+        )
 
 
 def induce_missing_values(specification: TransformationSpecification, source_schemaview: SchemaView) -> None:
@@ -62,7 +79,7 @@ def induce_missing_values(specification: TransformationSpecification, source_sch
     for cd in specification.class_derivations:
         if not cd.populated_from:
             cd.populated_from = cd.name
-    _warn_deprecated_sources(specification)
+    _warn_deprecated_fields(specification)
 
     for cd in specification.class_derivations:
         for sd in cd.slot_derivations.values():
