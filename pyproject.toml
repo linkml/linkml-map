@@ -33,7 +33,6 @@ dev = [
     "deepdiff>=6.0",
     "deptry>=0.23",
     "jupyter>=1.1",
-    "linkml>=1.10.0",
     "mkdocs-mermaid2-plugin>=0.6",
     "mkdocs-windmill",
     "mkdocstrings[crystal,python]",
