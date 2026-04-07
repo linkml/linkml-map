@@ -46,7 +46,7 @@ def _warn_deprecated_fields(specification: TransformationSpecification) -> None:
             warnings.warn(
                 f"{len(names)} {deriv_type}(s) use 'sources', which is deprecated: "
                 f"{names_str}{suffix}. "
-                f"Use 'populated_from' (which now accepts a list) instead. "
+                f"Use 'populated_from' instead. "
                 f"'sources' will be removed in a future version.",
                 DeprecationWarning,
                 stacklevel=3,
@@ -86,7 +86,8 @@ def induce_missing_values(specification: TransformationSpecification, source_sch
             if sd.derived_from:
                 warnings.warn(
                     f"SlotDerivation '{sd.name}' uses 'derived_from', which is deprecated "
-                    f"and ignored by the runtime. Use 'populated_from' instead. "
+                    f"and ignored by the runtime. This field can be removed — "
+                    f"source slot dependencies are derivable from 'expr'. "
                     f"'derived_from' will be removed in a future version.",
                     DeprecationWarning,
                     stacklevel=2,
