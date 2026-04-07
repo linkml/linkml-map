@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 import yaml
 
@@ -19,7 +19,7 @@ class FileFormat(str, Enum):
     CSV = "csv"
 
     @classmethod
-    def from_extension(cls, path: Union[str, Path]) -> "FileFormat":
+    def from_extension(cls, path: str | Path) -> "FileFormat":
         """Determine file format from file extension."""
         ext = Path(path).suffix.lower()
         mapping = {
@@ -38,7 +38,7 @@ class FileFormat(str, Enum):
 class BaseFileLoader(ABC):
     """Abstract base class for file loaders."""
 
-    def __init__(self, source: Union[str, Path]) -> None:
+    def __init__(self, source: str | Path) -> None:
         """Initialize with a file path."""
         self.source = Path(source)
         if not self.source.exists():
@@ -81,7 +81,7 @@ class TsvFileLoader(BaseFileLoader):
 
     def __init__(
         self,
-        source: Union[str, Path],
+        source: str | Path,
         skip_empty_rows: bool = True,
     ) -> None:
         """Initialize TSV loader."""
@@ -101,7 +101,7 @@ class CsvFileLoader(BaseFileLoader):
 
     def __init__(
         self,
-        source: Union[str, Path],
+        source: str | Path,
         skip_empty_rows: bool = True,
     ) -> None:
         """Initialize CSV loader."""
@@ -117,8 +117,8 @@ class CsvFileLoader(BaseFileLoader):
 
 
 def get_file_loader(
-    path: Union[str, Path],
-    file_format: Optional[FileFormat] = None,
+    path: str | Path,
+    file_format: FileFormat | None = None,
     **kwargs: Any,
 ) -> BaseFileLoader:
     """
@@ -172,8 +172,8 @@ class DataLoader:
 
     def __init__(
         self,
-        base_path: Union[str, Path],
-        default_format: Optional[FileFormat] = None,
+        base_path: str | Path,
+        default_format: FileFormat | None = None,
         skip_empty_rows: bool = True,
     ) -> None:
         """
@@ -213,7 +213,7 @@ class DataLoader:
             for identifier in self.get_available_identifiers():
                 yield identifier, self[identifier]
 
-    def _find_file(self, identifier: str) -> Optional[Path]:
+    def _find_file(self, identifier: str) -> Path | None:
         """
         Find a data file matching the identifier.
 
@@ -333,8 +333,8 @@ class DataLoader:
 
 
 def load_data_file(
-    path: Union[str, Path],
-    file_format: Optional[FileFormat] = None,
+    path: str | Path,
+    file_format: FileFormat | None = None,
     **kwargs: Any,
 ) -> Iterator[dict[str, Any]]:
     """

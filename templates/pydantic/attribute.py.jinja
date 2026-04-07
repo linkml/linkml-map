@@ -1,4 +1,4 @@
-{{name}}: {{ range }} = Field({%- if field == 'None' and multivalued %}default_factory={{ "dict" if (inlined_as_dict or "Dict[" in range) else "list" }}{% elif field == 'None' %}default=None{% else %}default={{ field }}{% endif %}
+{{name}}: {{ range }} = Field({%- if field == 'None' and multivalued %}default_factory={{ "dict" if (inlined_as_dict or "Dict[" in range or "dict[" in range) else "list" }}{% elif field == 'None' %}default=None{% else %}default={{ field }}{% endif %}
 {%- if title != None %}, title="{{title}}"{% endif -%}
 {%- if description %}, description="""{{description}}"""{% endif -%}
 {%- if equals_number != None %}

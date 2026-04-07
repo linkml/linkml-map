@@ -724,7 +724,7 @@ def test_perform_unit_conversion_structured_value(obj_tr: ObjectTransformer):
     assert "value_converted" in result
     assert "unit_converted" in result
     # Check that the converted value is numeric and unit matches target_unit
-    assert isinstance(result["value_converted"], (int, float))
+    assert isinstance(result["value_converted"], int | float)
     assert result["unit_converted"] == "m"
 
 

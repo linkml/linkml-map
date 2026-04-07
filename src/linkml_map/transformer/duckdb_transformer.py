@@ -2,7 +2,7 @@
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Optional, Union
+from typing import Any
 
 from duckdb import DuckDBPyConnection
 
@@ -10,7 +10,7 @@ from linkml_map.compiler.sql_compiler import SQLCompiler
 from linkml_map.transformer.transformer import OBJECT_TYPE, Transformer
 
 DICT_OBJ = dict[str, Any]
-DATABASE = Union[str, DuckDBPyConnection]
+DATABASE = str | DuckDBPyConnection
 
 
 logger = logging.getLogger(__name__)
@@ -25,9 +25,9 @@ class DuckDBTransformer(Transformer):
     def map_object(
         self,
         source_obj: OBJECT_TYPE,
-        source_type: Optional[str] = None,
-        target_type: Optional[str] = None,
-        **kwargs: Optional[dict[str, Any]],
+        source_type: str | None = None,
+        target_type: str | None = None,
+        **kwargs: Any,
     ) -> OBJECT_TYPE:
         """
         Transform a source object into a target object.
@@ -43,8 +43,8 @@ class DuckDBTransformer(Transformer):
     def map_database(
         self,
         source_database: DATABASE,
-        target_database: Optional[DATABASE] = None,
-        **kwargs: Optional[dict[str, Any]],
+        target_database: DATABASE | None = None,
+        **kwargs: Any,
     ) -> OBJECT_TYPE:
         """
         Transform source resource.

@@ -94,7 +94,7 @@ def _try_numeric(value: Any) -> Any:  # noqa: ANN401
     """
     if isinstance(value, bool):
         return None
-    if isinstance(value, (int, float)):
+    if isinstance(value, int | float):
         return value
     if isinstance(value, str):
         try:
@@ -202,12 +202,12 @@ def _maybe_coerce_numeric(left: Any, right: Any) -> tuple[Any, Any]:  # noqa: AN
     """
     if type(left) is type(right):
         return left, right
-    if isinstance(left, (int, float)) and not isinstance(left, bool) and isinstance(right, str):
+    if isinstance(left, int | float) and not isinstance(left, bool) and isinstance(right, str):
         try:
             return left, type(left)(right)
         except (ValueError, TypeError):
             return left, right
-    if isinstance(right, (int, float)) and not isinstance(right, bool) and isinstance(left, str):
+    if isinstance(right, int | float) and not isinstance(right, bool) and isinstance(left, str):
         try:
             return type(right)(left), right
         except (ValueError, TypeError):
@@ -325,7 +325,7 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
             msg = "The {} must enclose a single variable"
             raise ValueError(msg)
         e = node.elts[0]
-        if not isinstance(e, (ast.Name, ast.Attribute)):
+        if not isinstance(e, ast.Name | ast.Attribute):
             msg = "The {} must enclose a variable"
             raise TypeError(msg)
         return self._eval(e)
