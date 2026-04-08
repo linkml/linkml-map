@@ -360,15 +360,7 @@ class ObjectTransformer(Transformer):
                 (v, source_class_slot) = self._resolve_fk_or_literal(populated_from, slot_derivation, context)
 
             if (slot_derivation.value_mappings or slot_derivation.expression_mappings) and v is not None:
-                str_v = str(v)
-                vm_hit = slot_derivation.value_mappings.get(str_v) if slot_derivation.value_mappings else None
-                if vm_hit is not None:
-                    v = vm_hit.value
-                elif slot_derivation.expression_mappings:
-                    em_hit = slot_derivation.expression_mappings.get(str_v)
-                    v = self._eval_expr(em_hit.value, bindings) if em_hit is not None else None
-                else:
-                    v = None
+                v = self._apply_mappings(slot_derivation, v, bindings)
 
             if slot_derivation.offset and v is not None:
                 v = self._apply_offset(v, slot_derivation, context.source_obj)
@@ -407,6 +399,23 @@ class ObjectTransformer(Transformer):
             aeval = Interpreter(usersyms={"src": ctxt_obj, "target": None, "uuid5": _uuid5})
             aeval(expr)
             return aeval.symtable["target"]
+
+    def _apply_mappings(self, slot_derivation: SlotDerivation, v: Any, bindings: Bindings) -> Any:
+        """Look up a value in value_mappings then expression_mappings.
+
+        Checks ``value_mappings`` first (literal result). On miss, falls through
+        to ``expression_mappings`` (evaluated against *bindings*). Returns
+        ``None`` if neither table contains the key.
+        """
+        str_v = str(v)
+        vm_hit = slot_derivation.value_mappings.get(str_v) if slot_derivation.value_mappings else None
+        if vm_hit is not None:
+            return vm_hit.value
+        if slot_derivation.expression_mappings:
+            em_hit = slot_derivation.expression_mappings.get(str_v)
+            if em_hit is not None:
+                return self._eval_expr(em_hit.value, bindings)
+        return None
 
     def _perform_fk_resolution(
         self,
