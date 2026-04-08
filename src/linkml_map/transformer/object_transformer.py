@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 from collections.abc import Iterator, Mapping
+from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Any
 
@@ -279,78 +280,110 @@ class ObjectTransformer(Transformer):
             class_deriv=class_deriv,
         )
         tgt_attrs = {}
-        bindings = None
-        # map each slot assignment in source_obj, if there is a slot_derivation
-        for slot_derivation in class_deriv.slot_derivations.values():
-            try:
-                v = None
-                source_class_slot = None
-                if slot_derivation.value is not None:
-                    v = slot_derivation.value
-                elif slot_derivation.unit_conversion:
-                    v = self._perform_unit_conversion(slot_derivation, context)
-                elif slot_derivation.pivot_operation:
-                    # MELT operation: wide format to EAV/long format
-                    v = self._perform_melt(slot_derivation.pivot_operation, source_obj, slot_derivation)
-                elif slot_derivation.expr:
-                    if bindings is None:
-                        bindings = Bindings.from_context(self, context)
-                    v = self._derive_from_expr(slot_derivation, bindings)
-                elif slot_derivation.populated_from:
-                    populated_from = slot_derivation.populated_from
-
-                    if "." in populated_from:
-                        table_name, field_path = populated_from.split(".", 1)
-                        if class_deriv.joins and table_name in class_deriv.joins:
-                            (v, source_class_slot) = self._perform_join_resolution(table_name, field_path, context)
-                        else:
-                            (v, source_class_slot) = self._resolve_fk_or_literal(
-                                populated_from,
-                                slot_derivation,
-                                context,
-                                require_fk=True,
-                            )
-                    else:
-                        (v, source_class_slot) = self._resolve_fk_or_literal(populated_from, slot_derivation, context)
-
-                    if slot_derivation.value_mappings and v is not None:
-                        mapped = slot_derivation.value_mappings.get(str(v), None)
-                        v = mapped.value if mapped is not None else None
-
-                    if slot_derivation.offset and v is not None:
-                        v = self._apply_offset(v, slot_derivation, source_obj)
-
-                    logger.debug(
-                        f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {source_obj}"
-                    )
-                elif slot_derivation.sources:
-                    (v, source_class_slot) = self._resolve_sources(slot_derivation, context)
-                elif slot_derivation.object_derivations:
-                    v = self._derive_nested_objects(slot_derivation, source_obj, target_type)
-                else:
-                    source_class_slot = sv.induced_slot(slot_derivation.name, source_type)
-                    v = source_obj.get(slot_derivation.name, None)
-
-                if source_class_slot and v is not None:
-                    target_range = slot_derivation.range
-                    v = self._map_value_by_range(v, source_class_slot, target_range, source_obj)
-                    v = self._coerce_cardinality(v, slot_derivation, class_deriv)
-                    v = self._coerce_datatype(v, target_range)
-                    v = self._reshape_collection(v, slot_derivation, source_class_slot)
-            except TransformationError:
-                raise
-            except Exception as exc:
-                raise TransformationError(
-                    message=str(exc),
-                    class_derivation_name=class_deriv.name,
-                    class_populated_from=class_deriv.populated_from,
-                    slot_derivation_name=slot_derivation.name,
-                    slot_populated_from=slot_derivation.populated_from,
-                    source_row=source_obj,
-                    cause=exc,
-                ) from exc
-            tgt_attrs[str(slot_derivation.name)] = v
+        bindings = Bindings.from_context(self, context)
+        for slot_deriv in class_deriv.slot_derivations.values():
+            with self._slot_error_context(slot_deriv, context):
+                tgt_attrs[str(slot_deriv.name)] = self._derive_slot(slot_deriv, context, target_type, bindings)
         return tgt_attrs
+
+    @contextmanager
+    def _slot_error_context(
+        self,
+        slot_derivation: SlotDerivation,
+        context: DerivationContext,
+    ) -> Iterator[None]:
+        """Wrap slot derivation in error enrichment.
+
+        Re-raises ``TransformationError`` unchanged; wraps all other exceptions
+        with derivation context so callers get actionable diagnostics.
+        """
+        try:
+            yield
+        except TransformationError:
+            raise
+        except Exception as exc:
+            raise TransformationError(
+                message=str(exc),
+                class_derivation_name=context.class_deriv.name,
+                class_populated_from=context.class_deriv.populated_from,
+                slot_derivation_name=slot_derivation.name,
+                slot_populated_from=slot_derivation.populated_from,
+                source_row=context.source_obj,
+                cause=exc,
+            ) from exc
+
+    def _derive_slot(
+        self,
+        slot_derivation: SlotDerivation,
+        context: DerivationContext,
+        target_type: str | None,
+        bindings: Bindings,
+    ) -> Any:
+        """Derive a single target slot value from the source object.
+
+        Dispatches on the slot derivation type (literal value, expression,
+        populated_from, etc.) and applies post-processing (range mapping,
+        cardinality coercion, datatype coercion, reshaping).
+
+        :param slot_derivation: The slot derivation spec to apply.
+        :param context: Current derivation context.
+        :param target_type: Target class name (needed for nested object derivations).
+        :param bindings: Bindings instance for expression evaluation.
+        :returns: The derived value for this slot.
+        """
+        v = None
+        source_class_slot = None
+        if slot_derivation.value is not None:
+            v = slot_derivation.value
+        elif slot_derivation.unit_conversion:
+            v = self._perform_unit_conversion(slot_derivation, context)
+        elif slot_derivation.pivot_operation:
+            # MELT operation: wide format to EAV/long format
+            v = self._perform_melt(slot_derivation.pivot_operation, context.source_obj, slot_derivation)
+        elif slot_derivation.expr:
+            v = self._derive_from_expr(slot_derivation, bindings)
+        elif slot_derivation.populated_from:
+            populated_from = slot_derivation.populated_from
+
+            if "." in populated_from:
+                table_name, field_path = populated_from.split(".", 1)
+                if context.class_deriv.joins and table_name in context.class_deriv.joins:
+                    (v, source_class_slot) = self._perform_join_resolution(table_name, field_path, context)
+                else:
+                    (v, source_class_slot) = self._resolve_fk_or_literal(
+                        populated_from,
+                        slot_derivation,
+                        context,
+                        require_fk=True,
+                    )
+            else:
+                (v, source_class_slot) = self._resolve_fk_or_literal(populated_from, slot_derivation, context)
+
+            if slot_derivation.value_mappings and v is not None:
+                mapped = slot_derivation.value_mappings.get(str(v), None)
+                v = mapped.value if mapped is not None else None
+
+            if slot_derivation.offset and v is not None:
+                v = self._apply_offset(v, slot_derivation, context.source_obj)
+
+            logger.debug(
+                f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {context.source_obj}"
+            )
+        elif slot_derivation.sources:
+            (v, source_class_slot) = self._resolve_sources(slot_derivation, context)
+        elif slot_derivation.object_derivations:
+            v = self._derive_nested_objects(slot_derivation, context.source_obj, target_type)
+        else:
+            source_class_slot = context.sv.induced_slot(slot_derivation.name, context.source_type)
+            v = context.source_obj.get(slot_derivation.name, None)
+
+        if source_class_slot and v is not None:
+            target_range = slot_derivation.range
+            v = self._map_value_by_range(v, source_class_slot, target_range, context.source_obj)
+            v = self._coerce_cardinality(v, slot_derivation, context.class_deriv)
+            v = self._coerce_datatype(v, target_range)
+            v = self._reshape_collection(v, slot_derivation, source_class_slot)
+        return v
 
     def _derive_from_expr(self, slot_derivation: SlotDerivation, bindings: Bindings) -> Any:
         """Evaluate a slot derivation expression, with fallback to asteval for unrestricted mode."""
