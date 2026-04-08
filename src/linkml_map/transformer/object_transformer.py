@@ -21,7 +21,6 @@ from simpleeval import InvalidExpression
 from linkml_map.datamodel.transformer_model import (
     ClassDerivation,
     CollectionType,
-    KeyVal,
     PivotDirectionType,
     PivotOperation,
     SerializationSyntaxType,
@@ -360,9 +359,16 @@ class ObjectTransformer(Transformer):
             else:
                 (v, source_class_slot) = self._resolve_fk_or_literal(populated_from, slot_derivation, context)
 
-            if slot_derivation.value_mappings and v is not None:
-                mapped = slot_derivation.value_mappings.get(str(v), None)
-                v = self._resolve_key_val(mapped, bindings)
+            if (slot_derivation.value_mappings or slot_derivation.expression_mappings) and v is not None:
+                str_v = str(v)
+                vm_hit = slot_derivation.value_mappings.get(str_v) if slot_derivation.value_mappings else None
+                if vm_hit is not None:
+                    v = vm_hit.value
+                elif slot_derivation.expression_mappings:
+                    em_hit = slot_derivation.expression_mappings.get(str_v)
+                    v = self._eval_expr(em_hit.value, bindings) if em_hit is not None else None
+                else:
+                    v = None
 
             if slot_derivation.offset and v is not None:
                 v = self._apply_offset(v, slot_derivation, context.source_obj)
@@ -401,22 +407,6 @@ class ObjectTransformer(Transformer):
             aeval = Interpreter(usersyms={"src": ctxt_obj, "target": None, "uuid5": _uuid5})
             aeval(expr)
             return aeval.symtable["target"]
-
-    def _resolve_key_val(self, kv: KeyVal | None, bindings: Bindings) -> Any:
-        """Resolve a KeyVal to its result value.
-
-        If *kv* is ``None`` (no match), returns ``None``.
-        If *kv* has ``expr``, evaluates it against *bindings*.
-        Otherwise returns the literal ``value``.
-        Specifying both ``value`` and ``expr`` is an error.
-        """
-        if kv is None:
-            return None
-        if kv.expr is not None and kv.value is not None:
-            raise ValueError(f"KeyVal '{kv.key}' has both 'value' and 'expr' set — they are mutually exclusive")
-        if kv.expr is not None:
-            return self._eval_expr(kv.expr, bindings)
-        return kv.value
 
     def _perform_fk_resolution(
         self,

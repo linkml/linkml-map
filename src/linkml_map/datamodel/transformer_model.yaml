@@ -194,13 +194,22 @@ classes:
         inlined: true
         description: >-
           A mapping table that is applied directly to mappings, in order of precedence
+      expression_mappings:
+        range: KeyVal
+        multivalued: true
+        inlined: true
+        description: >-
+          A mapping table where the values are expressions evaluated against source
+          bindings. Looked up by the same key as value_mappings (the stringified
+          source value). If both value_mappings and expression_mappings are present,
+          value_mappings takes precedence for keys that appear in both.
       expression_to_value_mappings:
         range: KeyVal
         multivalued: true
         inlined: true
         deprecated: >-
-          Deprecated: subsumed by value_mappings with expr values (#165).
-          Use case() with and/or for condition-keyed dispatch. Will be removed before 1.0.
+          Deprecated: use case() with and/or for condition-keyed dispatch.
+          Will be removed before 1.0.
         description: >-
           A mapping table in which the keys are expressions
       expression_to_expression_mappings:
@@ -601,11 +610,6 @@ classes:
         key: true
       value:
         range: Any
-      expr:
-        range: string
-        description: >-
-          An expression to evaluate when this mapping entry matches.
-          Mutually exclusive with value — specifying both is an error.
 
   # Aligned with fair_mappings_schema:Agent
   Agent:

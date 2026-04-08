@@ -134,8 +134,8 @@ def setup_uuid5_expr(scaffold):
 
 
 @add_to_test_setup
-def setup_value_mapping_with_expr(scaffold):
-    """Map a value via expr in value_mappings."""
+def setup_expression_mapping(scaffold):
+    """Map a value via expression_mappings."""
 
     apply_schema_patch(
         scaffold["source_schema"],
@@ -171,16 +171,13 @@ def setup_value_mapping_with_expr(scaffold):
         slot_derivations:
           visit_id:
             populated_from: visit_code
-            value_mappings:
-              "1":
-                expr: "uuid5('https://example.org/visit', {id} + '_SCREENING')"
-              "7":
-                expr: "uuid5('https://example.org/visit', {id} + '_BASELINE')"
+            expression_mappings:
+              "1": "uuid5('https://example.org/visit', {id} + '_SCREENING')"
+              "7": "uuid5('https://example.org/visit', {id} + '_BASELINE')"
 """,
     )
 
     scaffold["input_data"]["visit_code"] = "1"
-    # uuid5("https://example.org/visit", "P:001_SCREENING")
     from linkml_map.utils.eval_utils import _uuid5
 
     scaffold["expected"]["visit_id"] = _uuid5("https://example.org/visit", "P:001_SCREENING")
@@ -249,56 +246,6 @@ def test_unit(scaffold, setup_func):
 def test_integration(integration_scaffold):
     result = run_transformer(integration_scaffold)
     assert result == integration_scaffold["expected"]
-
-
-def test_value_mapping_both_value_and_expr_errors(scaffold):
-    """Specifying both value and expr on a KeyVal is an error."""
-    from linkml_map.transformer.errors import TransformationError
-
-    apply_schema_patch(
-        scaffold["source_schema"],
-        """
-    classes:
-      Person:
-        slots:
-          - code
-    slots:
-      code:
-        range: string
-""",
-    )
-
-    apply_schema_patch(
-        scaffold["target_schema"],
-        """
-    classes:
-      Agent:
-        slots:
-          - result
-    slots:
-      result:
-        range: string
-""",
-    )
-
-    apply_transform_patch(
-        scaffold["transform_spec"],
-        """
-    class_derivations:
-      Agent:
-        slot_derivations:
-          result:
-            populated_from: code
-            value_mappings:
-              "X":
-                value: literal
-                expr: "'computed'"
-""",
-    )
-
-    scaffold["input_data"]["code"] = "X"
-    with pytest.raises(TransformationError, match="mutually exclusive"):
-        run_transformer(scaffold)
 
 
 def test_value_mapping_no_match_returns_none(scaffold):
