@@ -11,10 +11,10 @@ from linkml_map.utils.fk_utils import resolve_fk_path
 def _warn_deprecated_fields(specification: TransformationSpecification) -> None:
     """Emit deprecation warnings for use of deprecated fields.
 
-    Checks for ``sources`` (deprecated in favor of list-based ``populated_from``)
-    and ``object_derivations`` (deprecated in favor of list-based
-    ``class_derivations``).  Warnings are collapsed to one per field per
-    derivation type to avoid noise.
+    Checks for ``sources`` (deprecated in favor of ``populated_from``),
+    ``object_derivations`` (deprecated in favor of ``class_derivations``),
+    and ``derived_from`` (deprecated, unused by runtime).
+    Warnings are collapsed to one per field per derivation type to avoid noise.
     """
     sources_counts: dict[str, list[str]] = {
         "ClassDerivation": [],
@@ -23,6 +23,7 @@ def _warn_deprecated_fields(specification: TransformationSpecification) -> None:
         "PermissibleValueDerivation": [],
     }
     object_deriv_names: list[str] = []
+    derived_from_names: list[str] = []
 
     for cd in specification.class_derivations:
         if cd.sources:
@@ -32,6 +33,8 @@ def _warn_deprecated_fields(specification: TransformationSpecification) -> None:
                 sources_counts["SlotDerivation"].append(sd.name)
             if sd.object_derivations:
                 object_deriv_names.append(sd.name)
+            if sd.derived_from:
+                derived_from_names.append(sd.name)
     for ed in specification.enum_derivations.values():
         if ed.sources:
             sources_counts["EnumDerivation"].append(ed.name)
@@ -65,6 +68,20 @@ def _warn_deprecated_fields(specification: TransformationSpecification) -> None:
             stacklevel=3,
         )
 
+    if derived_from_names:
+        names_str = ", ".join(derived_from_names[:5])
+        suffix = f" (and {len(derived_from_names) - 5} more)" if len(derived_from_names) > 5 else ""
+        warnings.warn(
+            f"{len(derived_from_names)} SlotDerivation(s) use 'derived_from', "
+            f"which is deprecated and ignored by the runtime: "
+            f"{names_str}{suffix}. "
+            f"This field can be removed — source slot dependencies are "
+            f"derivable from 'expr'. "
+            f"'derived_from' will be removed in a future version.",
+            DeprecationWarning,
+            stacklevel=3,
+        )
+
 
 def induce_missing_values(specification: TransformationSpecification, source_schemaview: SchemaView) -> None:
     """
@@ -83,15 +100,6 @@ def induce_missing_values(specification: TransformationSpecification, source_sch
 
     for cd in specification.class_derivations:
         for sd in cd.slot_derivations.values():
-            if sd.derived_from:
-                warnings.warn(
-                    f"SlotDerivation '{sd.name}' uses 'derived_from', which is deprecated "
-                    f"and ignored by the runtime. This field can be removed — "
-                    f"source slot dependencies are derivable from 'expr'. "
-                    f"'derived_from' will be removed in a future version.",
-                    DeprecationWarning,
-                    stacklevel=2,
-                )
             if sd.object_derivations:
                 # skip inference for object derivations, inferences come from class derivation later
                 # TODO: we may need to do the inference for the internal class slots

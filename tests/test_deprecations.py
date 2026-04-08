@@ -62,7 +62,7 @@ def test_derived_from_emits_deprecation_warning():
     tr.create_transformer_specification(spec)
 
     with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter("always")
+        warnings.simplefilter("always", DeprecationWarning)
         # Trigger induce_missing_values via derived_specification
         _ = tr.derived_specification
 
@@ -130,7 +130,7 @@ def test_sources_on_pv_emits_deprecation_warning():
     tr.create_transformer_specification(spec)
 
     with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter("always")
+        warnings.simplefilter("always", DeprecationWarning)
         _ = tr.derived_specification
 
     deprecation_warnings = [w for w in caught if issubclass(w.category, DeprecationWarning)]
@@ -159,7 +159,7 @@ def test_sources_on_slot_emits_deprecation_warning():
     tr.create_transformer_specification(spec)
 
     with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter("always")
+        warnings.simplefilter("always", DeprecationWarning)
         _ = tr.derived_specification
 
     deprecation_warnings = [w for w in caught if issubclass(w.category, DeprecationWarning)]
@@ -236,7 +236,7 @@ classes:
     tr.create_transformer_specification(spec)
 
     with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter("always")
+        warnings.simplefilter("always", DeprecationWarning)
         _ = tr.derived_specification
 
     deprecation_warnings = [w for w in caught if issubclass(w.category, DeprecationWarning)]
@@ -263,7 +263,7 @@ def test_no_warning_without_deprecated_fields():
     tr.create_transformer_specification(spec)
 
     with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter("always")
+        warnings.simplefilter("always", DeprecationWarning)
         _ = tr.derived_specification
 
     deprecation_warnings = [w for w in caught if issubclass(w.category, DeprecationWarning)]
