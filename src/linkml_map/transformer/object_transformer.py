@@ -402,7 +402,7 @@ class ObjectTransformer(Transformer):
             aeval(expr)
             return aeval.symtable["target"]
 
-    def _resolve_key_val(self, kv: KeyVal | None, bindings: Bindings | None) -> Any:
+    def _resolve_key_val(self, kv: KeyVal | None, bindings: Bindings) -> Any:
         """Resolve a KeyVal to its result value.
 
         If *kv* is ``None`` (no match), returns ``None``.
