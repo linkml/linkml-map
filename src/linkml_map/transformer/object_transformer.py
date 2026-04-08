@@ -280,17 +280,18 @@ class ObjectTransformer(Transformer):
             class_deriv=class_deriv,
         )
         tgt_attrs = {}
+        bindings = None
         for slot_derivation in class_deriv.slot_derivations.values():
-            with self._slot_error_context(slot_derivation, class_deriv, source_obj):
-                tgt_attrs[str(slot_derivation.name)] = self._derive_slot(slot_derivation, context, target_type)
+            with self._slot_error_context(slot_derivation, context):
+                v, bindings = self._derive_slot(slot_derivation, context, target_type, bindings)
+                tgt_attrs[str(slot_derivation.name)] = v
         return tgt_attrs
 
     @contextmanager
     def _slot_error_context(
         self,
         slot_derivation: SlotDerivation,
-        class_deriv: ClassDerivation,
-        source_obj: DICT_OBJ,
+        context: DerivationContext,
     ) -> Iterator[None]:
         """Wrap slot derivation in error enrichment.
 
@@ -304,11 +305,11 @@ class ObjectTransformer(Transformer):
         except Exception as exc:
             raise TransformationError(
                 message=str(exc),
-                class_derivation_name=class_deriv.name,
-                class_populated_from=class_deriv.populated_from,
+                class_derivation_name=context.class_deriv.name,
+                class_populated_from=context.class_deriv.populated_from,
                 slot_derivation_name=slot_derivation.name,
                 slot_populated_from=slot_derivation.populated_from,
-                source_row=source_obj,
+                source_row=context.source_obj,
                 cause=exc,
             ) from exc
 
@@ -317,7 +318,8 @@ class ObjectTransformer(Transformer):
         slot_derivation: SlotDerivation,
         context: DerivationContext,
         target_type: str | None,
-    ) -> Any:
+        bindings: Bindings | None = None,
+    ) -> tuple[Any, Bindings | None]:
         """Derive a single target slot value from the source object.
 
         Dispatches on the slot derivation type (literal value, expression,
@@ -327,7 +329,8 @@ class ObjectTransformer(Transformer):
         :param slot_derivation: The slot derivation spec to apply.
         :param context: Current derivation context.
         :param target_type: Target class name (needed for nested object derivations).
-        :returns: The derived value for this slot.
+        :param bindings: Cached Bindings instance (created lazily on first expr slot).
+        :returns: Tuple of (derived value, bindings for reuse by subsequent slots).
         """
         v = None
         source_class_slot = None
@@ -339,7 +342,8 @@ class ObjectTransformer(Transformer):
             # MELT operation: wide format to EAV/long format
             v = self._perform_melt(slot_derivation.pivot_operation, context.source_obj, slot_derivation)
         elif slot_derivation.expr:
-            bindings = Bindings.from_context(self, context)
+            if bindings is None:
+                bindings = Bindings.from_context(self, context)
             v = self._derive_from_expr(slot_derivation, bindings)
         elif slot_derivation.populated_from:
             populated_from = slot_derivation.populated_from
@@ -382,7 +386,7 @@ class ObjectTransformer(Transformer):
             v = self._coerce_cardinality(v, slot_derivation, context.class_deriv)
             v = self._coerce_datatype(v, target_range)
             v = self._reshape_collection(v, slot_derivation, source_class_slot)
-        return v
+        return v, bindings
 
     def _derive_from_expr(self, slot_derivation: SlotDerivation, bindings: Bindings) -> Any:
         """Evaluate a slot derivation expression, with fallback to asteval for unrestricted mode."""
