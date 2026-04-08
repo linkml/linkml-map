@@ -230,7 +230,7 @@ class ElementDerivation(SpecificationComponent):
     mixins: Optional[list[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:mixins'} })
     value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table that is applied directly to mappings, in order of precedence""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_to_value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys are expressions""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated: subsumed by value_mappings with expr values '
-                       '(#165). Use case()  with and/or for condition-keyed dispatch. '
+                       '(#165). Use case() with and/or for condition-keyed dispatch. '
                        'Will be removed before 1.0.',
          'domain_of': ['ElementDerivation']} })
     expression_to_expression_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated: use case() with and/or operators instead (#127). '
@@ -275,7 +275,7 @@ class ClassDerivation(ElementDerivation):
     mixins: Optional[list[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:mixins'} })
     value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table that is applied directly to mappings, in order of precedence""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_to_value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys are expressions""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated: subsumed by value_mappings with expr values '
-                       '(#165). Use case()  with and/or for condition-keyed dispatch. '
+                       '(#165). Use case() with and/or for condition-keyed dispatch. '
                        'Will be removed before 1.0.',
          'domain_of': ['ElementDerivation']} })
     expression_to_expression_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated: use case() with and/or operators instead (#127). '
@@ -306,7 +306,7 @@ class ObjectDerivation(ElementDerivation):
     mixins: Optional[list[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:mixins'} })
     value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table that is applied directly to mappings, in order of precedence""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_to_value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys are expressions""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated: subsumed by value_mappings with expr values '
-                       '(#165). Use case()  with and/or for condition-keyed dispatch. '
+                       '(#165). Use case() with and/or for condition-keyed dispatch. '
                        'Will be removed before 1.0.',
          'domain_of': ['ElementDerivation']} })
     expression_to_expression_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated: use case() with and/or operators instead (#127). '
@@ -379,7 +379,7 @@ class SlotDerivation(ElementDerivation):
     mixins: Optional[list[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:mixins'} })
     value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table that is applied directly to mappings, in order of precedence""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_to_value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys are expressions""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated: subsumed by value_mappings with expr values '
-                       '(#165). Use case()  with and/or for condition-keyed dispatch. '
+                       '(#165). Use case() with and/or for condition-keyed dispatch. '
                        'Will be removed before 1.0.',
          'domain_of': ['ElementDerivation']} })
     expression_to_expression_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated: use case() with and/or operators instead (#127). '
@@ -425,7 +425,7 @@ class EnumDerivation(ElementDerivation):
     mixins: Optional[list[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:mixins'} })
     value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table that is applied directly to mappings, in order of precedence""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_to_value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys are expressions""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated: subsumed by value_mappings with expr values '
-                       '(#165). Use case()  with and/or for condition-keyed dispatch. '
+                       '(#165). Use case() with and/or for condition-keyed dispatch. '
                        'Will be removed before 1.0.',
          'domain_of': ['ElementDerivation']} })
     expression_to_expression_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated: use case() with and/or operators instead (#127). '
@@ -472,7 +472,7 @@ class PermissibleValueDerivation(ElementDerivation):
     mixins: Optional[list[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:mixins'} })
     value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table that is applied directly to mappings, in order of precedence""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_to_value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys are expressions""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated: subsumed by value_mappings with expr values '
-                       '(#165). Use case()  with and/or for condition-keyed dispatch. '
+                       '(#165). Use case() with and/or for condition-keyed dispatch. '
                        'Will be removed before 1.0.',
          'domain_of': ['ElementDerivation']} })
     expression_to_expression_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated: use case() with and/or operators instead (#127). '
@@ -499,7 +499,7 @@ class PrefixDerivation(ElementDerivation):
     mixins: Optional[list[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:mixins'} })
     value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table that is applied directly to mappings, in order of precedence""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_to_value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys are expressions""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated: subsumed by value_mappings with expr values '
-                       '(#165). Use case()  with and/or for condition-keyed dispatch. '
+                       '(#165). Use case() with and/or for condition-keyed dispatch. '
                        'Will be removed before 1.0.',
          'domain_of': ['ElementDerivation']} })
     expression_to_expression_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated: use case() with and/or operators instead (#127). '

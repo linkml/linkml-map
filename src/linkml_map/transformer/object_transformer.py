@@ -296,7 +296,7 @@ class ObjectTransformer(Transformer):
                 elif slot_derivation.expr:
                     if bindings is None:
                         bindings = Bindings.from_context(self, context)
-                    v = self._derive_from_expr(slot_derivation, bindings)
+                    v = self._eval_expr(slot_derivation.expr, bindings)
                 elif slot_derivation.populated_from:
                     populated_from = slot_derivation.populated_from
 
@@ -363,20 +363,23 @@ class ObjectTransformer(Transformer):
             tgt_attrs[str(slot_derivation.name)] = v
         return tgt_attrs
 
-    def _derive_from_expr(self, slot_derivation: SlotDerivation, bindings: Bindings) -> Any:
-        """Evaluate a slot derivation expression, with fallback to asteval for unrestricted mode."""
+    def _eval_expr(self, expr: str, bindings: Bindings) -> Any:
+        """Evaluate an expression string against bindings.
+
+        Uses the restricted evaluator by default, with fallback to asteval
+        when ``unrestricted_eval`` is enabled on the transformer.
+        """
         try:
-            return eval_expr_with_mapping(slot_derivation.expr, bindings)
+            return eval_expr_with_mapping(expr, bindings)
         except (InvalidExpression, TypeError, ValueError):
             if not self.unrestricted_eval:
                 raise
             ctxt_obj, _ = bindings.get_ctxt_obj_and_dict()
             aeval = Interpreter(usersyms={"src": ctxt_obj, "target": None, "uuid5": _uuid5})
-            aeval(slot_derivation.expr)
+            aeval(expr)
             return aeval.symtable["target"]
 
-    @staticmethod
-    def _resolve_key_val(kv: KeyVal | None, bindings: Bindings) -> Any:
+    def _resolve_key_val(self, kv: KeyVal | None, bindings: Bindings | None) -> Any:
         """Resolve a KeyVal to its result value.
 
         If *kv* is ``None`` (no match), returns ``None``.
@@ -389,7 +392,7 @@ class ObjectTransformer(Transformer):
         if kv.expr is not None and kv.value is not None:
             raise ValueError(f"KeyVal '{kv.key}' has both 'value' and 'expr' set — they are mutually exclusive")
         if kv.expr is not None:
-            return eval_expr_with_mapping(kv.expr, bindings)
+            return self._eval_expr(kv.expr, bindings)
         return kv.value
 
     def _perform_fk_resolution(

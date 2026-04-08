@@ -200,7 +200,7 @@ classes:
         inlined: true
         deprecated: >-
           Deprecated: subsumed by value_mappings with expr values (#165).
-          Use case()  with and/or for condition-keyed dispatch. Will be removed before 1.0.
+          Use case() with and/or for condition-keyed dispatch. Will be removed before 1.0.
         description: >-
           A mapping table in which the keys are expressions
       expression_to_expression_mappings:
