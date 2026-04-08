@@ -220,10 +220,17 @@ classes:
       #  description: Name of the class in the target schema
       populated_from:
         range: ClassReference
-        description: Name of the class in the source schema
+        description: >-
+          Source class to derive this target class from.
       sources:
         range: ClassReference
         multivalued: true
+        deprecated: >-
+          Deprecated. Use populated_from instead.
+          See https://github.com/linkml/linkml-map/issues/193 for planned
+          list support in populated_from. Will be removed in a future version.
+        description: >-
+          Deprecated. Use populated_from instead.
       joins:
         range: AliasedClass
         multivalued: true
@@ -247,7 +254,12 @@ classes:
 
   ObjectDerivation:
     is_a: ElementDerivation
-    description: Temporary placeholder for object_derivations
+    deprecated: >-
+      Use list-based class_derivations instead of nesting via object_derivations.
+      See https://github.com/linkml/linkml-map/issues/112
+    description: >-
+      Deprecated. A nested derivation for constructing slot values that are
+      class instances. Use list-based class_derivations instead.
     attributes:
       name:
         description: Name of the element in the target schema
@@ -281,12 +293,23 @@ classes:
         description: Target slot name
       populated_from:
         range: SlotReference
-        description: Source slot name
+        description: >-
+          Source slot to derive this target slot from.
       sources:
         range: SlotReference
         multivalued: true
-      object_derivations:
+        deprecated: >-
+          Deprecated. Use populated_from instead.
+          See https://github.com/linkml/linkml-map/issues/193 for planned
+          list support in populated_from. Will be removed in a future version.
         description: >-
+          Deprecated. Use populated_from instead.
+      object_derivations:
+        deprecated: >-
+          Use list-based class_derivations instead of nesting via object_derivations.
+          See https://github.com/linkml/linkml-map/issues/112
+        description: >-
+          Deprecated. Use list-based class_derivations instead.
           One or more object derivations used to construct the slot value(s),
           which must be instances of a class.
         range: ObjectDerivation
@@ -296,8 +319,13 @@ classes:
       derived_from:
         range: SlotReference
         multivalued: true
-        description: Source slots that are used to derive this slot. This can be computed from the expr,
-          if the expr is declarative.
+        deprecated: >-
+          This field is fully derivable from expr and is not used by the runtime.
+          It will be removed in a future version.
+        description: >-
+          Deprecated. This field is ignored by the runtime and will be removed.
+          It was intended to list source slots feeding into an expr-based
+          derivation, but this information is fully derivable from the expr itself.
       expr:
         range: string
         description: >-
@@ -358,10 +386,17 @@ classes:
         description: Target enum name
       populated_from:
         range: EnumReference
-        description: Source enum name
+        description: >-
+          Source enum to derive this target enum from.
       sources:
         range: EnumReference
         multivalued: true
+        deprecated: >-
+          Deprecated. Use populated_from instead.
+          See https://github.com/linkml/linkml-map/issues/193 for planned
+          list support in populated_from. Will be removed in a future version.
+        description: >-
+          Deprecated. Use populated_from instead.
       expr:
         range: string
         description: >-
@@ -389,10 +424,17 @@ classes:
         range: string
       populated_from:
         range: string
-        description: Source permissible value
+        description: >-
+          Source permissible value that maps to this target permissible value.
       sources:
         range: string
         multivalued: true
+        deprecated: >-
+          Deprecated. Use populated_from instead.
+          See https://github.com/linkml/linkml-map/issues/193 for planned
+          list support in populated_from. Will be removed in a future version.
+        description: >-
+          Deprecated. Use populated_from instead.
       hide:
         range: boolean
 
