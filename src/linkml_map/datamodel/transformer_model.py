@@ -248,11 +248,15 @@ class ClassDerivation(ElementDerivation):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/linkml/transformer'})
 
-    populated_from: Optional[str] = Field(default=None, description="""Name of the class in the source schema""", json_schema_extra = { "linkml_meta": {'domain_of': ['ClassDerivation',
+    populated_from: Optional[str] = Field(default=None, description="""Source class to derive this target class from.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ClassDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    sources: Optional[list[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'domain_of': ['ClassDerivation',
+    sources: Optional[list[str]] = Field(default_factory=list, description="""Deprecated. Use populated_from instead.""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated. Use populated_from instead. See '
+                       'https://github.com/linkml/linkml-map/issues/193 for planned '
+                       'list support in populated_from. Will be removed in a future '
+                       'version.',
+         'domain_of': ['ClassDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
@@ -289,9 +293,12 @@ class ClassDerivation(ElementDerivation):
 
 class ObjectDerivation(ElementDerivation):
     """
-    Temporary placeholder for object_derivations
+    Deprecated. A nested derivation for constructing slot values that are class instances. Use list-based class_derivations instead.
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/linkml/transformer'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'deprecated': 'Use list-based class_derivations instead of nesting via '
+                       'object_derivations. See '
+                       'https://github.com/linkml/linkml-map/issues/112',
+         'from_schema': 'https://w3id.org/linkml/transformer'})
 
     name: Optional[str] = Field(default=None, description="""Name of the element in the target schema""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation',
                        'ObjectDerivation',
@@ -343,16 +350,25 @@ class SlotDerivation(ElementDerivation):
                        'EnumDerivation',
                        'PermissibleValueDerivation',
                        'Agent']} })
-    populated_from: Optional[str] = Field(default=None, description="""Source slot name""", json_schema_extra = { "linkml_meta": {'domain_of': ['ClassDerivation',
+    populated_from: Optional[str] = Field(default=None, description="""Source slot to derive this target slot from.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ClassDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    sources: Optional[list[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'domain_of': ['ClassDerivation',
+    sources: Optional[list[str]] = Field(default_factory=list, description="""Deprecated. Use populated_from instead.""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated. Use populated_from instead. See '
+                       'https://github.com/linkml/linkml-map/issues/193 for planned '
+                       'list support in populated_from. Will be removed in a future '
+                       'version.',
+         'domain_of': ['ClassDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    object_derivations: Optional[list[ObjectDerivation]] = Field(default_factory=list, description="""One or more object derivations used to construct the slot value(s), which must be instances of a class.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation']} })
-    derived_from: Optional[list[str]] = Field(default_factory=list, description="""Source slots that are used to derive this slot. This can be computed from the expr, if the expr is declarative.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation']} })
+    object_derivations: Optional[list[ObjectDerivation]] = Field(default_factory=list, description="""Deprecated. Use list-based class_derivations instead. One or more object derivations used to construct the slot value(s), which must be instances of a class.""", json_schema_extra = { "linkml_meta": {'deprecated': 'Use list-based class_derivations instead of nesting via '
+                       'object_derivations. See '
+                       'https://github.com/linkml/linkml-map/issues/112',
+         'domain_of': ['SlotDerivation']} })
+    derived_from: Optional[list[str]] = Field(default_factory=list, description="""Deprecated. This field is ignored by the runtime and will be removed. It was intended to list source slots feeding into an expr-based derivation, but this information is fully derivable from the expr itself.""", json_schema_extra = { "linkml_meta": {'deprecated': 'This field is fully derivable from expr and is not used by the '
+                       'runtime. It will be removed in a future version.',
+         'domain_of': ['SlotDerivation']} })
     expr: Optional[str] = Field(default=None, description="""An expression to be evaluated on the source object to derive the target slot. Should be specified using the LinkML expression language.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation',
@@ -403,11 +419,15 @@ class EnumDerivation(ElementDerivation):
                        'EnumDerivation',
                        'PermissibleValueDerivation',
                        'Agent']} })
-    populated_from: Optional[str] = Field(default=None, description="""Source enum name""", json_schema_extra = { "linkml_meta": {'domain_of': ['ClassDerivation',
+    populated_from: Optional[str] = Field(default=None, description="""Source enum to derive this target enum from.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ClassDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    sources: Optional[list[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'domain_of': ['ClassDerivation',
+    sources: Optional[list[str]] = Field(default_factory=list, description="""Deprecated. Use populated_from instead.""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated. Use populated_from instead. See '
+                       'https://github.com/linkml/linkml-map/issues/193 for planned '
+                       'list support in populated_from. Will be removed in a future '
+                       'version.',
+         'domain_of': ['ClassDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
@@ -455,11 +475,15 @@ class PermissibleValueDerivation(ElementDerivation):
                        'EnumDerivation',
                        'PermissibleValueDerivation',
                        'KeyVal']} })
-    populated_from: Optional[str] = Field(default=None, description="""Source permissible value""", json_schema_extra = { "linkml_meta": {'domain_of': ['ClassDerivation',
+    populated_from: Optional[str] = Field(default=None, description="""Source permissible value that maps to this target permissible value.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ClassDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    sources: Optional[list[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'domain_of': ['ClassDerivation',
+    sources: Optional[list[str]] = Field(default_factory=list, description="""Deprecated. Use populated_from instead.""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated. Use populated_from instead. See '
+                       'https://github.com/linkml/linkml-map/issues/193 for planned '
+                       'list support in populated_from. Will be removed in a future '
+                       'version.',
+         'domain_of': ['ClassDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
