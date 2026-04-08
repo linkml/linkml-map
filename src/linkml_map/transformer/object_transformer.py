@@ -20,6 +20,7 @@ from simpleeval import InvalidExpression
 from linkml_map.datamodel.transformer_model import (
     ClassDerivation,
     CollectionType,
+    KeyVal,
     PivotDirectionType,
     PivotOperation,
     SerializationSyntaxType,
@@ -323,7 +324,9 @@ class ObjectTransformer(Transformer):
 
                     if slot_derivation.value_mappings and v is not None:
                         mapped = slot_derivation.value_mappings.get(str(v), None)
-                        v = mapped.value if mapped is not None else None
+                        if bindings is None and mapped is not None and mapped.expr is not None:
+                            bindings = Bindings.from_context(self, context)
+                        v = self._resolve_key_val(mapped, bindings)
 
                     if slot_derivation.offset and v is not None:
                         v = self._apply_offset(v, slot_derivation, source_obj)
@@ -371,6 +374,23 @@ class ObjectTransformer(Transformer):
             aeval = Interpreter(usersyms={"src": ctxt_obj, "target": None, "uuid5": _uuid5})
             aeval(slot_derivation.expr)
             return aeval.symtable["target"]
+
+    @staticmethod
+    def _resolve_key_val(kv: KeyVal | None, bindings: Bindings) -> Any:
+        """Resolve a KeyVal to its result value.
+
+        If *kv* is ``None`` (no match), returns ``None``.
+        If *kv* has ``expr``, evaluates it against *bindings*.
+        Otherwise returns the literal ``value``.
+        Specifying both ``value`` and ``expr`` is an error.
+        """
+        if kv is None:
+            return None
+        if kv.expr is not None and kv.value is not None:
+            raise ValueError(f"KeyVal '{kv.key}' has both 'value' and 'expr' set — they are mutually exclusive")
+        if kv.expr is not None:
+            return eval_expr_with_mapping(kv.expr, bindings)
+        return kv.value
 
     def _perform_fk_resolution(
         self,

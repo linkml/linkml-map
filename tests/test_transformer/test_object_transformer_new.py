@@ -133,6 +133,107 @@ def setup_uuid5_expr(scaffold):
     scaffold["expected"]["uuid_id"] = "abbe798e-d61b-5371-86f2-ea8e54129a50"
 
 
+@add_to_test_setup
+def setup_value_mapping_with_expr(scaffold):
+    """Map a value via expr in value_mappings."""
+
+    apply_schema_patch(
+        scaffold["source_schema"],
+        """
+    classes:
+      Person:
+        slots:
+          - visit_code
+    slots:
+      visit_code:
+        range: string
+""",
+    )
+
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - visit_id
+    slots:
+      visit_id:
+        range: string
+""",
+    )
+
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          visit_id:
+            populated_from: visit_code
+            value_mappings:
+              "1":
+                expr: "uuid5('https://example.org/visit', {id} + '_SCREENING')"
+              "7":
+                expr: "uuid5('https://example.org/visit', {id} + '_BASELINE')"
+""",
+    )
+
+    scaffold["input_data"]["visit_code"] = "1"
+    # uuid5("https://example.org/visit", "P:001_SCREENING")
+    from linkml_map.utils.eval_utils import _uuid5
+
+    scaffold["expected"]["visit_id"] = _uuid5("https://example.org/visit", "P:001_SCREENING")
+
+
+@add_to_test_setup
+def setup_value_mapping_literal(scaffold):
+    """Map a value via literal value in value_mappings (backward compat)."""
+
+    apply_schema_patch(
+        scaffold["source_schema"],
+        """
+    classes:
+      Person:
+        slots:
+          - role_code
+    slots:
+      role_code:
+        range: string
+""",
+    )
+
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - role_label
+    slots:
+      role_label:
+        range: string
+""",
+    )
+
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          role_label:
+            populated_from: role_code
+            value_mappings:
+              "A": Admin
+              "U": User
+""",
+    )
+
+    scaffold["input_data"]["role_code"] = "A"
+    scaffold["expected"]["role_label"] = "Admin"
+
+
 @pytest.mark.parametrize(
     "setup_func",
     TEST_SETUP_FUNCTIONS,
@@ -148,6 +249,103 @@ def test_unit(scaffold, setup_func):
 def test_integration(integration_scaffold):
     result = run_transformer(integration_scaffold)
     assert result == integration_scaffold["expected"]
+
+
+def test_value_mapping_both_value_and_expr_errors(scaffold):
+    """Specifying both value and expr on a KeyVal is an error."""
+    from linkml_map.transformer.errors import TransformationError
+
+    apply_schema_patch(
+        scaffold["source_schema"],
+        """
+    classes:
+      Person:
+        slots:
+          - code
+    slots:
+      code:
+        range: string
+""",
+    )
+
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - result
+    slots:
+      result:
+        range: string
+""",
+    )
+
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          result:
+            populated_from: code
+            value_mappings:
+              "X":
+                value: literal
+                expr: "'computed'"
+""",
+    )
+
+    scaffold["input_data"]["code"] = "X"
+    with pytest.raises(TransformationError, match="mutually exclusive"):
+        run_transformer(scaffold)
+
+
+def test_value_mapping_no_match_returns_none(scaffold):
+    """Value mappings return None when the source value has no matching key."""
+
+    apply_schema_patch(
+        scaffold["source_schema"],
+        """
+    classes:
+      Person:
+        slots:
+          - code
+    slots:
+      code:
+        range: string
+""",
+    )
+
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - result
+    slots:
+      result:
+        range: string
+""",
+    )
+
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          result:
+            populated_from: code
+            value_mappings:
+              "A": alpha
+""",
+    )
+
+    scaffold["input_data"]["code"] = "Z"
+    result = run_transformer(scaffold)
+    assert result.get("result") is None
 
 
 # ---------------------------------------------------------------------------

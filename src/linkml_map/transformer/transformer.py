@@ -155,6 +155,7 @@ class Transformer(ABC):
         :param obj: Raw specification dict (e.g. from YAML or user code).
         """
         cls._preprocess_class_derivations(obj)
+        cls._expand_keyval_dicts(obj)
         normalizer = ReferenceValidator(package_schemaview("linkml_map.datamodel.transformer_model"))
         normalizer.expand_all = True
         normalized = cls.normalize_transform_spec(obj, normalizer)
@@ -192,6 +193,40 @@ class Transformer(ABC):
                         expanded = val if val is not None else {}
                         expanded.setdefault("name", key)
                         cd[i] = expanded
+
+    @staticmethod
+    def _expand_keyval_dicts(obj: dict[str, Any]) -> None:
+        """Expand shorthand string values in KeyVal-typed dicts.
+
+        Fields like ``prefixes`` and ``value_mappings`` are ``dict[str, KeyVal]``.
+        YAML authors write ``key: "literal"`` as shorthand for ``key: {value: "literal"}``.
+        The ReferenceValidator cannot handle bare strings when KeyVal has more than
+        two fields, so we expand them here before normalization.
+        """
+        # Top-level: prefixes
+        prefixes = obj.get("prefixes")
+        if isinstance(prefixes, dict):
+            for k, v in prefixes.items():
+                if isinstance(v, str):
+                    prefixes[k] = {"value": v}
+
+        # Nested: value_mappings inside slot_derivations
+        class_derivations = obj.get("class_derivations")
+        if isinstance(class_derivations, dict):
+            for cd in class_derivations.values():
+                if not isinstance(cd, dict):
+                    continue
+                slot_derivations = cd.get("slot_derivations")
+                if not isinstance(slot_derivations, dict):
+                    continue
+                for sd in slot_derivations.values():
+                    if not isinstance(sd, dict):
+                        continue
+                    vm = sd.get("value_mappings")
+                    if isinstance(vm, dict):
+                        for k, v in vm.items():
+                            if isinstance(v, str):
+                                vm[k] = {"value": v}
 
     def create_transformer_specification(self, obj: dict[str, Any]) -> None:
         """

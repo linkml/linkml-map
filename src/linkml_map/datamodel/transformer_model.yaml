@@ -198,12 +198,18 @@ classes:
         range: KeyVal
         multivalued: true
         inlined: true
+        deprecated: >-
+          Deprecated: subsumed by value_mappings with expr values (#165).
+          Use case()  with and/or for condition-keyed dispatch. Will be removed before 1.0.
         description: >-
           A mapping table in which the keys are expressions
       expression_to_expression_mappings:
         range: KeyVal
         multivalued: true
         inlined: true
+        deprecated: >-
+          Deprecated: use case() with and/or operators instead (#127).
+          Will be removed before 1.0.
         description: >-
           A mapping table in which the keys and values are expressions
       mirror_source:
@@ -553,6 +559,11 @@ classes:
         key: true
       value:
         range: Any
+      expr:
+        range: string
+        description: >-
+          An expression to evaluate when this mapping entry matches.
+          Mutually exclusive with value — specifying both is an error.
 
   # Aligned with fair_mappings_schema:Agent
   Agent:
