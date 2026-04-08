@@ -307,19 +307,11 @@ class ObjectTransformer(Transformer):
                             (v, source_class_slot) = self._resolve_fk_or_literal(
                                 populated_from,
                                 slot_derivation,
-                                sv,
-                                source_type,
-                                source_obj,
+                                context,
                                 require_fk=True,
                             )
                     else:
-                        (v, source_class_slot) = self._resolve_fk_or_literal(
-                            populated_from,
-                            slot_derivation,
-                            sv,
-                            source_type,
-                            source_obj,
-                        )
+                        (v, source_class_slot) = self._resolve_fk_or_literal(populated_from, slot_derivation, context)
 
                     if slot_derivation.value_mappings and v is not None:
                         mapped = slot_derivation.value_mappings.get(str(v), None)
@@ -409,9 +401,7 @@ class ObjectTransformer(Transformer):
         self,
         populated_from: str,
         slot_derivation: SlotDerivation,
-        sv: SchemaView,
-        source_type: str,
-        source_obj: DICT_OBJ,
+        context: DerivationContext,
         *,
         require_fk: bool = False,
     ) -> tuple[Any, SlotDefinition | None]:
@@ -419,16 +409,14 @@ class ObjectTransformer(Transformer):
 
         :param populated_from: The populated_from string (may contain dots for FK paths).
         :param slot_derivation: The active slot derivation.
-        :param sv: Source schema view.
-        :param source_type: Source class name.
-        :param source_obj: Current source row.
+        :param context: Current derivation context.
         :param require_fk: If True, raise ValueError when no FK path is found
             (used for dot-notation without a matching join).
         :returns: Tuple of (resolved value, source slot definition or None).
         """
-        fk_resolution = resolve_fk_path(sv, source_type, populated_from)
+        fk_resolution = resolve_fk_path(context.sv, context.source_type, populated_from)
         if fk_resolution:
-            fk_value = source_obj.get(fk_resolution.fk_slot_name)
+            fk_value = context.source_obj.get(fk_resolution.fk_slot_name)
             return self._perform_fk_resolution(fk_resolution, slot_derivation, fk_value)
         if require_fk:
             msg = (
@@ -436,8 +424,8 @@ class ObjectTransformer(Transformer):
                 f"requires a matching join spec or FK path, but neither was found"
             )
             raise ValueError(msg)
-        v = source_obj.get(populated_from, None)
-        source_class_slot = sv.induced_slot(populated_from, source_type)
+        v = context.source_obj.get(populated_from, None)
+        source_class_slot = context.sv.induced_slot(populated_from, context.source_type)
         return v, source_class_slot
 
     def _resolve_joined_row(
