@@ -7,9 +7,9 @@
 
 | Target | Target Range | Source | Source Range | Info |
 | ------ | ------ | ---- | ---- | ---- |
-| agents | | None |  persons  | . | . |
+| agents | | Agent |  persons  | . | . |
 
-### Entity `<-` None
+### Entity `<-` Entity
 
 | Target | Target Range | Source | Source Range | Info |
 | ------ | ------ | ---- | ---- | ---- |
@@ -18,23 +18,23 @@
 
 | Target | Target Range | Source | Source Range | Info |
 | ------ | ------ | ---- | ---- | ---- |
-| id | | None |  None  | . | . |
+| id | | None |  id  | . | . |
 | label | | None |  name  | . | . |
 | age | | None |  [expression]  | . | . |
-| primary_email | | None |  None  | . | . |
+| primary_email | | None |  primary_email  | . | . |
 | secondary_email | | None |  [expression]  | . | . |
 | gender | | None |  [expression]  | . | . |
 | driving_since | | None |  [expression]  | . | . |
 | first_known_event | | None |  [expression]  | . | . |
 | death_date | | None |  [expression]  | . | . |
-| current_address | | None |  None  | . | . |
-| has_familial_relationships | | None |  has_familial_relationships  | . | . |
+| current_address | | Address |  current_address  | . | . |
+| has_familial_relationships | | FamilialRelationship |  has_familial_relationships  | . | . |
 
-### Job `<-` None
+### Job `<-` Job
 
 | Target | Target Range | Source | Source Range | Info |
 | ------ | ------ | ---- | ---- | ---- |
-| type | | None |  None  | . | . |
+| type | | None |  type  | . | . |
 | current | | None |  [expression]  | . | . |
 
 ### Address `<-` Address
@@ -42,17 +42,17 @@
 | Target | Target Range | Source | Source Range | Info |
 | ------ | ------ | ---- | ---- | ---- |
 | address_of | | None |  [expression]  | . | . |
-| street | | None |  None  | . | . |
-| city | | None |  None  | . | . |
+| street | | None |  street  | . | . |
+| city | | None |  city  | . | . |
 
 ### FamilialRelationship `<-` FamilialRelationship
 
 | Target | Target Range | Source | Source Range | Info |
 | ------ | ------ | ---- | ---- | ---- |
-| type | | None |  None  | . | . |
-| related_to | | None |  None  | . | . |
+| type | | None |  type  | . | . |
+| related_to | | Agent |  related_to  | . | . |
 
-### SequenceFeature `<-` None
+### SequenceFeature `<-` SequenceFeature
 
 | Target | Target Range | Source | Source Range | Info |
 | ------ | ------ | ---- | ---- | ---- |
@@ -62,9 +62,9 @@
 
 | Target | Target Range | Source | Source Range | Info |
 | ------ | ------ | ---- | ---- | ---- |
-| id | | None |  None  | . | . |
-| creator | | None |  None  | . | . |
-| license | | None |  None  | . | . |
+| id | | None |  id  | . | . |
+| creator | | None |  creator  | . | . |
+| license | | None |  license  | . | . |
 | subject_id | | None |  [expression]  | . | . |
 | subject_name | | None |  [expression]  | . | . |
 | object_id | | None |  [expression]  | . | . |

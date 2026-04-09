@@ -41,7 +41,21 @@ class Transformer(ABC):
     an instance of a source class, making use of a specification.
 
     This is an abstract class. Different implementations will
-    subclass this
+    subclass this.
+
+    Specification normalization has two phases:
+
+    1. **Load-time normalization** (``_normalize_spec_dict``): Structural fixes
+       applied to a raw dict before Pydantic instantiation — YAML quirk handling,
+       ``$ref`` expansion, dict-to-list conversion. Does not require a source schema.
+       All entry points (``load_transformer_specification``,
+       ``create_transformer_specification``, ``Session``, ``loaders``) go through
+       this single method.
+
+    2. **Schema-bind-time induction** (``derived_specification``): Semantic defaults
+       inferred from the source schema — ``populated_from``, ``range``, foreign-key
+       resolution. Runs lazily on first access to ``derived_specification`` and
+       requires ``source_schemaview`` to be set.
     """
 
     specification: TransformationSpecification = None
@@ -218,6 +232,16 @@ class Transformer(ABC):
 
     @property
     def derived_specification(self) -> TransformationSpecification | None:
+        """Return the specification with schema-inferred defaults filled in.
+
+        Creates a deep copy of ``self.specification``, applies any source schema
+        patches, then calls ``induce_missing_values`` to fill in ``populated_from``,
+        ``range``, and other fields that require knowledge of the source schema.
+        The result is cached for subsequent access.
+
+        This is the second phase of normalization — see the class docstring for
+        the full two-phase pipeline.
+        """
         if self._derived_specification is None:
             if self.specification is None:
                 return None

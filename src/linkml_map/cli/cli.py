@@ -364,7 +364,7 @@ def compile(
     tr = ObjectTransformer()
     tr.source_schemaview = sv
     tr.load_transformer_specification(transformer_specification)
-    result = compiler.compile(tr.specification)
+    result = compiler.compile(tr.derived_specification)
     # dump as-is, no encoding
     dump_output(result.serialization, None, output)
 
