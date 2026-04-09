@@ -415,7 +415,10 @@ class ObjectTransformer(Transformer):
             if not self.unrestricted_eval:
                 raise
             ctxt_obj, _ = bindings.get_ctxt_obj_and_dict()
-            aeval = Interpreter(usersyms={"src": ctxt_obj, "target": None, "uuid5": _uuid5})
+            usersyms = {"src": ctxt_obj, "target": None, "uuid5": _uuid5}
+            if functions:
+                usersyms.update(functions)
+            aeval = Interpreter(usersyms=usersyms)
             aeval(slot_derivation.expr)
             return aeval.symtable["target"]
 
