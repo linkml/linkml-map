@@ -193,7 +193,10 @@ classes:
         multivalued: true
         inlined: true
         description: >-
-          A mapping table that is applied directly to mappings, in order of precedence
+          A mapping table that is applied directly to mappings, in order of precedence.
+          Keys should always be quoted in YAML to prevent type coercion — unquoted
+          true/false become booleans and bare numbers become integers, which will not
+          match the stringified source value used for lookup.
       expression_mappings:
         range: KeyVal
         multivalued: true
@@ -201,7 +204,8 @@ classes:
         description: >-
           A mapping table where the values are expressions evaluated against source
           bindings. Looked up by the same key as value_mappings (the stringified
-          source value). If both value_mappings and expression_mappings are present,
+          source value). Keys should always be quoted (see value_mappings).
+          If both value_mappings and expression_mappings are present,
           value_mappings takes precedence for keys that appear in both.
       expression_to_value_mappings:
         range: KeyVal
