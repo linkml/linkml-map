@@ -23,6 +23,7 @@ def transform_spec(
     data_loader: DataLoader,
     source_type: str | None = None,
     on_error: Callable[[TransformationError], None] | None = None,
+    entity: str | None = None,
 ) -> Iterator[dict[str, Any]]:
     """
     Iterate class_derivation blocks and stream transformed rows.
@@ -42,6 +43,8 @@ def transform_spec(
         :class:`TransformationError` is caught, enriched with row context,
         and passed to the callback. When ``None`` (default), errors propagate
         immediately (fail-fast).
+    :param entity: Optional class name filter.  When provided, only
+        top-level class_derivations whose ``name`` matches are processed.
     :returns: Iterator of transformed row dicts.
     """
     spec = transformer.derived_specification
@@ -52,6 +55,8 @@ def transform_spec(
         transformer.lookup_index = LookupIndex()
 
     for class_deriv in spec.class_derivations:
+        if entity and class_deriv.name != entity:
+            continue
         table_name = class_deriv.populated_from or class_deriv.name
         if table_name not in data_loader:
             logger.debug("Skipping class_derivation %s: no data found", class_deriv.name)
