@@ -109,6 +109,22 @@ class Transformer(ABC):
             self._normalize_spec_dict(obj)
             self.specification = TransformationSpecification(**obj)
 
+    def load_transformer_specifications(self, paths: tuple[str | Path, ...]) -> None:
+        """Load and merge multiple transformation spec files into a single specification.
+
+        Accepts file paths and/or directories.  Directories are recursively
+        searched for YAML files.  All specs are merged (class_derivations
+        appended, enum/slot_derivations unioned by name) and the result is
+        set as ``self.specification``.
+
+        :param paths: One or more file or directory paths.
+        """
+        from linkml_map.utils.spec_merge import load_and_merge_specs
+
+        obj = load_and_merge_specs(paths)
+        self._normalize_spec_dict(obj)
+        self.specification = TransformationSpecification(**obj)
+
     @classmethod
     def normalize_transform_spec(cls, obj: dict[str, Any], normalizer: ReferenceValidator) -> dict:
         """
