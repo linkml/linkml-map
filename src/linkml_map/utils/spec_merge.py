@@ -33,7 +33,8 @@ def resolve_spec_paths(paths: tuple[str | Path, ...]) -> list[Path]:
     Files are included directly.
 
     :param paths: File paths or directory paths.
-    :returns: Sorted list of resolved YAML file paths.
+    :returns: Resolved YAML file paths in input order, with files discovered
+        within each directory sorted before being appended.
     :raises FileNotFoundError: If a path does not exist.
     """
     resolved: list[Path] = []

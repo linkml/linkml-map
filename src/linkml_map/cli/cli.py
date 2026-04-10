@@ -114,7 +114,7 @@ def main(verbose: int, quiet: bool) -> None:
 )
 @click.option(
     "--emit-spec",
-    type=click.Path(),
+    type=click.Path(dir_okay=False, writable=True),
     default=None,
     help="Write the resolved (merged + filtered) spec to this file path as a side-effect.",
 )
@@ -499,7 +499,7 @@ def invert(
 )
 @click.option(
     "--emit-spec",
-    type=click.Path(),
+    type=click.Path(dir_okay=False),
     default=None,
     help="Write the resolved (merged + filtered) spec to a file path.  Use '-' for stdout.",
 )
@@ -533,12 +533,21 @@ def validate_spec_cmd(
 
 
 def _validate_spec_individual(spec_files: tuple[str, ...]) -> None:
-    """Validate each spec file independently."""
+    """Validate each spec file independently.
+
+    Directories are expanded to their contained YAML files.
+    """
+    from linkml_map.utils.spec_merge import resolve_spec_paths
     from linkml_map.validator import validate_spec_file
 
+    resolved = resolve_spec_paths(spec_files)
+    if not resolved:
+        click.echo("No YAML files found in the provided paths", err=True)
+        raise SystemExit(1)
+
     has_errors = False
-    for path in spec_files:
-        errors = validate_spec_file(path)
+    for path in resolved:
+        errors = validate_spec_file(str(path))
         if errors:
             has_errors = True
             click.echo(f"{path}:", err=True)
@@ -562,6 +571,23 @@ def _validate_spec_merged(
 
     merged = load_and_merge_specs(spec_files)
 
+    # Apply entity filter before validation so we only validate what
+    # map-data --entity would actually execute.
+    if entity:
+        cd = merged.get("class_derivations")
+        if isinstance(cd, list):
+            merged["class_derivations"] = [
+                item
+                for item in cd
+                if isinstance(item, dict)
+                and (
+                    item.get("name") == entity  # expanded format
+                    or (len(item) == 1 and entity in item)  # compact-key format
+                )
+            ]
+        elif isinstance(cd, dict):
+            merged["class_derivations"] = {k: v for k, v in cd.items() if k == entity}
+
     errors = validate_spec(merged)
     if errors:
         click.echo("Merged spec validation errors:", err=True)
@@ -578,8 +604,6 @@ def _validate_spec_merged(
         from linkml_map.datamodel.transformer_model import TransformationSpecification
 
         spec = TransformationSpecification(**merged)
-        if entity:
-            spec.class_derivations = [cd for cd in spec.class_derivations if cd.name == entity]
         from linkml_runtime.dumpers import yaml_dumper
 
         spec_yaml = yaml_dumper.dumps(spec)
