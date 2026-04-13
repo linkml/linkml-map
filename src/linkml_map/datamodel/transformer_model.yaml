@@ -211,11 +211,12 @@ classes:
         range: KeyVal
         multivalued: true
         inlined: true
-        deprecated: >-
-          Deprecated: use case() with and/or for condition-keyed dispatch.
-          Will be removed before 1.0.
         description: >-
-          A mapping table in which the keys are expressions
+          A mapping table in which the keys are boolean expressions and
+          the values are literal results. On enum derivations, used for
+          scalar binning: each key is evaluated with value() bound to the
+          incoming value, and the first truthy key's value is returned as
+          the target permissible value. See issue #99.
       expression_to_expression_mappings:
         range: KeyVal
         multivalued: true
