@@ -1,5 +1,6 @@
 """Test the object transformer."""
 
+import warnings
 from typing import Any
 from unittest.mock import MagicMock
 
@@ -187,25 +188,43 @@ def test_value_mappings() -> None:
     assert target_dict == TARGET_DATA
 
 
-def test_object_derivations() -> None:
-    """
-    Test nested object_derivations inside slot_derivations using YAML transform spec.
-    """
+NESTED_SOURCE_SLOTS = ["phv00159563", "phv00159568", "phv00159569", "phv00159573", "phv00159578", "phv00159579"]
 
-    # Build source schema
+NESTED_INPUT_DATA = {
+    "phv00159563": "PRESENT",
+    "phv00159568": 123947,
+    "phv00159569": "1",
+    "phv00159573": "ABSENT",
+    "phv00159578": 123947,
+    "phv00159579": "2",
+}
+
+NESTED_EXPECTED_OUTPUT = {
+    "id": 123947,
+    "conditions": [
+        {
+            "condition_concept": "HP:0001681",
+            "condition_status": "PRESENT",
+            "condition_providence": "1",
+        },
+        {
+            "condition_concept": "HP:0001683",
+            "condition_status": "ABSENT",
+            "condition_providence": "2",
+        },
+    ],
+}
+
+
+def _build_nested_schemas():
+    """Build source and target schemas for nested class_derivation tests."""
+    integer_slots = {"phv00159568", "phv00159578"}
     sb_source = SchemaBuilder()
-    sb_source.add_slot("phv00159563", range="string")
-    sb_source.add_slot("phv00159568", range="integer")
-    sb_source.add_slot("phv00159569", range="string")
-    sb_source.add_slot("phv00159573", range="string")
-    sb_source.add_slot("phv00159578", range="integer")
-    sb_source.add_slot("phv00159579", range="string")
-    person_slots = ["phv00159563", "phv00159568", "phv00159569", "phv00159573", "phv00159578", "phv00159579"]
-    sb_source.add_class("Person", slots=person_slots)
+    for slot in NESTED_SOURCE_SLOTS:
+        sb_source.add_slot(slot, range="integer" if slot in integer_slots else "string")
+    sb_source.add_class("Person", slots=NESTED_SOURCE_SLOTS)
     sb_source.add_defaults()
-    source_schema = sb_source.schema
 
-    # Build target schema
     sb_target = SchemaBuilder()
     sb_target.add_slot("id", range="integer")
     sb_target.add_slot("conditions", range="Condition", multivalued=True, inlined=True)
@@ -215,10 +234,56 @@ def test_object_derivations() -> None:
     sb_target.add_class("Participant", slots=["id", "conditions"])
     sb_target.add_class("Condition", slots=["condition_concept", "condition_status", "condition_providence"])
     sb_target.add_defaults()
-    target_schema = sb_target.schema
+    return sb_source.schema, sb_target.schema
 
-    # Transformation spec in YAML
-    transform_spec_yaml = """
+
+def test_nested_class_derivations() -> None:
+    """Test list-based class_derivations on a slot for nested object construction."""
+    source_schema, target_schema = _build_nested_schemas()
+
+    transform_spec = yaml.safe_load("""
+    class_derivations:
+      Participant:
+        populated_from: Person
+        slot_derivations:
+          id:
+            populated_from: phv00159568
+          conditions:
+            class_derivations:
+              - Condition:
+                  populated_from: Person
+                  slot_derivations:
+                    condition_concept:
+                      expr: "'HP:0001681'"
+                    condition_status:
+                      populated_from: phv00159563
+                    condition_providence:
+                      populated_from: phv00159569
+              - Condition:
+                  populated_from: Person
+                  slot_derivations:
+                    condition_concept:
+                      expr: "'HP:0001683'"
+                    condition_status:
+                      populated_from: phv00159573
+                    condition_providence:
+                      populated_from: phv00159579
+    """)
+
+    transformer = ObjectTransformer(unrestricted_eval=True)
+    transformer.source_schemaview = SchemaView(source_schema)
+    transformer.target_schemaview = SchemaView(target_schema)
+    transformer.create_transformer_specification(transform_spec)
+
+    result = transformer.map_object(NESTED_INPUT_DATA, source_type="Person")
+    assert result == NESTED_EXPECTED_OUTPUT
+
+
+def test_object_derivations_backward_compat() -> None:
+    """Deprecated object_derivations still work via normalization to class_derivations."""
+    source_schema, target_schema = _build_nested_schemas()
+
+    transform_spec = yaml.safe_load("""
     class_derivations:
       Participant:
         populated_from: Person
@@ -247,46 +312,61 @@ def test_object_derivations() -> None:
                         populated_from: phv00159573
                       condition_providence:
                         populated_from: phv00159579
-    """
+    """)
 
-    transform_spec = yaml.safe_load(transform_spec_yaml)
+    transformer = ObjectTransformer(unrestricted_eval=True)
+    transformer.source_schemaview = SchemaView(source_schema)
+    transformer.target_schemaview = SchemaView(target_schema)
 
-    # Source input
-    input_data = {
-        "phv00159563": "PRESENT",
-        "phv00159568": 123947,
-        "phv00159569": "1",
-        "phv00159573": "ABSENT",
-        "phv00159578": 123947,
-        "phv00159579": "2",
-    }
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always", DeprecationWarning)
+        transformer.create_transformer_specification(transform_spec)
 
-    # Expected target output
-    expected_output = {
-        "id": 123947,
-        "conditions": [
-            {
-                "condition_concept": "HP:0001681",
-                "condition_status": "PRESENT",
-                "condition_providence": "1",
-            },
-            {
-                "condition_concept": "HP:0001683",
-                "condition_status": "ABSENT",
-                "condition_providence": "2",
-            },
-        ],
-    }
+    od_warnings = [w for w in caught if "object_derivations" in str(w.message)]
+    assert len(od_warnings) >= 1
 
-    # Create ObjectTransformer and apply transformation
+    result = transformer.map_object(NESTED_INPUT_DATA, source_type="Person")
+    assert result == NESTED_EXPECTED_OUTPUT
+
+
+def test_nested_class_derivations_inherit_populated_from() -> None:
+    """Nested class_derivations inherit populated_from from their parent when omitted."""
+    source_schema, target_schema = _build_nested_schemas()
+
+    transform_spec = yaml.safe_load("""
+    class_derivations:
+      Participant:
+        populated_from: Person
+        slot_derivations:
+          id:
+            populated_from: phv00159568
+          conditions:
+            class_derivations:
+              - Condition:
+                  slot_derivations:
+                    condition_concept:
+                      expr: "'HP:0001681'"
+                    condition_status:
+                      populated_from: phv00159563
+                    condition_providence:
+                      populated_from: phv00159569
+              - Condition:
+                  slot_derivations:
+                    condition_concept:
+                      expr: "'HP:0001683'"
+                    condition_status:
+                      populated_from: phv00159573
+                    condition_providence:
+                      populated_from: phv00159579
+    """)
+
     transformer = ObjectTransformer(unrestricted_eval=True)
     transformer.source_schemaview = SchemaView(source_schema)
     transformer.target_schemaview = SchemaView(target_schema)
     transformer.create_transformer_specification(transform_spec)
 
-    result = transformer.map_object(input_data, source_type="Person")
-
-    assert result == expected_output
+    result = transformer.map_object(NESTED_INPUT_DATA, source_type="Person")
+    assert result == NESTED_EXPECTED_OUTPUT
 
 
 def test_transform_simple_object(obj_tr: ObjectTransformer) -> None:
