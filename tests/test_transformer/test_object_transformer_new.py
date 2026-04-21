@@ -295,6 +295,55 @@ def test_value_mapping_no_match_returns_none(scaffold):
     assert result.get("result") is None
 
 
+def test_value_mappings_takes_precedence_over_expression_mappings(scaffold):
+    """When both value_mappings and expression_mappings have the same key, value_mappings wins."""
+
+    apply_schema_patch(
+        scaffold["source_schema"],
+        """
+    classes:
+      Person:
+        slots:
+          - code
+    slots:
+      code:
+        range: string
+""",
+    )
+
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - result
+    slots:
+      result:
+        range: string
+""",
+    )
+
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          result:
+            populated_from: code
+            value_mappings:
+              "A": literal_wins
+            expression_mappings:
+              "A": "'expression_loses'"
+""",
+    )
+
+    scaffold["input_data"]["code"] = "A"
+    result = run_transformer(scaffold)
+    assert result["result"] == "literal_wins"
+
+
 # ---------------------------------------------------------------------------
 # Unit tests for _resolve_source_type (extracted from map_object)
 # ---------------------------------------------------------------------------
