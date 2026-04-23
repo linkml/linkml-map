@@ -189,7 +189,9 @@ class TransformationSpecification(SpecificationComponent):
     mapping_method: Optional[str] = Field(default=None, description="""The method used to create this mapping, e.g. manual curation, automated mapping, etc.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification']} })
     documentation: Optional[str] = Field(default=None, description="""URL or reference to documentation for the mapping specification""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification']} })
     content_url: Optional[str] = Field(default=None, description="""Reference to the actual content of the mapping specification""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification']} })
-    class_derivations: Optional[list[ClassDerivation]] = Field(default_factory=list, description="""Instructions on how to derive a set of classes in the target schema from classes in the source schema.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'ObjectDerivation']} })
+    class_derivations: Optional[list[ClassDerivation]] = Field(default_factory=list, description="""Instructions on how to derive a set of classes in the target schema from classes in the source schema.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification',
+                       'ObjectDerivation',
+                       'SlotDerivation']} })
     enum_derivations: Optional[dict[str, EnumDerivation]] = Field(default_factory=dict, description="""Instructions on how to derive a set of enums in the target schema""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification']} })
     slot_derivations: Optional[dict[str, SlotDerivation]] = Field(default_factory=dict, description="""Instructions on how to derive a set of top level slots in the target schema""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'ClassDerivation']} })
     description: Optional[str] = Field(default=None, description="""description of the specification component""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent'], 'slot_uri': 'dcterms:description'} })
@@ -296,7 +298,9 @@ class ObjectDerivation(ElementDerivation):
                        'EnumDerivation',
                        'PermissibleValueDerivation',
                        'Agent']} })
-    class_derivations: Optional[dict[str, ClassDerivation]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'ObjectDerivation']} })
+    class_derivations: Optional[dict[str, ClassDerivation]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification',
+                       'ObjectDerivation',
+                       'SlotDerivation']} })
     copy_directives: Optional[dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     overrides: Optional[Any] = Field(default=None, description="""overrides source schema slots""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     is_a: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:is_a'} })
@@ -347,6 +351,9 @@ class SlotDerivation(ElementDerivation):
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
+    class_derivations: Optional[list[ClassDerivation]] = Field(default_factory=list, description="""Instructions on how to derive nested class instances for this slot. Each entry specifies how to construct an instance of a target class from source data. For multivalued slots, each entry produces one object in the resulting list.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification',
+                       'ObjectDerivation',
+                       'SlotDerivation']} })
     object_derivations: Optional[list[ObjectDerivation]] = Field(default_factory=list, description="""Deprecated. Use list-based class_derivations instead. One or more object derivations used to construct the slot value(s), which must be instances of a class.""", json_schema_extra = { "linkml_meta": {'deprecated': 'Use list-based class_derivations instead of nesting via '
                        'object_derivations. See '
                        'https://github.com/linkml/linkml-map/issues/112',

@@ -1,6 +1,7 @@
 """Transformers transform objects from one class to another using a transformation specification."""
 
 import logging
+import warnings
 from abc import ABC
 from copy import deepcopy
 from dataclasses import dataclass, field
@@ -111,9 +112,7 @@ class Transformer(ABC):
 
     @classmethod
     def normalize_transform_spec(cls, obj: dict[str, Any], normalizer: ReferenceValidator) -> dict:
-        """
-        Recursively normalize class_derivations and their nested object_derivations.
-        """
+        """Recursively normalize class_derivations and flatten object_derivations."""
         obj = normalizer.normalize(obj)
 
         class_derivations = obj.get("class_derivations", [])
@@ -124,29 +123,88 @@ class Transformer(ABC):
         for class_spec in cd_iter:
             if not isinstance(class_spec, dict):
                 continue
+            parent_source = class_spec.get("populated_from")
             slot_derivations = class_spec.get("slot_derivations", {})
-            for slot, slot_spec in slot_derivations.items():
+            for slot_name, slot_spec in slot_derivations.items():
                 if slot_spec.get("value") is not None and slot_spec.get("range") is None:
                     slot_spec["range"] = "string"
-                # Check for nested object_derivations
-                object_derivations = slot_spec.get("object_derivations", [])
-                for i, od in enumerate(object_derivations):
-                    # Recursively normalize each nested class_derivation block
-                    od_normalized = cls.normalize_transform_spec(od, normalizer)
-                    # ObjectDerivation.class_derivations stays as dict (no inlined_as_list),
-                    # but the normalizer may convert it to list. Convert back.
-                    od_cd = od_normalized.get("class_derivations")
-                    if isinstance(od_cd, list):
-                        od_normalized["class_derivations"] = {
-                            item["name"]: item for item in od_cd if isinstance(item, dict)
-                        }
-                    object_derivations[i] = od_normalized
+                cls._normalize_slot_class_derivations(slot_name, slot_spec, normalizer, parent_source)
         return obj
 
     @classmethod
-    def _normalize_spec_dict(cls, obj: dict[str, Any]) -> None:
+    def _normalize_slot_class_derivations(
+        cls,
+        slot_name: str,
+        slot_spec: dict[str, Any],
+        normalizer: ReferenceValidator,
+        parent_populated_from: str | None = None,
+    ) -> None:
+        """Flatten object_derivations and normalize class_derivations on a slot.
+
+        Four steps, applied recursively to nested slots:
+        1. Flatten ``object_derivations`` into ``class_derivations`` (with
+           deprecation warning; error if both are present).
+        2. Expand compact-key entries (``- Condition: {...}`` → ``{name: Condition, ...}``).
+        3. Inherit ``populated_from`` from the parent class derivation when absent.
+        4. Run the normalizer on each class derivation entry so that nested
+           dict-keyed ``slot_derivations`` get ``name`` injected.
         """
-        Normalize a raw specification dict in place.
+        # Step 1: flatten object_derivations → class_derivations
+        object_derivations = slot_spec.get("object_derivations", [])
+        if object_derivations:
+            if slot_spec.get("class_derivations"):
+                msg = (
+                    f"SlotDerivation '{slot_name}' has both 'object_derivations' and "
+                    f"'class_derivations'. Remove 'object_derivations' and use "
+                    f"'class_derivations' only."
+                )
+                raise ValueError(msg)
+
+            warnings.warn(
+                f"SlotDerivation '{slot_name}' uses 'object_derivations', which is "
+                f"deprecated. Use list-based class_derivations instead. "
+                f"'object_derivations' will be removed in a future version. "
+                f"See https://github.com/linkml/linkml-map/issues/112",
+                DeprecationWarning,
+                stacklevel=4,
+            )
+
+            flattened: list[dict[str, Any]] = []
+            for od in object_derivations:
+                od_cd = od.get("class_derivations", {})
+                if isinstance(od_cd, dict):
+                    for name, body in od_cd.items():
+                        entry = body if isinstance(body, dict) else {}
+                        entry.setdefault("name", name)
+                        flattened.append(entry)
+                elif isinstance(od_cd, list):
+                    flattened.extend(od_cd)
+            slot_spec["class_derivations"] = flattened
+            del slot_spec["object_derivations"]
+
+        # Steps 2-4: expand compact keys, inherit populated_from, normalize, and recurse
+        slot_cd = slot_spec.get("class_derivations")
+        if not isinstance(slot_cd, list):
+            return
+
+        cls._expand_compact_keys(slot_cd)
+
+        for cd_entry in slot_cd:
+            if not isinstance(cd_entry, dict):
+                continue
+            if not cd_entry.get("populated_from") and parent_populated_from:
+                cd_entry["populated_from"] = parent_populated_from
+            normalized = normalizer.normalize(cd_entry)
+            cd_entry.clear()
+            cd_entry.update(normalized)
+            child_source = cd_entry.get("populated_from")
+            for nested_name, nested_sd in cd_entry.get("slot_derivations", {}).items():
+                if isinstance(nested_sd, dict):
+                    cls._normalize_slot_class_derivations(nested_name, nested_sd, normalizer, child_source)
+
+    @classmethod
+    def _normalize_spec_dict(cls, obj: dict[str, Any]) -> None:
+        """Normalize a raw specification dict in place.
 
         Bundles _preprocess_class_derivations, ReferenceValidator normalization,
         and nested ObjectDerivation fixup into a single entry point. Mutates
@@ -162,16 +220,29 @@ class Transformer(ABC):
         obj.update(normalized)
 
     @staticmethod
-    def _preprocess_class_derivations(obj: dict[str, Any]) -> None:
+    def _expand_compact_keys(items: list[dict[str, Any]]) -> None:
+        """Expand YAML compact-key dicts in a list in place.
+
+        Converts ``{"Condition": {"populated_from": "x"}}`` →
+        ``{"name": "Condition", "populated_from": "x"}``.
+        Skips items whose sole key is ``"name"`` (already expanded).
         """
-        Pre-process class_derivations before ReferenceValidator normalization.
+        for i, item in enumerate(items):
+            if isinstance(item, dict) and len(item) == 1:
+                key, val = next(iter(item.items()))
+                if key != "name" and isinstance(val, dict | type(None)):
+                    expanded = val if val is not None else {}
+                    expanded.setdefault("name", key)
+                    items[i] = expanded
+
+    @staticmethod
+    def _preprocess_class_derivations(obj: dict[str, Any]) -> None:
+        """Pre-process top-level class_derivations before ReferenceValidator normalization.
 
         Handles two cases:
         1. Dict format with None values (e.g. ``Entity:`` with no body) — replace
            with empty dicts so ReferenceValidator.ensure_list doesn't choke.
-        2. List format with compact keys (e.g. ``- Condition: {populated_from: x}``)
-           — unwrap to ``{name: Condition, populated_from: x}`` so Pydantic can
-           validate.
+        2. List format with compact keys — delegate to ``_expand_compact_keys``.
         """
         cd = obj.get("class_derivations")
         if isinstance(cd, dict):
@@ -179,19 +250,7 @@ class Transformer(ABC):
                 if v is None:
                     cd[k] = {}
         elif isinstance(cd, list):
-            for i, item in enumerate(cd):
-                # Detect YAML compact-key format: a single-key dict where the
-                # key is the class name and the value is the body (dict) or
-                # None.  E.g. ``- Condition: {populated_from: x}`` parses as
-                # ``{"Condition": {"populated_from": "x"}}``.  We skip items
-                # whose sole key is "name" — those are already in expanded
-                # form (``- name: Foo``).
-                if isinstance(item, dict) and len(item) == 1:
-                    key, val = next(iter(item.items()))
-                    if key != "name" and isinstance(val, dict | type(None)):
-                        expanded = val if val is not None else {}
-                        expanded.setdefault("name", key)
-                        cd[i] = expanded
+            Transformer._expand_compact_keys(cd)
 
     def create_transformer_specification(self, obj: dict[str, Any]) -> None:
         """
