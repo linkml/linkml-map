@@ -463,6 +463,7 @@ def validate_spec_cmd(
     from linkml_map.validator import validate_spec_file
 
     has_errors = False
+    has_warnings = False
     for path in spec_files:
         messages = validate_spec_file(
             path,
@@ -479,6 +480,8 @@ def validate_spec_cmd(
             for msg in errors:
                 click.echo(f"  {msg}", err=True)
 
+        if warnings:
+            has_warnings = True
         if warnings and not no_warnings:
             if not errors:
                 click.echo(f"{path}:", err=True)
@@ -490,7 +493,7 @@ def validate_spec_cmd(
         elif not errors:
             click.echo(f"{path}: ok (with warnings)")
 
-    if has_errors:
+    if has_errors or (strict and has_warnings):
         raise SystemExit(1)
 
 

@@ -17,6 +17,7 @@ Example::
 """
 
 import ast
+import concurrent.futures
 import json
 import logging
 from dataclasses import dataclass
@@ -191,7 +192,8 @@ def extract_expr_slot_references(expr: str) -> set[str]:
       (covers ``src.slot_name`` references in multi-line expressions)
 
     Known-safe names (Python builtins, evaluator functions, ``NULL``,
-    ``target``, ``src``) are filtered out.
+    ``target``, ``src``) are filtered out, as are locally bound names
+    (assignment targets, comprehension variables).
 
     :param expr: A LinkML expression string.
     :returns: A set of candidate slot name strings.
@@ -216,13 +218,19 @@ def extract_expr_slot_references(expr: str) -> set[str]:
             return set()
 
     names: set[str] = set()
+    bound: set[str] = set()
     for node in ast.walk(tree):
         if isinstance(node, ast.Name):
-            names.add(node.id)
+            if isinstance(node.ctx, ast.Store):
+                bound.add(node.id)
+            else:
+                names.add(node.id)
         elif isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name) and node.value.id == "src":
             names.add(node.attr)
+        elif isinstance(node, ast.comprehension) and isinstance(node.target, ast.Name):
+            bound.add(node.target.id)
 
-    return names - _EXPR_SAFE_NAMES
+    return names - _EXPR_SAFE_NAMES - bound
 
 
 # ---------------------------------------------------------------------------
@@ -230,32 +238,52 @@ def extract_expr_slot_references(expr: str) -> set[str]:
 # ---------------------------------------------------------------------------
 
 
+# Timeout in seconds for loading schemas from URLs or remote identifiers.
+_SCHEMA_LOAD_TIMEOUT = 10
+
+
+def _load_schemaview_with_timeout(path: str, timeout: int = _SCHEMA_LOAD_TIMEOUT) -> SchemaView:
+    """Load a SchemaView with a timeout to avoid hanging on unreachable URLs.
+
+    :param path: Schema path, URL, or identifier.
+    :param timeout: Maximum seconds to wait.
+    :returns: A loaded :class:`SchemaView`.
+    :raises TimeoutError: If loading exceeds the timeout.
+    :raises Exception: Any exception raised by :class:`SchemaView`.
+    """
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(SchemaView, path)
+        return future.result(timeout=timeout)
+
+
 def _resolve_schema_path(
     spec_value: str | None,
     explicit: str | Path | None,
     base_path: Path | None,
-) -> str | None:
+) -> tuple[str | None, bool]:
     """Resolve a schema path from explicit argument or spec field.
 
     :param spec_value: The ``source_schema`` or ``target_schema`` value from the spec.
     :param explicit: An explicitly provided schema path (overrides spec_value).
     :param base_path: Directory to resolve relative paths against (typically
         the directory containing the spec file).
-    :returns: A resolved path string, or ``None`` if unresolvable.
+    :returns: A tuple of (resolved path string or ``None``, whether it was
+        explicitly provided by the user).
     """
     if explicit is not None:
-        return str(explicit)
+        return str(explicit), True
     if spec_value is None:
-        return None
+        return None, False
     # Try relative to spec file directory
     if base_path is not None:
         candidate = base_path / spec_value
         if candidate.exists():
-            return str(candidate)
-    # Try as-is (absolute path or SchemaView-resolvable name)
+            return str(candidate), False
+    # Try as-is (absolute path, URL, or SchemaView-resolvable identifier)
     if Path(spec_value).exists():
-        return spec_value
-    return None
+        return spec_value, False
+    # Return raw value for SchemaView to attempt (e.g. URLs, package names)
+    return spec_value, False
 
 
 def _iter_derivation_dicts(raw: Any) -> list[dict[str, Any]]:
@@ -302,19 +330,19 @@ def validate_spec_semantics(
     messages: list[ValidationMessage] = []
 
     # Resolve schemas (explicit args override spec fields)
-    source_path = _resolve_schema_path(data.get("source_schema"), source_schema, spec_base_path)
-    target_path = _resolve_schema_path(data.get("target_schema"), target_schema, spec_base_path)
+    source_path, source_explicit = _resolve_schema_path(data.get("source_schema"), source_schema, spec_base_path)
+    target_path, target_explicit = _resolve_schema_path(data.get("target_schema"), target_schema, spec_base_path)
 
     source_sv: SchemaView | None = None
     target_sv: SchemaView | None = None
 
     if source_path:
         try:
-            source_sv = SchemaView(source_path)
+            source_sv = _load_schemaview_with_timeout(source_path)
         except Exception as exc:
             messages.append(
                 ValidationMessage(
-                    severity="warning",
+                    severity="error" if source_explicit else "warning",
                     path="source_schema",
                     message=f"Could not load source schema '{source_path}': {exc}",
                 )
@@ -322,11 +350,11 @@ def validate_spec_semantics(
 
     if target_path:
         try:
-            target_sv = SchemaView(target_path)
+            target_sv = _load_schemaview_with_timeout(target_path)
         except Exception as exc:
             messages.append(
                 ValidationMessage(
-                    severity="warning",
+                    severity="error" if target_explicit else "warning",
                     path="target_schema",
                     message=f"Could not load target schema '{target_path}': {exc}",
                 )

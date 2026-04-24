@@ -241,13 +241,14 @@ if len(d_test):
 """
     refs = extract_expr_slot_references(expr)
     assert "has_important_life_events" in refs
-    # d_test and x are local variables, not slot references — they appear as
-    # ast.Name but aren't in _EXPR_SAFE_NAMES. That's fine; the caller
-    # intersects with known source slots to filter them out.
+    # d_test and x are local variables (assignment target and comprehension
+    # variable respectively) — they are filtered out by the bound-name logic.
+    assert "d_test" not in refs
+    assert "x" not in refs
 
 
-def test_extract_expr_unparseable():
-    """Completely unparseable expressions return empty set."""
+def test_extract_expr_unparsable():
+    """Completely unparsable expressions return empty set."""
     assert extract_expr_slot_references("{{{{") == set()
 
 
