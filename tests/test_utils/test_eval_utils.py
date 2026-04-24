@@ -818,7 +818,7 @@ def test_new_list_functions_do_not_distribute() -> None:
         ('rstrip("  hello  ")', {}, "  hello"),
         # String content
         ('replace("hello", "l", "r")', {}, "herro"),
-        ('startswith("hello", "hel")', {}, True),  # codespell:ignore hel
+        ('startswith("hello", "hell")', {}, True),
         ('startswith("hello", "world")', {}, False),
         ('endswith("hello", "llo")', {}, True),
         ('endswith("hello", "xyz")', {}, False),
