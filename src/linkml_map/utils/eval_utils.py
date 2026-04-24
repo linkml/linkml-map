@@ -159,6 +159,11 @@ _LIST_FUNCTIONS: dict[str, Any] = {
     "max": _null_safe(max),
     "min": _null_safe(min),
     "len": _null_safe(len),
+    "sum": _null_safe(sum),
+    "sorted": _null_safe(sorted),
+    "any": _null_safe(any),
+    "all": _null_safe(all),
+    "reversed": _null_safe(lambda x: list(reversed(x))),
 }
 
 #: Functions that operate on scalars and should distribute over lists.
@@ -171,12 +176,38 @@ _SCALAR_FUNCTIONS: dict[str, Any] = {
     "round": round,
     "strlen": len,
     "uuid5": _uuid5,
+    # String case/formatting
+    "upper": str.upper,
+    "lower": str.lower,
+    "title": str.title,
+    "capitalize": str.capitalize,
+    # Whitespace trimming
+    "strip": str.strip,
+    "lstrip": str.lstrip,
+    "rstrip": str.rstrip,
+    # String content
+    "replace": str.replace,
+    "startswith": str.startswith,
+    "endswith": str.endswith,
+    # String splitting/joining
+    "split": str.split,
+    "join": str.join,
+}
+
+#: Type-testing predicates (not distributing — test the value as-is).
+_TYPE_PREDICATES: dict[str, Any] = {
+    "is_str": lambda x: isinstance(x, str),
+    "is_int": lambda x: isinstance(x, int) and not isinstance(x, bool),
+    "is_float": lambda x: isinstance(x, float),
+    "is_bool": lambda x: isinstance(x, bool),
+    "is_list": lambda x: isinstance(x, list),
 }
 
 #: All built-in functions available in expressions.
 FUNCTIONS: dict[str, Any] = {
     **_LIST_FUNCTIONS,
     **{name: _distributing(func) for name, func in _SCALAR_FUNCTIONS.items()},
+    **_TYPE_PREDICATES,
     "case": eval_conditional,
     "is_numeric": _is_numeric,
 }

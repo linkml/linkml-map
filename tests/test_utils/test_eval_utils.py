@@ -749,3 +749,196 @@ def test_bool_not_coerced_as_numeric() -> None:
     """Booleans should not be coerced via numeric-string path (#135)."""
     assert eval_expr("{flag} == '0'", flag=True) is False
     assert eval_expr("{flag} == '1'", flag=False) is False
+
+
+# ---- New list functions ----
+
+
+@pytest.mark.parametrize(
+    ("expr", "kwargs", "expected"),
+    [
+        ("sum([1, 2, 3])", {}, 6),
+        ("sum(items)", {"items": [10, 20, 30]}, 60),
+        ("sorted([3, 1, 2])", {}, [1, 2, 3]),
+        ("sorted(items)", {"items": ["c", "a", "b"]}, ["a", "b", "c"]),
+        ("any([False, True, False])", {}, True),
+        ("any([False, False])", {}, False),
+        ("all([True, True])", {}, True),
+        ("all([True, False])", {}, False),
+        ("reversed([1, 2, 3])", {}, [3, 2, 1]),
+        ("reversed(items)", {"items": ["a", "b", "c"]}, ["c", "b", "a"]),
+    ],
+    ids=[
+        "sum_literal",
+        "sum_var",
+        "sorted_literal",
+        "sorted_var",
+        "any_true",
+        "any_false",
+        "all_true",
+        "all_false",
+        "reversed_literal",
+        "reversed_var",
+    ],
+)
+def test_list_functions_new(expr: str, kwargs: dict, expected: Any) -> None:
+    """Test new list aggregate functions."""
+    assert eval_expr(expr, **kwargs) == expected
+
+
+def test_new_list_functions_null_safe() -> None:
+    """New list functions return None when given None."""
+    assert eval_expr("sum(x)", x=None) is None
+    assert eval_expr("sorted(x)", x=None) is None
+    assert eval_expr("any(x)", x=None) is None
+    assert eval_expr("all(x)", x=None) is None
+    assert eval_expr("reversed(x)", x=None) is None
+
+
+def test_new_list_functions_do_not_distribute() -> None:
+    """New list functions operate on the list as a whole, not element-wise."""
+    assert eval_expr("sum(items)", items=[1, 2, 3]) == 6
+    assert eval_expr("sorted(items)", items=[3, 1, 2]) == [1, 2, 3]
+
+
+# ---- String functions ----
+
+
+@pytest.mark.parametrize(
+    ("expr", "kwargs", "expected"),
+    [
+        # Case/formatting
+        ('upper("hello")', {}, "HELLO"),
+        ('lower("HELLO")', {}, "hello"),
+        ('title("hello world")', {}, "Hello World"),
+        ('capitalize("hello world")', {}, "Hello world"),
+        # Whitespace trimming
+        ('strip("  hello  ")', {}, "hello"),
+        ('lstrip("  hello  ")', {}, "hello  "),
+        ('rstrip("  hello  ")', {}, "  hello"),
+        # String content
+        ('replace("hello", "l", "r")', {}, "herro"),
+        ('startswith("hello", "hel")', {}, True),
+        ('startswith("hello", "world")', {}, False),
+        ('endswith("hello", "llo")', {}, True),
+        ('endswith("hello", "xyz")', {}, False),
+        # Splitting/joining
+        ('split("a,b,c", ",")', {}, ["a", "b", "c"]),
+        ('join(",", ["a", "b", "c"])', {}, "a,b,c"),
+    ],
+    ids=[
+        "upper",
+        "lower",
+        "title",
+        "capitalize",
+        "strip",
+        "lstrip",
+        "rstrip",
+        "replace",
+        "startswith_true",
+        "startswith_false",
+        "endswith_true",
+        "endswith_false",
+        "split",
+        "join",
+    ],
+)
+def test_string_functions(expr: str, kwargs: dict, expected: Any) -> None:
+    """Test string manipulation functions."""
+    assert eval_expr(expr, **kwargs) == expected
+
+
+def test_string_functions_with_variables() -> None:
+    """String functions work with variable bindings."""
+    assert eval_expr("upper(name)", name="alice") == "ALICE"
+    assert eval_expr("lower(name)", name="BOB") == "bob"
+    assert eval_expr("strip(name)", name="  alice  ") == "alice"
+    assert eval_expr('replace(name, " ", "_")', name="hello world") == "hello_world"
+
+
+def test_string_functions_distribute_over_lists() -> None:
+    """String functions distribute over list arguments."""
+    assert eval_expr("upper(names)", names=["alice", "bob"]) == ["ALICE", "BOB"]
+    assert eval_expr("lower(names)", names=["ALICE", "BOB"]) == ["alice", "bob"]
+    assert eval_expr("strip(names)", names=["  a  ", "  b  "]) == ["a", "b"]
+    assert eval_expr("title(names)", names=["hello world", "foo bar"]) == [
+        "Hello World",
+        "Foo Bar",
+    ]
+
+
+def test_string_functions_null_propagation() -> None:
+    """String functions propagate None."""
+    assert eval_expr("upper(x)", x=None) is None
+    assert eval_expr("lower(x)", x=None) is None
+    assert eval_expr("strip(x)", x=None) is None
+    assert eval_expr("replace(x, 'a', 'b')", x=None) is None
+
+
+def test_string_functions_null_in_list() -> None:
+    """String functions handle None elements within lists."""
+    assert eval_expr("upper(names)", names=["alice", None, "bob"]) == ["ALICE", None, "BOB"]
+
+
+def test_split_and_join_roundtrip() -> None:
+    """split and join are inverses."""
+    assert eval_expr('join(",", split(x, ","))', x="a,b,c") == "a,b,c"
+
+
+# ---- Type-testing predicates ----
+
+
+@pytest.mark.parametrize(
+    ("expr", "kwargs", "expected"),
+    [
+        ('is_str("hello")', {}, True),
+        ("is_str(42)", {}, False),
+        ("is_str(x)", {"x": None}, False),
+        ("is_int(42)", {}, True),
+        ("is_int(3.14)", {}, False),
+        ('is_int("42")', {}, False),
+        ("is_int(True)", {}, False),
+        ("is_float(3.14)", {}, True),
+        ("is_float(42)", {}, False),
+        ("is_bool(True)", {}, True),
+        ("is_bool(False)", {}, True),
+        ("is_bool(1)", {}, False),
+        ("is_list([1, 2])", {}, True),
+        ('is_list("hello")', {}, False),
+        ("is_list(x)", {"x": None}, False),
+    ],
+    ids=[
+        "is_str_true",
+        "is_str_false",
+        "is_str_none",
+        "is_int_true",
+        "is_int_float",
+        "is_int_str",
+        "is_int_bool",
+        "is_float_true",
+        "is_float_false",
+        "is_bool_true",
+        "is_bool_false",
+        "is_bool_int",
+        "is_list_true",
+        "is_list_false",
+        "is_list_none",
+    ],
+)
+def test_type_predicates(expr: str, kwargs: dict, expected: bool) -> None:  # noqa: FBT001
+    """Test type-testing predicate functions."""
+    assert eval_expr(expr, **kwargs) is expected
+
+
+def test_type_predicates_in_case() -> None:
+    """Type predicates work as guards in case() expressions.
+
+    Note: case() eagerly evaluates all branch values, so the value
+    expression must be safe for all inputs. Use str() which handles
+    any type, or use if/else for lazy evaluation.
+    """
+    expr = 'case((is_str(x), upper(x)), (True, "other"))'
+    assert eval_expr(expr, x="hello") == "HELLO"
+    # if/else is lazy — only the taken branch is evaluated
+    assert eval_expr("upper(x) if is_str(x) else str(x)", x="hello") == "HELLO"
+    assert eval_expr("upper(x) if is_str(x) else str(x)", x=42) == "42"
