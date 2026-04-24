@@ -279,11 +279,13 @@ def _resolve_schema_path(
         candidate = base_path / spec_value
         if candidate.exists():
             return str(candidate), False
-    # Try as-is (absolute path, URL, or SchemaView-resolvable identifier)
+    # Try as-is (absolute path)
     if Path(spec_value).exists():
         return spec_value, False
-    # Return raw value for SchemaView to attempt (e.g. URLs, package names)
-    return spec_value, False
+    # URLs: let SchemaView attempt resolution with a timeout
+    if "://" in spec_value:
+        return spec_value, False
+    return None, False
 
 
 def _iter_derivation_dicts(raw: Any) -> list[dict[str, Any]]:
