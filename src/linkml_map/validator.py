@@ -1,33 +1,38 @@
-"""Validate transformation specification YAML files against the transformer model schema.
+"""Validate transformation specification YAML files.
 
-Uses the LinkML JSON Schema generator to produce a JSON Schema from
-``transformer_model.yaml``, then validates data with the ``jsonschema`` library.
+Provides two layers of validation:
 
-Includes a workaround for linkml/linkml#3366 (``add_lax_def`` crashes on schemas
-with abstract classes that lack a ``required`` field in their JSON Schema
-representation).
+1. **Structural** — validates that the spec YAML conforms to the
+   ``transformer_model.yaml`` JSON Schema (correct keys, types, nesting).
+2. **Semantic** — cross-references the spec against source and/or target
+   LinkML schemas to check that class names, slot names, ``populated_from``
+   references, and expression slot references actually resolve.
 
 Example::
 
     >>> from linkml_map.validator import validate_spec_file
-    >>> errors = validate_spec_file("tests/input/examples/flattening/transform/denormalize.transform.yaml")
-    >>> errors
+    >>> msgs = validate_spec_file("tests/input/examples/flattening/transform/denormalize.transform.yaml")
+    >>> msgs
     []
 """
 
+import ast
 import json
 import logging
+from dataclasses import dataclass
 from datetime import date, datetime
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import jsonschema
 import yaml
 from linkml.generators.jsonschemagen import JsonSchemaGenerator
+from linkml_runtime import SchemaView
 
 from linkml_map.datamodel import TR_SCHEMA
 from linkml_map.transformer.transformer import Transformer
+from linkml_map.utils.eval_utils import FUNCTIONS
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +42,39 @@ _ABSTRACT_CLASS_PATCHES = [
     "ElementDerivation",
     "ElementDerivation__identifier_optional",
 ]
+
+# Names that should never be treated as slot references in expressions.
+_EXPR_SAFE_NAMES = frozenset(
+    {
+        # Python builtins / keywords used as values
+        "True",
+        "False",
+        "None",
+        # LinkML expression language builtins
+        "NULL",
+        "target",
+        "src",
+        # All registered evaluator functions
+        *FUNCTIONS.keys(),
+    }
+)
+
+
+@dataclass
+class ValidationMessage:
+    """A single validation finding with severity and location context."""
+
+    severity: Literal["error", "warning"]
+    path: str
+    message: str
+
+    def __str__(self) -> str:
+        return f"{self.path}: [{self.severity}] {self.message}"
+
+
+# ---------------------------------------------------------------------------
+# JSON Schema (structural) helpers
+# ---------------------------------------------------------------------------
 
 
 @lru_cache(maxsize=1)
@@ -118,16 +156,383 @@ def normalize_spec_dict(obj: dict[str, Any]) -> dict[str, Any]:
     return obj
 
 
+def _validate_structural(
+    data: dict[str, Any],
+    *,
+    schema_path: str | None = None,
+) -> list[ValidationMessage]:
+    """Run JSON Schema structural validation.
+
+    :param data: A **normalized** spec dict.
+    :param schema_path: Optional override for the LinkML schema path.
+    :returns: A list of structural validation errors.
+    """
+    json_schema = _build_json_schema(schema_path)
+    validator = jsonschema.Draft202012Validator(json_schema)
+    return [
+        ValidationMessage(severity="error", path=e.json_path, message=e.message)
+        for e in sorted(validator.iter_errors(data), key=lambda e: e.json_path)
+    ]
+
+
+# ---------------------------------------------------------------------------
+# Expression slot reference extraction
+# ---------------------------------------------------------------------------
+
+
+def extract_expr_slot_references(expr: str) -> set[str]:
+    """Extract candidate slot name references from a LinkML expression.
+
+    Uses :mod:`ast` to parse the expression and collect:
+
+    - ``ast.Name`` nodes (covers both bare ``x`` and ``{x}`` syntax, since
+      ``{x}`` is parsed as ``ast.Set({ast.Name('x')})``)
+    - ``ast.Attribute`` nodes where the value is ``ast.Name('src')``
+      (covers ``src.slot_name`` references in multi-line expressions)
+
+    Known-safe names (Python builtins, evaluator functions, ``NULL``,
+    ``target``, ``src``) are filtered out.
+
+    :param expr: A LinkML expression string.
+    :returns: A set of candidate slot name strings.
+
+    Example::
+
+        >>> sorted(extract_expr_slot_references("str({age_in_years}) + ' years'"))
+        ['age_in_years']
+        >>> sorted(extract_expr_slot_references("subject.id"))
+        ['subject']
+        >>> sorted(extract_expr_slot_references("case((x == '1', 'YES'), (True, 'NO'))"))
+        ['x']
+        >>> extract_expr_slot_references("'hello'")
+        set()
+    """
+    try:
+        tree = ast.parse(expr, mode="eval")
+    except SyntaxError:
+        try:
+            tree = ast.parse(expr, mode="exec")
+        except SyntaxError:
+            return set()
+
+    names: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Name):
+            names.add(node.id)
+        elif isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name) and node.value.id == "src":
+            names.add(node.attr)
+
+    return names - _EXPR_SAFE_NAMES
+
+
+# ---------------------------------------------------------------------------
+# Semantic validation
+# ---------------------------------------------------------------------------
+
+
+def _resolve_schema_path(
+    spec_value: str | None,
+    explicit: str | Path | None,
+    base_path: Path | None,
+) -> str | None:
+    """Resolve a schema path from explicit argument or spec field.
+
+    :param spec_value: The ``source_schema`` or ``target_schema`` value from the spec.
+    :param explicit: An explicitly provided schema path (overrides spec_value).
+    :param base_path: Directory to resolve relative paths against (typically
+        the directory containing the spec file).
+    :returns: A resolved path string, or ``None`` if unresolvable.
+    """
+    if explicit is not None:
+        return str(explicit)
+    if spec_value is None:
+        return None
+    # Try relative to spec file directory
+    if base_path is not None:
+        candidate = base_path / spec_value
+        if candidate.exists():
+            return str(candidate)
+    # Try as-is (absolute path or SchemaView-resolvable name)
+    if Path(spec_value).exists():
+        return spec_value
+    return None
+
+
+def _iter_derivation_dicts(raw: Any) -> list[dict[str, Any]]:
+    """Normalize a derivations section (dict or list) to a list of dicts.
+
+    After ``normalize_spec_dict``, derivation sections may be either a list of
+    dicts (with ``name`` keys) or a dict keyed by name.  This helper
+    normalizes to a consistent list-of-dicts form for iteration.
+    """
+    if isinstance(raw, list):
+        return [item for item in raw if isinstance(item, dict)]
+    if isinstance(raw, dict):
+        result: list[dict[str, Any]] = []
+        for name, body in raw.items():
+            d = dict(body) if isinstance(body, dict) else {}
+            d.setdefault("name", name)
+            result.append(d)
+        return result
+    return []
+
+
+def validate_spec_semantics(
+    data: dict[str, Any],
+    *,
+    source_schema: str | Path | None = None,
+    target_schema: str | Path | None = None,
+    strict: bool = False,
+    spec_base_path: Path | None = None,
+) -> list[ValidationMessage]:
+    """Validate spec references against source and/or target schemas.
+
+    Checks that class names, slot names, ``populated_from`` references, and
+    expression slot references resolve against the provided schemas.
+
+    :param data: A **normalized** spec dict.
+    :param source_schema: Path to the source LinkML schema.
+    :param target_schema: Path to the target LinkML schema.
+    :param strict: If ``True``, unresolved expression slot references are
+        errors instead of warnings.
+    :param spec_base_path: Directory for resolving relative schema paths
+        found in the spec's ``source_schema``/``target_schema`` fields.
+    :returns: A list of validation messages.
+    """
+    messages: list[ValidationMessage] = []
+
+    # Resolve schemas (explicit args override spec fields)
+    source_path = _resolve_schema_path(data.get("source_schema"), source_schema, spec_base_path)
+    target_path = _resolve_schema_path(data.get("target_schema"), target_schema, spec_base_path)
+
+    source_sv: SchemaView | None = None
+    target_sv: SchemaView | None = None
+
+    if source_path:
+        try:
+            source_sv = SchemaView(source_path)
+        except Exception as exc:
+            messages.append(
+                ValidationMessage(
+                    severity="warning",
+                    path="source_schema",
+                    message=f"Could not load source schema '{source_path}': {exc}",
+                )
+            )
+
+    if target_path:
+        try:
+            target_sv = SchemaView(target_path)
+        except Exception as exc:
+            messages.append(
+                ValidationMessage(
+                    severity="warning",
+                    path="target_schema",
+                    message=f"Could not load target schema '{target_path}': {exc}",
+                )
+            )
+
+    if source_sv is None and target_sv is None:
+        return messages
+
+    # Validate class_derivations
+    for cd in _iter_derivation_dicts(data.get("class_derivations", [])):
+        _validate_class_derivation(cd, source_sv, target_sv, strict, messages)
+
+    # Validate enum_derivations
+    for ed in _iter_derivation_dicts(data.get("enum_derivations", [])):
+        _validate_enum_derivation(ed, source_sv, target_sv, messages)
+
+    return messages
+
+
+def _validate_class_derivation(
+    cd: dict[str, Any],
+    source_sv: SchemaView | None,
+    target_sv: SchemaView | None,
+    strict: bool,
+    messages: list[ValidationMessage],
+) -> None:
+    """Validate a single class derivation against schemas."""
+    cd_name = cd.get("name", "?")
+    cd_path = f"class_derivations[{cd_name}]"
+
+    # Target: class name should exist
+    target_class_slots: set[str] | None = None
+    if target_sv is not None:
+        target_classes = set(target_sv.all_classes())
+        if cd_name not in target_classes:
+            messages.append(
+                ValidationMessage(
+                    severity="error",
+                    path=cd_path,
+                    message=f"Target class '{cd_name}' not found in target schema",
+                )
+            )
+        else:
+            target_class_slots = {s.name for s in target_sv.class_induced_slots(cd_name)}
+
+    # Source: populated_from class should exist
+    source_class = cd.get("populated_from")
+    source_class_slots: set[str] | None = None
+    if source_sv is not None and source_class is not None:
+        source_classes = set(source_sv.all_classes())
+        if source_class not in source_classes:
+            messages.append(
+                ValidationMessage(
+                    severity="error",
+                    path=cd_path,
+                    message=f"Source class '{source_class}' (populated_from) not found in source schema",
+                )
+            )
+        else:
+            source_class_slots = {s.name for s in source_sv.class_induced_slots(source_class)}
+
+    # If source_sv provided but no populated_from, try identity (class name = source class)
+    if source_sv is not None and source_class is None and source_class_slots is None:
+        if cd_name in source_sv.all_classes():
+            source_class_slots = {s.name for s in source_sv.class_induced_slots(cd_name)}
+
+    # Validate slot_derivations (may be list or dict after normalization)
+    slot_derivation_dicts = _iter_derivation_dicts(cd.get("slot_derivations", []))
+
+    for sd in slot_derivation_dicts:
+        _validate_slot_derivation(
+            sd,
+            cd_name,
+            cd_path,
+            source_class_slots,
+            target_class_slots,
+            strict,
+            messages,
+        )
+
+    # Warning: target class has required slots with no derivation
+    if target_sv is not None and target_class_slots is not None:
+        derived_slot_names = {sd.get("name") for sd in slot_derivation_dicts if "name" in sd}
+        for slot in target_sv.class_induced_slots(cd_name):
+            if slot.required and slot.name not in derived_slot_names:
+                messages.append(
+                    ValidationMessage(
+                        severity="warning",
+                        path=cd_path,
+                        message=f"Required target slot '{slot.name}' has no derivation",
+                    )
+                )
+
+
+def _validate_slot_derivation(
+    sd: dict[str, Any],
+    parent_class_name: str,
+    parent_path: str,
+    source_class_slots: set[str] | None,
+    target_class_slots: set[str] | None,
+    strict: bool,
+    messages: list[ValidationMessage],
+) -> None:
+    """Validate a single slot derivation against schemas."""
+    sd_name = sd.get("name", "?")
+    sd_path = f"{parent_path}.slot_derivations[{sd_name}]"
+
+    # Target: slot name should be valid on the target class
+    if target_class_slots is not None and sd_name not in target_class_slots:
+        messages.append(
+            ValidationMessage(
+                severity="error",
+                path=sd_path,
+                message=f"Slot '{sd_name}' not found on target class '{parent_class_name}'",
+            )
+        )
+
+    # Source: populated_from slot should be valid on the source class
+    populated_from = sd.get("populated_from")
+    if source_class_slots is not None and populated_from is not None:
+        if populated_from not in source_class_slots:
+            messages.append(
+                ValidationMessage(
+                    severity="error",
+                    path=sd_path,
+                    message=f"Source slot '{populated_from}' (populated_from) not found on source class",
+                )
+            )
+
+    # Expression slot references
+    expr = sd.get("expr")
+    if expr is not None and source_class_slots is not None:
+        refs = extract_expr_slot_references(expr)
+        for ref in sorted(refs):
+            if ref not in source_class_slots:
+                messages.append(
+                    ValidationMessage(
+                        severity="error" if strict else "warning",
+                        path=sd_path,
+                        message=f"Expression references '{ref}' which is not a slot on the source class",
+                    )
+                )
+
+
+def _validate_enum_derivation(
+    ed: dict[str, Any],
+    source_sv: SchemaView | None,
+    target_sv: SchemaView | None,
+    messages: list[ValidationMessage],
+) -> None:
+    """Validate a single enum derivation against schemas."""
+    ed_name = ed.get("name", "?")
+    ed_path = f"enum_derivations[{ed_name}]"
+
+    if target_sv is not None:
+        target_enums = set(target_sv.all_enums())
+        if ed_name not in target_enums:
+            messages.append(
+                ValidationMessage(
+                    severity="error",
+                    path=ed_path,
+                    message=f"Target enum '{ed_name}' not found in target schema",
+                )
+            )
+
+    populated_from = ed.get("populated_from")
+    if source_sv is not None and populated_from is not None:
+        source_enums = set(source_sv.all_enums())
+        if populated_from not in source_enums:
+            messages.append(
+                ValidationMessage(
+                    severity="error",
+                    path=ed_path,
+                    message=f"Source enum '{populated_from}' (populated_from) not found in source schema",
+                )
+            )
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
+
+
 def validate_spec(
     data: dict[str, Any],
     *,
     schema_path: str | None = None,
-) -> list[str]:
-    """Validate a transformation specification dict against the schema.
+    source_schema: str | Path | None = None,
+    target_schema: str | Path | None = None,
+    strict: bool = False,
+    spec_base_path: Path | None = None,
+) -> list[ValidationMessage]:
+    """Validate a transformation specification dict.
+
+    Runs structural validation (JSON Schema) first, then semantic validation
+    (cross-referencing against source/target schemas) if schemas are provided
+    or auto-detectable from the spec's ``source_schema``/``target_schema`` fields.
 
     :param data: A raw YAML-loaded transformation specification dict.
     :param schema_path: Optional override for the LinkML schema path.
-    :returns: A list of human-readable error messages (empty if valid).
+    :param source_schema: Path to the source LinkML schema.
+    :param target_schema: Path to the target LinkML schema.
+    :param strict: If ``True``, unresolved expression slot references are
+        errors instead of warnings.
+    :param spec_base_path: Directory for resolving relative schema paths.
+    :returns: A list of :class:`ValidationMessage` objects (empty if valid).
 
     Example::
 
@@ -138,22 +543,37 @@ def validate_spec(
         >>> validate_spec(data)
         []
     """
-    json_schema = _build_json_schema(schema_path)
     normalized = normalize_spec_dict(data)
-    validator = jsonschema.Draft202012Validator(json_schema)
-    return [f"{e.json_path}: {e.message}" for e in sorted(validator.iter_errors(normalized), key=lambda e: e.json_path)]
+    messages = _validate_structural(normalized, schema_path=schema_path)
+    messages.extend(
+        validate_spec_semantics(
+            normalized,
+            source_schema=source_schema,
+            target_schema=target_schema,
+            strict=strict,
+            spec_base_path=spec_base_path,
+        )
+    )
+    return messages
 
 
 def validate_spec_file(
     path: str | Path,
     *,
     schema_path: str | None = None,
-) -> list[str]:
+    source_schema: str | Path | None = None,
+    target_schema: str | Path | None = None,
+    strict: bool = False,
+) -> list[ValidationMessage]:
     """Validate a transformation specification YAML file.
 
     :param path: Path to the YAML file.
     :param schema_path: Optional override for the LinkML schema path.
-    :returns: A list of human-readable error messages (empty if valid).
+    :param source_schema: Path to the source LinkML schema.
+    :param target_schema: Path to the target LinkML schema.
+    :param strict: If ``True``, unresolved expression slot references are
+        errors instead of warnings.
+    :returns: A list of :class:`ValidationMessage` objects (empty if valid).
 
     Example::
 
@@ -161,8 +581,22 @@ def validate_spec_file(
         >>> validate_spec_file("tests/input/examples/flattening/transform/denormalize.transform.yaml")
         []
     """
+    path = Path(path)
     with open(path) as f:
         data = yaml.safe_load(f)
     if not isinstance(data, dict):
-        return [f"Expected a YAML mapping at top level, got {type(data).__name__}"]
-    return validate_spec(data, schema_path=schema_path)
+        return [
+            ValidationMessage(
+                severity="error",
+                path="$",
+                message=f"Expected a YAML mapping at top level, got {type(data).__name__}",
+            )
+        ]
+    return validate_spec(
+        data,
+        schema_path=schema_path,
+        source_schema=source_schema,
+        target_schema=target_schema,
+        strict=strict,
+        spec_base_path=path.parent,
+    )

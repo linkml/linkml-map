@@ -433,32 +433,62 @@ def invert(
 
 @main.command(name="validate-spec")
 @click.argument("spec_files", nargs=-1, required=True, type=click.Path(exists=True))
+@click.option("--source-schema", type=click.Path(exists=True), help="Path to source LinkML schema.")
+@click.option("--target-schema", type=click.Path(exists=True), help="Path to target LinkML schema.")
+@click.option("--strict", is_flag=True, help="Treat warnings as errors.")
+@click.option("--no-warnings", is_flag=True, help="Suppress warning output.")
 def validate_spec_cmd(
     spec_files: tuple[str, ...],
+    source_schema: str | None,
+    target_schema: str | None,
+    strict: bool,
+    no_warnings: bool,
 ) -> None:
     """Validate transformation specification YAML files.
 
     Checks that each file conforms to the TransformationSpecification schema.
+    With --source-schema and/or --target-schema, also checks that class names,
+    slot names, and populated_from references resolve against the schemas.
+    Schemas are auto-detected from the spec's source_schema/target_schema
+    fields when not provided explicitly.
+
     Exits with code 1 if any file has validation errors.
 
     Example:
 
         linkml-map validate-spec my-transform.yaml
 
-        linkml-map validate-spec specs/*.yaml
+        linkml-map validate-spec --source-schema src.yaml --target-schema tgt.yaml spec.yaml
     """
     from linkml_map.validator import validate_spec_file
 
     has_errors = False
     for path in spec_files:
-        errors = validate_spec_file(path)
+        messages = validate_spec_file(
+            path,
+            source_schema=source_schema,
+            target_schema=target_schema,
+            strict=strict,
+        )
+        errors = [m for m in messages if m.severity == "error"]
+        warnings = [m for m in messages if m.severity == "warning"]
+
         if errors:
             has_errors = True
             click.echo(f"{path}:", err=True)
-            for error in errors:
-                click.echo(f"  {error}", err=True)
-        else:
+            for msg in errors:
+                click.echo(f"  {msg}", err=True)
+
+        if warnings and not no_warnings:
+            if not errors:
+                click.echo(f"{path}:", err=True)
+            for msg in warnings:
+                click.echo(f"  {msg}", err=True)
+
+        if not errors and not warnings:
             click.echo(f"{path}: ok")
+        elif not errors:
+            click.echo(f"{path}: ok (with warnings)")
 
     if has_errors:
         raise SystemExit(1)
