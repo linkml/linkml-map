@@ -160,6 +160,12 @@ classes:
         range: SlotDerivation
         multivalued: true
         inlined: true
+        deprecated: >-
+          Not implemented. Top-level slot derivations lack deterministic semantics
+          because a slot's derivation depends on the class context in which it
+          appears — the same slot may need different derivations in different
+          classes. Use slot_derivations within each ClassDerivation instead.
+          See https://github.com/linkml/linkml-map/issues/47
 
   ElementDerivation:
     is_a: SpecificationComponent
