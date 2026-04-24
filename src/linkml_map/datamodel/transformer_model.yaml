@@ -310,6 +310,16 @@ classes:
           list support in populated_from. Will be removed in a future version.
         description: >-
           Deprecated. Use populated_from instead.
+      class_derivations:
+        description: >-
+          Instructions on how to derive nested class instances for this slot.
+          Each entry specifies how to construct an instance of a target class
+          from source data. For multivalued slots, each entry produces one
+          object in the resulting list.
+        range: ClassDerivation
+        multivalued: true
+        inlined: true
+        inlined_as_list: true
       object_derivations:
         deprecated: >-
           Use list-based class_derivations instead of nesting via object_derivations.

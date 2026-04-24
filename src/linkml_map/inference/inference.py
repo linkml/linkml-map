@@ -11,9 +11,10 @@ from linkml_map.utils.fk_utils import resolve_fk_path
 def _warn_deprecated_fields(specification: TransformationSpecification) -> None:
     """Emit deprecation warnings for use of deprecated fields.
 
-    Checks for ``sources`` (deprecated in favor of ``populated_from``),
-    ``object_derivations`` (deprecated in favor of ``class_derivations``),
+    Checks for ``sources`` (deprecated in favor of ``populated_from``)
     and ``derived_from`` (deprecated, unused by runtime).
+    ``object_derivations`` warnings are emitted during normalization
+    (see ``Transformer._normalize_slot_class_derivations``).
     Warnings are collapsed to one per field per derivation type to avoid noise.
     """
     sources_counts: dict[str, list[str]] = {
@@ -22,7 +23,6 @@ def _warn_deprecated_fields(specification: TransformationSpecification) -> None:
         "EnumDerivation": [],
         "PermissibleValueDerivation": [],
     }
-    object_deriv_names: list[str] = []
     derived_from_names: list[str] = []
 
     for cd in specification.class_derivations:
@@ -31,8 +31,6 @@ def _warn_deprecated_fields(specification: TransformationSpecification) -> None:
         for sd in cd.slot_derivations.values():
             if sd.sources:
                 sources_counts["SlotDerivation"].append(sd.name)
-            if sd.object_derivations:
-                object_deriv_names.append(sd.name)
             if sd.derived_from:
                 derived_from_names.append(sd.name)
     for ed in specification.enum_derivations.values():
@@ -54,19 +52,6 @@ def _warn_deprecated_fields(specification: TransformationSpecification) -> None:
                 DeprecationWarning,
                 stacklevel=3,
             )
-
-    if object_deriv_names:
-        names_str = ", ".join(object_deriv_names[:5])
-        suffix = f" (and {len(object_deriv_names) - 5} more)" if len(object_deriv_names) > 5 else ""
-        warnings.warn(
-            f"{len(object_deriv_names)} SlotDerivation(s) use 'object_derivations', "
-            f"which is deprecated: {names_str}{suffix}. "
-            f"Use list-based class_derivations instead. "
-            f"'object_derivations' will be removed in a future version. "
-            f"See https://github.com/linkml/linkml-map/issues/112",
-            DeprecationWarning,
-            stacklevel=3,
-        )
 
     if derived_from_names:
         names_str = ", ".join(derived_from_names[:5])
@@ -100,9 +85,9 @@ def induce_missing_values(specification: TransformationSpecification, source_sch
 
     for cd in specification.class_derivations:
         for sd in cd.slot_derivations.values():
-            if sd.object_derivations:
-                # skip inference for object derivations, inferences come from class derivation later
-                # TODO: we may need to do the inference for the internal class slots
+            if sd.class_derivations:
+                # skip inference for nested class derivations; inferences come from
+                # the class derivation later
                 continue
             # for null mappings, assume that the slot is copied from the same slot in the source
             # TODO: decide if this is the desired behavior

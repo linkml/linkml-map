@@ -371,7 +371,7 @@ class ObjectTransformer(Transformer):
             )
         elif slot_derivation.sources:
             (v, source_class_slot) = self._resolve_sources(slot_derivation, context)
-        elif slot_derivation.object_derivations:
+        elif slot_derivation.class_derivations:
             v = self._derive_nested_objects(slot_derivation, context.source_obj, target_type)
         else:
             source_class_slot = context.sv.induced_slot(slot_derivation.name, context.source_type)
@@ -559,22 +559,17 @@ class ObjectTransformer(Transformer):
         return v, source_class_slot
 
     def _derive_nested_objects(self, slot_derivation: SlotDerivation, source_obj: DICT_OBJ, target_type: str) -> Any:
-        """Build nested objects from explicit object_derivation declarations."""
+        """Build nested objects from slot-level class_derivation declarations."""
         derived_objs = []
 
-        for obj_derivation in slot_derivation.object_derivations:
-            for target_cls, cls_derivation in obj_derivation.class_derivations.items():
-                # Determine the correct source object to use
-                source_sub_obj = source_obj  # You may refine this if needed
-
-                # Recursively map the sub-object
-                nested_result = self.map_object(
-                    source_sub_obj,
-                    source_type=cls_derivation.populated_from,
-                    target_type=target_cls,
-                    class_derivation=cls_derivation,
-                )
-                derived_objs.append(nested_result)
+        for cls_derivation in slot_derivation.class_derivations:
+            nested_result = self.map_object(
+                source_obj,
+                source_type=cls_derivation.populated_from,
+                target_type=cls_derivation.name,
+                class_derivation=cls_derivation,
+            )
+            derived_objs.append(nested_result)
 
         # If the slot is multivalued, we assign the whole list
         # Otherwise, just assign the first (for now; error/warning later if >1)
