@@ -251,9 +251,17 @@ def _load_schemaview_with_timeout(path: str, timeout: int = _SCHEMA_LOAD_TIMEOUT
     :raises TimeoutError: If loading exceeds the timeout.
     :raises Exception: Any exception raised by :class:`SchemaView`.
     """
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-        future = executor.submit(SchemaView, path)
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    future = executor.submit(SchemaView, path)
+    try:
         return future.result(timeout=timeout)
+    except concurrent.futures.TimeoutError:
+        future.cancel()
+        executor.shutdown(wait=False, cancel_futures=True)
+        msg = f"Timed out loading schema '{path}' after {timeout}s"
+        raise TimeoutError(msg) from None
+    finally:
+        executor.shutdown(wait=False)
 
 
 def _resolve_schema_path(
@@ -575,15 +583,16 @@ def validate_spec(
     """
     normalized = normalize_spec_dict(data)
     messages = _validate_structural(normalized, schema_path=schema_path)
-    messages.extend(
-        validate_spec_semantics(
-            normalized,
-            source_schema=source_schema,
-            target_schema=target_schema,
-            strict=strict,
-            spec_base_path=spec_base_path,
+    if not messages:
+        messages.extend(
+            validate_spec_semantics(
+                normalized,
+                source_schema=source_schema,
+                target_schema=target_schema,
+                strict=strict,
+                spec_base_path=spec_base_path,
+            )
         )
-    )
     return messages
 
 
