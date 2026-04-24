@@ -154,6 +154,11 @@ def _distributing(func):  # noqa: ANN001, ANN202
     return wrapper
 
 
+def _list_reversed(x: list) -> list:
+    """Return a reversed copy of a list."""
+    return list(reversed(x))
+
+
 #: Functions that accept a list as their first argument (no distribution).
 _LIST_FUNCTIONS: dict[str, Any] = {
     "max": _null_safe(max),
@@ -163,7 +168,7 @@ _LIST_FUNCTIONS: dict[str, Any] = {
     "sorted": _null_safe(sorted),
     "any": _null_safe(any),
     "all": _null_safe(all),
-    "reversed": _null_safe(lambda x: list(reversed(x))),
+    "reversed": _null_safe(_list_reversed),
 }
 
 #: Functions that operate on scalars and should distribute over lists.
@@ -194,13 +199,39 @@ _SCALAR_FUNCTIONS: dict[str, Any] = {
     "join": str.join,
 }
 
+
+def _is_str(value: Any) -> bool:  # noqa: ANN401
+    """Check whether a value is a string."""
+    return isinstance(value, str)
+
+
+def _is_int(value: Any) -> bool:  # noqa: ANN401
+    """Check whether a value is an integer (excludes bools)."""
+    return isinstance(value, int) and not isinstance(value, bool)
+
+
+def _is_float(value: Any) -> bool:  # noqa: ANN401
+    """Check whether a value is a float."""
+    return isinstance(value, float)
+
+
+def _is_bool(value: Any) -> bool:  # noqa: ANN401
+    """Check whether a value is a boolean."""
+    return isinstance(value, bool)
+
+
+def _is_list(value: Any) -> bool:  # noqa: ANN401
+    """Check whether a value is a list."""
+    return isinstance(value, list)
+
+
 #: Type-testing predicates (not distributing — test the value as-is).
 _TYPE_PREDICATES: dict[str, Any] = {
-    "is_str": lambda x: isinstance(x, str),
-    "is_int": lambda x: isinstance(x, int) and not isinstance(x, bool),
-    "is_float": lambda x: isinstance(x, float),
-    "is_bool": lambda x: isinstance(x, bool),
-    "is_list": lambda x: isinstance(x, list),
+    "is_str": _is_str,
+    "is_int": _is_int,
+    "is_float": _is_float,
+    "is_bool": _is_bool,
+    "is_list": _is_list,
 }
 
 #: All built-in functions available in expressions.
