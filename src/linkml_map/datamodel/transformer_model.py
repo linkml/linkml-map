@@ -193,7 +193,13 @@ class TransformationSpecification(SpecificationComponent):
                        'ObjectDerivation',
                        'SlotDerivation']} })
     enum_derivations: Optional[dict[str, EnumDerivation]] = Field(default_factory=dict, description="""Instructions on how to derive a set of enums in the target schema""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification']} })
-    slot_derivations: Optional[dict[str, SlotDerivation]] = Field(default_factory=dict, description="""Instructions on how to derive a set of top level slots in the target schema""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'ClassDerivation']} })
+    slot_derivations: Optional[dict[str, SlotDerivation]] = Field(default_factory=dict, description="""Instructions on how to derive a set of top level slots in the target schema""", json_schema_extra = { "linkml_meta": {'deprecated': 'Not implemented. Top-level slot derivations lack deterministic '
+                       "semantics because a slot's derivation depends on the class "
+                       'context in which it appears — the same slot may need different '
+                       'derivations in different classes. Use slot_derivations within '
+                       'each ClassDerivation instead. See '
+                       'https://github.com/linkml/linkml-map/issues/47',
+         'domain_of': ['TransformationSpecification', 'ClassDerivation']} })
     description: Optional[str] = Field(default=None, description="""description of the specification component""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent'], 'slot_uri': 'dcterms:description'} })
     implements: Optional[list[str]] = Field(default_factory=list, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent']} })
     comments: Optional[list[str]] = Field(default_factory=list, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent'], 'slot_uri': 'rdfs:comment'} })
