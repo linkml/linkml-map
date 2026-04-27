@@ -865,6 +865,10 @@ def test_string_functions_distribute_over_lists() -> None:
         "Hello World",
         "Foo Bar",
     ]
+    assert eval_expr('replace(names, " ", "_")', names=["hello world", "foo bar"]) == [
+        "hello_world",
+        "foo_bar",
+    ]
 
 
 def test_string_functions_null_propagation() -> None:
