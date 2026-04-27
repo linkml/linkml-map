@@ -2,6 +2,8 @@
 
 # ruff: noqa: ANN401
 
+import json
+
 import pytest
 
 from linkml_map.utils.lookup_index import LookupIndex
@@ -82,6 +84,29 @@ def test_numeric_coercion(index, tmp_path):
     assert row is not None
     assert row["count"] == 42
     assert isinstance(row["count"], int)
+
+
+def test_json_format(index, tmp_path):
+    """JSON files containing a flat array of objects can be registered and queried."""
+    data = [
+        {"id": "J1", "name": "Alice", "age": "30"},
+        {"id": "J2", "name": "Bob", "age": "25"},
+    ]
+    jf = tmp_path / "data.json"
+    jf.write_text(json.dumps(data))
+    index.register_table("jdata", jf, "id")
+    row = index.lookup_row("jdata", "id", "J2")
+    assert row is not None
+    assert row["name"] == "Bob"
+    assert row["age"] == 25
+
+
+def test_yaml_format_not_implemented(index, tmp_path):
+    """YAML files raise NotImplementedError with a clear message."""
+    yf = tmp_path / "data.yaml"
+    yf.write_text("- id: Y1\n  name: Alice\n")
+    with pytest.raises(NotImplementedError, match="yaml"):
+        index.register_table("ydata", yf, "id")
 
 
 def test_sparse_tsv_many_columns(index, tmp_path):
