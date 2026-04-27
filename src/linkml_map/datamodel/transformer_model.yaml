@@ -199,17 +199,37 @@ classes:
         multivalued: true
         inlined: true
         description: >-
-          A mapping table that is applied directly to mappings, in order of precedence
+          A mapping table that is applied directly to mappings, in order of precedence.
+          Keys should always be quoted in YAML to prevent type coercion — unquoted
+          true/false become booleans and bare numbers become integers, which will not
+          match the stringified source value used for lookup.
+      expression_mappings:
+        range: KeyVal
+        multivalued: true
+        inlined: true
+        description: >-
+          A mapping table where the values are expressions evaluated against source
+          bindings. Looked up by the same key as value_mappings (the stringified
+          source value). Keys should always be quoted (see value_mappings).
+          If both value_mappings and expression_mappings are present,
+          value_mappings takes precedence for keys that appear in both.
       expression_to_value_mappings:
         range: KeyVal
         multivalued: true
         inlined: true
         description: >-
-          A mapping table in which the keys are expressions
+          A mapping table in which the keys are boolean expressions and
+          the values are literal results. On enum derivations, used for
+          scalar binning: each key is evaluated with value() bound to the
+          incoming value, and the first truthy key's value is returned as
+          the target permissible value. See issue #99.
       expression_to_expression_mappings:
         range: KeyVal
         multivalued: true
         inlined: true
+        deprecated: >-
+          Deprecated: use case() with and/or operators instead (#127).
+          Will be removed before 1.0.
         description: >-
           A mapping table in which the keys and values are expressions
       mirror_source:

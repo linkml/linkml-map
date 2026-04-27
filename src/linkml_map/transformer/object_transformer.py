@@ -341,7 +341,7 @@ class ObjectTransformer(Transformer):
             # MELT operation: wide format to EAV/long format
             v = self._perform_melt(slot_derivation.pivot_operation, context.source_obj, slot_derivation)
         elif slot_derivation.expr:
-            v = self._derive_from_expr(slot_derivation, bindings)
+            v = self._eval_expr(slot_derivation.expr, bindings)
         elif slot_derivation.populated_from:
             populated_from = slot_derivation.populated_from
 
@@ -359,9 +359,8 @@ class ObjectTransformer(Transformer):
             else:
                 (v, source_class_slot) = self._resolve_fk_or_literal(populated_from, slot_derivation, context)
 
-            if slot_derivation.value_mappings and v is not None:
-                mapped = slot_derivation.value_mappings.get(str(v), None)
-                v = mapped.value if mapped is not None else None
+            if (slot_derivation.value_mappings or slot_derivation.expression_mappings) and v is not None:
+                v = self._apply_mappings(slot_derivation, v, bindings)
 
             if slot_derivation.offset and v is not None:
                 v = self._apply_offset(v, slot_derivation, context.source_obj)
@@ -385,17 +384,38 @@ class ObjectTransformer(Transformer):
             v = self._reshape_collection(v, slot_derivation, source_class_slot)
         return v
 
-    def _derive_from_expr(self, slot_derivation: SlotDerivation, bindings: Bindings) -> Any:
-        """Evaluate a slot derivation expression, with fallback to asteval for unrestricted mode."""
+    def _eval_expr(self, expr: str, bindings: Bindings) -> Any:
+        """Evaluate an expression string against bindings.
+
+        Uses the restricted evaluator by default, with fallback to asteval
+        when ``unrestricted_eval`` is enabled on the transformer.
+        """
         try:
-            return eval_expr_with_mapping(slot_derivation.expr, bindings)
+            return eval_expr_with_mapping(expr, bindings)
         except (InvalidExpression, TypeError, ValueError):
             if not self.unrestricted_eval:
                 raise
             ctxt_obj, _ = bindings.get_ctxt_obj_and_dict()
             aeval = Interpreter(usersyms={"src": ctxt_obj, "target": None, "uuid5": _uuid5})
-            aeval(slot_derivation.expr)
+            aeval(expr)
             return aeval.symtable["target"]
+
+    def _apply_mappings(self, slot_derivation: SlotDerivation, v: Any, bindings: Bindings) -> Any:
+        """Look up a value in value_mappings then expression_mappings.
+
+        Checks ``value_mappings`` first (literal result). On miss, falls through
+        to ``expression_mappings`` (evaluated against *bindings*). Returns
+        ``None`` if neither table contains the key.
+        """
+        str_v = str(v)
+        vm_hit = slot_derivation.value_mappings.get(str_v) if slot_derivation.value_mappings else None
+        if vm_hit is not None:
+            return vm_hit.value
+        if slot_derivation.expression_mappings:
+            em_hit = slot_derivation.expression_mappings.get(str_v)
+            if em_hit is not None:
+                return self._eval_expr(em_hit.value, bindings)
+        return None
 
     def _perform_fk_resolution(
         self,
