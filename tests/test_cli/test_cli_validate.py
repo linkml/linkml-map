@@ -16,14 +16,16 @@ def test_validate_spec_valid_file(runner: CliRunner) -> None:
     """A valid trans-spec file exits 0 and prints ok."""
     result = runner.invoke(main, ["validate-spec", str(FLATTENING_TR)])
     assert result.exit_code == 0
-    assert "ok" in result.output
+    assert result.output.strip().endswith(": ok")
 
 
 def test_validate_spec_multiple_files(runner: CliRunner) -> None:
     """Multiple valid files all report ok."""
     result = runner.invoke(main, ["validate-spec", str(FLATTENING_TR), str(PERSONINFO_TR)])
     assert result.exit_code == 0
-    assert result.output.count("ok") == 2
+    lines = result.output.splitlines()
+    assert lines
+    assert all(line.endswith(": ok") for line in lines)
 
 
 def test_validate_spec_invalid_file(runner: CliRunner, tmp_path) -> None:
@@ -50,7 +52,7 @@ def test_validate_spec_mixed_valid_invalid(runner: CliRunner, tmp_path) -> None:
     bad.write_text("bogus_field: 123\n")
     result = runner.invoke(main, ["validate-spec", str(FLATTENING_TR), str(bad)])
     assert result.exit_code == 1
-    assert "ok" in result.output
+    assert any(line.endswith(": ok") for line in result.output.splitlines())
     assert "bogus_field" in result.stderr
 
 
