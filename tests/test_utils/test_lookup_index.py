@@ -82,3 +82,26 @@ def test_numeric_coercion(index, tmp_path):
     assert row is not None
     assert row["count"] == 42
     assert isinstance(row["count"], int)
+
+
+def test_sparse_tsv_many_columns(index, tmp_path):
+    """Sparse TSV with many columns and few populated fields loads correctly.
+
+    Reproduces the bug from issue #209: DuckDB's read_csv_auto misdetects the
+    delimiter when a TSV has many columns but sparse data rows, collapsing the
+    entire header into a single column name.
+    """
+    cols = ["subject_id"] + [f"phv{i:08d}" for i in range(1, 201)]
+    tsv = tmp_path / "sparse.tsv"
+    header = "\t".join(cols)
+    row = "SUBJ001\t65\tfoo"  # 3 values, 201 columns
+    tsv.write_text(f"{header}\n{row}\n")
+
+    index.register_table("sparse", tsv, "subject_id")
+    result = index.lookup_row("sparse", "subject_id", "SUBJ001")
+    assert result is not None
+    assert result["subject_id"] == "SUBJ001"
+    assert result["phv00000001"] == 65
+    assert result["phv00000002"] == "foo"
+    # Unpopulated columns should be None (null-padded)
+    assert result["phv00000003"] is None

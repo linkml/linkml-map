@@ -8,6 +8,8 @@ from typing import Any
 
 import duckdb
 
+from linkml_map.loaders.data_loaders import FileFormat
+
 _IDENTIFIER_RE = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
 _HAS_DIGIT_RE = re.compile(r"[0-9]")
 
@@ -44,6 +46,9 @@ class LookupIndex:
 
     Each registered table is loaded from a CSV/TSV file via ``read_csv_auto``
     and indexed on a key column for fast single-row lookups.
+
+    Delimiter detection uses :class:`~linkml_map.loaders.data_loaders.FileFormat`
+    so that file parsing is consistent with :class:`~linkml_map.loaders.data_loaders.DataLoader`.
     """
 
     def __init__(self) -> None:
@@ -62,10 +67,12 @@ class LookupIndex:
         _validate_identifier(name)
         _validate_identifier(key_column)
         file_path = Path(file_path)
+        fmt = FileFormat.from_extension(file_path)
+        delim = {FileFormat.TSV: "\t", FileFormat.CSV: ","}[fmt]
         self._conn.execute(
             f"CREATE OR REPLACE TABLE {name} AS "  # noqa: S608
-            "SELECT * FROM read_csv_auto(?, all_varchar=true)",
-            [str(file_path)],
+            "SELECT * FROM read_csv_auto(?, all_varchar=true, delim=?, null_padding=true)",
+            [str(file_path), delim],
         )
         self._conn.execute(
             f"CREATE INDEX IF NOT EXISTS idx_{name}_{key_column} ON {name} ({key_column})"  # noqa: S608
