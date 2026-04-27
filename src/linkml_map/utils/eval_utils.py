@@ -375,16 +375,26 @@ def _make_evaluator(names: Any, functions: Any = None) -> LinkMLEvaluator:  # no
     return LinkMLEvaluator(names=names, functions=functions or FUNCTIONS)
 
 
-def eval_expr_with_mapping(expr: str, mapping: Mapping) -> Any:  # noqa: ANN401
+def eval_expr_with_mapping(
+    expr: str,
+    mapping: Mapping,
+    functions: dict[str, Any] | None = None,
+) -> Any:  # noqa: ANN401
     """
     Evaluate a given expression, with restricted syntax.
 
     This function is equivalent to eval_expr where ``**kwargs`` has been
     switched to a Mapping (e.g. a dictionary). See eval_expr for details.
+
+    :param expr: The expression string to evaluate.
+    :param mapping: Variable bindings for the expression.
+    :param functions: Additional functions to make available. Merged with
+        built-in functions; caller-provided names take precedence.
     """
     if expr == "None":
         return None
-    evaluator = _make_evaluator(names=mapping)
+    merged = {**FUNCTIONS, **functions} if functions else None
+    evaluator = _make_evaluator(names=mapping, functions=merged)
     return evaluator.eval(expr)
 
 

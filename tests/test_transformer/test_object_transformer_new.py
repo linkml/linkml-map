@@ -133,6 +133,126 @@ def setup_uuid5_expr(scaffold):
     scaffold["expected"]["uuid_id"] = "abbe798e-d61b-5371-86f2-ea8e54129a50"
 
 
+@add_to_test_setup
+def setup_slot_fn_basic(scaffold):
+    """Reference a previously derived slot via slot()."""
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - name_length
+          - name_length_copy
+    slots:
+      name_length:
+        range: integer
+      name_length_copy:
+        range: integer
+""",
+    )
+
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          name_length:
+            expr: "strlen({name})"
+          name_length_copy:
+            expr: "slot('name_length')"
+""",
+    )
+
+    scaffold["expected"]["name_length"] = 11
+    scaffold["expected"]["name_length_copy"] = 11
+
+
+@add_to_test_setup
+def setup_hidden_slot(scaffold):
+    """Hidden slot suppressed from output but available via slot()."""
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - greeting
+    slots:
+      greeting:
+        range: string
+""",
+    )
+
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          _hidden_name:
+            hide: true
+            expr: "{name}"
+          greeting:
+            expr: "'Hello, ' + slot('_hidden_name') + '!'"
+""",
+    )
+
+    # _hidden_name should NOT appear in output
+    scaffold["expected"]["greeting"] = "Hello, alice adams!"
+
+
+@add_to_test_setup
+def setup_hidden_slot_with_value_mappings(scaffold):
+    """Hidden slot using value_mappings, referenced via slot()."""
+    apply_schema_patch(
+        scaffold["source_schema"],
+        """
+    classes:
+      Person:
+        slots:
+          - status_code
+    slots:
+      status_code:
+        range: string
+""",
+    )
+    scaffold["input_data"]["status_code"] = "A"
+
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - status_label
+    slots:
+      status_label:
+        range: string
+""",
+    )
+
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          _status:
+            hide: true
+            populated_from: status_code
+            value_mappings:
+              A: Active
+              I: Inactive
+          status_label:
+            expr: "'Status: ' + slot('_status')"
+""",
+    )
+
+    scaffold["expected"]["status_label"] = "Status: Active"
+
+
 @pytest.mark.parametrize(
     "setup_func",
     TEST_SETUP_FUNCTIONS,
@@ -148,6 +268,50 @@ def test_unit(scaffold, setup_func):
 def test_integration(integration_scaffold):
     result = run_transformer(integration_scaffold)
     assert result == integration_scaffold["expected"]
+
+
+def test_hidden_slots_excluded_from_output(scaffold):
+    """Hidden slots must not appear in output keys."""
+    setup_hidden_slot(scaffold)
+    result = run_transformer(scaffold)
+    assert "_hidden_name" not in result
+    assert "greeting" in result
+
+
+def test_hidden_slot_with_value_mappings_excluded(scaffold):
+    """Hidden slot with value_mappings must not appear in output keys."""
+    setup_hidden_slot_with_value_mappings(scaffold)
+    result = run_transformer(scaffold)
+    assert "_status" not in result
+    assert "status_label" in result
+
+
+def test_slot_fn_returns_none_for_missing(scaffold):
+    """slot() returns None for a slot name that doesn't exist."""
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - missing_ref
+    slots:
+      missing_ref:
+        range: string
+""",
+    )
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          missing_ref:
+            expr: "slot('nonexistent')"
+""",
+    )
+    result = run_transformer(scaffold)
+    assert result["missing_ref"] is None
 
 
 # ---------------------------------------------------------------------------
