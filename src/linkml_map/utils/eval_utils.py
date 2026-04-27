@@ -19,6 +19,7 @@ See: https://github.com/linkml/linkml-map/issues/98
 
 import ast
 import logging
+import math
 import uuid
 from collections.abc import Mapping
 from typing import Any
@@ -159,6 +160,28 @@ def _list_reversed(x: list) -> list:
     return list(reversed(x))
 
 
+def _first(x: list) -> Any:  # noqa: ANN401
+    """Return the first element of a list, or None if empty.
+
+    >>> _first([10, 20, 30])
+    10
+    >>> _first([]) is None
+    True
+    """
+    return x[0] if x else None
+
+
+def _last(x: list) -> Any:  # noqa: ANN401
+    """Return the last element of a list, or None if empty.
+
+    >>> _last([10, 20, 30])
+    30
+    >>> _last([]) is None
+    True
+    """
+    return x[-1] if x else None
+
+
 #: Functions that accept a list as their first argument (no distribution).
 _LIST_FUNCTIONS: dict[str, Any] = {
     "max": _null_safe(max),
@@ -169,7 +192,20 @@ _LIST_FUNCTIONS: dict[str, Any] = {
     "any": _null_safe(any),
     "all": _null_safe(all),
     "reversed": _null_safe(_list_reversed),
+    "first": _null_safe(_first),
+    "last": _null_safe(_last),
 }
+
+def _substr(s: str, start: int, end: int | None = None) -> str:
+    """Extract a substring by position.
+
+    >>> _substr("hello", 1, 3)
+    'el'
+    >>> _substr("hello", 2)
+    'llo'
+    """
+    return s[start:end]
+
 
 #: Functions that operate on scalars and should distribute over lists.
 _SCALAR_FUNCTIONS: dict[str, Any] = {
@@ -179,8 +215,11 @@ _SCALAR_FUNCTIONS: dict[str, Any] = {
     "bool": bool,
     "abs": abs,
     "round": round,
+    "floor": math.floor,
+    "ceil": math.ceil,
     "strlen": len,
     "uuid5": _uuid5,
+    "substr": _substr,
     # String case/formatting
     "upper": str.upper,
     "lower": str.lower,

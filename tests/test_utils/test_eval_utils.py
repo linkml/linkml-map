@@ -1026,3 +1026,132 @@ def test_coalesce_with_expression_chains() -> None:
     """coalesce composes with other functions."""
     assert eval_expr('upper(coalesce(x, "unknown"))', x=None) == "UNKNOWN"
     assert eval_expr('upper(coalesce(x, "unknown"))', x="alice") == "ALICE"
+
+
+# ---- first / last ----
+
+
+@pytest.mark.parametrize(
+    ("expr", "kwargs", "expected"),
+    [
+        ("first([10, 20, 30])", {}, 10),
+        ("first(items)", {"items": ["a", "b", "c"]}, "a"),
+        ("first(items)", {"items": []}, None),
+        ("last([10, 20, 30])", {}, 30),
+        ("last(items)", {"items": ["a", "b", "c"]}, "c"),
+        ("last(items)", {"items": []}, None),
+    ],
+    ids=[
+        "first_literal",
+        "first_var",
+        "first_empty",
+        "last_literal",
+        "last_var",
+        "last_empty",
+    ],
+)
+def test_first_last(expr: str, kwargs: dict, expected: Any) -> None:
+    """Test first/last element access."""
+    assert eval_expr(expr, **kwargs) == expected
+
+
+def test_first_last_null_safe() -> None:
+    """first/last return None when given None."""
+    assert eval_expr("first(x)", x=None) is None
+    assert eval_expr("last(x)", x=None) is None
+
+
+def test_first_last_with_split() -> None:
+    """first/last compose naturally with split."""
+    assert eval_expr('first(split(x, "="))', x="key=value") == "key"
+    assert eval_expr('last(split(x, "="))', x="key=value") == "value"
+
+
+# ---- floor / ceil ----
+
+
+@pytest.mark.parametrize(
+    ("expr", "kwargs", "expected"),
+    [
+        ("floor(3.7)", {}, 3),
+        ("floor(3.2)", {}, 3),
+        ("floor(-1.5)", {}, -2),
+        ("floor(x)", {"x": 4.9}, 4),
+        ("ceil(3.2)", {}, 4),
+        ("ceil(3.7)", {}, 4),
+        ("ceil(-1.5)", {}, -1),
+        ("ceil(x)", {"x": 4.1}, 5),
+    ],
+    ids=[
+        "floor_down",
+        "floor_near",
+        "floor_negative",
+        "floor_var",
+        "ceil_up",
+        "ceil_near",
+        "ceil_negative",
+        "ceil_var",
+    ],
+)
+def test_floor_ceil(expr: str, kwargs: dict, expected: int) -> None:
+    """Test floor/ceil rounding."""
+    assert eval_expr(expr, **kwargs) == expected
+
+
+def test_floor_ceil_null_propagation() -> None:
+    """floor/ceil propagate None via _distributing."""
+    assert eval_expr("floor(x)", x=None) is None
+    assert eval_expr("ceil(x)", x=None) is None
+
+
+def test_floor_ceil_distribute_over_list() -> None:
+    """floor/ceil distribute over lists."""
+    assert eval_expr("floor(vals)", vals=[1.1, 2.9, 3.5]) == [1, 2, 3]
+    assert eval_expr("ceil(vals)", vals=[1.1, 2.9, 3.5]) == [2, 3, 4]
+
+
+# ---- substr ----
+
+
+@pytest.mark.parametrize(
+    ("expr", "kwargs", "expected"),
+    [
+        ('substr("hello", 0, 3)', {}, "hel"),
+        ('substr("hello", 2)', {}, "llo"),
+        ('substr("20240101", 0, 4)', {}, "2024"),
+        ('substr("20240101", 4, 6)', {}, "01"),
+        ("substr(x, 0, 4)", {"x": "20240101"}, "2024"),
+    ],
+    ids=[
+        "start_end",
+        "start_only",
+        "year_extract",
+        "mid_extract",
+        "with_var",
+    ],
+)
+def test_substr(expr: str, kwargs: dict, expected: str) -> None:
+    """Test substring extraction."""
+    assert eval_expr(expr, **kwargs) == expected
+
+
+def test_substr_null_propagation() -> None:
+    """substr propagates None."""
+    assert eval_expr("substr(x, 0, 3)", x=None) is None
+
+
+def test_substr_distributes_over_list() -> None:
+    """substr distributes over lists."""
+    assert eval_expr("substr(dates, 0, 4)", dates=["20240101", "20230615"]) == [
+        "2024",
+        "2023",
+    ]
+
+
+def test_substr_null_in_list() -> None:
+    """substr handles None elements in lists."""
+    assert eval_expr("substr(dates, 0, 4)", dates=["20240101", None, "20230615"]) == [
+        "2024",
+        None,
+        "2023",
+    ]
