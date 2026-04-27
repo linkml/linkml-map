@@ -19,6 +19,7 @@ See: https://github.com/linkml/linkml-map/issues/98
 
 import ast
 import logging
+import math
 import uuid
 from collections.abc import Mapping
 from typing import Any
@@ -154,12 +155,58 @@ def _distributing(func):  # noqa: ANN001, ANN202
     return wrapper
 
 
+def _list_reversed(x: list) -> list:
+    """Return a reversed copy of a list."""
+    return list(reversed(x))
+
+
+def _first(x: list) -> Any:  # noqa: ANN401
+    """Return the first element of a list, or None if empty.
+
+    >>> _first([10, 20, 30])
+    10
+    >>> _first([]) is None
+    True
+    """
+    return x[0] if x else None
+
+
+def _last(x: list) -> Any:  # noqa: ANN401
+    """Return the last element of a list, or None if empty.
+
+    >>> _last([10, 20, 30])
+    30
+    >>> _last([]) is None
+    True
+    """
+    return x[-1] if x else None
+
+
 #: Functions that accept a list as their first argument (no distribution).
 _LIST_FUNCTIONS: dict[str, Any] = {
     "max": _null_safe(max),
     "min": _null_safe(min),
     "len": _null_safe(len),
+    "sum": _null_safe(sum),
+    "sorted": _null_safe(sorted),
+    "any": _null_safe(any),
+    "all": _null_safe(all),
+    "reversed": _null_safe(_list_reversed),
+    "first": _null_safe(_first),
+    "last": _null_safe(_last),
 }
+
+
+def _substr(s: str, start: int, end: int | None = None) -> str:
+    """Extract a substring by position.
+
+    >>> _substr("hello", 1, 3)
+    'el'
+    >>> _substr("hello", 2)
+    'llo'
+    """
+    return s[start:end]
+
 
 #: Functions that operate on scalars and should distribute over lists.
 _SCALAR_FUNCTIONS: dict[str, Any] = {
@@ -169,15 +216,90 @@ _SCALAR_FUNCTIONS: dict[str, Any] = {
     "bool": bool,
     "abs": abs,
     "round": round,
+    "floor": math.floor,
+    "ceil": math.ceil,
     "strlen": len,
     "uuid5": _uuid5,
+    "substr": _substr,
+    # String case/formatting
+    "upper": str.upper,
+    "lower": str.lower,
+    "title": str.title,
+    "capitalize": str.capitalize,
+    # Whitespace trimming
+    "strip": str.strip,
+    "lstrip": str.lstrip,
+    "rstrip": str.rstrip,
+    # String content
+    "replace": str.replace,
+    "startswith": str.startswith,
+    "endswith": str.endswith,
+    "contains": str.__contains__,
+    # String splitting/joining
+    "split": str.split,
+    "join": str.join,
+}
+
+
+def _is_str(value: Any) -> bool:  # noqa: ANN401
+    """Check whether a value is a string."""
+    return isinstance(value, str)
+
+
+def _is_int(value: Any) -> bool:  # noqa: ANN401
+    """Check whether a value is an integer (excludes bools)."""
+    return isinstance(value, int) and not isinstance(value, bool)
+
+
+def _is_float(value: Any) -> bool:  # noqa: ANN401
+    """Check whether a value is a float."""
+    return isinstance(value, float)
+
+
+def _is_bool(value: Any) -> bool:  # noqa: ANN401
+    """Check whether a value is a boolean."""
+    return isinstance(value, bool)
+
+
+def _is_list(value: Any) -> bool:  # noqa: ANN401
+    """Check whether a value is a list."""
+    return isinstance(value, list)
+
+
+def _coalesce(*args: Any) -> Any:  # noqa: ANN401
+    """Return the first non-None argument, or None if all are None.
+
+    >>> _coalesce(None, "fallback")
+    'fallback'
+    >>> _coalesce("hello", "fallback")
+    'hello'
+    >>> _coalesce(None, None, "last")
+    'last'
+    >>> _coalesce(None, None) is None
+    True
+    """
+    for arg in args:
+        if arg is not None:
+            return arg
+    return None
+
+
+#: Type-testing predicates (not distributing — test the value as-is).
+_TYPE_PREDICATES: dict[str, Any] = {
+    "is_str": _is_str,
+    "is_int": _is_int,
+    "is_float": _is_float,
+    "is_bool": _is_bool,
+    "is_list": _is_list,
 }
 
 #: All built-in functions available in expressions.
 FUNCTIONS: dict[str, Any] = {
     **_LIST_FUNCTIONS,
     **{name: _distributing(func) for name, func in _SCALAR_FUNCTIONS.items()},
+    **_TYPE_PREDICATES,
     "case": eval_conditional,
+    "coalesce": _coalesce,
     "is_numeric": _is_numeric,
 }
 

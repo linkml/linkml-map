@@ -749,3 +749,409 @@ def test_bool_not_coerced_as_numeric() -> None:
     """Booleans should not be coerced via numeric-string path (#135)."""
     assert eval_expr("{flag} == '0'", flag=True) is False
     assert eval_expr("{flag} == '1'", flag=False) is False
+
+
+# ---- New list functions ----
+
+
+@pytest.mark.parametrize(
+    ("expr", "kwargs", "expected"),
+    [
+        ("sum([1, 2, 3])", {}, 6),
+        ("sum(items)", {"items": [10, 20, 30]}, 60),
+        ("sorted([3, 1, 2])", {}, [1, 2, 3]),
+        ("sorted(items)", {"items": ["c", "a", "b"]}, ["a", "b", "c"]),
+        ("any([False, True, False])", {}, True),
+        ("any([False, False])", {}, False),
+        ("all([True, True])", {}, True),
+        ("all([True, False])", {}, False),
+        ("reversed([1, 2, 3])", {}, [3, 2, 1]),
+        ("reversed(items)", {"items": ["a", "b", "c"]}, ["c", "b", "a"]),
+    ],
+    ids=[
+        "sum_literal",
+        "sum_var",
+        "sorted_literal",
+        "sorted_var",
+        "any_true",
+        "any_false",
+        "all_true",
+        "all_false",
+        "reversed_literal",
+        "reversed_var",
+    ],
+)
+def test_list_functions_new(expr: str, kwargs: dict, expected: Any) -> None:
+    """Test new list aggregate functions."""
+    assert eval_expr(expr, **kwargs) == expected
+
+
+def test_new_list_functions_null_safe() -> None:
+    """New list functions return None when given None."""
+    assert eval_expr("sum(x)", x=None) is None
+    assert eval_expr("sorted(x)", x=None) is None
+    assert eval_expr("any(x)", x=None) is None
+    assert eval_expr("all(x)", x=None) is None
+    assert eval_expr("reversed(x)", x=None) is None
+
+
+def test_new_list_functions_do_not_distribute() -> None:
+    """New list functions operate on the list as a whole, not element-wise."""
+    assert eval_expr("sum(items)", items=[1, 2, 3]) == 6
+    assert eval_expr("sorted(items)", items=[3, 1, 2]) == [1, 2, 3]
+
+
+# ---- String functions ----
+
+
+@pytest.mark.parametrize(
+    ("expr", "kwargs", "expected"),
+    [
+        # Case/formatting
+        ('upper("hello")', {}, "HELLO"),
+        ('lower("HELLO")', {}, "hello"),
+        ('title("hello world")', {}, "Hello World"),
+        ('capitalize("hello world")', {}, "Hello world"),
+        # Whitespace trimming
+        ('strip("  hello  ")', {}, "hello"),
+        ('lstrip("  hello  ")', {}, "hello  "),
+        ('rstrip("  hello  ")', {}, "  hello"),
+        # String content
+        ('replace("hello", "l", "r")', {}, "herro"),
+        ('startswith("hello", "hell")', {}, True),
+        ('startswith("hello", "world")', {}, False),
+        ('endswith("hello", "llo")', {}, True),
+        ('endswith("hello", "xyz")', {}, False),
+        # Splitting/joining
+        ('split("a,b,c", ",")', {}, ["a", "b", "c"]),
+        ('join(",", ["a", "b", "c"])', {}, "a,b,c"),
+    ],
+    ids=[
+        "upper",
+        "lower",
+        "title",
+        "capitalize",
+        "strip",
+        "lstrip",
+        "rstrip",
+        "replace",
+        "startswith_true",
+        "startswith_false",
+        "endswith_true",
+        "endswith_false",
+        "split",
+        "join",
+    ],
+)
+def test_string_functions(expr: str, kwargs: dict, expected: Any) -> None:
+    """Test string manipulation functions."""
+    assert eval_expr(expr, **kwargs) == expected
+
+
+def test_string_functions_with_variables() -> None:
+    """String functions work with variable bindings."""
+    assert eval_expr("upper(name)", name="alice") == "ALICE"
+    assert eval_expr("lower(name)", name="BOB") == "bob"
+    assert eval_expr("strip(name)", name="  alice  ") == "alice"
+    assert eval_expr('replace(name, " ", "_")', name="hello world") == "hello_world"
+
+
+def test_string_functions_distribute_over_lists() -> None:
+    """String functions distribute over list arguments."""
+    assert eval_expr("upper(names)", names=["alice", "bob"]) == ["ALICE", "BOB"]
+    assert eval_expr("lower(names)", names=["ALICE", "BOB"]) == ["alice", "bob"]
+    assert eval_expr("strip(names)", names=["  a  ", "  b  "]) == ["a", "b"]
+    assert eval_expr("title(names)", names=["hello world", "foo bar"]) == [
+        "Hello World",
+        "Foo Bar",
+    ]
+    assert eval_expr('replace(names, " ", "_")', names=["hello world", "foo bar"]) == [
+        "hello_world",
+        "foo_bar",
+    ]
+
+
+def test_string_functions_null_propagation() -> None:
+    """String functions propagate None."""
+    assert eval_expr("upper(x)", x=None) is None
+    assert eval_expr("lower(x)", x=None) is None
+    assert eval_expr("strip(x)", x=None) is None
+    assert eval_expr("replace(x, 'a', 'b')", x=None) is None
+
+
+def test_string_functions_null_in_list() -> None:
+    """String functions handle None elements within lists."""
+    assert eval_expr("upper(names)", names=["alice", None, "bob"]) == ["ALICE", None, "BOB"]
+
+
+def test_split_and_join_roundtrip() -> None:
+    """split and join are inverses."""
+    assert eval_expr('join(",", split(x, ","))', x="a,b,c") == "a,b,c"
+
+
+# ---- Type-testing predicates ----
+
+
+@pytest.mark.parametrize(
+    ("expr", "kwargs", "expected"),
+    [
+        ('is_str("hello")', {}, True),
+        ("is_str(42)", {}, False),
+        ("is_str(x)", {"x": None}, False),
+        ("is_int(42)", {}, True),
+        ("is_int(3.14)", {}, False),
+        ('is_int("42")', {}, False),
+        ("is_int(True)", {}, False),
+        ("is_float(3.14)", {}, True),
+        ("is_float(42)", {}, False),
+        ("is_bool(True)", {}, True),
+        ("is_bool(False)", {}, True),
+        ("is_bool(1)", {}, False),
+        ("is_list([1, 2])", {}, True),
+        ('is_list("hello")', {}, False),
+        ("is_list(x)", {"x": None}, False),
+    ],
+    ids=[
+        "is_str_true",
+        "is_str_false",
+        "is_str_none",
+        "is_int_true",
+        "is_int_float",
+        "is_int_str",
+        "is_int_bool",
+        "is_float_true",
+        "is_float_false",
+        "is_bool_true",
+        "is_bool_false",
+        "is_bool_int",
+        "is_list_true",
+        "is_list_false",
+        "is_list_none",
+    ],
+)
+def test_type_predicates(expr: str, kwargs: dict, expected: bool) -> None:  # noqa: FBT001
+    """Test type-testing predicate functions."""
+    assert eval_expr(expr, **kwargs) is expected
+
+
+def test_type_predicates_in_case() -> None:
+    """Type predicates work as guards in case() expressions.
+
+    Note: case() eagerly evaluates all branch values, so the value
+    expression must be safe for all inputs. Use str() which handles
+    any type, or use if/else for lazy evaluation.
+    """
+    expr = 'case((is_str(x), upper(x)), (True, "other"))'
+    assert eval_expr(expr, x="hello") == "HELLO"
+    # if/else is lazy — only the taken branch is evaluated
+    assert eval_expr("upper(x) if is_str(x) else str(x)", x="hello") == "HELLO"
+    assert eval_expr("upper(x) if is_str(x) else str(x)", x=42) == "42"
+
+
+# ---- contains ----
+
+
+@pytest.mark.parametrize(
+    ("expr", "kwargs", "expected"),
+    [
+        ('contains("hello world", "world")', {}, True),
+        ('contains("hello world", "xyz")', {}, False),
+        ('contains(x, "ell")', {"x": "hello"}, True),
+        ('contains(x, "ell")', {"x": "world"}, False),
+    ],
+    ids=["literal_true", "literal_false", "var_true", "var_false"],
+)
+def test_contains(expr: str, kwargs: dict, expected: bool) -> None:  # noqa: FBT001
+    """Test substring containment."""
+    assert eval_expr(expr, **kwargs) is expected
+
+
+def test_contains_distributes_over_list() -> None:
+    """contains distributes over lists, returning per-element booleans."""
+    assert eval_expr('contains(names, "li")', names=["alice", "bob", "charlie"]) == [
+        True,
+        False,
+        True,
+    ]
+
+
+def test_contains_null_propagation() -> None:
+    """contains returns None for None input."""
+    assert eval_expr('contains(x, "a")', x=None) is None
+
+
+def test_contains_null_in_list() -> None:
+    """contains handles None elements in lists."""
+    assert eval_expr('contains(names, "a")', names=["alice", None, "bob"]) == [True, None, False]
+
+
+# ---- coalesce ----
+
+
+@pytest.mark.parametrize(
+    ("expr", "kwargs", "expected"),
+    [
+        ('coalesce(None, "fallback")', {}, "fallback"),
+        ('coalesce("hello", "fallback")', {}, "hello"),
+        ('coalesce(None, None, "last")', {}, "last"),
+        ("coalesce(None, None)", {}, None),
+        ('coalesce(x, "default")', {"x": "value"}, "value"),
+        ('coalesce(x, "default")', {"x": None}, "default"),
+        ("coalesce(x, y)", {"x": None, "y": 42}, 42),
+    ],
+    ids=[
+        "none_then_string",
+        "string_then_string",
+        "two_nones_then_string",
+        "all_none",
+        "var_present",
+        "var_none",
+        "two_vars",
+    ],
+)
+def test_coalesce(expr: str, kwargs: dict, expected: Any) -> None:
+    """Test coalesce returns first non-None argument."""
+    assert eval_expr(expr, **kwargs) == expected
+
+
+def test_coalesce_preserves_falsy_values() -> None:
+    """coalesce treats 0, '', False, [] as present (not None)."""
+    assert eval_expr("coalesce(x, 99)", x=0) == 0
+    assert eval_expr('coalesce(x, "default")', x="") == ""
+    assert eval_expr("coalesce(x, True)", x=False) is False
+    assert eval_expr('coalesce(x, "default")', x=[]) == []
+
+
+def test_coalesce_with_expression_chains() -> None:
+    """coalesce composes with other functions."""
+    assert eval_expr('upper(coalesce(x, "unknown"))', x=None) == "UNKNOWN"
+    assert eval_expr('upper(coalesce(x, "unknown"))', x="alice") == "ALICE"
+
+
+# ---- first / last ----
+
+
+@pytest.mark.parametrize(
+    ("expr", "kwargs", "expected"),
+    [
+        ("first([10, 20, 30])", {}, 10),
+        ("first(items)", {"items": ["a", "b", "c"]}, "a"),
+        ("first(items)", {"items": []}, None),
+        ("last([10, 20, 30])", {}, 30),
+        ("last(items)", {"items": ["a", "b", "c"]}, "c"),
+        ("last(items)", {"items": []}, None),
+    ],
+    ids=[
+        "first_literal",
+        "first_var",
+        "first_empty",
+        "last_literal",
+        "last_var",
+        "last_empty",
+    ],
+)
+def test_first_last(expr: str, kwargs: dict, expected: Any) -> None:
+    """Test first/last element access."""
+    assert eval_expr(expr, **kwargs) == expected
+
+
+def test_first_last_null_safe() -> None:
+    """first/last return None when given None."""
+    assert eval_expr("first(x)", x=None) is None
+    assert eval_expr("last(x)", x=None) is None
+
+
+def test_first_last_with_split() -> None:
+    """first/last compose naturally with split."""
+    assert eval_expr('first(split(x, "="))', x="key=value") == "key"
+    assert eval_expr('last(split(x, "="))', x="key=value") == "value"
+
+
+# ---- floor / ceil ----
+
+
+@pytest.mark.parametrize(
+    ("expr", "kwargs", "expected"),
+    [
+        ("floor(3.7)", {}, 3),
+        ("floor(3.2)", {}, 3),
+        ("floor(-1.5)", {}, -2),
+        ("floor(x)", {"x": 4.9}, 4),
+        ("ceil(3.2)", {}, 4),
+        ("ceil(3.7)", {}, 4),
+        ("ceil(-1.5)", {}, -1),
+        ("ceil(x)", {"x": 4.1}, 5),
+    ],
+    ids=[
+        "floor_down",
+        "floor_near",
+        "floor_negative",
+        "floor_var",
+        "ceil_up",
+        "ceil_near",
+        "ceil_negative",
+        "ceil_var",
+    ],
+)
+def test_floor_ceil(expr: str, kwargs: dict, expected: int) -> None:
+    """Test floor/ceil rounding."""
+    assert eval_expr(expr, **kwargs) == expected
+
+
+def test_floor_ceil_null_propagation() -> None:
+    """floor/ceil propagate None via _distributing."""
+    assert eval_expr("floor(x)", x=None) is None
+    assert eval_expr("ceil(x)", x=None) is None
+
+
+def test_floor_ceil_distribute_over_list() -> None:
+    """floor/ceil distribute over lists."""
+    assert eval_expr("floor(vals)", vals=[1.1, 2.9, 3.5]) == [1, 2, 3]
+    assert eval_expr("ceil(vals)", vals=[1.1, 2.9, 3.5]) == [2, 3, 4]
+
+
+# ---- substr ----
+
+
+@pytest.mark.parametrize(
+    ("expr", "kwargs", "expected"),
+    [
+        ('substr("hello", 0, 3)', {}, "hel"),
+        ('substr("hello", 2)', {}, "llo"),
+        ('substr("20240101", 0, 4)', {}, "2024"),
+        ('substr("20240101", 4, 6)', {}, "01"),
+        ("substr(x, 0, 4)", {"x": "20240101"}, "2024"),
+    ],
+    ids=[
+        "start_end",
+        "start_only",
+        "year_extract",
+        "mid_extract",
+        "with_var",
+    ],
+)
+def test_substr(expr: str, kwargs: dict, expected: str) -> None:
+    """Test substring extraction."""
+    assert eval_expr(expr, **kwargs) == expected
+
+
+def test_substr_null_propagation() -> None:
+    """substr propagates None."""
+    assert eval_expr("substr(x, 0, 3)", x=None) is None
+
+
+def test_substr_distributes_over_list() -> None:
+    """substr distributes over lists."""
+    assert eval_expr("substr(dates, 0, 4)", dates=["20240101", "20230615"]) == [
+        "2024",
+        "2023",
+    ]
+
+
+def test_substr_null_in_list() -> None:
+    """substr handles None elements in lists."""
+    assert eval_expr("substr(dates, 0, 4)", dates=["20240101", None, "20230615"]) == [
+        "2024",
+        None,
+        "2023",
+    ]
