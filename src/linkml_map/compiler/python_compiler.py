@@ -1,5 +1,4 @@
 from collections.abc import Iterator
-from copy import deepcopy
 from dataclasses import dataclass
 
 from jinja2 import Template
@@ -9,7 +8,6 @@ from linkml_map.datamodel.transformer_model import (
     ClassDerivation,
     TransformationSpecification,
 )
-from linkml_map.inference.inference import induce_missing_values
 
 CD_TEMPLATE = """
 {% macro gen_slot_derivation_value(sd, var) -%}
@@ -88,8 +86,6 @@ class PythonCompiler(Compiler):
         return s
 
     def _compile_iterator(self, specification: TransformationSpecification) -> Iterator[str]:
-        specification = deepcopy(specification)
-        induce_missing_values(specification, self.source_schemaview)
         for cd in specification.class_derivations:
             yield from self._compiled_class_derivations_iter(cd)
 

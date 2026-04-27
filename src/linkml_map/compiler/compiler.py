@@ -64,11 +64,13 @@ class Compiler(ABC):
 
     def compile(self, specification: TransformationSpecification) -> CompiledSpecification:
         """
-        Transform source object into an instance of the target class.
+        Compile a resolved transformation specification into an alternative representation.
 
-        :param specification:
-        :return:
+        :param specification: A fully resolved specification (e.g. from
+            ``Transformer.derived_specification``).  Must not be ``None``.
+        :return: The compiled specification.
         """
+        assert specification is not None, "compile() requires a resolved specification"
         s = self._compile_header(specification)
         for chunk in self._compile_iterator(specification):
             s += chunk

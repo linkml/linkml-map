@@ -8,7 +8,7 @@ from linkml_runtime.utils.compile_python import compile_python
 
 import tests.input.examples.personinfo_basic.model.personinfo_model as src
 from linkml_map.compiler.python_compiler import PythonCompiler
-from linkml_map.utils.loaders import load_specification
+from linkml_map.transformer.object_transformer import ObjectTransformer
 from tests import SCHEMA1, SPECIFICATION
 
 
@@ -24,8 +24,9 @@ def compiler() -> PythonCompiler:
 
 def test_compile(compiler: PythonCompiler) -> None:
     """Basic test of Python Compiler functionality."""
-    spec = load_specification(SPECIFICATION)
-    pycode = compiler.compile(spec)
+    tr = ObjectTransformer(source_schemaview=SchemaView(SCHEMA1))
+    tr.load_transformer_specification(SPECIFICATION)
+    pycode = compiler.compile(tr.derived_specification)
     # TODO: include imports so that code compiles
     print(pycode.serialization)
     mod = compile_python(pycode.serialization)

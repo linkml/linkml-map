@@ -154,15 +154,6 @@ def map_object(
     :param raises_error: if not None, the expected error to be raised during transformation
     :return: state object including transformed object plus intermediate objects
     """
-    pc = PythonCompiler(source_schemaview=source_sv)
-    python_code = pc.compile(spec)
-    logger.debug(f"Python Code: {python_code}\n\n")
-    # TODO: enable this
-    # print("Python Code (Generated)\n\n")
-    # print("```python")
-    # print(python_code.serialization)
-    # print("```\n")
-    # mod = python_code.module
     schema_mapper = SchemaMapper(source_schemaview=source_sv)
     target_schema = schema_mapper.derive_schema(spec)
     target_sv = SchemaView(yaml_dumper.dumps(target_schema))
@@ -170,6 +161,9 @@ def map_object(
         mapper = ObjectTransformer(source_schemaview=source_sv, specification=spec)
     else:
         mapper = ObjectTransformer(specification=spec)
+    pc = PythonCompiler(source_schemaview=source_sv)
+    python_code = pc.compile(mapper.derived_specification or spec)
+    logger.debug(f"Python Code: {python_code}\n\n")
     if index:
         mapper.index(source_object, target=source_root)
     if raises_error:
