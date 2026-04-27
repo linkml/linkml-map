@@ -196,6 +196,7 @@ _LIST_FUNCTIONS: dict[str, Any] = {
     "last": _null_safe(_last),
 }
 
+
 def _substr(s: str, start: int, end: int | None = None) -> str:
     """Extract a substring by position.
 
