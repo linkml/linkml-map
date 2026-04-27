@@ -194,6 +194,7 @@ _SCALAR_FUNCTIONS: dict[str, Any] = {
     "replace": str.replace,
     "startswith": str.startswith,
     "endswith": str.endswith,
+    "contains": str.__contains__,
     # String splitting/joining
     "split": str.split,
     "join": str.join,
@@ -225,6 +226,24 @@ def _is_list(value: Any) -> bool:  # noqa: ANN401
     return isinstance(value, list)
 
 
+def _coalesce(*args: Any) -> Any:  # noqa: ANN401
+    """Return the first non-None argument, or None if all are None.
+
+    >>> _coalesce(None, "fallback")
+    'fallback'
+    >>> _coalesce("hello", "fallback")
+    'hello'
+    >>> _coalesce(None, None, "last")
+    'last'
+    >>> _coalesce(None, None) is None
+    True
+    """
+    for arg in args:
+        if arg is not None:
+            return arg
+    return None
+
+
 #: Type-testing predicates (not distributing — test the value as-is).
 _TYPE_PREDICATES: dict[str, Any] = {
     "is_str": _is_str,
@@ -240,6 +259,7 @@ FUNCTIONS: dict[str, Any] = {
     **{name: _distributing(func) for name, func in _SCALAR_FUNCTIONS.items()},
     **_TYPE_PREDICATES,
     "case": eval_conditional,
+    "coalesce": _coalesce,
     "is_numeric": _is_numeric,
 }
 

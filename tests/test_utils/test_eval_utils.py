@@ -946,3 +946,83 @@ def test_type_predicates_in_case() -> None:
     # if/else is lazy — only the taken branch is evaluated
     assert eval_expr("upper(x) if is_str(x) else str(x)", x="hello") == "HELLO"
     assert eval_expr("upper(x) if is_str(x) else str(x)", x=42) == "42"
+
+
+# ---- contains ----
+
+
+@pytest.mark.parametrize(
+    ("expr", "kwargs", "expected"),
+    [
+        ('contains("hello world", "world")', {}, True),
+        ('contains("hello world", "xyz")', {}, False),
+        ('contains(x, "ell")', {"x": "hello"}, True),
+        ('contains(x, "ell")', {"x": "world"}, False),
+    ],
+    ids=["literal_true", "literal_false", "var_true", "var_false"],
+)
+def test_contains(expr: str, kwargs: dict, expected: bool) -> None:  # noqa: FBT001
+    """Test substring containment."""
+    assert eval_expr(expr, **kwargs) is expected
+
+
+def test_contains_distributes_over_list() -> None:
+    """contains distributes over lists, returning per-element booleans."""
+    assert eval_expr('contains(names, "li")', names=["alice", "bob", "charlie"]) == [
+        True,
+        False,
+        True,
+    ]
+
+
+def test_contains_null_propagation() -> None:
+    """contains returns None for None input."""
+    assert eval_expr('contains(x, "a")', x=None) is None
+
+
+def test_contains_null_in_list() -> None:
+    """contains handles None elements in lists."""
+    assert eval_expr('contains(names, "a")', names=["alice", None, "bob"]) == [True, None, False]
+
+
+# ---- coalesce ----
+
+
+@pytest.mark.parametrize(
+    ("expr", "kwargs", "expected"),
+    [
+        ('coalesce(None, "fallback")', {}, "fallback"),
+        ('coalesce("hello", "fallback")', {}, "hello"),
+        ('coalesce(None, None, "last")', {}, "last"),
+        ("coalesce(None, None)", {}, None),
+        ('coalesce(x, "default")', {"x": "value"}, "value"),
+        ('coalesce(x, "default")', {"x": None}, "default"),
+        ("coalesce(x, y)", {"x": None, "y": 42}, 42),
+    ],
+    ids=[
+        "none_then_string",
+        "string_then_string",
+        "two_nones_then_string",
+        "all_none",
+        "var_present",
+        "var_none",
+        "two_vars",
+    ],
+)
+def test_coalesce(expr: str, kwargs: dict, expected: Any) -> None:
+    """Test coalesce returns first non-None argument."""
+    assert eval_expr(expr, **kwargs) == expected
+
+
+def test_coalesce_preserves_falsy_values() -> None:
+    """coalesce treats 0, '', False, [] as present (not None)."""
+    assert eval_expr("coalesce(x, 99)", x=0) == 0
+    assert eval_expr('coalesce(x, "default")', x="") == ""
+    assert eval_expr("coalesce(x, True)", x=False) is False
+    assert eval_expr('coalesce(x, "default")', x=[]) == []
+
+
+def test_coalesce_with_expression_chains() -> None:
+    """coalesce composes with other functions."""
+    assert eval_expr('upper(coalesce(x, "unknown"))', x=None) == "UNKNOWN"
+    assert eval_expr('upper(coalesce(x, "unknown"))', x="alice") == "ALICE"
