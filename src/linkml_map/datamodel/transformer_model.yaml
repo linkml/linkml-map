@@ -160,6 +160,12 @@ classes:
         range: SlotDerivation
         multivalued: true
         inlined: true
+        deprecated: >-
+          Not implemented. Top-level slot derivations lack deterministic semantics
+          because a slot's derivation depends on the class context in which it
+          appears — the same slot may need different derivations in different
+          classes. Use slot_derivations within each ClassDerivation instead.
+          See https://github.com/linkml/linkml-map/issues/47
 
   ElementDerivation:
     is_a: SpecificationComponent
@@ -304,6 +310,16 @@ classes:
           list support in populated_from. Will be removed in a future version.
         description: >-
           Deprecated. Use populated_from instead.
+      class_derivations:
+        description: >-
+          Instructions on how to derive nested class instances for this slot.
+          Each entry specifies how to construct an instance of a target class
+          from source data. For multivalued slots, each entry produces one
+          object in the resulting list.
+        range: ClassDerivation
+        multivalued: true
+        inlined: true
+        inlined_as_list: true
       object_derivations:
         deprecated: >-
           Use list-based class_derivations instead of nesting via object_derivations.
