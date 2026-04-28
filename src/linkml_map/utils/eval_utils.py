@@ -197,6 +197,17 @@ _LIST_FUNCTIONS: dict[str, Any] = {
 }
 
 
+def _contains(s: str, sub: str) -> bool:
+    """Check whether a string contains a substring.
+
+    >>> _contains("hello world", "world")
+    True
+    >>> _contains("hello", "xyz")
+    False
+    """
+    return sub in s
+
+
 def _substr(s: str, start: int, end: int | None = None) -> str:
     """Extract a substring by position.
 
@@ -234,7 +245,7 @@ _SCALAR_FUNCTIONS: dict[str, Any] = {
     "replace": str.replace,
     "startswith": str.startswith,
     "endswith": str.endswith,
-    "contains": str.__contains__,
+    "contains": _contains,
     # String splitting/joining
     "split": str.split,
     "join": str.join,

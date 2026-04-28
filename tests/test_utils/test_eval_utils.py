@@ -1116,8 +1116,8 @@ def test_floor_ceil_distribute_over_list() -> None:
 @pytest.mark.parametrize(
     ("expr", "kwargs", "expected"),
     [
-        ('substr("hello", 0, 3)', {}, "hel"),
-        ('substr("hello", 2)', {}, "llo"),
+        ('substr("abcdef", 0, 3)', {}, "abc"),
+        ('substr("abcdef", 2)', {}, "cdef"),
         ('substr("20240101", 0, 4)', {}, "2024"),
         ('substr("20240101", 4, 6)', {}, "01"),
         ("substr(x, 0, 4)", {"x": "20240101"}, "2024"),
