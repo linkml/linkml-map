@@ -2,6 +2,7 @@
 
 import warnings
 
+import pytest
 from linkml_runtime import SchemaView
 
 from linkml_map.transformer.object_transformer import ObjectTransformer
@@ -169,46 +170,8 @@ def test_sources_on_slot_emits_deprecation_warning():
 
 
 def test_object_derivations_emits_deprecation_warning():
-    """Using object_derivations on a SlotDerivation emits a DeprecationWarning."""
-    source = """\
-id: https://example.org/source
-name: source
-prefixes:
-  linkml: https://w3id.org/linkml/
-imports:
-  - linkml:types
-classes:
-  Person:
-    attributes:
-      name:
-        range: string
-      condition_name:
-        range: string
-"""
-    target = """\
-id: https://example.org/target
-name: target
-prefixes:
-  linkml: https://w3id.org/linkml/
-imports:
-  - linkml:types
-classes:
-  Person:
-    attributes:
-      name:
-        range: string
-      conditions:
-        range: Condition
-        multivalued: true
-        inlined_as_list: true
-  Condition:
-    attributes:
-      name:
-        range: string
-"""
+    """Using object_derivations on a SlotDerivation emits a DeprecationWarning during normalization."""
     tr = ObjectTransformer()
-    tr.source_schemaview = SchemaView(source)
-    tr.target_schemaview = SchemaView(target)
     spec = {
         "class_derivations": {
             "Person": {
@@ -233,16 +196,39 @@ classes:
             },
         },
     }
-    tr.create_transformer_specification(spec)
 
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always", DeprecationWarning)
-        _ = tr.derived_specification
+        tr.create_transformer_specification(spec)
 
     deprecation_warnings = [w for w in caught if issubclass(w.category, DeprecationWarning)]
     od_warnings = [w for w in deprecation_warnings if "object_derivations" in str(w.message)]
     assert len(od_warnings) == 1
     assert "conditions" in str(od_warnings[0].message)
+
+
+def test_object_derivations_and_class_derivations_conflict():
+    """Error if both object_derivations and class_derivations are on the same slot."""
+    spec = {
+        "class_derivations": {
+            "Person": {
+                "populated_from": "Person",
+                "slot_derivations": {
+                    "conditions": {
+                        "object_derivations": [
+                            {"class_derivations": {"Condition": {"populated_from": "Person"}}},
+                        ],
+                        "class_derivations": [
+                            {"name": "Condition", "populated_from": "Person"},
+                        ],
+                    },
+                },
+            },
+        },
+    }
+    tr = ObjectTransformer()
+    with pytest.raises(ValueError, match="both 'object_derivations' and 'class_derivations'"):
+        tr.create_transformer_specification(spec)
 
 
 def test_no_warning_without_deprecated_fields():
