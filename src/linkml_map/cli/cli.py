@@ -215,11 +215,6 @@ def map_data(
 
 def _load_specs(tr: ObjectTransformer, transformer_specification: tuple[str, ...]) -> None:
     """Load one or more transformer specification files into the transformer."""
-    if len(transformer_specification) == 1:
-        path = Path(transformer_specification[0])
-        if path.is_file():
-            tr.load_transformer_specification(path)
-            return
     tr.load_transformer_specifications(transformer_specification)
 
 

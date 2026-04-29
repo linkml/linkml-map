@@ -6,8 +6,8 @@ format used by per-variable sub-specs::
 
     # Standard format
     class_derivations:
-      - EntityName:
-          populated_from: ...
+      EntityName:
+        populated_from: ...
 
     # List-of-blocks format (each item is a partial spec)
     - class_derivations:
@@ -111,7 +111,7 @@ def merge_spec_dicts(spec_dicts: list[dict[str, Any]]) -> dict[str, Any]:
                 merged_class_derivations.extend(cd)
             elif isinstance(cd, dict):
                 for name, body in cd.items():
-                    merged_class_derivations.append({name: body} if body else {name: {}})
+                    merged_class_derivations.append({name: body} if body is not None else {name: {}})
 
         # Union enum_derivations by name
         ed = spec.get("enum_derivations")
