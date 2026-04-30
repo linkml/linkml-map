@@ -324,30 +324,27 @@ class Transformer(ABC):
             if not sd.class_derivations:
                 continue
             for nested_cd in sd.class_derivations:
-                nested_source = nested_cd.populated_from
-                if not nested_source or nested_source == parent_source or nested_cd.joins:
-                    continue
+                nested_source = nested_cd.populated_from or parent_source
 
-                join_key = pick_join_key(sv, parent_source, nested_source)
-                if join_key is None:
-                    continue
+                # Synthesize a join when the nested CD references a different table
+                if nested_source != parent_source:
+                    join_key = pick_join_key(sv, parent_source, nested_source)
+                    if join_key is not None:
+                        if class_deriv.joins is None:
+                            class_deriv.joins = {}
+                        if nested_source not in class_deriv.joins:
+                            class_deriv.joins[nested_source] = AliasedClass(
+                                alias=nested_source,
+                                join_on=join_key,
+                            )
+                            logger.info(
+                                "Synthesized implicit join: %s.joins[%r] on column %r",
+                                class_deriv.name,
+                                nested_source,
+                                join_key,
+                            )
 
-                # Synthesize a join on the parent CD
-                if class_deriv.joins is None:
-                    class_deriv.joins = {}
-                if nested_source not in class_deriv.joins:
-                    class_deriv.joins[nested_source] = AliasedClass(
-                        alias=nested_source,
-                        join_on=join_key,
-                    )
-                    logger.info(
-                        "Synthesized implicit join: %s.joins[%r] on column %r",
-                        class_deriv.name,
-                        nested_source,
-                        join_key,
-                    )
-
-                # Recurse into nested CD's own slots
+                # Always recurse into nested CD's own slots
                 if nested_cd.slot_derivations:
                     self._walk_and_synthesize_joins(nested_cd, nested_source, sv)
 

@@ -710,8 +710,8 @@ class ObjectTransformer(Transformer):
                             parent_source,
                             nested_source,
                         )
-                elif not cls_derivation.joins:
-                    # No join spec anywhere — cross-table reference can't be resolved
+                else:
+                    # No join spec for this nested source — cross-table reference can't be resolved
                     raise TransformationError(
                         message=(
                             f"Nested class {cls_derivation.name!r} has "

@@ -33,13 +33,16 @@ def _collect_all_joins(class_deriv: ClassDerivation) -> dict[str, tuple[str, str
     def _collect_from(cd: ClassDerivation) -> None:
         if cd.joins:
             for join_name, join_spec in cd.joins.items():
-                if join_name not in result:
-                    lookup_key = join_spec.lookup_key or join_spec.join_on
-                    source_key = join_spec.source_key or join_spec.join_on
-                    if not lookup_key or not source_key:
-                        msg = f"Join {join_name!r} must specify 'join_on' or both 'source_key' and 'lookup_key'"
-                        raise ValueError(msg)
-                    result[join_name] = (source_key, lookup_key)
+                lookup_key = join_spec.lookup_key or join_spec.join_on
+                source_key = join_spec.source_key or join_spec.join_on
+                if not lookup_key or not source_key:
+                    msg = f"Join {join_name!r} must specify 'join_on' or both 'source_key' and 'lookup_key'"
+                    raise ValueError(msg)
+                existing = result.get(join_name)
+                if existing and existing != (source_key, lookup_key):
+                    msg = f"Conflicting join specs for {join_name!r}: {existing} vs ({source_key!r}, {lookup_key!r})"
+                    raise ValueError(msg)
+                result[join_name] = (source_key, lookup_key)
         for sd in cd.slot_derivations.values():
             if sd.class_derivations:
                 for nested_cd in sd.class_derivations:
