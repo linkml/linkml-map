@@ -158,6 +158,25 @@ def _make_transformer(source_schema, transform_spec_dict, target_schema_yaml=Non
     return tr
 
 
+@pytest.fixture()
+def data_dir_sparse(tmp_path):
+    """Create TSV files where one Measurement has no matching Reading (sparse join)."""
+    measurement_path = tmp_path / "Measurement.tsv"
+    with open(measurement_path, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=["id", "subject_id", "method"], delimiter="\t")
+        writer.writeheader()
+        writer.writerow({"id": "M1", "subject_id": "S1", "method": "spirometry"})
+        writer.writerow({"id": "M2", "subject_id": "S_NODATA", "method": "peak_flow"})
+
+    reading_path = tmp_path / "Reading.tsv"
+    with open(reading_path, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=["id", "subject_id", "score"], delimiter="\t")
+        writer.writeheader()
+        writer.writerow({"id": "R1", "subject_id": "S1", "score": "95.5"})
+
+    return tmp_path
+
+
 def test_implicit_join_resolves_via_engine(data_dir):
     """Engine mode: implicit join on common column 'subject_id' resolves nested values."""
     tr = _make_transformer(SOURCE_SCHEMA, TRANSFORM_SPEC, TARGET_SCHEMA_YAML)
@@ -614,3 +633,28 @@ def test_expr_dot_notation_disambiguates_both_tables(data_dir):
 
     assert results[0]["observation"]["value"] == "R1_M1"
     assert results[1]["observation"]["value"] == "R2_M2"
+
+
+def test_implicit_join_sparse_data_no_match(data_dir_sparse):
+    """When a join key has no match in the secondary table, nested slots get None.
+
+    This is the sparse-data case: subject S_NODATA exists in Measurement but
+    not in Reading. The row is still produced (with parent fields intact) but
+    nested values from Reading are None. No error is raised — this is expected
+    behavior for optional/sparse joins, distinct from "no join could be
+    determined" (which is a spec-level error).
+    """
+    tr = _make_transformer(SOURCE_SCHEMA, TRANSFORM_SPEC, TARGET_SCHEMA_YAML)
+    data_loader = DataLoader(data_dir_sparse)
+
+    results = list(transform_spec(tr, data_loader, source_type="Measurement"))
+
+    assert len(results) == 2
+
+    # S1 has a matching Reading — resolved normally
+    assert results[0]["id"] == "M1"
+    assert results[0]["observation"]["value"] == 95.5
+
+    # S_NODATA has no matching Reading — nested value is None, no error
+    assert results[1]["id"] == "M2"
+    assert results[1]["observation"]["value"] is None
