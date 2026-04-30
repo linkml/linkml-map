@@ -56,8 +56,8 @@ INPUT_OBJ = {
 
 def _make_transformer(transform_spec: dict) -> ObjectTransformer:
     """Build an ObjectTransformer from inline schemas and a transform dict."""
-    transform_spec["source_schema"] = "https://example.org/source"
-    transform_spec["target_schema"] = "https://example.org/target"
+    transform_spec["source_schema"] = {"name": "https://example.org/source"}
+    transform_spec["target_schema"] = {"name": "https://example.org/target"}
     tr = ObjectTransformer()
     tr.source_schemaview = SchemaView(SOURCE_SCHEMA)
     tr.target_schemaview = SchemaView(TARGET_SCHEMA)

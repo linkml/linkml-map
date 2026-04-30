@@ -10,7 +10,8 @@ prefixes:
   linkmlmap: https://w3id.org/linkml/transformer/
   fair_mappings_schema: https://w3id.org/mapping-commons/fair-mappings-schema/
 
-source_schema: src/linkml_map/datamodel/transformer_model.yaml
+source_schema:
+  name: src/linkml_map/datamodel/transformer_model.yaml
 # Note: target_schema should point to a local checkout of fair-mappings-schema
 # The transformation will still work without the target schema, but with warnings
 # target_schema: path/to/fair-mappings-schema/src/fair_mappings_schema/schema/fair_mappings_schema.yaml

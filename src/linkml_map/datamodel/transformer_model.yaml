@@ -101,10 +101,14 @@ classes:
         inlined: true
       source_schema:
         # Corresponds to fair_mappings_schema:MappingSpecification.subject_source
-        description: name of the schema that describes the source (input) objects
+        range: SchemaReference
+        inlined: true
+        description: Reference to the schema that describes the source (input) objects.
       target_schema:
         # Corresponds to fair_mappings_schema:MappingSpecification.object_source
-        description: name of the schema that describes the target (output) objects
+        range: SchemaReference
+        inlined: true
+        description: Reference to the schema that describes the target (output) objects.
       source_schema_patches:
         range: Any
         description: >-
@@ -166,6 +170,28 @@ classes:
           appears — the same slot may need different derivations in different
           classes. Use slot_derivations within each ClassDerivation instead.
           See https://github.com/linkml/linkml-map/issues/47
+
+  SchemaReference:
+    description: >-
+      A reference to a LinkML schema, with optional version and locator
+      metadata. Used by `source_schema` and `target_schema` on
+      `TransformationSpecification`.
+    attributes:
+      name:
+        description: The name or identifier of the schema.
+        range: string
+        required: true
+      version:
+        description: Version string for the schema (e.g. semver or date-based).
+        range: string
+        slot_uri: dcterms:hasVersion
+      schema_uri:
+        description: The URI/IRI identifier of the schema (matches the schema's `id`).
+        range: uri
+      source_file:
+        description: >-
+          Optional file path or URL from which the schema can be loaded.
+        range: string
 
   ElementDerivation:
     is_a: SpecificationComponent
