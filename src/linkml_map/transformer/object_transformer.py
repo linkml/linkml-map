@@ -32,6 +32,7 @@ from linkml_map.transformer.transformer import OBJECT_TYPE, Transformer
 from linkml_map.utils.dynamic_object import DynObj, dynamic_object
 from linkml_map.utils.eval_utils import _uuid5, eval_expr, eval_expr_with_mapping
 from linkml_map.utils.fk_utils import FKResolution, resolve_fk_path
+from linkml_map.utils.join_utils import find_common_columns, pick_join_key
 
 DICT_OBJ = dict[str, Any]
 
@@ -372,7 +373,7 @@ class ObjectTransformer(Transformer):
         elif slot_derivation.sources:
             (v, source_class_slot) = self._resolve_sources(slot_derivation, context)
         elif slot_derivation.class_derivations:
-            v = self._derive_nested_objects(slot_derivation, context.source_obj, target_type)
+            v = self._derive_nested_objects(slot_derivation, context.source_obj, target_type, context.class_deriv)
         else:
             source_class_slot = context.sv.induced_slot(slot_derivation.name, context.source_type)
             v = context.source_obj.get(slot_derivation.name, None)
@@ -515,6 +516,104 @@ class ObjectTransformer(Transformer):
                 source_class_slot = context.sv.induced_slot(field_path, joined_class)
         return v, source_class_slot
 
+    def _resolve_implicit_join(
+        self,
+        parent_source: str,
+        nested_source: str,
+        source_obj: DICT_OBJ,
+        cls_derivation: ClassDerivation,
+    ) -> DICT_OBJ:
+        """Resolve a cross-table nested derivation via implicit join.
+
+        When a nested class_derivation has a different ``populated_from`` than
+        its parent and no explicit ``joins:`` block, this method:
+
+        1. Finds common columns between the two source classes.
+        2. Determines a join key via :func:`pick_join_key`.
+        3. Looks up the matching row from the nested table via the LookupIndex.
+        4. Merges parent and nested rows, excluding ambiguous columns (present
+           in both) from the merged result so that dot notation is required.
+
+        :param parent_source: Parent class_derivation's populated_from.
+        :param nested_source: Nested class_derivation's populated_from.
+        :param source_obj: Current parent source row.
+        :param cls_derivation: The nested ClassDerivation.
+        :returns: Merged row dict for the nested derivation.
+        :raises TransformationError: If no join key can be determined or
+            the LookupIndex is not available.
+        """
+        sv = self.source_schemaview
+        common_columns = find_common_columns(sv, parent_source, nested_source)
+
+        if not common_columns:
+            raise TransformationError(
+                message=(
+                    f"Nested class {cls_derivation.name!r} has populated_from={nested_source!r} "
+                    f"which differs from parent populated_from={parent_source!r}, "
+                    f"but no common columns found for implicit join"
+                ),
+                class_derivation_name=cls_derivation.name,
+                class_populated_from=nested_source,
+            )
+
+        join_key = pick_join_key(sv, parent_source, nested_source)
+        if join_key is None:
+            non_id = common_columns - {
+                col for col in common_columns
+                if sv.induced_slot(col, parent_source).identifier
+                or sv.induced_slot(col, nested_source).identifier
+            }
+            raise TransformationError(
+                message=(
+                    f"Nested class {cls_derivation.name!r} has populated_from={nested_source!r} "
+                    f"which differs from parent populated_from={parent_source!r}. "
+                    f"Multiple common columns found ({sorted(non_id)}) — "
+                    f"cannot determine implicit join key. Add an explicit joins: block."
+                ),
+                class_derivation_name=cls_derivation.name,
+                class_populated_from=nested_source,
+            )
+
+        logger.info(
+            "Implicit join: %s → %s on column %r",
+            parent_source, nested_source, join_key,
+        )
+
+        # Look up the nested row
+        if self.lookup_index is None or not self.lookup_index.is_registered(nested_source):
+            raise TransformationError(
+                message=(
+                    f"Implicit join from {parent_source!r} to {nested_source!r} on {join_key!r} "
+                    f"requires table {nested_source!r} to be loaded in the LookupIndex. "
+                    f"This is supported in engine mode (transform_spec) but not in direct map_object calls."
+                ),
+                class_derivation_name=cls_derivation.name,
+                class_populated_from=nested_source,
+            )
+
+        key_val = source_obj.get(join_key)
+        if key_val is None:
+            return source_obj
+
+        nested_row = self.lookup_index.lookup_row(nested_source, join_key, key_val)
+        if nested_row is None:
+            return source_obj
+
+        # Merge: nested row fields + parent row fields.
+        # For columns that exist in both, exclude from merge (require dot notation).
+        parent_only = {k: v for k, v in source_obj.items() if k not in nested_row or k == join_key}
+        nested_only = {k: v for k, v in nested_row.items() if k not in source_obj or k == join_key}
+        ambiguous = {k for k in source_obj if k in nested_row and k != join_key}
+
+        if ambiguous:
+            logger.info(
+                "Ambiguous columns %s shared between %s and %s — dot notation required",
+                sorted(ambiguous), parent_source, nested_source,
+            )
+
+        merged = {**parent_only, **nested_only}
+        return merged
+
     def _apply_offset(self, value: Any, slot_derivation: SlotDerivation, source_obj: DICT_OBJ) -> Any:
         """Apply an offset calculation using a value from another source field."""
         off = slot_derivation.offset
@@ -558,13 +657,39 @@ class ObjectTransformer(Transformer):
         )
         return v, source_class_slot
 
-    def _derive_nested_objects(self, slot_derivation: SlotDerivation, source_obj: DICT_OBJ, target_type: str) -> Any:
-        """Build nested objects from slot-level class_derivation declarations."""
+    def _derive_nested_objects(
+        self,
+        slot_derivation: SlotDerivation,
+        source_obj: DICT_OBJ,
+        target_type: str,
+        parent_class_deriv: ClassDerivation,
+    ) -> Any:
+        """Build nested objects from slot-level class_derivation declarations.
+
+        When a nested class_derivation has a different ``populated_from`` than
+        its parent and no explicit ``joins:`` block, this method attempts an
+        implicit join by finding common columns between the two source classes
+        and looking up the matching row via the :class:`LookupIndex`.
+
+        :param slot_derivation: The slot derivation that declares nested class_derivations.
+        :param source_obj: The current (parent) source row.
+        :param target_type: Target class name for cardinality decisions.
+        :param parent_class_deriv: The parent's ClassDerivation (for populated_from context).
+        """
         derived_objs = []
+        parent_source = parent_class_deriv.populated_from or parent_class_deriv.name
 
         for cls_derivation in slot_derivation.class_derivations:
+            nested_source = cls_derivation.populated_from
+            effective_obj = source_obj
+
+            if nested_source and nested_source != parent_source and not cls_derivation.joins:
+                effective_obj = self._resolve_implicit_join(
+                    parent_source, nested_source, source_obj, cls_derivation,
+                )
+
             nested_result = self.map_object(
-                source_obj,
+                effective_obj,
                 source_type=cls_derivation.populated_from,
                 target_type=cls_derivation.name,
                 class_derivation=cls_derivation,
