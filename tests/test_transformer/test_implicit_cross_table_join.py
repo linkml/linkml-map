@@ -308,3 +308,104 @@ def test_implicit_join_multiple_non_id_common_columns(data_dir_ambiguous):
 
     with pytest.raises(TransformationError, match="Multiple common columns"):
         list(transform_spec(tr, data_loader, source_type="Measurement"))
+
+
+def test_implicit_join_ambiguous_column_access_errors(data_dir):
+    """Accessing a column that exists in both tables without dot notation raises an error."""
+    # Both Measurement and Reading have 'id' (identifier) and 'subject_id'.
+    # subject_id is the join key, but 'id' is ambiguous in the merged row.
+    # A slot derivation that tries to access 'id' should error.
+    transform_accessing_ambiguous = yaml.safe_load(
+        textwrap.dedent("""\
+        id: ambiguous-access-transform
+        title: Access ambiguous column
+
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              id:
+              method:
+              observation:
+                class_derivations:
+                  - Observation:
+                      populated_from: Reading
+                      slot_derivations:
+                        value:
+                          populated_from: id
+    """)
+    )
+
+    target_with_string_value = textwrap.dedent("""\
+        id: https://example.org/target-ambiguous
+        name: target_ambiguous
+        prefixes:
+          linkml: https://w3id.org/linkml/
+          xsd: http://www.w3.org/2001/XMLSchema#
+        default_prefix: target_ambiguous
+        default_range: string
+        imports:
+          - linkml:types
+        classes:
+          Result:
+            attributes:
+              id:
+                identifier: true
+              method:
+                range: string
+              observation:
+                range: Observation
+                inlined: true
+          Observation:
+            attributes:
+              value:
+                range: string
+    """)
+
+    tr = _make_transformer(SOURCE_SCHEMA, transform_accessing_ambiguous, target_with_string_value)
+    data_loader = DataLoader(data_dir)
+
+    with pytest.raises(TransformationError, match="ambiguous"):
+        list(transform_spec(tr, data_loader, source_type="Measurement"))
+
+
+def test_implicit_join_continue_on_error(data_dir):
+    """Errors from implicit joins are collectible via on_error callback."""
+    schema_no_common = yaml.safe_load(
+        textwrap.dedent("""\
+        id: https://example.org/no-common-coe
+        name: no_common_coe
+        prefixes:
+          linkml: https://w3id.org/linkml/
+          xsd: http://www.w3.org/2001/XMLSchema#
+        default_prefix: no_common_coe
+        default_range: string
+        imports:
+          - linkml:types
+        classes:
+          Measurement:
+            attributes:
+              id:
+                identifier: true
+              method:
+                range: string
+          Reading:
+            attributes:
+              reading_id:
+                identifier: true
+              score:
+                range: float
+    """)
+    )
+
+    tr = _make_transformer(schema_no_common, TRANSFORM_SPEC, TARGET_SCHEMA_YAML)
+    data_loader = DataLoader(data_dir)
+
+    errors: list[TransformationError] = []
+    results = list(transform_spec(tr, data_loader, source_type="Measurement", on_error=errors.append))
+
+    # Should collect errors instead of raising
+    assert len(errors) == 2  # one per Measurement row
+    assert all("no common columns" in str(e) for e in errors)
+    # Results should still be produced (with whatever the error handler allows)
+    assert len(results) == 0  # rows that errored are skipped

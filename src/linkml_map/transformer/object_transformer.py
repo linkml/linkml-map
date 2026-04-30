@@ -36,6 +36,8 @@ from linkml_map.utils.join_utils import find_common_columns, pick_join_key
 
 DICT_OBJ = dict[str, Any]
 
+_AMBIGUOUS = object()  # sentinel for columns present in both parent and nested tables
+
 
 logger = logging.getLogger(__name__)
 
@@ -377,6 +379,16 @@ class ObjectTransformer(Transformer):
         else:
             source_class_slot = context.sv.induced_slot(slot_derivation.name, context.source_type)
             v = context.source_obj.get(slot_derivation.name, None)
+            if v is _AMBIGUOUS:
+                raise TransformationError(
+                    message=(
+                        f"Column {slot_derivation.name!r} is ambiguous — it exists in both the parent "
+                        f"and nested source tables. Use dot notation to disambiguate."
+                    ),
+                    class_derivation_name=context.class_deriv.name,
+                    class_populated_from=context.class_deriv.populated_from,
+                    slot_derivation_name=slot_derivation.name,
+                )
 
         if source_class_slot and v is not None:
             target_range = slot_derivation.range
@@ -459,6 +471,18 @@ class ObjectTransformer(Transformer):
             )
             raise ValueError(msg)
         v = context.source_obj.get(populated_from, None)
+        if v is _AMBIGUOUS:
+            raise TransformationError(
+                message=(
+                    f"Column {populated_from!r} is ambiguous — it exists in both the parent "
+                    f"and nested source tables. Use dot notation (e.g., 'TableName.{populated_from}') "
+                    f"to disambiguate."
+                ),
+                class_derivation_name=context.class_deriv.name,
+                class_populated_from=context.class_deriv.populated_from,
+                slot_derivation_name=slot_derivation.name,
+                slot_populated_from=slot_derivation.populated_from,
+            )
         source_class_slot = context.sv.induced_slot(populated_from, context.source_type)
         return v, source_class_slot
 
@@ -559,9 +583,9 @@ class ObjectTransformer(Transformer):
         join_key = pick_join_key(sv, parent_source, nested_source)
         if join_key is None:
             non_id = common_columns - {
-                col for col in common_columns
-                if sv.induced_slot(col, parent_source).identifier
-                or sv.induced_slot(col, nested_source).identifier
+                col
+                for col in common_columns
+                if sv.induced_slot(col, parent_source).identifier or sv.induced_slot(col, nested_source).identifier
             }
             raise TransformationError(
                 message=(
@@ -576,7 +600,9 @@ class ObjectTransformer(Transformer):
 
         logger.info(
             "Implicit join: %s → %s on column %r",
-            parent_source, nested_source, join_key,
+            parent_source,
+            nested_source,
+            join_key,
         )
 
         # Look up the nested row
@@ -600,18 +626,27 @@ class ObjectTransformer(Transformer):
             return source_obj
 
         # Merge: nested row fields + parent row fields.
-        # For columns that exist in both, exclude from merge (require dot notation).
-        parent_only = {k: v for k, v in source_obj.items() if k not in nested_row or k == join_key}
-        nested_only = {k: v for k, v in nested_row.items() if k not in source_obj or k == join_key}
+        # For columns that exist in both, insert _AMBIGUOUS sentinel so that
+        # slot resolution can raise a clear error instead of silently returning None.
         ambiguous = {k for k in source_obj if k in nested_row and k != join_key}
+        merged = {}
+        for k, v in source_obj.items():
+            if k in ambiguous:
+                merged[k] = _AMBIGUOUS
+            else:
+                merged[k] = v
+        for k, v in nested_row.items():
+            if k not in merged:
+                merged[k] = v
 
         if ambiguous:
             logger.info(
                 "Ambiguous columns %s shared between %s and %s — dot notation required",
-                sorted(ambiguous), parent_source, nested_source,
+                sorted(ambiguous),
+                parent_source,
+                nested_source,
             )
 
-        merged = {**parent_only, **nested_only}
         return merged
 
     def _apply_offset(self, value: Any, slot_derivation: SlotDerivation, source_obj: DICT_OBJ) -> Any:
@@ -685,7 +720,10 @@ class ObjectTransformer(Transformer):
 
             if nested_source and nested_source != parent_source and not cls_derivation.joins:
                 effective_obj = self._resolve_implicit_join(
-                    parent_source, nested_source, source_obj, cls_derivation,
+                    parent_source,
+                    nested_source,
+                    source_obj,
+                    cls_derivation,
                 )
 
             nested_result = self.map_object(
