@@ -39,6 +39,26 @@ DICT_OBJ = dict[str, Any]
 _AMBIGUOUS = object()  # sentinel for columns present in both parent and nested tables
 
 
+def _raise_ambiguous_column(
+    column: str,
+    *,
+    class_deriv: ClassDerivation | None = None,
+    slot_derivation: SlotDerivation | None = None,
+) -> None:
+    """Raise a TransformationError for an ambiguous column access."""
+    raise TransformationError(
+        message=(
+            f"Column {column!r} is ambiguous — it exists in both the parent "
+            f"and nested source tables. Use dot notation (e.g., 'TableName.{column}') "
+            f"to disambiguate."
+        ),
+        class_derivation_name=class_deriv.name if class_deriv else None,
+        class_populated_from=class_deriv.populated_from if class_deriv else None,
+        slot_derivation_name=slot_derivation.name if slot_derivation else None,
+        slot_populated_from=slot_derivation.populated_from if slot_derivation else None,
+    )
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -137,15 +157,7 @@ class Bindings(Mapping):
             if name in self._join_specs:
                 self.bindings[name] = self._resolve_join(name)
             elif name in self.source_obj and self.source_obj[name] is _AMBIGUOUS:
-                raise TransformationError(
-                    message=(
-                        f"Column {name!r} is ambiguous — it exists in both the parent "
-                        f"and nested source tables. Use dot notation (e.g., 'TableName.{name}') "
-                        f"to disambiguate."
-                    ),
-                    class_derivation_name=self.class_deriv.name if self.class_deriv else None,
-                    class_populated_from=self.class_deriv.populated_from if self.class_deriv else None,
-                )
+                _raise_ambiguous_column(name, class_deriv=self.class_deriv)
             elif self._is_implicit_join_table(name):
                 self.bindings[name] = self._resolve_implicit_join_for_expr(name)
             else:
@@ -429,14 +441,10 @@ class ObjectTransformer(Transformer):
             source_class_slot = context.sv.induced_slot(slot_derivation.name, context.source_type)
             v = context.source_obj.get(slot_derivation.name, None)
             if v is _AMBIGUOUS:
-                raise TransformationError(
-                    message=(
-                        f"Column {slot_derivation.name!r} is ambiguous — it exists in both the parent "
-                        f"and nested source tables. Use dot notation to disambiguate."
-                    ),
-                    class_derivation_name=context.class_deriv.name,
-                    class_populated_from=context.class_deriv.populated_from,
-                    slot_derivation_name=slot_derivation.name,
+                _raise_ambiguous_column(
+                    slot_derivation.name,
+                    class_deriv=context.class_deriv,
+                    slot_derivation=slot_derivation,
                 )
 
         if source_class_slot and v is not None:
@@ -521,16 +529,10 @@ class ObjectTransformer(Transformer):
             raise ValueError(msg)
         v = context.source_obj.get(populated_from, None)
         if v is _AMBIGUOUS:
-            raise TransformationError(
-                message=(
-                    f"Column {populated_from!r} is ambiguous — it exists in both the parent "
-                    f"and nested source tables. Use dot notation (e.g., 'TableName.{populated_from}') "
-                    f"to disambiguate."
-                ),
-                class_derivation_name=context.class_deriv.name,
-                class_populated_from=context.class_deriv.populated_from,
-                slot_derivation_name=slot_derivation.name,
-                slot_populated_from=slot_derivation.populated_from,
+            _raise_ambiguous_column(
+                populated_from,
+                class_deriv=context.class_deriv,
+                slot_derivation=slot_derivation,
             )
         source_class_slot = context.sv.induced_slot(populated_from, context.source_type)
         return v, source_class_slot
@@ -631,16 +633,11 @@ class ObjectTransformer(Transformer):
 
         join_key = pick_join_key(sv, parent_source, nested_source)
         if join_key is None:
-            non_id = common_columns - {
-                col
-                for col in common_columns
-                if sv.induced_slot(col, parent_source).identifier or sv.induced_slot(col, nested_source).identifier
-            }
             raise TransformationError(
                 message=(
                     f"Nested class {cls_derivation.name!r} has populated_from={nested_source!r} "
                     f"which differs from parent populated_from={parent_source!r}. "
-                    f"Multiple common columns found ({sorted(non_id)}) — "
+                    f"Multiple common columns found ({sorted(common_columns)}) — "
                     f"cannot determine implicit join key. Add an explicit joins: block."
                 ),
                 class_derivation_name=cls_derivation.name,
