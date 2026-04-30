@@ -54,42 +54,6 @@ SOURCE_SCHEMA = yaml.safe_load(
 )
 
 # Same as above but Reading also has a "method" column (ambiguous with Measurement)
-SOURCE_SCHEMA_AMBIGUOUS = yaml.safe_load(
-    textwrap.dedent("""\
-    id: https://example.org/implicit-join-test-ambiguous
-    name: implicit_join_test_ambiguous
-    prefixes:
-      linkml: https://w3id.org/linkml/
-      xsd: http://www.w3.org/2001/XMLSchema#
-    default_prefix: implicit_join_test_ambiguous
-    default_range: string
-    imports:
-      - linkml:types
-
-    classes:
-      Measurement:
-        attributes:
-          id:
-            identifier: true
-          subject_id:
-            range: string
-          method:
-            range: string
-
-      Reading:
-        attributes:
-          id:
-            identifier: true
-          subject_id:
-            range: string
-          method:
-            range: string
-          score:
-            range: float
-""")
-)
-
-
 TRANSFORM_SPEC = yaml.safe_load(
     textwrap.dedent("""\
     id: implicit-join-transform
