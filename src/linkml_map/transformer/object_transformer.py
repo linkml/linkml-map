@@ -136,14 +136,63 @@ class Bindings(Mapping):
         if name not in self.bindings:
             if name in self._join_specs:
                 self.bindings[name] = self._resolve_join(name)
+            elif name in self.source_obj and self.source_obj[name] is _AMBIGUOUS:
+                raise TransformationError(
+                    message=(
+                        f"Column {name!r} is ambiguous — it exists in both the parent "
+                        f"and nested source tables. Use dot notation (e.g., 'TableName.{name}') "
+                        f"to disambiguate."
+                    ),
+                    class_derivation_name=self.class_deriv.name if self.class_deriv else None,
+                    class_populated_from=self.class_deriv.populated_from if self.class_deriv else None,
+                )
+            elif self._is_implicit_join_table(name):
+                self.bindings[name] = self._resolve_implicit_join_for_expr(name)
             else:
                 _ = self.get_ctxt_obj_and_dict({name: self.source_obj[name]})
 
         return self.bindings.get(name)
 
+    def _is_implicit_join_table(self, name: str) -> bool:
+        """Check if *name* is a table available for implicit join in expr.
+
+        Returns True if *name* is a registered table in the LookupIndex or
+        if it matches the current source_type (self-reference).
+        """
+        if name in self.source_obj:
+            return False
+        if name == self.source_type:
+            return True
+        idx = self.object_transformer.lookup_index
+        return idx is not None and idx.is_registered(name)
+
     def _resolve_join(self, table_name: str) -> DynObj | None:
-        """Resolve a cross-table lookup, returning a DynObj or None."""
+        """Resolve an explicit cross-table lookup, returning a DynObj or None."""
         row = self.object_transformer._resolve_joined_row(table_name, self.source_obj, self.class_deriv)
+        if row is None:
+            return None
+        return DynObj(**row)
+
+    def _resolve_implicit_join_for_expr(self, table_name: str) -> DynObj | None:
+        """Resolve an implicit cross-table lookup for expr evaluation.
+
+        When *table_name* matches the current source_type, returns a DynObj
+        built from the current source row (self-reference). Otherwise, reuses
+        :func:`pick_join_key` and the LookupIndex to find the matching row.
+        """
+        if table_name == self.source_type:
+            return DynObj(**{k: v for k, v in self.source_obj.items() if v is not _AMBIGUOUS})
+
+        join_key = pick_join_key(self.sv, self.source_type, table_name)
+        if join_key is None:
+            return None
+        key_val = self.source_obj.get(join_key)
+        if key_val is None:
+            return None
+        idx = self.object_transformer.lookup_index
+        if idx is None:
+            return None
+        row = idx.lookup_row(table_name, join_key, key_val)
         if row is None:
             return None
         return DynObj(**row)

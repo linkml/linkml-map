@@ -409,3 +409,125 @@ def test_implicit_join_continue_on_error(data_dir):
     assert all("no common columns" in str(e) for e in errors)
     # Results should still be produced (with whatever the error handler allows)
     assert len(results) == 0  # rows that errored are skipped
+
+
+def test_implicit_join_expr_simple_field(data_dir):
+    """Expr {score} resolves from nested table via merged row."""
+    transform_with_expr = yaml.safe_load(
+        textwrap.dedent("""\
+        id: expr-simple-transform
+        title: Expr with simple field from nested table
+
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              id:
+              method:
+              observation:
+                class_derivations:
+                  - Observation:
+                      populated_from: Reading
+                      slot_derivations:
+                        value:
+                          expr: '{score}'
+    """)
+    )
+
+    tr = _make_transformer(SOURCE_SCHEMA, transform_with_expr, TARGET_SCHEMA_YAML)
+    data_loader = DataLoader(data_dir)
+
+    results = list(transform_spec(tr, data_loader, source_type="Measurement"))
+
+    assert len(results) == 2
+    assert results[0]["observation"]["value"] == 95.5
+    assert results[1]["observation"]["value"] == 88.0
+
+
+def test_implicit_join_expr_dot_notation(data_dir):
+    """Expr {Reading.score} resolves via implicit join lookup."""
+    transform_with_dot_expr = yaml.safe_load(
+        textwrap.dedent("""\
+        id: expr-dot-transform
+        title: Expr with dot notation for implicit join
+
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              id:
+              method:
+              observation:
+                class_derivations:
+                  - Observation:
+                      populated_from: Reading
+                      slot_derivations:
+                        value:
+                          expr: '{Reading.score}'
+    """)
+    )
+
+    tr = _make_transformer(SOURCE_SCHEMA, transform_with_dot_expr, TARGET_SCHEMA_YAML)
+    data_loader = DataLoader(data_dir)
+
+    results = list(transform_spec(tr, data_loader, source_type="Measurement"))
+
+    assert len(results) == 2
+    assert results[0]["observation"]["value"] == 95.5
+    assert results[1]["observation"]["value"] == 88.0
+
+
+def test_implicit_join_expr_ambiguous_column_errors(data_dir):
+    """Expr {id} errors when id is ambiguous between parent and nested tables."""
+    transform_ambiguous_expr = yaml.safe_load(
+        textwrap.dedent("""\
+        id: expr-ambiguous-transform
+        title: Expr accessing ambiguous column
+
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              id:
+              method:
+              observation:
+                class_derivations:
+                  - Observation:
+                      populated_from: Reading
+                      slot_derivations:
+                        value:
+                          expr: '{id}'
+    """)
+    )
+
+    target_string_value = textwrap.dedent("""\
+        id: https://example.org/target-expr-ambig
+        name: target_expr_ambig
+        prefixes:
+          linkml: https://w3id.org/linkml/
+          xsd: http://www.w3.org/2001/XMLSchema#
+        default_prefix: target_expr_ambig
+        default_range: string
+        imports:
+          - linkml:types
+        classes:
+          Result:
+            attributes:
+              id:
+                identifier: true
+              method:
+                range: string
+              observation:
+                range: Observation
+                inlined: true
+          Observation:
+            attributes:
+              value:
+                range: string
+    """)
+
+    tr = _make_transformer(SOURCE_SCHEMA, transform_ambiguous_expr, target_string_value)
+    data_loader = DataLoader(data_dir)
+
+    with pytest.raises(TransformationError, match="ambiguous"):
+        list(transform_spec(tr, data_loader, source_type="Measurement"))
