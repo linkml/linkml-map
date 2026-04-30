@@ -58,7 +58,7 @@ def pick_join_key(sv: SchemaView, class_a: str, class_b: str) -> str | None:
 
     if len(non_id) == 1:
         return non_id.pop()
-    if not non_id and common:
-        return sorted(common)[0]
+    if not non_id and len(common) == 1:
+        return next(iter(common))
     # Multiple non-id common columns — can't pick automatically
     return None
