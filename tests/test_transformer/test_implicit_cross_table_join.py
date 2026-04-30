@@ -531,3 +531,122 @@ def test_implicit_join_expr_ambiguous_column_errors(data_dir):
 
     with pytest.raises(TransformationError, match="ambiguous"):
         list(transform_spec(tr, data_loader, source_type="Measurement"))
+
+
+# --- Dot-notation disambiguation tests ---
+
+TARGET_STRING_OBS = textwrap.dedent("""\
+    id: https://example.org/target-disambig
+    name: target_disambig
+    prefixes:
+      linkml: https://w3id.org/linkml/
+      xsd: http://www.w3.org/2001/XMLSchema#
+    default_prefix: target_disambig
+    default_range: string
+    imports:
+      - linkml:types
+    classes:
+      Result:
+        attributes:
+          id:
+            identifier: true
+          method:
+            range: string
+          observation:
+            range: Observation
+            inlined: true
+      Observation:
+        attributes:
+          value:
+            range: string
+""")
+
+
+def test_populated_from_dot_notation_disambiguates_nested(data_dir):
+    """populated_from: Reading.id resolves to the nested table's id."""
+    transform = yaml.safe_load(
+        textwrap.dedent("""\
+        id: disambig-nested
+        title: test
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              id:
+              method:
+              observation:
+                class_derivations:
+                  - Observation:
+                      populated_from: Reading
+                      slot_derivations:
+                        value:
+                          populated_from: Reading.id
+    """)
+    )
+
+    tr = _make_transformer(SOURCE_SCHEMA, transform, TARGET_STRING_OBS)
+    data_loader = DataLoader(data_dir)
+    results = list(transform_spec(tr, data_loader, source_type="Measurement"))
+
+    assert results[0]["observation"]["value"] == "R1"
+    assert results[1]["observation"]["value"] == "R2"
+
+
+def test_populated_from_dot_notation_disambiguates_parent(data_dir):
+    """populated_from: Measurement.id resolves to the parent table's id."""
+    transform = yaml.safe_load(
+        textwrap.dedent("""\
+        id: disambig-parent
+        title: test
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              id:
+              method:
+              observation:
+                class_derivations:
+                  - Observation:
+                      populated_from: Reading
+                      slot_derivations:
+                        value:
+                          populated_from: Measurement.id
+    """)
+    )
+
+    tr = _make_transformer(SOURCE_SCHEMA, transform, TARGET_STRING_OBS)
+    data_loader = DataLoader(data_dir)
+    results = list(transform_spec(tr, data_loader, source_type="Measurement"))
+
+    assert results[0]["observation"]["value"] == "M1"
+    assert results[1]["observation"]["value"] == "M2"
+
+
+def test_expr_dot_notation_disambiguates_both_tables(data_dir):
+    """Expr can use dot notation to access either table's ambiguous columns."""
+    transform = yaml.safe_load(
+        textwrap.dedent("""\
+        id: disambig-expr
+        title: test
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              id:
+              method:
+              observation:
+                class_derivations:
+                  - Observation:
+                      populated_from: Reading
+                      slot_derivations:
+                        value:
+                          expr: '{Reading.id} + "_" + {Measurement.id}'
+    """)
+    )
+
+    tr = _make_transformer(SOURCE_SCHEMA, transform, TARGET_STRING_OBS)
+    data_loader = DataLoader(data_dir)
+    results = list(transform_spec(tr, data_loader, source_type="Measurement"))
+
+    assert results[0]["observation"]["value"] == "R1_M1"
+    assert results[1]["observation"]["value"] == "R2_M2"

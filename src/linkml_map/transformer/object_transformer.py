@@ -38,6 +38,20 @@ DICT_OBJ = dict[str, Any]
 _AMBIGUOUS = object()  # sentinel for columns present in both parent and nested tables
 
 
+class MergedRow(dict):
+    """A dict that remembers the original un-merged rows from an implicit join.
+
+    Behaves identically to a regular dict for all normal operations.
+    The original rows are accessible via :attr:`rows_by_table` so that
+    dot-notation disambiguation (e.g., ``Reading.id``) can resolve
+    ambiguous columns to table-specific values.
+    """
+
+    def __init__(self, merged: dict, rows_by_table: dict[str, dict]) -> None:
+        super().__init__(merged)
+        self.rows_by_table = rows_by_table
+
+
 def _raise_ambiguous_column(
     column: str,
     *,
@@ -157,11 +171,11 @@ class Bindings(Mapping):
                 self.bindings[name] = self._resolve_join(name)
             elif name in self.source_obj and self.source_obj[name] is _AMBIGUOUS:
                 _raise_ambiguous_column(name, class_deriv=self.class_deriv)
+            elif isinstance(self.source_obj, MergedRow) and name in self.source_obj.rows_by_table:
+                self.bindings[name] = DynObj(**self.source_obj.rows_by_table[name])
             elif name == self.source_type and name not in self.source_obj:
-                # Self-reference: {Reading.score} when source_type is Reading
-                self.bindings[name] = DynObj(
-                    **{k: v for k, v in self.source_obj.items() if v is not _AMBIGUOUS},
-                )
+                # Self-reference: {Reading.score} when source_type is Reading (non-merge context)
+                self.bindings[name] = DynObj(**self.source_obj)
             else:
                 _ = self.get_ctxt_obj_and_dict({name: self.source_obj[name]})
 
@@ -378,6 +392,22 @@ class ObjectTransformer(Transformer):
                 table_name, field_path = populated_from.split(".", 1)
                 if context.class_deriv.joins and table_name in context.class_deriv.joins:
                     (v, source_class_slot) = self._perform_join_resolution(table_name, field_path, context)
+                elif isinstance(context.source_obj, MergedRow) and table_name in context.source_obj.rows_by_table:
+                    v = context.source_obj.rows_by_table[table_name].get(field_path)
+                    source_class_slot = (
+                        context.sv.induced_slot(field_path, table_name)
+                        if table_name in context.sv.all_classes()
+                        else None
+                    )
+                elif table_name == context.source_type:
+                    v = context.source_obj.get(field_path)
+                    if v is _AMBIGUOUS:
+                        _raise_ambiguous_column(
+                            field_path,
+                            class_deriv=context.class_deriv,
+                            slot_derivation=slot_derivation,
+                        )
+                    source_class_slot = context.sv.induced_slot(field_path, context.source_type)
                 else:
                     (v, source_class_slot) = self._resolve_fk_or_literal(
                         populated_from,
@@ -563,19 +593,20 @@ class ObjectTransformer(Transformer):
         join_key: str,
         parent_source: str,
         nested_source: str,
-    ) -> DICT_OBJ:
+    ) -> MergedRow:
         """Merge parent and joined rows, marking ambiguous columns.
 
         Columns present in both rows (except the join key) are set to the
         ``_AMBIGUOUS`` sentinel so that slot resolution raises a clear error
-        instead of silently picking one.
+        instead of silently picking one. The original rows are preserved in
+        the returned :class:`MergedRow` for dot-notation disambiguation.
 
         :param parent_row: Row from the parent table.
         :param joined_row: Row from the joined table.
         :param join_key: The column used to join (kept from parent).
         :param parent_source: Parent table name (for logging).
         :param nested_source: Joined table name (for logging).
-        :returns: Merged row dict.
+        :returns: MergedRow with ambiguous markers and original rows.
         """
         ambiguous = {k for k in parent_row if k in joined_row and k != join_key}
         merged = {}
@@ -593,7 +624,7 @@ class ObjectTransformer(Transformer):
                 nested_source,
             )
 
-        return merged
+        return MergedRow(merged, rows_by_table={parent_source: parent_row, nested_source: joined_row})
 
     def _apply_offset(self, value: Any, slot_derivation: SlotDerivation, source_obj: DICT_OBJ) -> Any:
         """Apply an offset calculation using a value from another source field."""
