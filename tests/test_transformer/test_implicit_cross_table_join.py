@@ -264,7 +264,7 @@ def test_implicit_join_no_common_columns(data_dir):
     tr = _make_transformer(schema_no_common, TRANSFORM_SPEC, TARGET_SCHEMA_YAML)
     data_loader = DataLoader(data_dir)
 
-    with pytest.raises(TransformationError, match="no common columns"):
+    with pytest.raises(TransformationError, match="no join could be determined"):
         list(transform_spec(tr, data_loader, source_type="Measurement"))
 
 
@@ -306,7 +306,7 @@ def test_implicit_join_multiple_non_id_common_columns(data_dir_ambiguous):
     tr = _make_transformer(schema_multi_common, TRANSFORM_SPEC, TARGET_SCHEMA_YAML)
     data_loader = DataLoader(data_dir_ambiguous)
 
-    with pytest.raises(TransformationError, match="Multiple common columns"):
+    with pytest.raises(TransformationError, match="no join could be determined"):
         list(transform_spec(tr, data_loader, source_type="Measurement"))
 
 
@@ -406,7 +406,7 @@ def test_implicit_join_continue_on_error(data_dir):
 
     # Should collect errors instead of raising
     assert len(errors) == 2  # one per Measurement row
-    assert all("no common columns" in str(e) for e in errors)
+    assert all("no join could be determined" in str(e) for e in errors)
     # Results should still be produced (with whatever the error handler allows)
     assert len(results) == 0  # rows that errored are skipped
 

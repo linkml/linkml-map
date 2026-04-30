@@ -32,7 +32,6 @@ from linkml_map.transformer.transformer import OBJECT_TYPE, Transformer
 from linkml_map.utils.dynamic_object import DynObj, dynamic_object
 from linkml_map.utils.eval_utils import _uuid5, eval_expr, eval_expr_with_mapping
 from linkml_map.utils.fk_utils import FKResolution, resolve_fk_path
-from linkml_map.utils.join_utils import find_common_columns, pick_join_key
 
 DICT_OBJ = dict[str, Any]
 
@@ -158,53 +157,19 @@ class Bindings(Mapping):
                 self.bindings[name] = self._resolve_join(name)
             elif name in self.source_obj and self.source_obj[name] is _AMBIGUOUS:
                 _raise_ambiguous_column(name, class_deriv=self.class_deriv)
-            elif self._is_implicit_join_table(name):
-                self.bindings[name] = self._resolve_implicit_join_for_expr(name)
+            elif name == self.source_type and name not in self.source_obj:
+                # Self-reference: {Reading.score} when source_type is Reading
+                self.bindings[name] = DynObj(
+                    **{k: v for k, v in self.source_obj.items() if v is not _AMBIGUOUS},
+                )
             else:
                 _ = self.get_ctxt_obj_and_dict({name: self.source_obj[name]})
 
         return self.bindings.get(name)
 
-    def _is_implicit_join_table(self, name: str) -> bool:
-        """Check if *name* is a table available for implicit join in expr.
-
-        Returns True if *name* is a registered table in the LookupIndex or
-        if it matches the current source_type (self-reference).
-        """
-        if name in self.source_obj:
-            return False
-        if name == self.source_type:
-            return True
-        idx = self.object_transformer.lookup_index
-        return idx is not None and idx.is_registered(name)
-
     def _resolve_join(self, table_name: str) -> DynObj | None:
-        """Resolve an explicit cross-table lookup, returning a DynObj or None."""
+        """Resolve a cross-table lookup, returning a DynObj or None."""
         row = self.object_transformer._resolve_joined_row(table_name, self.source_obj, self.class_deriv)
-        if row is None:
-            return None
-        return DynObj(**row)
-
-    def _resolve_implicit_join_for_expr(self, table_name: str) -> DynObj | None:
-        """Resolve an implicit cross-table lookup for expr evaluation.
-
-        When *table_name* matches the current source_type, returns a DynObj
-        built from the current source row (self-reference). Otherwise, reuses
-        :func:`pick_join_key` and the LookupIndex to find the matching row.
-        """
-        if table_name == self.source_type:
-            return DynObj(**{k: v for k, v in self.source_obj.items() if v is not _AMBIGUOUS})
-
-        join_key = pick_join_key(self.sv, self.source_type, table_name)
-        if join_key is None:
-            return None
-        key_val = self.source_obj.get(join_key)
-        if key_val is None:
-            return None
-        idx = self.object_transformer.lookup_index
-        if idx is None:
-            return None
-        row = idx.lookup_row(table_name, join_key, key_val)
         if row is None:
             return None
         return DynObj(**row)
@@ -591,97 +556,32 @@ class ObjectTransformer(Transformer):
                 source_class_slot = context.sv.induced_slot(field_path, joined_class)
         return v, source_class_slot
 
-    def _resolve_implicit_join(
-        self,
+    @staticmethod
+    def _merge_rows(
+        parent_row: DICT_OBJ,
+        joined_row: DICT_OBJ,
+        join_key: str,
         parent_source: str,
         nested_source: str,
-        source_obj: DICT_OBJ,
-        cls_derivation: ClassDerivation,
     ) -> DICT_OBJ:
-        """Resolve a cross-table nested derivation via implicit join.
+        """Merge parent and joined rows, marking ambiguous columns.
 
-        When a nested class_derivation has a different ``populated_from`` than
-        its parent and no explicit ``joins:`` block, this method:
+        Columns present in both rows (except the join key) are set to the
+        ``_AMBIGUOUS`` sentinel so that slot resolution raises a clear error
+        instead of silently picking one.
 
-        1. Finds common columns between the two source classes.
-        2. Determines a join key via :func:`pick_join_key`.
-        3. Looks up the matching row from the nested table via the LookupIndex.
-        4. Merges parent and nested rows, excluding ambiguous columns (present
-           in both) from the merged result so that dot notation is required.
-
-        :param parent_source: Parent class_derivation's populated_from.
-        :param nested_source: Nested class_derivation's populated_from.
-        :param source_obj: Current parent source row.
-        :param cls_derivation: The nested ClassDerivation.
-        :returns: Merged row dict for the nested derivation.
-        :raises TransformationError: If no join key can be determined or
-            the LookupIndex is not available.
+        :param parent_row: Row from the parent table.
+        :param joined_row: Row from the joined table.
+        :param join_key: The column used to join (kept from parent).
+        :param parent_source: Parent table name (for logging).
+        :param nested_source: Joined table name (for logging).
+        :returns: Merged row dict.
         """
-        sv = self.source_schemaview
-        common_columns = find_common_columns(sv, parent_source, nested_source)
-
-        if not common_columns:
-            raise TransformationError(
-                message=(
-                    f"Nested class {cls_derivation.name!r} has populated_from={nested_source!r} "
-                    f"which differs from parent populated_from={parent_source!r}, "
-                    f"but no common columns found for implicit join"
-                ),
-                class_derivation_name=cls_derivation.name,
-                class_populated_from=nested_source,
-            )
-
-        join_key = pick_join_key(sv, parent_source, nested_source)
-        if join_key is None:
-            raise TransformationError(
-                message=(
-                    f"Nested class {cls_derivation.name!r} has populated_from={nested_source!r} "
-                    f"which differs from parent populated_from={parent_source!r}. "
-                    f"Multiple common columns found ({sorted(common_columns)}) — "
-                    f"cannot determine implicit join key. Add an explicit joins: block."
-                ),
-                class_derivation_name=cls_derivation.name,
-                class_populated_from=nested_source,
-            )
-
-        logger.info(
-            "Implicit join: %s → %s on column %r",
-            parent_source,
-            nested_source,
-            join_key,
-        )
-
-        # Look up the nested row
-        if self.lookup_index is None or not self.lookup_index.is_registered(nested_source):
-            raise TransformationError(
-                message=(
-                    f"Implicit join from {parent_source!r} to {nested_source!r} on {join_key!r} "
-                    f"requires table {nested_source!r} to be loaded in the LookupIndex. "
-                    f"This is supported in engine mode (transform_spec) but not in direct map_object calls."
-                ),
-                class_derivation_name=cls_derivation.name,
-                class_populated_from=nested_source,
-            )
-
-        key_val = source_obj.get(join_key)
-        if key_val is None:
-            return source_obj
-
-        nested_row = self.lookup_index.lookup_row(nested_source, join_key, key_val)
-        if nested_row is None:
-            return source_obj
-
-        # Merge: nested row fields + parent row fields.
-        # For columns that exist in both, insert _AMBIGUOUS sentinel so that
-        # slot resolution can raise a clear error instead of silently returning None.
-        ambiguous = {k for k in source_obj if k in nested_row and k != join_key}
+        ambiguous = {k for k in parent_row if k in joined_row and k != join_key}
         merged = {}
-        for k, v in source_obj.items():
-            if k in ambiguous:
-                merged[k] = _AMBIGUOUS
-            else:
-                merged[k] = v
-        for k, v in nested_row.items():
+        for k, v in parent_row.items():
+            merged[k] = _AMBIGUOUS if k in ambiguous else v
+        for k, v in joined_row.items():
             if k not in merged:
                 merged[k] = v
 
@@ -748,14 +648,14 @@ class ObjectTransformer(Transformer):
         """Build nested objects from slot-level class_derivation declarations.
 
         When a nested class_derivation has a different ``populated_from`` than
-        its parent and no explicit ``joins:`` block, this method attempts an
-        implicit join by finding common columns between the two source classes
-        and looking up the matching row via the :class:`LookupIndex`.
+        its parent and the parent has a matching join spec (explicit or
+        synthesized during normalization), this method resolves the joined row
+        and merges it with the parent row before passing it to ``map_object``.
 
         :param slot_derivation: The slot derivation that declares nested class_derivations.
         :param source_obj: The current (parent) source row.
         :param target_type: Target class name for cardinality decisions.
-        :param parent_class_deriv: The parent's ClassDerivation (for populated_from context).
+        :param parent_class_deriv: The parent's ClassDerivation (carries join specs).
         """
         derived_objs = []
         parent_source = parent_class_deriv.populated_from or parent_class_deriv.name
@@ -764,13 +664,33 @@ class ObjectTransformer(Transformer):
             nested_source = cls_derivation.populated_from
             effective_obj = source_obj
 
-            if nested_source and nested_source != parent_source and not cls_derivation.joins:
-                effective_obj = self._resolve_implicit_join(
-                    parent_source,
-                    nested_source,
-                    source_obj,
-                    cls_derivation,
-                )
+            if nested_source and nested_source != parent_source:
+                has_join = parent_class_deriv.joins and nested_source in parent_class_deriv.joins
+                if has_join:
+                    # Join spec exists (explicit or synthesized) — resolve and merge
+                    joined_row = self._resolve_joined_row(nested_source, source_obj, parent_class_deriv)
+                    if joined_row is not None:
+                        join_spec = parent_class_deriv.joins[nested_source]
+                        join_key = join_spec.join_on or join_spec.source_key or ""
+                        effective_obj = self._merge_rows(
+                            source_obj,
+                            joined_row,
+                            join_key,
+                            parent_source,
+                            nested_source,
+                        )
+                elif not cls_derivation.joins:
+                    # No join spec anywhere — cross-table reference can't be resolved
+                    raise TransformationError(
+                        message=(
+                            f"Nested class {cls_derivation.name!r} has "
+                            f"populated_from={nested_source!r} which differs from parent "
+                            f"populated_from={parent_source!r}, but no join could be "
+                            f"determined. Add an explicit joins: block."
+                        ),
+                        class_derivation_name=cls_derivation.name,
+                        class_populated_from=nested_source,
+                    )
 
             nested_result = self.map_object(
                 effective_obj,
