@@ -617,7 +617,7 @@ class ObjectTransformer(Transformer):
                 merged[k] = v
 
         if ambiguous:
-            logger.info(
+            logger.debug(
                 "Ambiguous columns %s shared between %s and %s — dot notation required",
                 sorted(ambiguous),
                 parent_source,

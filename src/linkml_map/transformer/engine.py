@@ -97,7 +97,7 @@ def transform_spec(
         try:
             # Register all joined tables (explicit + synthesized from normalization)
             all_joins = _collect_all_joins(class_deriv)
-            for join_name, (source_key, lookup_key) in all_joins.items():
+            for join_name, (_source_key, lookup_key) in all_joins.items():
                 if join_name in data_loader and not transformer.lookup_index.is_registered(join_name):
                     join_path = data_loader.get_path(join_name)
                     transformer.lookup_index.register_table(join_name, join_path, lookup_key)
