@@ -70,7 +70,8 @@ class Compiler(ABC):
             ``Transformer.derived_specification``).  Must not be ``None``.
         :return: The compiled specification.
         """
-        assert specification is not None, "compile() requires a resolved specification"
+        if specification is None:
+            raise TypeError("compile() requires a resolved specification")
         s = self._compile_header(specification)
         for chunk in self._compile_iterator(specification):
             s += chunk
