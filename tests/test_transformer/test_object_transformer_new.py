@@ -384,6 +384,85 @@ def test_hidden_slot_with_value_mappings_excluded(scaffold):
     assert "status_label" in result
 
 
+def test_slot_fn_in_expression_mapping(scaffold):
+    """slot() is available inside expression_mappings values, not just expr."""
+    apply_schema_patch(
+        scaffold["source_schema"],
+        """
+    classes:
+      Person:
+        slots:
+          - kind_code
+    slots:
+      kind_code:
+        range: string
+""",
+    )
+    scaffold["input_data"]["kind_code"] = "X"
+
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - kind_label
+    slots:
+      kind_label:
+        range: string
+""",
+    )
+
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          _suffix:
+            hide: true
+            expr: "'!'"
+          kind_label:
+            populated_from: kind_code
+            expression_mappings:
+              "X": "'extra' + slot('_suffix')"
+""",
+    )
+    result = run_transformer(scaffold)
+    assert result["kind_label"] == "extra!"
+
+
+def test_slot_fn_with_unrestricted_eval(scaffold):
+    """slot() is available in the asteval fallback path used by unrestricted_eval."""
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - asteval_label
+    slots:
+      asteval_label:
+        range: string
+""",
+    )
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          _src_name:
+            hide: true
+            expr: "{name}"
+          asteval_label:
+            expr: "target = slot('_src_name')"
+""",
+    )
+    result = run_transformer(scaffold)
+    assert result["asteval_label"] == "alice adams"
+
+
 def test_slot_fn_returns_none_for_missing(scaffold):
     """slot() returns None for a slot name that doesn't exist."""
     apply_schema_patch(

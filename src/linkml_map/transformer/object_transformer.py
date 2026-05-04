@@ -377,7 +377,7 @@ class ObjectTransformer(Transformer):
                 (v, source_class_slot) = self._resolve_fk_or_literal(populated_from, slot_derivation, context)
 
             if (slot_derivation.value_mappings or slot_derivation.expression_mappings) and v is not None:
-                v = self._apply_mappings(slot_derivation, v, bindings)
+                v = self._apply_mappings(slot_derivation, v, bindings, functions=expr_functions)
 
             if slot_derivation.offset and v is not None:
                 v = self._apply_offset(v, slot_derivation, context.source_obj)
@@ -430,7 +430,13 @@ class ObjectTransformer(Transformer):
             aeval(expr)
             return aeval.symtable["target"]
 
-    def _apply_mappings(self, slot_derivation: SlotDerivation, v: Any, bindings: Bindings) -> Any:
+    def _apply_mappings(
+        self,
+        slot_derivation: SlotDerivation,
+        v: Any,
+        bindings: Bindings,
+        functions: dict[str, Any] | None = None,
+    ) -> Any:
         """Look up a value in value_mappings then expression_mappings.
 
         Checks ``value_mappings`` first (literal result). On miss, falls through
@@ -444,7 +450,7 @@ class ObjectTransformer(Transformer):
         if slot_derivation.expression_mappings:
             em_hit = slot_derivation.expression_mappings.get(str_v)
             if em_hit is not None:
-                return self._eval_expr(em_hit.value, bindings)
+                return self._eval_expr(em_hit.value, bindings, functions=functions)
         return None
 
     def _perform_fk_resolution(
