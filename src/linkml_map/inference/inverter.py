@@ -68,6 +68,10 @@ class TransformationSpecificationInverter:
         """
         inverted_cd = ClassDerivation(name=cd.populated_from if cd.populated_from else cd.name, populated_from=cd.name)
         for sd in cd.slot_derivations.values():
+            if sd.hide:
+                # Hidden slots have no target counterpart, so they have nothing
+                # to invert from.
+                continue
             inverted_sd = self.invert_slot_derivation(sd, cd, spec)
             if inverted_sd:
                 inverted_cd.slot_derivations[inverted_sd.name] = inverted_sd

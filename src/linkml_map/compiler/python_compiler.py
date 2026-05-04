@@ -58,12 +58,12 @@ def derive_{{ cd.name }}(
 {%- for slot in source_slots %}
     {{ slot.name }} = source_object.{{ slot.name }}
 {%- endfor %}
-{%-  for sd in cd.slot_derivations.values() -%}
+{%-  for sd in cd.slot_derivations.values() if not sd.hide -%}
     {{  gen_slot_derivation_defs(sd) }}
 {%-  endfor %}
 
     return tgt.{{ cd.name }}(
-        {%- for sd in cd.slot_derivations.values() %}
+        {%- for sd in cd.slot_derivations.values() if not sd.hide %}
         {{ sd.name }}={{ gen_slot_derivation(sd) }},
         {%- endfor %}
     )

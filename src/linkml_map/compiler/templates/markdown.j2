@@ -7,7 +7,7 @@
 
 | Target | Target Range | Source | Source Range | Info |
 | ------ | ------ | ---- | ---- | ---- |
-    {%- for sd in cd.slot_derivations.values() %}
+    {%- for sd in cd.slot_derivations.values() if not sd.hide %}
 | {{ sd.name }} | | {{ sd.range }} | {% if sd.expr is not none %} [expression] {% else %} {{ sd.populated_from }} {% endif %} | . | . |
     {%- endfor -%}
 {% endfor %}

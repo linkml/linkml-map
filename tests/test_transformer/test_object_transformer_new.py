@@ -433,7 +433,12 @@ def test_slot_fn_in_expression_mapping(scaffold):
 
 
 def test_slot_fn_with_unrestricted_eval(scaffold):
-    """slot() is available in the asteval fallback path used by unrestricted_eval."""
+    """slot() is available in the asteval fallback path used by unrestricted_eval.
+
+    Uses lambda syntax which simpleeval rejects with InvalidExpression, forcing
+    _eval_expr to fall through to the asteval Interpreter. slot() must be in the
+    asteval usersyms for the expression to resolve.
+    """
     apply_schema_patch(
         scaffold["target_schema"],
         """
@@ -456,11 +461,11 @@ def test_slot_fn_with_unrestricted_eval(scaffold):
             hide: true
             expr: "{name}"
           asteval_label:
-            expr: "target = slot('_src_name')"
+            expr: "target = (lambda v: v.upper())(slot('_src_name'))"
 """,
     )
     result = run_transformer(scaffold)
-    assert result["asteval_label"] == "alice adams"
+    assert result["asteval_label"] == "ALICE ADAMS"
 
 
 def test_slot_fn_returns_none_for_missing(scaffold):
