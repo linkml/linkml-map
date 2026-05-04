@@ -253,6 +253,104 @@ def setup_hidden_slot_with_value_mappings(scaffold):
     scaffold["expected"]["status_label"] = "Status: Active"
 
 
+@add_to_test_setup
+def setup_expression_mapping(scaffold):
+    """Map a value via expression_mappings."""
+
+    apply_schema_patch(
+        scaffold["source_schema"],
+        """
+    classes:
+      Person:
+        slots:
+          - visit_code
+    slots:
+      visit_code:
+        range: string
+""",
+    )
+
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - visit_id
+    slots:
+      visit_id:
+        range: string
+""",
+    )
+
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          visit_id:
+            populated_from: visit_code
+            expression_mappings:
+              "1": "uuid5('https://example.org/visit', {id} + '_SCREENING')"
+              "7": "uuid5('https://example.org/visit', {id} + '_BASELINE')"
+""",
+    )
+
+    scaffold["input_data"]["visit_code"] = "1"
+    from linkml_map.utils.eval_utils import _uuid5
+
+    scaffold["expected"]["visit_id"] = _uuid5("https://example.org/visit", "P:001_SCREENING")
+
+
+@add_to_test_setup
+def setup_value_mapping_literal(scaffold):
+    """Map a value via literal value in value_mappings (backward compat)."""
+
+    apply_schema_patch(
+        scaffold["source_schema"],
+        """
+    classes:
+      Person:
+        slots:
+          - role_code
+    slots:
+      role_code:
+        range: string
+""",
+    )
+
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - role_label
+    slots:
+      role_label:
+        range: string
+""",
+    )
+
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          role_label:
+            populated_from: role_code
+            value_mappings:
+              "A": Admin
+              "U": User
+""",
+    )
+
+    scaffold["input_data"]["role_code"] = "A"
+    scaffold["expected"]["role_label"] = "Admin"
+
+
 @pytest.mark.parametrize(
     "setup_func",
     TEST_SETUP_FUNCTIONS,
@@ -312,6 +410,102 @@ def test_slot_fn_returns_none_for_missing(scaffold):
     )
     result = run_transformer(scaffold)
     assert result["missing_ref"] is None
+
+
+def test_value_mapping_no_match_returns_none(scaffold):
+    """Value mappings return None when the source value has no matching key."""
+
+    apply_schema_patch(
+        scaffold["source_schema"],
+        """
+    classes:
+      Person:
+        slots:
+          - code
+    slots:
+      code:
+        range: string
+""",
+    )
+
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - result
+    slots:
+      result:
+        range: string
+""",
+    )
+
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          result:
+            populated_from: code
+            value_mappings:
+              "A": alpha
+""",
+    )
+
+    scaffold["input_data"]["code"] = "Z"
+    result = run_transformer(scaffold)
+    assert result.get("result") is None
+
+
+def test_value_mappings_takes_precedence_over_expression_mappings(scaffold):
+    """When both value_mappings and expression_mappings have the same key, value_mappings wins."""
+
+    apply_schema_patch(
+        scaffold["source_schema"],
+        """
+    classes:
+      Person:
+        slots:
+          - code
+    slots:
+      code:
+        range: string
+""",
+    )
+
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - result
+    slots:
+      result:
+        range: string
+""",
+    )
+
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          result:
+            populated_from: code
+            value_mappings:
+              "A": literal_wins
+            expression_mappings:
+              "A": "'expression_loses'"
+""",
+    )
+
+    scaffold["input_data"]["code"] = "A"
+    result = run_transformer(scaffold)
+    assert result["result"] == "literal_wins"
 
 
 # ---------------------------------------------------------------------------

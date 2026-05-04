@@ -41,9 +41,7 @@ schema_option = click.option("-s", "--schema", help="Path to source schema.")
 transformer_specification_option = click.option(
     "-T", "--transformer-specification", help="Path to transformer specification."
 )
-target_schema_option = click.option(
-    "--target-schema", help="Path to target schema (required for nested object_derivations)."
-)
+target_schema_option = click.option("--target-schema", help="Path to target schema.")
 
 logger = logging.getLogger(__name__)
 
@@ -364,7 +362,7 @@ def compile(
     tr = ObjectTransformer()
     tr.source_schemaview = sv
     tr.load_transformer_specification(transformer_specification)
-    result = compiler.compile(tr.specification)
+    result = compiler.compile(tr.derived_specification)
     # dump as-is, no encoding
     dump_output(result.serialization, None, output)
 

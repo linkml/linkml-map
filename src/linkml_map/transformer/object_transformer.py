@@ -358,7 +358,7 @@ class ObjectTransformer(Transformer):
             # MELT operation: wide format to EAV/long format
             v = self._perform_melt(slot_derivation.pivot_operation, context.source_obj, slot_derivation)
         elif slot_derivation.expr:
-            v = self._derive_from_expr(slot_derivation, bindings, functions=expr_functions)
+            v = self._eval_expr(slot_derivation.expr, bindings, functions=expr_functions)
         elif slot_derivation.populated_from:
             populated_from = slot_derivation.populated_from
 
@@ -376,9 +376,8 @@ class ObjectTransformer(Transformer):
             else:
                 (v, source_class_slot) = self._resolve_fk_or_literal(populated_from, slot_derivation, context)
 
-            if slot_derivation.value_mappings and v is not None:
-                mapped = slot_derivation.value_mappings.get(str(v), None)
-                v = mapped.value if mapped is not None else None
+            if (slot_derivation.value_mappings or slot_derivation.expression_mappings) and v is not None:
+                v = self._apply_mappings(slot_derivation, v, bindings)
 
             if slot_derivation.offset and v is not None:
                 v = self._apply_offset(v, slot_derivation, context.source_obj)
@@ -388,7 +387,7 @@ class ObjectTransformer(Transformer):
             )
         elif slot_derivation.sources:
             (v, source_class_slot) = self._resolve_sources(slot_derivation, context)
-        elif slot_derivation.object_derivations:
+        elif slot_derivation.class_derivations:
             v = self._derive_nested_objects(slot_derivation, context.source_obj, target_type)
         else:
             source_class_slot = context.sv.induced_slot(slot_derivation.name, context.source_type)
@@ -402,15 +401,24 @@ class ObjectTransformer(Transformer):
             v = self._reshape_collection(v, slot_derivation, source_class_slot)
         return v
 
-    def _derive_from_expr(
+    def _eval_expr(
         self,
-        slot_derivation: SlotDerivation,
+        expr: str,
         bindings: Bindings,
         functions: dict[str, Any] | None = None,
     ) -> Any:
-        """Evaluate a slot derivation expression, with fallback to asteval for unrestricted mode."""
+        """Evaluate an expression string against bindings.
+
+        Uses the restricted evaluator by default, with fallback to asteval
+        when ``unrestricted_eval`` is enabled on the transformer.
+
+        :param expr: The expression string to evaluate.
+        :param bindings: Variable bindings for the expression.
+        :param functions: Extra functions injected into the evaluator
+            (e.g. ``slot`` for referencing previously derived target slots).
+        """
         try:
-            return eval_expr_with_mapping(slot_derivation.expr, bindings, functions=functions)
+            return eval_expr_with_mapping(expr, bindings, functions=functions)
         except (InvalidExpression, TypeError, ValueError):
             if not self.unrestricted_eval:
                 raise
@@ -419,8 +427,25 @@ class ObjectTransformer(Transformer):
             if functions:
                 usersyms.update(functions)
             aeval = Interpreter(usersyms=usersyms)
-            aeval(slot_derivation.expr)
+            aeval(expr)
             return aeval.symtable["target"]
+
+    def _apply_mappings(self, slot_derivation: SlotDerivation, v: Any, bindings: Bindings) -> Any:
+        """Look up a value in value_mappings then expression_mappings.
+
+        Checks ``value_mappings`` first (literal result). On miss, falls through
+        to ``expression_mappings`` (evaluated against *bindings*). Returns
+        ``None`` if neither table contains the key.
+        """
+        str_v = str(v)
+        vm_hit = slot_derivation.value_mappings.get(str_v) if slot_derivation.value_mappings else None
+        if vm_hit is not None:
+            return vm_hit.value
+        if slot_derivation.expression_mappings:
+            em_hit = slot_derivation.expression_mappings.get(str_v)
+            if em_hit is not None:
+                return self._eval_expr(em_hit.value, bindings)
+        return None
 
     def _perform_fk_resolution(
         self,
@@ -584,22 +609,17 @@ class ObjectTransformer(Transformer):
         return v, source_class_slot
 
     def _derive_nested_objects(self, slot_derivation: SlotDerivation, source_obj: DICT_OBJ, target_type: str) -> Any:
-        """Build nested objects from explicit object_derivation declarations."""
+        """Build nested objects from slot-level class_derivation declarations."""
         derived_objs = []
 
-        for obj_derivation in slot_derivation.object_derivations:
-            for target_cls, cls_derivation in obj_derivation.class_derivations.items():
-                # Determine the correct source object to use
-                source_sub_obj = source_obj  # You may refine this if needed
-
-                # Recursively map the sub-object
-                nested_result = self.map_object(
-                    source_sub_obj,
-                    source_type=cls_derivation.populated_from,
-                    target_type=target_cls,
-                    class_derivation=cls_derivation,
-                )
-                derived_objs.append(nested_result)
+        for cls_derivation in slot_derivation.class_derivations:
+            nested_result = self.map_object(
+                source_obj,
+                source_type=cls_derivation.populated_from,
+                target_type=cls_derivation.name,
+                class_derivation=cls_derivation,
+            )
+            derived_objs.append(nested_result)
 
         # If the slot is multivalued, we assign the whole list
         # Otherwise, just assign the first (for now; error/warning later if >1)
