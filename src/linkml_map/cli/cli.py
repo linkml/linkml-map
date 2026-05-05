@@ -3,10 +3,9 @@
 import logging
 import os
 import sys
-from collections.abc import Iterator
 from contextlib import nullcontext
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 import click
 import yaml
@@ -19,6 +18,8 @@ from linkml_map.compiler.python_compiler import PythonCompiler
 from linkml_map.inference.inverter import TransformationSpecificationInverter
 from linkml_map.inference.schema_mapper import SchemaMapper
 from linkml_map.loaders import DataLoader
+from linkml_map.transformer.engine import transform_spec
+from linkml_map.transformer.errors import TransformationError
 from linkml_map.transformer.object_transformer import ObjectTransformer
 from linkml_map.writers import (
     EXTENSION_FORMAT_MAP,
@@ -40,6 +41,7 @@ schema_option = click.option("-s", "--schema", help="Path to source schema.")
 transformer_specification_option = click.option(
     "-T", "--transformer-specification", help="Path to transformer specification."
 )
+target_schema_option = click.option("--target-schema", help="Path to target schema.")
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +68,7 @@ def main(verbose: int, quiet: bool) -> None:
 @output_option
 @transformer_specification_option
 @schema_option
+@target_schema_option
 @click.option("--source-type", help="Source type/class name for the input data.")
 @click.option(
     "--unrestricted-eval/--no-unrestricted-eval",
@@ -93,16 +96,24 @@ def main(verbose: int, quiet: bool) -> None:
     multiple=True,
     help="Additional output files. Format inferred from extension. Can be repeated.",
 )
+@click.option(
+    "--continue-on-error",
+    is_flag=True,
+    default=False,
+    help="Continue processing when a row fails to transform. Report errors at end.",
+)
 @click.argument("input_data")
 def map_data(
     input_data: str,
     schema: str,
-    source_type: Optional[str],
+    source_type: str | None,
     transformer_specification: str,
-    output: Optional[str],
-    output_format: Optional[str],
+    output: str | None,
+    output_format: str | None,
     chunk_size: int,
     additional_output: tuple,
+    continue_on_error: bool = False,
+    target_schema: str | None = None,
     **kwargs: dict[str, Any],
 ) -> None:
     """
@@ -130,9 +141,7 @@ def map_data(
         linkml-map map-data -T transform.yaml -s schema.yaml -f jsonl -O out.tsv -O out.json input.tsv
 
     """
-    logger.info(
-        f"Transforming {input_data} conforming to {schema} using {transformer_specification}"
-    )
+    logger.info(f"Transforming {input_data} conforming to {schema} using {transformer_specification}")
 
     input_path = Path(input_data)
 
@@ -160,6 +169,8 @@ def map_data(
             output_format=output_format,
             chunk_size=chunk_size,
             additional_output=additional_output,
+            target_schema=target_schema,
+            continue_on_error=continue_on_error,
             **kwargs,
         )
     else:
@@ -171,6 +182,8 @@ def map_data(
             transformer_specification=transformer_specification,
             output=output,
             output_format=output_format,
+            target_schema=target_schema,
+            continue_on_error=continue_on_error,
             **kwargs,
         )
 
@@ -178,16 +191,20 @@ def map_data(
 def _map_data_single(
     input_data: str,
     schema: str,
-    source_type: Optional[str],
+    source_type: str | None,
     transformer_specification: str,
-    output: Optional[str],
+    output: str | None,
     output_format: str,
+    target_schema: str | None = None,
+    continue_on_error: bool = False,
     **kwargs: dict[str, Any],
 ) -> None:
     """Original single-object transformation logic."""
     tr = ObjectTransformer(**kwargs)
     tr.source_schemaview = SchemaView(schema)
     tr.load_transformer_specification(transformer_specification)
+    if target_schema:
+        tr.target_schemaview = SchemaView(target_schema)
 
     # Load input data (YAML or JSON)
     with open(input_data) as file:
@@ -200,27 +217,15 @@ def _map_data_single(
             input_obj = json.loads(content)
 
     tr.index(input_obj, source_type)
-    tr_obj = tr.map_object(input_obj, source_type)
+    try:
+        tr_obj = tr.map_object(input_obj, source_type)
+    except TransformationError as err:
+        if not continue_on_error:
+            raise
+        click.echo("\n1 transformation error:", err=True)
+        click.echo(f"  - {err}", err=True)
+        raise SystemExit(1) from err
     dump_output(tr_obj, output_format, output)
-
-
-def _transform_iterator(
-    data_loader: DataLoader,
-    transformer: ObjectTransformer,
-    source_type: Optional[str],
-) -> Iterator[dict[str, Any]]:
-    """Iterate over data and yield transformed objects."""
-    for identifier, rows in data_loader.iter_sources():
-        # Use explicit source_type if provided, otherwise use identifier from filename
-        effective_type = source_type if source_type else identifier
-        logger.info(f"Processing {identifier} as {effective_type}")
-        for row in rows:
-            try:
-                mapped = transformer.map_object(row, source_type=effective_type)
-                yield mapped
-            except Exception as e:
-                logger.warning(f"Error transforming row from {identifier}: {e}")
-                raise
 
 
 def _build_additional_outputs(
@@ -247,12 +252,14 @@ def _build_additional_outputs(
 def _map_data_streaming(
     input_path: Path,
     schema: str,
-    source_type: Optional[str],
+    source_type: str | None,
     transformer_specification: str,
-    output: Optional[str],
+    output: str | None,
     output_format: str,
     chunk_size: int,
     additional_output: tuple = (),
+    target_schema: str | None = None,
+    continue_on_error: bool = False,
     **kwargs: dict[str, Any],
 ) -> None:
     """Streaming transformation for tabular/directory input."""
@@ -260,12 +267,18 @@ def _map_data_streaming(
     tr = ObjectTransformer(**kwargs)
     tr.source_schemaview = SchemaView(schema)
     tr.load_transformer_specification(transformer_specification)
+    if target_schema:
+        tr.target_schemaview = SchemaView(target_schema)
 
     # Initialize data loader
     data_loader = DataLoader(input_path)
 
+    # Set up error collection when continue-on-error is enabled
+    errors: list[TransformationError] = []
+    on_error = errors.append if continue_on_error else None
+
     # Create transform iterator and chunk it
-    transform_iter = _transform_iterator(data_loader, tr, source_type)
+    transform_iter = transform_spec(tr, data_loader, source_type, on_error=on_error)
     chunks = chunked(transform_iter, chunk_size)
 
     # Resolve output format
@@ -305,11 +318,16 @@ def _map_data_streaming(
             tmp_path = output + ".tmp"
             with open(output, encoding="utf-8") as src, open(tmp_path, "w", encoding="utf-8") as dst:
                 separator = "\t" if output_format == "tsv" else ","
-                for line in rewrite_header_and_pad(
-                    iter(src), stream_writer.headers, separator, chunk_size
-                ):
+                for line in rewrite_header_and_pad(iter(src), stream_writer.headers, separator, chunk_size):
                     dst.write(line)
             os.replace(tmp_path, output)
+
+    # Report collected errors
+    if errors:
+        click.echo(f"\n{len(errors)} transformation error(s):", err=True)
+        for err in errors:
+            click.echo(f"  - {err}", err=True)
+        raise SystemExit(1)
 
 
 @main.command()
@@ -321,8 +339,8 @@ def compile(
     schema: str,
     transformer_specification: str,
     target: str,
-    output: Optional[str],
-    **kwargs: Optional[dict[str, Any]],
+    output: str | None,
+    **kwargs: Any,
 ) -> None:
     """
     Compiles a schema to another representation.
@@ -344,7 +362,7 @@ def compile(
     tr = ObjectTransformer()
     tr.source_schemaview = sv
     tr.load_transformer_specification(transformer_specification)
-    result = compiler.compile(tr.specification)
+    result = compiler.compile(tr.derived_specification)
     # dump as-is, no encoding
     dump_output(result.serialization, None, output)
 
@@ -356,8 +374,8 @@ def compile(
 def derive_schema(
     schema: str,
     transformer_specification: str,
-    output: Optional[str],
-    **kwargs: Optional[dict[str, Any]],
+    output: str | None,
+    **kwargs: Any,
 ) -> None:
     """
     Derive a schema from a source schema and a transformation specification.
@@ -390,8 +408,8 @@ def derive_schema(
 def invert(
     schema: str,
     transformer_specification: str,
-    output: Optional[str],
-    **kwargs: Optional[dict[str, Any]],
+    output: str | None,
+    **kwargs: Any,
 ) -> None:
     """
     Invert a transformation specification.
@@ -411,10 +429,43 @@ def invert(
     dump_output(inverted_spec, "yaml", output)
 
 
+@main.command(name="validate-spec")
+@click.argument("spec_files", nargs=-1, required=True, type=click.Path(exists=True))
+def validate_spec_cmd(
+    spec_files: tuple[str, ...],
+) -> None:
+    """Validate transformation specification YAML files.
+
+    Checks that each file conforms to the TransformationSpecification schema.
+    Exits with code 1 if any file has validation errors.
+
+    Example:
+
+        linkml-map validate-spec my-transform.yaml
+
+        linkml-map validate-spec specs/*.yaml
+    """
+    from linkml_map.validator import validate_spec_file
+
+    has_errors = False
+    for path in spec_files:
+        errors = validate_spec_file(path)
+        if errors:
+            has_errors = True
+            click.echo(f"{path}:", err=True)
+            for error in errors:
+                click.echo(f"  {error}", err=True)
+        else:
+            click.echo(f"{path}: ok")
+
+    if has_errors:
+        raise SystemExit(1)
+
+
 def dump_output(
-    output_data: Union[dict[str, Any], list[Any], str],
-    output_format: Optional[str] = None,
-    file_path: Optional[str] = None,
+    output_data: dict[str, Any] | list[Any] | str,
+    output_format: str | None = None,
+    file_path: str | None = None,
 ) -> None:
     """
     Dump output to a file or stdout.
@@ -435,16 +486,18 @@ def dump_output(
         msg = "No output to be printed"
         raise ValueError(msg)
 
+    from linkml_map.writers.output_streams import _strip_nulls
+
     text_dump = output_data
     if output_format == "yaml":
         text_dump = yaml_dumper.dumps(output_data)
     elif output_format == "json":
-        text_dump = json.dumps(output_data, indent=2, ensure_ascii=False)
+        text_dump = json.dumps(_strip_nulls(output_data), indent=2, ensure_ascii=False) + "\n"
     elif output_format == "jsonl":
         if isinstance(output_data, list):
-            text_dump = "\n".join(json.dumps(item, ensure_ascii=False) for item in output_data)
+            text_dump = "\n".join(json.dumps(_strip_nulls(item), ensure_ascii=False) for item in output_data) + "\n"
         else:
-            text_dump = json.dumps(output_data, ensure_ascii=False)
+            text_dump = json.dumps(_strip_nulls(output_data), ensure_ascii=False) + "\n"
     elif output_format in ("tsv", "csv"):
         separator = "\t" if output_format == "tsv" else ","
         reducer = make_reducer("__")

@@ -3,14 +3,14 @@ name: linkml-map
 title: LinkML Map Data Model
 description: |-
   Datamodel for LinkML schema mappings and transformations.
-  
+
   A mapper generates instances of a *target* data model from
   instances of a *source* data model. This transformation process
   is guided by a *TransformationSpecification*.
-  
+
   The specification is independent of any one method for transforming
   data. It allows different approaches, including:
-  
+
   - direct implementation, transforming python or json objects
   - translation of the specification into SQL commands, to operate on relations
   - translation of the specification into SPARQL CONSTRUCTs, to operate on triples
@@ -23,6 +23,7 @@ prefixes:
   rdfs: http://www.w3.org/2000/01/rdf-schema#
   sh: http://www.w3.org/ns/shacl#
   STATO: http://purl.obolibrary.org/obo/STATO_
+  sssom: https://w3id.org/sssom/
 default_prefix: linkmlmap
 
 imports:
@@ -73,8 +74,21 @@ classes:
         description: Unique identifier for this transformation specification
         slot_uri: schema:identifier
       title:
+        # Corresponds to fair_mappings_schema:MappingSpecification.name
         description: human readable title for this transformation specification
         slot_uri: dcterms:title
+      publication_date:
+        description: date of publication of this transformation specification
+        range: date
+        slot_uri: dcterms:issued
+      license:
+        description: license under which this transformation specification is published
+        range: uriorcurie
+        slot_uri: dcterms:license
+      version:
+        description: version of this transformation specification
+        range: string
+        slot_uri: dcterms:version
       prefixes:
         description: maps prefixes to URL expansions
         range: KeyVal
@@ -86,8 +100,10 @@ classes:
         multivalued: true
         inlined: true
       source_schema:
+        # Corresponds to fair_mappings_schema:MappingSpecification.subject_source
         description: name of the schema that describes the source (input) objects
       target_schema:
+        # Corresponds to fair_mappings_schema:MappingSpecification.object_source
         description: name of the schema that describes the target (output) objects
       source_schema_patches:
         range: Any
@@ -95,6 +111,35 @@ classes:
           Schema patches to apply to the source schema before transformation.
           Useful for adding foreign key relationships to auto-generated schemas.
           Uses LinkML schema YAML structure (classes, slots, attributes, etc.).
+      creator:
+        description: A list of creators of this transformation specification
+        range: Agent
+        multivalued: true
+        inlined: true
+        inlined_as_list: true
+        slot_uri: dcterms:creator
+      author:
+        description: A list of authors of this transformation specification
+        range: Agent
+        multivalued: true
+        inlined: true
+        inlined_as_list: true
+      reviewer:
+        description: A list of reviewers of this transformation specification
+        range: Agent
+        multivalued: true
+        inlined: true
+        inlined_as_list: true
+      mapping_method:
+        description: The method used to create this mapping, e.g. manual curation, automated
+          mapping, etc.
+        range: uriorcurie
+      documentation:
+        description: URL or reference to documentation for the mapping specification
+        range: uri
+      content_url:
+        description: Reference to the actual content of the mapping specification
+        range: uri
       class_derivations:
         description: >-
           Instructions on how to derive a set of classes in the target schema
@@ -115,12 +160,18 @@ classes:
         range: SlotDerivation
         multivalued: true
         inlined: true
+        deprecated: >-
+          Not implemented. Top-level slot derivations lack deterministic semantics
+          because a slot's derivation depends on the class context in which it
+          appears — the same slot may need different derivations in different
+          classes. Use slot_derivations within each ClassDerivation instead.
+          See https://github.com/linkml/linkml-map/issues/47
 
   ElementDerivation:
     is_a: SpecificationComponent
     abstract: true
     description: >-
-      An abstract grouping for classes that provide a specification of how to 
+      An abstract grouping for classes that provide a specification of how to
       derive a target element from a source element.
     attributes:
       name:
@@ -148,17 +199,37 @@ classes:
         multivalued: true
         inlined: true
         description: >-
-          A mapping table that is applied directly to mappings, in order of precedence
+          A mapping table that is applied directly to mappings, in order of precedence.
+          Keys should always be quoted in YAML to prevent type coercion — unquoted
+          true/false become booleans and bare numbers become integers, which will not
+          match the stringified source value used for lookup.
+      expression_mappings:
+        range: KeyVal
+        multivalued: true
+        inlined: true
+        description: >-
+          A mapping table where the values are expressions evaluated against source
+          bindings. Looked up by the same key as value_mappings (the stringified
+          source value). Keys should always be quoted (see value_mappings).
+          If both value_mappings and expression_mappings are present,
+          value_mappings takes precedence for keys that appear in both.
       expression_to_value_mappings:
         range: KeyVal
         multivalued: true
         inlined: true
         description: >-
-          A mapping table in which the keys are expressions
+          A mapping table in which the keys are boolean expressions and
+          the values are literal results. On enum derivations, used for
+          scalar binning: each key is evaluated with value() bound to the
+          incoming value, and the first truthy key's value is returned as
+          the target permissible value. See issue #99.
       expression_to_expression_mappings:
         range: KeyVal
         multivalued: true
         inlined: true
+        deprecated: >-
+          Deprecated: use case() with and/or operators instead (#127).
+          Will be removed before 1.0.
         description: >-
           A mapping table in which the keys and values are expressions
       mirror_source:
@@ -175,10 +246,17 @@ classes:
       #  description: Name of the class in the target schema
       populated_from:
         range: ClassReference
-        description: Name of the class in the source schema
+        description: >-
+          Source class to derive this target class from.
       sources:
         range: ClassReference
         multivalued: true
+        deprecated: >-
+          Deprecated. Use populated_from instead.
+          See https://github.com/linkml/linkml-map/issues/193 for planned
+          list support in populated_from. Will be removed in a future version.
+        description: >-
+          Deprecated. Use populated_from instead.
       joins:
         range: AliasedClass
         multivalued: true
@@ -202,7 +280,12 @@ classes:
 
   ObjectDerivation:
     is_a: ElementDerivation
-    description: Temporary placeholder for object_derivations
+    deprecated: >-
+      Use list-based class_derivations instead of nesting via object_derivations.
+      See https://github.com/linkml/linkml-map/issues/112
+    description: >-
+      Deprecated. A nested derivation for constructing slot values that are
+      class instances. Use list-based class_derivations instead.
     attributes:
       name:
         description: Name of the element in the target schema
@@ -236,13 +319,34 @@ classes:
         description: Target slot name
       populated_from:
         range: SlotReference
-        description: Source slot name
+        description: >-
+          Source slot to derive this target slot from.
       sources:
         range: SlotReference
         multivalued: true
-      object_derivations:
+        deprecated: >-
+          Deprecated. Use populated_from instead.
+          See https://github.com/linkml/linkml-map/issues/193 for planned
+          list support in populated_from. Will be removed in a future version.
         description: >-
-          One or more object derivations used to construct the slot value(s), 
+          Deprecated. Use populated_from instead.
+      class_derivations:
+        description: >-
+          Instructions on how to derive nested class instances for this slot.
+          Each entry specifies how to construct an instance of a target class
+          from source data. For multivalued slots, each entry produces one
+          object in the resulting list.
+        range: ClassDerivation
+        multivalued: true
+        inlined: true
+        inlined_as_list: true
+      object_derivations:
+        deprecated: >-
+          Use list-based class_derivations instead of nesting via object_derivations.
+          See https://github.com/linkml/linkml-map/issues/112
+        description: >-
+          Deprecated. Use list-based class_derivations instead.
+          One or more object derivations used to construct the slot value(s),
           which must be instances of a class.
         range: ObjectDerivation
         multivalued: true
@@ -251,8 +355,13 @@ classes:
       derived_from:
         range: SlotReference
         multivalued: true
-        description: Source slots that are used to derive this slot. This can be computed from the expr,
-          if the expr is declarative.
+        deprecated: >-
+          This field is fully derivable from expr and is not used by the runtime.
+          It will be removed in a future version.
+        description: >-
+          Deprecated. This field is ignored by the runtime and will be removed.
+          It was intended to list source slots feeding into an expr-based
+          derivation, but this information is fully derivable from the expr itself.
       expr:
         range: string
         description: >-
@@ -313,10 +422,17 @@ classes:
         description: Target enum name
       populated_from:
         range: EnumReference
-        description: Source enum name
+        description: >-
+          Source enum to derive this target enum from.
       sources:
         range: EnumReference
         multivalued: true
+        deprecated: >-
+          Deprecated. Use populated_from instead.
+          See https://github.com/linkml/linkml-map/issues/193 for planned
+          list support in populated_from. Will be removed in a future version.
+        description: >-
+          Deprecated. Use populated_from instead.
       expr:
         range: string
         description: >-
@@ -344,10 +460,17 @@ classes:
         range: string
       populated_from:
         range: string
-        description: Source permissible value
+        description: >-
+          Source permissible value that maps to this target permissible value.
       sources:
         range: string
         multivalued: true
+        deprecated: >-
+          Deprecated. Use populated_from instead.
+          See https://github.com/linkml/linkml-map/issues/193 for planned
+          list support in populated_from. Will be removed in a future version.
+        description: >-
+          Deprecated. Use populated_from instead.
       hide:
         range: boolean
 
@@ -370,6 +493,13 @@ classes:
       source_magnitude_slot:
       target_unit_slot:
       target_magnitude_slot:
+      none_if_non_numeric:
+        range: boolean
+        description: >-
+          If true, return None when the source value cannot be coerced to a
+          numeric type instead of raising an error. This is an explicit opt-in
+          for columns that contain non-numeric coded values (e.g. 'A', 'M')
+          mixed with numeric data.
 
   Offset:
     description: >-
@@ -502,6 +632,60 @@ classes:
       value:
         range: Any
 
+  # Aligned with fair_mappings_schema:Agent
+  Agent:
+    abstract: true
+    description: An entity that can create or contribute to a digital object, such as an author or creator.
+    attributes:
+      id:
+        identifier: true
+        description: Identifier for the agent
+        range: uriorcurie
+      name:
+        description: Name of the agent
+        range: string
+        slot_uri: schema:name
+      type:
+        description: Type of the agent
+        range: string
+        designates_type: true
+
+  # Aligned with fair_mappings_schema:Person
+  Person:
+    is_a: Agent
+    description: An individual person who contributes to a mapping specification
+    attributes:
+      orcid:
+        description: ORCID identifier for the person
+        range: uriorcurie
+      affiliation:
+        description: Institutional affiliation of the person
+        range: string
+
+  # Aligned with fair_mappings_schema:Organization
+  Organization:
+    is_a: Agent
+    description: An organization or institution that contributes to a mapping specification
+    attributes:
+      ror_id:
+        description: ROR (Research Organization Registry) identifier
+        range: uriorcurie
+      url:
+        description: URL or web address of the organization
+        range: uri
+
+  # Aligned with fair_mappings_schema:Software
+  Software:
+    is_a: Agent
+    description: A software tool or system used in creating mappings
+    attributes:
+      version:
+        description: Version of the software
+        range: string
+      repository_url:
+        description: URL to a code repository
+        range: uri
+
   CopyDirective:
     description: >-
       Instructs a Schema Mapper in how to map to a target schema. Not used for data transformation.
@@ -512,7 +696,7 @@ classes:
       3. If `exclude_all`, clean-up the above list. Effectively making previous steps useless.
       4. If `include`, add the specified sub-elements from the list result of previous steps.
 
-      Implementations might decide to somehow report (error, warning,...) meaningless combinations (like specifying `copy_all` and `exclude_all`). 
+      Implementations might decide to somehow report (error, warning,...) meaningless combinations (like specifying `copy_all` and `exclude_all`).
 
       Validation on the correctness of the resulting derived schema might be done optionally by the implementation.
       For example, removing a slot but keeping a class that requires it would invalidate the derived-schema.

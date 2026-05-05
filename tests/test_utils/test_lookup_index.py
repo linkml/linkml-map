@@ -2,6 +2,8 @@
 
 # ruff: noqa: ANN401
 
+import json
+
 import pytest
 
 from linkml_map.utils.lookup_index import LookupIndex
@@ -29,7 +31,7 @@ def test_register_and_lookup(index, tmp_tsv):
     row = index.lookup_row("demo", "id", "P001")
     assert row is not None
     assert row["name"] == "Alice"
-    assert row["age"] == "30"
+    assert row["age"] == 30
 
 
 def test_lookup_missing_row(index, tmp_tsv):
@@ -64,7 +66,7 @@ def test_csv_format(index, tmp_path):
     index.register_table("data", csv, "id")
     row = index.lookup_row("data", "id", "X2")
     assert row is not None
-    assert row["value"] == "200"
+    assert row["value"] == 200
 
 
 def test_invalid_identifier(index):
@@ -73,12 +75,58 @@ def test_invalid_identifier(index):
         index.register_table("drop table;--", "/dev/null", "id")
 
 
-def test_all_varchar_coercion(index, tmp_path):
-    """Numeric-looking values are stored as VARCHAR due to all_varchar=true."""
+def test_numeric_coercion(index, tmp_path):
+    """Numeric-looking values are coerced to int/float by lookup_row."""
     tsv = tmp_path / "nums.tsv"
     tsv.write_text("id\tcount\n1\t42\n2\t99\n")
     index.register_table("nums", tsv, "id")
     row = index.lookup_row("nums", "id", "1")
     assert row is not None
-    assert row["count"] == "42"
-    assert isinstance(row["count"], str)
+    assert row["count"] == 42
+    assert isinstance(row["count"], int)
+
+
+def test_json_format(index, tmp_path):
+    """JSON files containing a flat array of objects can be registered and queried."""
+    data = [
+        {"id": "J1", "name": "Alice", "age": "30"},
+        {"id": "J2", "name": "Bob", "age": "25"},
+    ]
+    jf = tmp_path / "data.json"
+    jf.write_text(json.dumps(data))
+    index.register_table("jdata", jf, "id")
+    row = index.lookup_row("jdata", "id", "J2")
+    assert row is not None
+    assert row["name"] == "Bob"
+    assert row["age"] == 25
+
+
+def test_yaml_format_not_implemented(index, tmp_path):
+    """YAML files raise NotImplementedError with a clear message."""
+    yf = tmp_path / "data.yaml"
+    yf.write_text("- id: Y1\n  name: Alice\n")
+    with pytest.raises(NotImplementedError, match="yaml"):
+        index.register_table("ydata", yf, "id")
+
+
+def test_sparse_tsv_many_columns(index, tmp_path):
+    """Sparse TSV with many columns and few populated fields loads correctly.
+
+    Reproduces the bug from issue #209: DuckDB's read_csv_auto misdetects the
+    delimiter when a TSV has many columns but sparse data rows, collapsing the
+    entire header into a single column name.
+    """
+    cols = ["subject_id"] + [f"phv{i:08d}" for i in range(1, 201)]
+    tsv = tmp_path / "sparse.tsv"
+    header = "\t".join(cols)
+    row = "SUBJ001\t65\tfoo"  # 3 values, 201 columns
+    tsv.write_text(f"{header}\n{row}\n")
+
+    index.register_table("sparse", tsv, "subject_id")
+    result = index.lookup_row("sparse", "subject_id", "SUBJ001")
+    assert result is not None
+    assert result["subject_id"] == "SUBJ001"
+    assert result["phv00000001"] == 65
+    assert result["phv00000002"] == "foo"
+    # Unpopulated columns should be None (null-padded)
+    assert result["phv00000003"] is None

@@ -13,7 +13,6 @@ See also: PR #118 (Allow multiple class_derivations for the same target class)
 
 import copy
 
-import pytest
 from linkml_runtime import SchemaView
 
 from linkml_map.transformer.object_transformer import ObjectTransformer
@@ -216,6 +215,7 @@ ASSEMBLY_RECORD = {
 # ---------------------------------------------------------------------------
 # Helper
 # ---------------------------------------------------------------------------
+
 
 def _make_transformer(spec):
     tr = ObjectTransformer()

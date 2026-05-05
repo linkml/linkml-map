@@ -18,82 +18,82 @@ URI: [linkmltr:SlotDerivation](https://w3id.org/linkml/transformer/SlotDerivatio
  classDiagram
     class SlotDerivation
       ElementDerivation <|-- SlotDerivation
-      
+
       SlotDerivation : cast_collection_as
-        
+
           SlotDerivation --> CollectionType : cast_collection_as
-        
+
       SlotDerivation : comments
-        
+
       SlotDerivation : copy_directives
-        
+
           SlotDerivation --> CopyDirective : copy_directives
-        
+
       SlotDerivation : derived_from
-        
+
       SlotDerivation : description
-        
+
           SlotDerivation --> None : description
-        
+
       SlotDerivation : dictionary_key
-        
+
       SlotDerivation : expr
-        
+
       SlotDerivation : expression_to_expression_mappings
-        
+
           SlotDerivation --> KeyVal : expression_to_expression_mappings
-        
+
       SlotDerivation : expression_to_value_mappings
-        
+
           SlotDerivation --> KeyVal : expression_to_value_mappings
-        
+
       SlotDerivation : hide
-        
+
       SlotDerivation : implements
-        
+
       SlotDerivation : inverse_of
-        
+
           SlotDerivation --> Inverse : inverse_of
-        
+
       SlotDerivation : is_a
-        
+
           SlotDerivation --> ElementDerivation : is_a
-        
+
       SlotDerivation : mirror_source
-        
+
       SlotDerivation : mixins
-        
+
           SlotDerivation --> ElementDerivation : mixins
-        
+
       SlotDerivation : name
-        
+
           SlotDerivation --> None : name
-        
+
       SlotDerivation : overrides
-        
+
           SlotDerivation --> Any : overrides
-        
+
       SlotDerivation : populated_from
-        
+
       SlotDerivation : range
-        
+
       SlotDerivation : sources
-        
+
       SlotDerivation : stringification
-        
+
           SlotDerivation --> StringificationConfiguration : stringification
-        
+
       SlotDerivation : type_designator
-        
+
       SlotDerivation : unit_conversion
-        
+
           SlotDerivation --> UnitConversionConfiguration : unit_conversion
-        
+
       SlotDerivation : value_mappings
-        
+
           SlotDerivation --> KeyVal : value_mappings
-        
-      
+
+
 ```
 
 

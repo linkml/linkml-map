@@ -13,5 +13,3 @@ A compiler will compile a Map specification into an alternative representation
 ## Markdown Compiler
 
 ::: linkml_map.compiler.markdown_compiler.MarkdownCompiler
-
-

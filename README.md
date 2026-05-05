@@ -5,14 +5,16 @@
 [![PyPi](https://img.shields.io/pypi/v/linkml-map.svg)](https://pypi.python.org/pypi/linkml-map)
 [![codecov](https://codecov.io/gh/linkml/linkml-map/branch/main/graph/badge.svg?token=WNQNG986UN)](https://codecov.io/gh/linkml/linkml-map)
 
-LinkML Map is a framework for specifying and executing mappings between data models.
+LinkML Map is a framework for specifying and executing declarative mappings between data models.
+At its core is the **TransformationSpecification** — a YAML-based language for describing how to
+map one data model to another, independent of serialization format or execution engine.
 
 Features:
 
-- YAML-based lightweight syntax
+- YAML-based lightweight transformation syntax
 - Python library for executing mappings on data files
 - **Tabular data support (TSV/CSV) with streaming for large datasets**
-- Ability to compile to other frameworks (forthcoming)
+- Experimental SQL compilation backend (DuckDB) for set-based transforms
 - Derivation of target (implicit) schemas, allowing easy customization of data models (*profiling*)
 - Simple YAML dictionaries for simple mappings
 - Automatic unit conversion

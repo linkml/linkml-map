@@ -411,6 +411,54 @@ def test_yaml_stream_writer_empty_chunk_before_data_with_key():
     assert len(parsed["people"]) == 1
 
 
+# --- Null suppression tests ---
+
+DATA_WITH_NULLS = [
+    {"id": "P:001", "name": "Alice", "email": None},
+    {"id": "P:002", "name": None, "email": "bob@example.com"},
+]
+
+
+def test_json_stream_omits_null_values():
+    result = "".join(json_stream(iter([DATA_WITH_NULLS])))
+    data = json.loads(result)
+    assert "email" not in data[0]
+    assert "name" not in data[1]
+    assert data[0]["name"] == "Alice"
+    assert data[1]["email"] == "bob@example.com"
+
+
+def test_jsonl_stream_omits_null_values():
+    result = "".join(jsonl_stream(iter([DATA_WITH_NULLS])))
+    lines = [json.loads(line) for line in result.strip().split("\n")]
+    assert "email" not in lines[0]
+    assert "name" not in lines[1]
+
+
+def test_json_stream_writer_omits_null_values():
+    writer = JSONStreamWriter()
+    result = "".join(writer.process(iter([DATA_WITH_NULLS])))
+    data = json.loads(result)
+    assert "email" not in data[0]
+    assert "name" not in data[1]
+
+
+def test_jsonl_stream_writer_omits_null_values():
+    writer = JSONLStreamWriter()
+    result = "".join(writer.process(iter([DATA_WITH_NULLS])))
+    lines = [json.loads(line) for line in result.strip().split("\n")]
+    assert "email" not in lines[0]
+    assert "name" not in lines[1]
+
+
+def test_json_stream_omits_nested_null_values():
+    data = [{"id": "1", "address": {"city": "NYC", "zip": None}}]
+    result = "".join(json_stream(iter([data])))
+    parsed = json.loads(result)
+    assert "zip" not in parsed[0]["address"]
+    assert parsed[0]["address"]["city"] == "NYC"
+
+
 # --- TabularStreamWriter chunk-based API tests ---
 
 

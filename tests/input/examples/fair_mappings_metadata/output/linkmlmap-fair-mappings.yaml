@@ -1,0 +1,41 @@
+id: https://example.org/transformations/gene-expression-mapping
+name: Gene Expression Data Transformation
+description: 'A transformation specification that maps gene expression data from
+
+  a legacy format to a standardized biomedical data model.
+
+
+  This specification includes class derivations for:
+
+  - GeneExpressionMixin (from GeneExpressionRecord)
+
+  - OrganismTaxon (from SampleMetadata)
+
+  - Study (from ExperimentInfo)
+
+
+  And enum derivations for:
+
+  - ExpressionLevelCategory (from LegacyExpressionLevel)'
+publication_date: '2024-01-15'
+license: https://creativecommons.org/licenses/by/4.0/
+version: 1.0.0
+mapping_method: semapv:ManualMappingCuration
+documentation: https://example.org/docs/gene-expression-mapping
+content_url: https://example.org/content/gene-expression-mapping.yaml
+creator:
+- id: orcid:0000-0002-1234-5678
+  name: Jane Doe
+  type: Person
+author:
+- id: orcid:0000-0003-9876-5432
+  name: John Smith
+  type: Person
+reviewer:
+- id: orcid:0000-0001-1111-2222
+  name: Alice Johnson
+  type: Person
+subject_source:
+  name: legacy_gene_expression.yaml
+object_source:
+  name: biolink_model.yaml

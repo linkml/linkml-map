@@ -1,13 +1,12 @@
-"""
-Transformers (aka data mappers) are used to transform objects from one class to another using a transformation specification.
-"""
+"""Transformers transform objects from one class to another using a transformation specification."""
 
 import logging
+import warnings
 from abc import ABC
 from copy import deepcopy
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 import yaml
 from curies import Converter
@@ -30,7 +29,7 @@ from linkml_map.utils.schema_patch import apply_schema_patch
 logger = logging.getLogger(__name__)
 
 
-OBJECT_TYPE = Union[dict[str, Any], BaseModel, YAMLRoot]
+OBJECT_TYPE = dict[str, Any] | BaseModel | YAMLRoot
 """An object can be a plain python dict, a pydantic object, or a linkml YAMLRoot"""
 
 
@@ -43,7 +42,21 @@ class Transformer(ABC):
     an instance of a source class, making use of a specification.
 
     This is an abstract class. Different implementations will
-    subclass this
+    subclass this.
+
+    Specification normalization has two phases:
+
+    1. **Load-time normalization** (``_normalize_spec_dict``): Structural fixes
+       applied to a raw dict before Pydantic instantiation — YAML quirk handling,
+       ``$ref`` expansion, dict-to-list conversion. Does not require a source schema.
+       All entry points (``load_transformer_specification``,
+       ``create_transformer_specification``, ``Session``, ``loaders``) go through
+       this single method.
+
+    2. **Schema-bind-time induction** (``derived_specification``): Semantic defaults
+       inferred from the source schema — ``populated_from``, ``range``, foreign-key
+       resolution. Runs lazily on first access to ``derived_specification`` and
+       requires ``source_schemaview`` to be set.
     """
 
     specification: TransformationSpecification = None
@@ -58,7 +71,7 @@ class Transformer(ABC):
     _source_schema_patched: bool = field(default=False)
     """Flag to track if source schema patches have been applied."""
 
-    target_schemaview: Optional[SchemaView] = None
+    target_schemaview: SchemaView | None = None
     """A view over the schema describing the output/target object."""
 
     unrestricted_eval: bool = field(default=False)
@@ -66,9 +79,7 @@ class Transformer(ABC):
 
     _curie_converter: Converter = None
 
-    def map_object(
-        self, obj: OBJECT_TYPE, source_type: Optional[str] = None, **kwargs: dict[str, Any]
-    ) -> OBJECT_TYPE:
+    def map_object(self, obj: OBJECT_TYPE, source_type: str | None = None, **kwargs: Any) -> OBJECT_TYPE:
         """
         Transform source object into an instance of the target class.
 
@@ -79,7 +90,7 @@ class Transformer(ABC):
         raise NotImplementedError
 
     def map_database(
-        self, source_database: Any, target_database: Optional[Any] = None, **kwargs: dict[str, Any]
+        self, source_database: Any, target_database: Any | None = None, **kwargs: dict[str, Any]
     ) -> OBJECT_TYPE:
         """
         Transform source resource.
@@ -91,7 +102,7 @@ class Transformer(ABC):
         """
         raise NotImplementedError
 
-    def load_source_schema(self, path: Union[str, Path, dict]) -> None:
+    def load_source_schema(self, path: str | Path | dict) -> None:
         """
         Set source_schemaview from a schema path.
 
@@ -101,7 +112,7 @@ class Transformer(ABC):
             path = str(path)
         self.source_schemaview = SchemaView(path)
 
-    def load_transformer_specification(self, path: Union[str, Path]) -> None:
+    def load_transformer_specification(self, path: str | Path) -> None:
         """
         Set specification from a schema path.
 
@@ -114,14 +125,8 @@ class Transformer(ABC):
             self.specification = TransformationSpecification(**obj)
 
     @classmethod
-    def normalize_transform_spec(
-        cls,
-        obj: dict[str, Any],
-        normalizer: ReferenceValidator
-    ) -> dict:
-        """
-        Recursively normalize class_derivations and their nested object_derivations.
-        """
+    def normalize_transform_spec(cls, obj: dict[str, Any], normalizer: ReferenceValidator) -> dict:
+        """Recursively normalize class_derivations and flatten object_derivations."""
         obj = normalizer.normalize(obj)
 
         class_derivations = obj.get("class_derivations", [])
@@ -132,27 +137,88 @@ class Transformer(ABC):
         for class_spec in cd_iter:
             if not isinstance(class_spec, dict):
                 continue
+            parent_source = class_spec.get("populated_from")
             slot_derivations = class_spec.get("slot_derivations", {})
-            for slot, slot_spec in slot_derivations.items():
-                # Check for nested object_derivations
-                object_derivations = slot_spec.get("object_derivations", [])
-                for i, od in enumerate(object_derivations):
-                    # Recursively normalize each nested class_derivation block
-                    od_normalized = cls.normalize_transform_spec(od, normalizer)
-                    # ObjectDerivation.class_derivations stays as dict (no inlined_as_list),
-                    # but the normalizer may convert it to list. Convert back.
-                    od_cd = od_normalized.get("class_derivations")
-                    if isinstance(od_cd, list):
-                        od_normalized["class_derivations"] = {
-                            item["name"]: item for item in od_cd if isinstance(item, dict)
-                        }
-                    object_derivations[i] = od_normalized
+            for slot_name, slot_spec in slot_derivations.items():
+                if slot_spec.get("value") is not None and slot_spec.get("range") is None:
+                    slot_spec["range"] = "string"
+                cls._normalize_slot_class_derivations(slot_name, slot_spec, normalizer, parent_source)
         return obj
 
     @classmethod
-    def _normalize_spec_dict(cls, obj: dict[str, Any]) -> None:
+    def _normalize_slot_class_derivations(
+        cls,
+        slot_name: str,
+        slot_spec: dict[str, Any],
+        normalizer: ReferenceValidator,
+        parent_populated_from: str | None = None,
+    ) -> None:
+        """Flatten object_derivations and normalize class_derivations on a slot.
+
+        Four steps, applied recursively to nested slots:
+        1. Flatten ``object_derivations`` into ``class_derivations`` (with
+           deprecation warning; error if both are present).
+        2. Expand compact-key entries (``- Condition: {...}`` → ``{name: Condition, ...}``).
+        3. Inherit ``populated_from`` from the parent class derivation when absent.
+        4. Run the normalizer on each class derivation entry so that nested
+           dict-keyed ``slot_derivations`` get ``name`` injected.
         """
-        Normalize a raw specification dict in place.
+        # Step 1: flatten object_derivations → class_derivations
+        object_derivations = slot_spec.get("object_derivations", [])
+        if object_derivations:
+            if slot_spec.get("class_derivations"):
+                msg = (
+                    f"SlotDerivation '{slot_name}' has both 'object_derivations' and "
+                    f"'class_derivations'. Remove 'object_derivations' and use "
+                    f"'class_derivations' only."
+                )
+                raise ValueError(msg)
+
+            warnings.warn(
+                f"SlotDerivation '{slot_name}' uses 'object_derivations', which is "
+                f"deprecated. Use list-based class_derivations instead. "
+                f"'object_derivations' will be removed in a future version. "
+                f"See https://github.com/linkml/linkml-map/issues/112",
+                DeprecationWarning,
+                stacklevel=4,
+            )
+
+            flattened: list[dict[str, Any]] = []
+            for od in object_derivations:
+                od_cd = od.get("class_derivations", {})
+                if isinstance(od_cd, dict):
+                    for name, body in od_cd.items():
+                        entry = body if isinstance(body, dict) else {}
+                        entry.setdefault("name", name)
+                        flattened.append(entry)
+                elif isinstance(od_cd, list):
+                    flattened.extend(od_cd)
+            slot_spec["class_derivations"] = flattened
+            del slot_spec["object_derivations"]
+
+        # Steps 2-4: expand compact keys, inherit populated_from, normalize, and recurse
+        slot_cd = slot_spec.get("class_derivations")
+        if not isinstance(slot_cd, list):
+            return
+
+        cls._expand_compact_keys(slot_cd)
+
+        for cd_entry in slot_cd:
+            if not isinstance(cd_entry, dict):
+                continue
+            if not cd_entry.get("populated_from") and parent_populated_from:
+                cd_entry["populated_from"] = parent_populated_from
+            normalized = normalizer.normalize(cd_entry)
+            cd_entry.clear()
+            cd_entry.update(normalized)
+            child_source = cd_entry.get("populated_from")
+            for nested_name, nested_sd in cd_entry.get("slot_derivations", {}).items():
+                if isinstance(nested_sd, dict):
+                    cls._normalize_slot_class_derivations(nested_name, nested_sd, normalizer, child_source)
+
+    @classmethod
+    def _normalize_spec_dict(cls, obj: dict[str, Any]) -> None:
+        """Normalize a raw specification dict in place.
 
         Bundles _preprocess_class_derivations, ReferenceValidator normalization,
         and nested ObjectDerivation fixup into a single entry point. Mutates
@@ -161,25 +227,36 @@ class Transformer(ABC):
         :param obj: Raw specification dict (e.g. from YAML or user code).
         """
         cls._preprocess_class_derivations(obj)
-        normalizer = ReferenceValidator(
-            package_schemaview("linkml_map.datamodel.transformer_model")
-        )
+        normalizer = ReferenceValidator(package_schemaview("linkml_map.datamodel.transformer_model"))
         normalizer.expand_all = True
         normalized = cls.normalize_transform_spec(obj, normalizer)
         obj.clear()
         obj.update(normalized)
 
     @staticmethod
-    def _preprocess_class_derivations(obj: dict[str, Any]) -> None:
+    def _expand_compact_keys(items: list[dict[str, Any]]) -> None:
+        """Expand YAML compact-key dicts in a list in place.
+
+        Converts ``{"Condition": {"populated_from": "x"}}`` →
+        ``{"name": "Condition", "populated_from": "x"}``.
+        Skips items whose sole key is ``"name"`` (already expanded).
         """
-        Pre-process class_derivations before ReferenceValidator normalization.
+        for i, item in enumerate(items):
+            if isinstance(item, dict) and len(item) == 1:
+                key, val = next(iter(item.items()))
+                if key != "name" and isinstance(val, dict | type(None)):
+                    expanded = val if val is not None else {}
+                    expanded.setdefault("name", key)
+                    items[i] = expanded
+
+    @staticmethod
+    def _preprocess_class_derivations(obj: dict[str, Any]) -> None:
+        """Pre-process top-level class_derivations before ReferenceValidator normalization.
 
         Handles two cases:
         1. Dict format with None values (e.g. ``Entity:`` with no body) — replace
            with empty dicts so ReferenceValidator.ensure_list doesn't choke.
-        2. List format with compact keys (e.g. ``- Condition: {populated_from: x}``)
-           — unwrap to ``{name: Condition, populated_from: x}`` so Pydantic can
-           validate.
+        2. List format with compact keys — delegate to ``_expand_compact_keys``.
         """
         cd = obj.get("class_derivations")
         if isinstance(cd, dict):
@@ -187,19 +264,7 @@ class Transformer(ABC):
                 if v is None:
                     cd[k] = {}
         elif isinstance(cd, list):
-            for i, item in enumerate(cd):
-                # Detect YAML compact-key format: a single-key dict where the
-                # key is the class name and the value is the body (dict) or
-                # None.  E.g. ``- Condition: {populated_from: x}`` parses as
-                # ``{"Condition": {"populated_from": "x"}}``.  We skip items
-                # whose sole key is "name" — those are already in expanded
-                # form (``- name: Foo``).
-                if isinstance(item, dict) and len(item) == 1:
-                    key, val = next(iter(item.items()))
-                    if key != "name" and isinstance(val, (dict, type(None))):
-                        expanded = val if val is not None else {}
-                        expanded.setdefault("name", key)
-                        cd[i] = expanded
+            Transformer._expand_compact_keys(cd)
 
     def create_transformer_specification(self, obj: dict[str, Any]) -> None:
         """
@@ -225,7 +290,17 @@ class Transformer(ABC):
         self._source_schema_patched = True
 
     @property
-    def derived_specification(self) -> Optional[TransformationSpecification]:
+    def derived_specification(self) -> TransformationSpecification | None:
+        """Return the specification with schema-inferred defaults filled in.
+
+        Creates a deep copy of ``self.specification``, applies any source schema
+        patches, then calls ``induce_missing_values`` to fill in ``populated_from``,
+        ``range``, and other fields that require knowledge of the source schema.
+        The result is cached for subsequent access.
+
+        This is the second phase of normalization — see the class docstring for
+        the full two-phase pipeline.
+        """
         if self._derived_specification is None:
             if self.specification is None:
                 return None
@@ -293,8 +368,7 @@ class Transformer(ABC):
         matching_tgt_enum_derivs = [
             deriv
             for deriv in spec.enum_derivations.values()
-            if deriv.populated_from == target_enum_name
-            or (not deriv.populated_from and target_enum_name == deriv.name)
+            if deriv.populated_from == target_enum_name or (not deriv.populated_from and target_enum_name == deriv.name)
         ]
         logger.debug(f"Target enum derivations={matching_tgt_enum_derivs}")
         if len(matching_tgt_enum_derivs) != 1:
@@ -302,9 +376,7 @@ class Transformer(ABC):
             raise ValueError(msg)
         return matching_tgt_enum_derivs[0]
 
-    def _is_coerce_to_multivalued(
-        self, slot_derivation: SlotDerivation, class_derivation: ClassDerivation
-    ) -> bool:
+    def _is_coerce_to_multivalued(self, slot_derivation: SlotDerivation, class_derivation: ClassDerivation) -> bool:
         cast_as = slot_derivation.cast_collection_as
         if cast_as and cast_as in [
             CollectionType.MultiValued,
@@ -321,9 +393,7 @@ class Transformer(ABC):
                 return True
         return False
 
-    def _is_coerce_to_singlevalued(
-        self, slot_derivation: SlotDerivation, class_derivation: ClassDerivation
-    ) -> bool:
+    def _is_coerce_to_singlevalued(self, slot_derivation: SlotDerivation, class_derivation: ClassDerivation) -> bool:
         cast_as = slot_derivation.cast_collection_as
         if cast_as and cast_as == CollectionType(CollectionType.SingleValued):
             return True
@@ -336,7 +406,7 @@ class Transformer(ABC):
                 return True
         return False
 
-    def _coerce_datatype(self, v: Any, target_range: Optional[str]) -> Any:
+    def _coerce_datatype(self, v: Any, target_range: str | None) -> Any:
         if target_range is None:
             return v
         if isinstance(v, list):

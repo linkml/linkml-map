@@ -7,13 +7,26 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from enum import Enum
 from pathlib import Path
-from typing import IO, Any, Optional, Union
+from typing import IO, Any
 
 import yaml
 from flatten_dict import flatten
 from flatten_dict.reducers import make_reducer
 
 logger = logging.getLogger(__name__)
+
+
+def _strip_nulls(obj: Any) -> Any:
+    """Remove None values from dicts so JSON output matches YAML behavior.
+
+    :param obj: Object to strip nulls from.
+    :returns: Cleaned object with None values removed from dicts.
+    """
+    if isinstance(obj, dict):
+        return {k: _strip_nulls(v) for k, v in obj.items() if v is not None}
+    if isinstance(obj, list):
+        return [_strip_nulls(item) for item in obj]
+    return obj
 
 
 class OutputFormat(str, Enum):
@@ -77,7 +90,7 @@ class JSONStreamWriter(StreamWriter):
     :param key_name: Optional key to wrap the array, e.g. ``{"people": [...]}``.
     """
 
-    def __init__(self, key_name: Optional[str] = None) -> None:
+    def __init__(self, key_name: str | None = None) -> None:
         """Initialize with an optional wrapping key name."""
         self.key_name = key_name
         self._started = False
@@ -104,7 +117,7 @@ class JSONStreamWriter(StreamWriter):
         for obj in chunk:
             prefix = "" if self._first_object else ",\n"
             self._first_object = False
-            yield prefix + json.dumps(obj, ensure_ascii=False, indent=2)
+            yield prefix + json.dumps(_strip_nulls(obj), ensure_ascii=False, indent=2)
 
     def finalize(self) -> Iterator[str]:
         """
@@ -136,7 +149,7 @@ class JSONLStreamWriter(StreamWriter):
         :yield: JSONL string lines.
         """
         for obj in chunk:
-            yield json.dumps(obj, ensure_ascii=False) + "\n"
+            yield json.dumps(_strip_nulls(obj), ensure_ascii=False) + "\n"
 
     def finalize(self) -> Iterator[str]:
         """
@@ -157,7 +170,7 @@ class YAMLStreamWriter(StreamWriter):
     :param key_name: Optional key to wrap all objects.
     """
 
-    def __init__(self, key_name: Optional[str] = None) -> None:
+    def __init__(self, key_name: str | None = None) -> None:
         """Initialize with an optional wrapping key name."""
         self.key_name = key_name
         self._first_chunk = True
@@ -176,9 +189,7 @@ class YAMLStreamWriter(StreamWriter):
             return
 
         if self.key_name:
-            yaml_str = yaml.dump(
-                {self.key_name: chunk}, default_flow_style=False, allow_unicode=True
-            )
+            yaml_str = yaml.dump({self.key_name: chunk}, default_flow_style=False, allow_unicode=True)
             if self._first_chunk:
                 yield yaml_str
                 self._first_chunk = False
@@ -201,7 +212,7 @@ class YAMLStreamWriter(StreamWriter):
 
 def yaml_stream(
     chunks: Iterator[list[dict[str, Any]]],
-    key_name: Optional[str] = None,
+    key_name: str | None = None,
 ) -> Iterator[str]:
     """
     Convert chunks of objects to YAML format.
@@ -233,7 +244,7 @@ def yaml_stream(
 
 def json_stream(
     chunks: Iterator[list[dict[str, Any]]],
-    key_name: Optional[str] = None,
+    key_name: str | None = None,
 ) -> Iterator[str]:
     """
     Convert chunks of objects to JSON format.
@@ -254,7 +265,7 @@ def json_stream(
         for obj in chunk:
             prefix = "" if first_chunk else ",\n"
             first_chunk = False
-            yield prefix + json.dumps(obj, ensure_ascii=False, indent=2)
+            yield prefix + json.dumps(_strip_nulls(obj), ensure_ascii=False, indent=2)
 
     if key_name:
         yield "\n]}\n"
@@ -264,7 +275,7 @@ def json_stream(
 
 def jsonl_stream(
     chunks: Iterator[list[dict[str, Any]]],
-    key_name: Optional[str] = None,  # noqa: ARG001
+    key_name: str | None = None,  # noqa: ARG001
 ) -> Iterator[str]:
     """
     Convert chunks of objects to JSON Lines format.
@@ -277,7 +288,7 @@ def jsonl_stream(
     """
     for chunk in chunks:
         for obj in chunk:
-            yield json.dumps(obj, ensure_ascii=False) + "\n"
+            yield json.dumps(_strip_nulls(obj), ensure_ascii=False) + "\n"
 
 
 class TabularStreamWriter(StreamWriter):
@@ -328,9 +339,7 @@ class TabularStreamWriter(StreamWriter):
                 yield self.separator.join(self.headers) + "\n"
 
             # Emit data row
-            row = self.separator.join(
-                self._escape_value(flat.get(h, "")) for h in self.headers
-            )
+            row = self.separator.join(self._escape_value(flat.get(h, "")) for h in self.headers)
             yield row + "\n"
 
     def finalize(self) -> Iterator[str]:
@@ -346,7 +355,7 @@ class TabularStreamWriter(StreamWriter):
     def stream(
         self,
         chunks: Iterator[list[dict[str, Any]]],
-        key_name: Optional[str] = None,  # noqa: ARG002
+        key_name: str | None = None,  # noqa: ARG002
     ) -> Iterator[str]:
         """
         Stream objects as tabular data. Backward-compatible alias for ``process``.
@@ -365,7 +374,7 @@ class TabularStreamWriter(StreamWriter):
         """
         if value is None:
             return ""
-        if isinstance(value, (list, dict)):
+        if isinstance(value, list | dict):
             # Serialize complex values as JSON
             return json.dumps(value, ensure_ascii=False)
         str_value = str(value)
@@ -390,7 +399,7 @@ class TabularStreamWriter(StreamWriter):
 
 def tsv_stream(
     chunks: Iterator[list[dict[str, Any]]],
-    key_name: Optional[str] = None,
+    key_name: str | None = None,
 ) -> Iterator[str]:
     """
     Convert chunks of objects to TSV format.
@@ -409,7 +418,7 @@ def tsv_stream(
 
 def csv_stream(
     chunks: Iterator[list[dict[str, Any]]],
-    key_name: Optional[str] = None,
+    key_name: str | None = None,
 ) -> Iterator[str]:
     """
     Convert chunks of objects to CSV format.
@@ -515,8 +524,8 @@ EXTENSION_FORMAT_MAP = {
 
 def make_stream_writer(
     output_format: OutputFormat,
-    key_name: Optional[str] = None,
-    separator: Optional[str] = None,
+    key_name: str | None = None,
+    separator: str | None = None,
 ) -> StreamWriter:
     """
     Return the appropriate ``StreamWriter`` for a format.
@@ -553,7 +562,7 @@ class MultiStreamWriter:
     :param outputs: List of ``(StreamWriter, target)`` tuples.
     """
 
-    def __init__(self, outputs: list[tuple[StreamWriter, Union[Path, IO[str]]]]) -> None:
+    def __init__(self, outputs: list[tuple[StreamWriter, Path | IO[str]]]) -> None:
         """Initialize with a list of (writer, target) output pairs."""
         self.outputs = outputs
 
@@ -593,16 +602,10 @@ class MultiStreamWriter:
 
         # Post-process tabular Path outputs that had header changes
         for writer, target in self.outputs:
-            if (
-                isinstance(target, Path)
-                and isinstance(writer, TabularStreamWriter)
-                and writer.headers_changed
-            ):
+            if isinstance(target, Path) and isinstance(writer, TabularStreamWriter) and writer.headers_changed:
                 logger.info("Rewriting %s with updated headers", target)
                 tmp_path = str(target) + ".tmp"
                 with open(target, encoding="utf-8") as src, open(tmp_path, "w", encoding="utf-8") as dst:
-                    for line in rewrite_header_and_pad(
-                        iter(src), writer.get_final_headers(), writer.separator
-                    ):
+                    for line in rewrite_header_and_pad(iter(src), writer.get_final_headers(), writer.separator):
                         dst.write(line)
                 os.replace(tmp_path, str(target))

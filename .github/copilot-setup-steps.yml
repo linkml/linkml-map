@@ -37,4 +37,3 @@ jobs:
         uv sync
         source .venv/bin/activate
       shell: bash
-      

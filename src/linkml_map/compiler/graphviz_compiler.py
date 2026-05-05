@@ -1,6 +1,5 @@
 import re
 from dataclasses import dataclass
-from typing import Optional
 
 from graphviz import Digraph
 from linkml_runtime import SchemaView
@@ -29,12 +28,7 @@ class Record(BaseModel):
         <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
             <TR><TD><B>{self.name}</B></TD></TR>
         """
-            + "".join(
-                [
-                    f'<TR><TD SIDES="LRB" PORT="{f[0]}">{f[0]} : {f[1]}</TD></TR>'
-                    for f in self.fields
-                ]
-            )
+            + "".join([f'<TR><TD SIDES="LRB" PORT="{f[0]}">{f[0]} : {f[1]}</TD></TR>' for f in self.fields])
             + """
         </TABLE>>"""
         )
@@ -59,9 +53,7 @@ class GraphvizCompiler(Compiler):
     Compile a Transformation Specification to GraphViz.
     """
 
-    def compile(
-        self, specification: TransformationSpecification, elements: Optional[list[str]] = None
-    ) -> GraphvizObject:
+    def compile(self, specification: TransformationSpecification, elements: list[str] | None = None) -> GraphvizObject:
         dg = Digraph(comment="UML Class Diagram", format="png")
         dg.attr(rankdir="LR")  # Set graph direction from left to right
         target_schemaview = self.derived_target_schemaview(specification)
@@ -86,6 +78,8 @@ class GraphvizCompiler(Compiler):
             source_record = Record(name=source_cn, source="source")
             target_record = Record(name=target_cn, source="target")
             for sd in cd.slot_derivations.values():
+                if sd.hide:
+                    continue
                 target_slot = sd.name
                 target_id = f"{target_record.id}:{target_slot}"
                 source_slot = sd.populated_from

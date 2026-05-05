@@ -7,7 +7,6 @@ import re
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Union
 
 import yaml
 from linkml_runtime import SchemaView
@@ -20,13 +19,13 @@ from linkml_map.transformer.object_transformer import ObjectTransformer
 
 class Step(BaseModel):
     source_data: str
-    target_data: Optional[str] = None
+    target_data: str | None = None
     source_class: str = None
     target_class: str = None
 
 
 class Transformation(BaseModel):
-    description: Optional[str] = None
+    description: str | None = None
     source_schema: str = None
     target_schema: str = None
     transformation_specification: str = None
@@ -34,7 +33,7 @@ class Transformation(BaseModel):
 
 
 class Instructions(BaseModel):
-    description: Optional[str] = None
+    description: str | None = None
     transformations: list[Transformation] = []
 
 
@@ -58,15 +57,15 @@ class MultiFileTransformer:
     target_schema_directory_base: str = field(default_factory=lambda: "target")
     target_data_directory_base: str = field(default_factory=lambda: "output")
 
-    input_formats: Optional[list[str]] = field(default_factory=lambda: ["yaml"])
+    input_formats: list[str] | None = field(default_factory=lambda: ["yaml"])
     """Expected formats for input data"""
 
-    output_formats: Optional[list[str]] = field(default_factory=lambda: ["yaml"])
+    output_formats: list[str] | None = field(default_factory=lambda: ["yaml"])
 
-    prefix_map: Optional[Mapping[str, str]] = None
+    prefix_map: Mapping[str, str] | None = None
     """Custom prefix map, for emitting RDF/turtle."""
 
-    def process_directory(self, root_directory: Union[str, Path], **kwargs):
+    def process_directory(self, root_directory: str | Path, **kwargs):
         """
         Process all transformations in a directory.
 
@@ -76,7 +75,7 @@ class MultiFileTransformer:
         instructions = self.infer_instructions(root_directory)
         return self.process_instructions(instructions, root_directory, **kwargs)
 
-    def infer_instructions(self, root_directory: Union[str, Path]) -> Instructions:
+    def infer_instructions(self, root_directory: str | Path) -> Instructions:
         """
         Infer instructions from either explicit yaml or directory layout.
         """
@@ -93,9 +92,7 @@ class MultiFileTransformer:
         if not source_schema_directory.exists():
             msg = f"Expected {source_schema_directory}"
             raise ValueError(msg)
-        transform_specification_directory = (
-            root_directory / self.transform_specification_directory_base
-        )
+        transform_specification_directory = root_directory / self.transform_specification_directory_base
         if not transform_specification_directory.exists():
             msg = f"Expected {transform_specification_directory}"
             raise ValueError(msg)
@@ -104,9 +101,7 @@ class MultiFileTransformer:
         if not input_schemas:
             msg = f"Expected schemas in {source_schema_directory}"
             raise ValueError(msg)
-        transform_files = glob.glob(
-            os.path.join(str(transform_specification_directory), "*.transform.yaml")
-        )
+        transform_files = glob.glob(os.path.join(str(transform_specification_directory), "*.transform.yaml"))
         instructions = Instructions(description="auto-inducted")
         for input_schema in input_schemas:
             for transform_file in transform_files:
@@ -126,9 +121,7 @@ class MultiFileTransformer:
                     if src not in input_schema:
                         continue
                 instructions.transformations.append(tr)
-                data_files = glob.glob(
-                    os.path.join(str(root_directory / self.source_data_directory_base), "*.yaml")
-                )
+                data_files = glob.glob(os.path.join(str(root_directory / self.source_data_directory_base), "*.yaml"))
                 for data_file in data_files:
                     if target_schema_base and target_schema_base not in data_file:
                         continue
@@ -158,7 +151,7 @@ class MultiFileTransformer:
     def process_instructions(
         self,
         instructions: Instructions,
-        root_directory: Optional[Union[str, Path]],
+        root_directory: str | Path | None,
         output_directory=None,
         test_mode=False,
     ) -> None:

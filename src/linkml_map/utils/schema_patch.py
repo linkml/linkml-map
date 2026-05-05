@@ -39,9 +39,7 @@ def apply_schema_patch(schemaview: SchemaView, patch: dict[str, Any]) -> None:
                 schema.imports.append(imp)
 
     for pname, ppatch in patch.get("prefixes", {}).items():
-        schema.prefixes[pname] = Prefix(
-            prefix_prefix=pname, prefix_reference=ppatch["prefix_reference"]
-        )
+        schema.prefixes[pname] = Prefix(prefix_prefix=pname, prefix_reference=ppatch["prefix_reference"])
 
     for cname, cpatch in patch.get("classes", {}).items():
         if cname not in schema.classes:
@@ -55,9 +53,7 @@ def apply_schema_patch(schemaview: SchemaView, patch: dict[str, Any]) -> None:
                 existing.slots.append(slot)
         for attr_name, attr_def in cpatch.get("attributes", {}).items():
             if attr_name not in existing.attributes:
-                existing.attributes[attr_name] = SlotDefinition(
-                    name=attr_name, **(attr_def or {})
-                )
+                existing.attributes[attr_name] = SlotDefinition(name=attr_name, **(attr_def or {}))
             else:
                 existing_attr = existing.attributes[attr_name]
                 for field, value in (attr_def or {}).items():

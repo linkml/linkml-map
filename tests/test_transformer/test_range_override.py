@@ -20,7 +20,7 @@ F. **Validation gap** -- expr output with wrong keys passes through
 """
 
 import copy
-from typing import Any, Optional
+from typing import Any
 
 import pytest
 from linkml.utils.schema_builder import SchemaBuilder
@@ -31,6 +31,7 @@ from linkml_map.transformer.object_transformer import ObjectTransformer
 # ---------------------------------------------------------------------------
 # Schema helpers
 # ---------------------------------------------------------------------------
+
 
 def _source_schema_flat() -> SchemaBuilder:
     """Source schema with separate depth_value / depth_unit string fields."""
@@ -99,10 +100,7 @@ TRANSFORM_CONSTRUCT: dict[str, Any] = {
             "slot_derivations": {
                 "id": {},
                 "depth": {
-                    "expr": (
-                        '{"has_numeric_value": float(depth_value),'
-                        ' "has_unit": depth_unit}'
-                    ),
+                    "expr": ('{"has_numeric_value": float(depth_value), "has_unit": depth_unit}'),
                 },
             },
         },
@@ -116,10 +114,7 @@ TRANSFORM_PARSE: dict[str, Any] = {
             "slot_derivations": {
                 "id": {},
                 "depth": {
-                    "expr": (
-                        '{"has_numeric_value": float(depth.split(" ")[0]),'
-                        ' "has_unit": depth.split(" ")[1]}'
-                    ),
+                    "expr": ('{"has_numeric_value": float(depth.split(" ")[0]), "has_unit": depth.split(" ")[1]}'),
                 },
             },
         },
@@ -131,15 +126,18 @@ TRANSFORM_PARSE: dict[str, Any] = {
 # Helper
 # ---------------------------------------------------------------------------
 
+
 def _run(
     source_schema: SchemaBuilder,
     target_schema: SchemaBuilder,
     transform_spec: dict[str, Any],
     input_data: dict[str, Any],
     source_type: str,
+    *,
+    unrestricted_eval: bool = True,
 ) -> dict[str, Any]:
     """Instantiate an ObjectTransformer and map a single object."""
-    tr = ObjectTransformer(unrestricted_eval=True)
+    tr = ObjectTransformer(unrestricted_eval=unrestricted_eval)
     tr.source_schemaview = SchemaView(source_schema.schema)
     tr.target_schemaview = SchemaView(target_schema.schema)
     tr.create_transformer_specification(copy.deepcopy(transform_spec))
@@ -149,6 +147,7 @@ def _run(
 # ---------------------------------------------------------------------------
 # Test A -- string -> string passthrough (baseline)
 # ---------------------------------------------------------------------------
+
 
 def test_passthrough_string_to_string() -> None:
     """Depth stays a plain string when both schemas use range: string."""
@@ -165,6 +164,7 @@ def test_passthrough_string_to_string() -> None:
 # ---------------------------------------------------------------------------
 # Test B -- construct QuantityValue from separate sub-fields via expr
 # ---------------------------------------------------------------------------
+
 
 def test_construct_object_from_subfields() -> None:
     """Build a QuantityValue dict from depth_value and depth_unit via expr."""
@@ -186,6 +186,7 @@ def test_construct_object_from_subfields() -> None:
 # Test C -- parse "5 m" string into QuantityValue via expr
 # ---------------------------------------------------------------------------
 
+
 def test_parse_string_into_object() -> None:
     """Parse a composite '5 m' string into a QuantityValue dict via expr."""
     result = _run(
@@ -206,48 +207,67 @@ def test_parse_string_into_object() -> None:
 # Test D -- malformed parse inputs yield None
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize(
-    "depth_input",
-    [
-        pytest.param(None, id="null_input"),
-        pytest.param("", id="empty_string"),
-        pytest.param("5", id="no_unit"),
-        pytest.param("five m", id="non_numeric_value"),
-    ],
-)
-def test_parse_expr_malformed_input_yields_none(depth_input: Optional[str]) -> None:
-    """Malformed depth strings cause expr evaluation errors caught by simpleeval."""
+
+def test_parse_expr_null_input_yields_none() -> None:
+    """Null depth input propagates None through the expression."""
     result = _run(
         source_schema=_source_schema_string(),
         target_schema=_target_schema_quantity(),
         transform_spec=TRANSFORM_PARSE,
-        input_data={"id": "samp1", "depth": depth_input},
+        input_data={"id": "samp1", "depth": None},
         source_type="StringSample",
     )
     assert result["id"] == "samp1"
     assert result["depth"] is None
 
 
+@pytest.mark.parametrize(
+    "depth_input",
+    [
+        pytest.param("", id="empty_string"),
+        pytest.param("5", id="no_unit"),
+        pytest.param("five m", id="non_numeric_value"),
+    ],
+)
+def test_parse_expr_malformed_input_raises(depth_input: str) -> None:
+    """Malformed depth strings raise TransformationError in restricted mode."""
+    from linkml_map.transformer.errors import TransformationError
+
+    with pytest.raises(TransformationError):
+        _run(
+            source_schema=_source_schema_string(),
+            target_schema=_target_schema_quantity(),
+            transform_spec=TRANSFORM_PARSE,
+            input_data={"id": "samp1", "depth": depth_input},
+            source_type="StringSample",
+            unrestricted_eval=False,
+        )
+
+
 # ---------------------------------------------------------------------------
 # Test E -- non-numeric depth_value in construct expr
 # ---------------------------------------------------------------------------
 
-def test_construct_non_numeric_depth_value_yields_none() -> None:
-    """float('five') fails; simpleeval catches the error and returns None."""
-    result = _run(
-        source_schema=_source_schema_flat(),
-        target_schema=_target_schema_quantity(),
-        transform_spec=TRANSFORM_CONSTRUCT,
-        input_data={"id": "samp1", "depth_value": "five", "depth_unit": "m"},
-        source_type="FlatSample",
-    )
-    assert result["id"] == "samp1"
-    assert result["depth"] is None
+
+def test_construct_non_numeric_depth_value_raises() -> None:
+    """float('five') raises TransformationError in restricted mode."""
+    from linkml_map.transformer.errors import TransformationError
+
+    with pytest.raises(TransformationError, match="could not convert string to float"):
+        _run(
+            source_schema=_source_schema_flat(),
+            target_schema=_target_schema_quantity(),
+            transform_spec=TRANSFORM_CONSTRUCT,
+            input_data={"id": "samp1", "depth_value": "five", "depth_unit": "m"},
+            source_type="FlatSample",
+            unrestricted_eval=False,
+        )
 
 
 # ---------------------------------------------------------------------------
 # Test F -- validation gap: wrong keys pass through unchecked
 # ---------------------------------------------------------------------------
+
 
 def test_wrong_keys_pass_without_validation() -> None:
     """

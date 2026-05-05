@@ -1,11 +1,12 @@
 """Tests the data model."""
 
 import pytest
-import yaml
 from linkml_runtime import SchemaView
 
 from linkml_map.datamodel.transformer_model import (
     ClassDerivation,
+    Organization,
+    Person,
     SlotDerivation,
     TransformationSpecification,
 )
@@ -19,8 +20,8 @@ def test_datamodel() -> None:
     tr.load_transformer_specification(PERSONINFO_TR)
     trs = tr.specification
     assert trs.model_dump_json() != ""
-    assert trs.source_schema == "s1"
-    assert trs.target_schema == "s2"
+    assert trs.source_schema == "https://w3id.org/linkml/map/example/personinfo.yaml"
+    assert trs.target_schema == "https://w3id.org/linkml/map/example/agent.yaml"
 
     # class derivations
     class_derivs = {
@@ -46,10 +47,12 @@ def test_datamodel() -> None:
     assert agent_slots["age"].expr == "str({age_in_years}) + ' years'"
 
     # multi-line expr
-    assert (
-        agent_slots["driving_since"].expr
-        == 'd_test = [x.important_event_date for x in src.has_important_life_events if str(x.event_name) == "PASSED_DRIVING_TEST"]\nif len(d_test):\n    target = d_test[0]\n'
+    expected_expr = (
+        "d_test = [x.important_event_date for x in src.has_important_life_events"
+        ' if str(x.event_name) == "PASSED_DRIVING_TEST"]\n'
+        "if len(d_test):\n    target = d_test[0]\n"
     )
+    assert agent_slots["driving_since"].expr == expected_expr
 
     assert agent_slots["primary_email"].expr is None
     assert agent_slots["secondary_email"].expr == "NULL"
@@ -61,10 +64,7 @@ def test_datamodel() -> None:
 
     # enum derivations
     assert len(trs.enum_derivations) == 1
-    assert (
-        trs.enum_derivations["MyFamilialRelationshipType"].populated_from
-        == "FamilialRelationshipType"
-    )
+    assert trs.enum_derivations["MyFamilialRelationshipType"].populated_from == "FamilialRelationshipType"
     assert {"SIBLING_OF", "CHILD_OF"} == set(
         trs.enum_derivations["MyFamilialRelationshipType"].permissible_value_derivations.keys()
     )
@@ -149,15 +149,11 @@ def test_append_class_derivation() -> None:
     """Test that class_derivations can be appended to after construction."""
     spec = TransformationSpecification(id="append-test")
     assert spec.class_derivations == []
-    spec.class_derivations.append(
-        ClassDerivation(name="Agent", populated_from="Person")
-    )
+    spec.class_derivations.append(ClassDerivation(name="Agent", populated_from="Person"))
     assert len(spec.class_derivations) == 1
     assert spec.class_derivations[0].name == "Agent"
     # Append a second with the same name (the core use case)
-    spec.class_derivations.append(
-        ClassDerivation(name="Agent", populated_from="Employee")
-    )
+    spec.class_derivations.append(ClassDerivation(name="Agent", populated_from="Employee"))
     assert len(spec.class_derivations) == 2
 
 
@@ -292,6 +288,65 @@ classes:
     )
     with pytest.raises(ValueError, match="results=2"):
         tr._get_class_derivation("Result")
+
+
+def test_metadata_and_agent_roundtrip() -> None:
+    """Test that metadata fields and Agent hierarchy survive serialization roundtrip."""
+    from datetime import date
+
+    spec = TransformationSpecification(
+        id="metadata-roundtrip-test",
+        title="Test Transformation",
+        publication_date=date(2024, 6, 15),
+        license="https://creativecommons.org/licenses/by/4.0/",
+        version="2.0.0",
+        mapping_method="semapv:ManualMappingCuration",
+        documentation="https://example.org/docs",
+        content_url="https://example.org/content.yaml",
+        source_schema="source.yaml",
+        target_schema="target.yaml",
+        creator=[
+            Person(id="orcid:0000-0001-1234-5678", name="Alice", orcid="orcid:0000-0001-1234-5678"),
+            Organization(id="ror:03yrm5c26", name="Example Org", ror_id="ror:03yrm5c26"),
+        ],
+        author=[
+            Person(id="orcid:0000-0002-9876-5432", name="Bob"),
+        ],
+        reviewer=[
+            Person(id="orcid:0000-0003-1111-2222", name="Carol"),
+        ],
+    )
+
+    # Dict roundtrip
+    dumped = spec.model_dump()
+    assert dumped["publication_date"] == date(2024, 6, 15)
+    assert dumped["license"] == "https://creativecommons.org/licenses/by/4.0/"
+    assert dumped["version"] == "2.0.0"
+    assert len(dumped["creator"]) == 2
+    assert dumped["creator"][0]["type"] == "Person"
+    assert dumped["creator"][1]["type"] == "Organization"
+
+    spec2 = TransformationSpecification(**dumped)
+    assert spec2.publication_date == date(2024, 6, 15)
+    assert spec2.version == "2.0.0"
+    assert len(spec2.creator) == 2
+    assert isinstance(spec2.creator[0], Person)
+    assert isinstance(spec2.creator[1], Organization)
+    assert spec2.creator[0].name == "Alice"
+    assert spec2.creator[1].ror_id == "ror:03yrm5c26"
+    assert len(spec2.author) == 1
+    assert isinstance(spec2.author[0], Person)
+    assert len(spec2.reviewer) == 1
+
+    # JSON roundtrip
+    json_str = spec.model_dump_json()
+    spec3 = TransformationSpecification.model_validate_json(json_str)
+    assert spec3.publication_date == date(2024, 6, 15)
+    assert spec3.mapping_method == "semapv:ManualMappingCuration"
+    assert len(spec3.creator) == 2
+    assert isinstance(spec3.creator[0], Person)
+    assert isinstance(spec3.creator[1], Organization)
+    assert spec3.creator[1].name == "Example Org"
 
 
 def test_create_transformer_specification_dict_input() -> None:

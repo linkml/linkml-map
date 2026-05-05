@@ -14,6 +14,11 @@ The LinkML Transformer framework was born out of a need for a framework that:
 - was declarative and easy to perform machine reasoning over
 - is simple for simple use cases
 
+The core idea is that the **TransformationSpecification** is a declarative intermediate representation
+that can be executed by different backends. Today the primary backend is the Python ObjectTransformer
+(which supports the full feature set). An experimental SQL compilation backend (DuckDB) supports a
+limited subset for set-based database transformations.
+
 In its current state, this framework is less powerful and expressive than many other frameworks
 or methodologies for performing transformations. If you need to perform complex data transformations,
 you might be better off using an expressive query language like SPARQL or SQL, or even just coding

@@ -27,6 +27,3 @@ URI: [https://w3id.org/linkml/transformer/same_as](https://w3id.org/linkml/trans
 
 
 * from schema: https://w3id.org/linkml/transformer
-
-
-

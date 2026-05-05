@@ -9,7 +9,6 @@ see `<https://github.com/dalito/ucumvert>`_.
 
 from enum import Enum
 from functools import lru_cache
-from typing import Any, Optional, Union
 
 import lark
 import pint
@@ -54,8 +53,8 @@ class DimensionalityError(Exception):
 
 
 def convert_units(
-    magnitude: float, from_unit: str, to_unit: str, system: Optional[UnitSystem] = None
-) -> Any:
+    magnitude: float | int | str, from_unit: str, to_unit: str, system: UnitSystem | None = None
+) -> float:
     """
     Convert a quantity between units.
 
@@ -73,12 +72,17 @@ def convert_units(
     10000.0
     >>> convert_units(1.0, "km2", "m2", system=UnitSystem.UCUM)
     1000000.0
+    >>> convert_units("100", "m", "cm")
+    10000.0
+    >>> convert_units("3.14", "m", "cm")
+    314.0
 
     :param magnitude:
     :param from_unit:
     :param to_unit:
     :return: converted magnitude
     """
+    magnitude = float(magnitude)
     ureg: pint.UnitRegistry = get_unit_registry(system)
     from_unit = normalize_unit(from_unit, system)
     to_unit = normalize_unit(to_unit, system)
@@ -103,8 +107,8 @@ def convert_units(
 
 @lru_cache
 def get_unit_registry(
-    system: Optional[UnitSystem] = None,
-) -> Union[pint.UnitRegistry, PintUcumRegistry]:
+    system: UnitSystem | None = None,
+) -> pint.UnitRegistry | PintUcumRegistry:
     """
     Get a unit registry.
 
@@ -148,7 +152,7 @@ def get_unit_registry(
     raise NotImplementedError(msg)
 
 
-def normalize_unit(unit: str, system: Optional[UnitSystem] = None) -> str:
+def normalize_unit(unit: str, system: UnitSystem | None = None) -> str:
     """Normalize the unit to UnitSystem.UCUM, if possible."""
     if system is None or system != UnitSystem.UCUM:
         return unit

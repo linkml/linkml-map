@@ -13,34 +13,34 @@ URI: [linkmltr:UnitConversionConfiguration](https://w3id.org/linkml/transformer/
  classDiagram
     class UnitConversionConfiguration
       UnitConversionConfiguration : source_magnitude_slot
-        
+
           UnitConversionConfiguration --> None : source_magnitude_slot
-        
+
       UnitConversionConfiguration : source_unit
-        
+
           UnitConversionConfiguration --> None : source_unit
-        
+
       UnitConversionConfiguration : source_unit_scheme
-        
+
       UnitConversionConfiguration : source_unit_slot
-        
+
           UnitConversionConfiguration --> None : source_unit_slot
-        
+
       UnitConversionConfiguration : target_magnitude_slot
-        
+
           UnitConversionConfiguration --> None : target_magnitude_slot
-        
+
       UnitConversionConfiguration : target_unit
-        
+
           UnitConversionConfiguration --> None : target_unit
-        
+
       UnitConversionConfiguration : target_unit_scheme
-        
+
       UnitConversionConfiguration : target_unit_slot
-        
+
           UnitConversionConfiguration --> None : target_unit_slot
-        
-      
+
+
 ```
 
 

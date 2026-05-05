@@ -13,50 +13,50 @@ URI: [linkmltr:PrefixDerivation](https://w3id.org/linkml/transformer/PrefixDeriv
  classDiagram
     class PrefixDerivation
       ElementDerivation <|-- PrefixDerivation
-      
+
       PrefixDerivation : comments
-        
+
       PrefixDerivation : copy_directives
-        
+
           PrefixDerivation --> CopyDirective : copy_directives
-        
+
       PrefixDerivation : description
-        
+
           PrefixDerivation --> None : description
-        
+
       PrefixDerivation : expression_to_expression_mappings
-        
+
           PrefixDerivation --> KeyVal : expression_to_expression_mappings
-        
+
       PrefixDerivation : expression_to_value_mappings
-        
+
           PrefixDerivation --> KeyVal : expression_to_value_mappings
-        
+
       PrefixDerivation : implements
-        
+
       PrefixDerivation : is_a
-        
+
           PrefixDerivation --> ElementDerivation : is_a
-        
+
       PrefixDerivation : mirror_source
-        
+
       PrefixDerivation : mixins
-        
+
           PrefixDerivation --> ElementDerivation : mixins
-        
+
       PrefixDerivation : name
-        
+
           PrefixDerivation --> None : name
-        
+
       PrefixDerivation : overrides
-        
+
           PrefixDerivation --> Any : overrides
-        
+
       PrefixDerivation : value_mappings
-        
+
           PrefixDerivation --> KeyVal : value_mappings
-        
-      
+
+
 ```
 
 

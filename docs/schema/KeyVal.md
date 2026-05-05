@@ -13,14 +13,14 @@ URI: [linkmltr:KeyVal](https://w3id.org/linkml/transformer/KeyVal)
  classDiagram
     class KeyVal
       KeyVal : key
-        
+
           KeyVal --> None : key
-        
+
       KeyVal : value
-        
+
           KeyVal --> Any : value
-        
-      
+
+
 ```
 
 

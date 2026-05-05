@@ -130,6 +130,37 @@ def test_definition_in_derivation() -> None:
     assert agent.is_a == "Thing"
 
 
+def test_hidden_slots_excluded_from_target_schema() -> None:
+    """Slots with hide: true must not appear as attributes on the derived target class.
+
+    Hidden slots are runtime-only intermediates for slot() references and have no
+    target-schema counterpart; SchemaMapper must skip them when materializing target
+    attributes.
+    """
+    tr = SchemaMapper()
+    tr.source_schemaview = SchemaView(SCHEMA1)
+    specification = TransformationSpecification(
+        id="test",
+        class_derivations={
+            "Agent": ClassDerivation(
+                name="Agent",
+                slot_derivations={
+                    "_intermediate": SlotDerivation(
+                        name="_intermediate",
+                        hide=True,
+                        target_definition={"range": "string"},
+                    ),
+                    "label": SlotDerivation(name="label", target_definition={"range": "string"}),
+                },
+            ),
+        },
+    )
+    target_schema = tr.derive_schema(specification)
+    agent = target_schema.classes["Agent"]
+    assert "_intermediate" not in agent.attributes
+    assert "label" in agent.attributes
+
+
 def test_derive_partial(mapper: SchemaMapper) -> None:
     """
     Tests partial spec limit case.
@@ -269,13 +300,9 @@ def test_copy_blacklisting(mapper: SchemaMapper) -> None:
     # classes must be the same with addition
     for schema_class in source_schema.classes:
         if schema_class in blacklist:
-            assert schema_class not in target_schema.classes, (
-                f"Class '{schema_class}' is missing in target"
-            )
+            assert schema_class not in target_schema.classes, f"Class '{schema_class}' is missing in target"
         else:
-            assert schema_class in target_schema.classes, (
-                f"Class '{schema_class}' is missing in target"
-            )
+            assert schema_class in target_schema.classes, f"Class '{schema_class}' is missing in target"
     assert "Agent" in target_schema.classes, "Derived class 'Agent' is missing in target"
 
     # slots and enums must be exactly the same
@@ -287,9 +314,7 @@ def test_copy_whitelisting(mapper: SchemaMapper) -> None:
     """Tests copy on a whitelist approach."""
     whitelist = ["NamedThing"]
     whitelist_directive = {
-        "Whitelist": CopyDirective(
-            element_name="*", copy_all=True, exclude_all=True, include=whitelist
-        )
+        "Whitelist": CopyDirective(element_name="*", copy_all=True, exclude_all=True, include=whitelist)
     }
     specification = TransformationSpecification(id="test", copy_directives=whitelist_directive)
     source_schema = mapper.source_schemaview.schema
@@ -303,28 +328,20 @@ def test_copy_whitelisting(mapper: SchemaMapper) -> None:
     # classes, slots and enums must have only what explicitly included
     for schema_class in source_schema.classes:
         if schema_class in whitelist:
-            assert schema_class in target_schema.classes, (
-                f"Class '{schema_class}' is missing in target"
-            )
+            assert schema_class in target_schema.classes, f"Class '{schema_class}' is missing in target"
         else:
-            assert schema_class not in target_schema.classes, (
-                f"Class '{schema_class}' is missing in target"
-            )
+            assert schema_class not in target_schema.classes, f"Class '{schema_class}' is missing in target"
     assert "Agent" in target_schema.classes, "Derived class 'Agent' is missing in target"
     for schema_slot in source_schema.slots:
         if schema_slot in whitelist:
             assert schema_slot in target_schema.slots, f"Slot '{schema_slot}' is missing in target"
         else:
-            assert schema_slot not in target_schema.slots, (
-                f"Slot '{schema_slot}' is missing in target"
-            )
+            assert schema_slot not in target_schema.slots, f"Slot '{schema_slot}' is missing in target"
     for schema_enum in source_schema.enums:
         if schema_enum in whitelist:
             assert schema_enum in target_schema.enums, f"Enum '{schema_enum}' is missing in target"
         else:
-            assert schema_enum not in target_schema.enums, (
-                f"Enum '{schema_enum}' is missing in target"
-            )
+            assert schema_enum not in target_schema.enums, f"Enum '{schema_enum}' is missing in target"
 
 
 def test_derive_schema_merges_duplicate_name_derivations() -> None:

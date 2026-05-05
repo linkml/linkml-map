@@ -34,6 +34,3 @@ URI: [xsd:time](http://www.w3.org/2001/XMLSchema#time)
 
 
 * from schema: https://w3id.org/linkml/transformer
-
-
-

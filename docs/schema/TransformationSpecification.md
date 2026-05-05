@@ -18,48 +18,48 @@ URI: [linkmltr:TransformationSpecification](https://w3id.org/linkml/transformer/
  classDiagram
     class TransformationSpecification
       SpecificationComponent <|-- TransformationSpecification
-      
+
       TransformationSpecification : class_derivations
-        
+
           TransformationSpecification --> ClassDerivation : class_derivations
-        
+
       TransformationSpecification : comments
-        
+
       TransformationSpecification : description
-        
+
           TransformationSpecification --> None : description
-        
+
       TransformationSpecification : enum_derivations
-        
+
           TransformationSpecification --> EnumDerivation : enum_derivations
-        
+
       TransformationSpecification : id
-        
+
           TransformationSpecification --> None : id
-        
+
       TransformationSpecification : implements
-        
+
       TransformationSpecification : prefixes
-        
+
           TransformationSpecification --> KeyVal : prefixes
-        
+
       TransformationSpecification : slot_derivations
-        
+
           TransformationSpecification --> SlotDerivation : slot_derivations
-        
+
       TransformationSpecification : source_schema
-        
+
           TransformationSpecification --> None : source_schema
-        
+
       TransformationSpecification : target_schema
-        
+
           TransformationSpecification --> None : target_schema
-        
+
       TransformationSpecification : title
-        
+
           TransformationSpecification --> None : title
-        
-      
+
+
 ```
 
 

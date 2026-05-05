@@ -18,14 +18,14 @@ URI: [linkmltr:AliasedClass](https://w3id.org/linkml/transformer/AliasedClass)
  classDiagram
     class AliasedClass
       AliasedClass : alias
-        
+
           AliasedClass --> None : alias
-        
+
       AliasedClass : class_named
-        
+
           AliasedClass --> None : class_named
-        
-      
+
+
 ```
 
 

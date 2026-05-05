@@ -18,26 +18,26 @@ URI: [linkmltr:CopyDirective](https://w3id.org/linkml/transformer/CopyDirective)
  classDiagram
     class CopyDirective
       CopyDirective : add
-        
+
           CopyDirective --> Any : add
-        
+
       CopyDirective : copy_all
-        
+
       CopyDirective : element_name
-        
+
           CopyDirective --> None : element_name
-        
+
       CopyDirective : exclude
-        
+
           CopyDirective --> Any : exclude
-        
+
       CopyDirective : exclude_all
-        
+
       CopyDirective : include
-        
+
           CopyDirective --> Any : include
-        
-      
+
+
 ```
 
 

@@ -170,7 +170,7 @@ runs:
 
           echo "Complete output saved to output.json, final response saved to ${{ inputs.output_file }}"
         fi
-      
+
       env:
         ANTHROPIC_API_KEY: ${{ inputs.anthropic_api_key }}
         # ANTHROPIC_AUTH_TOKEN: ${{ inputs.cborg_api_key }}

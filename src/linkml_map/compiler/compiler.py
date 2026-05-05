@@ -17,7 +17,6 @@ from abc import ABC
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 from types import ModuleType
-from typing import Optional
 
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper
@@ -31,7 +30,7 @@ from linkml_map.inference.schema_mapper import SchemaMapper
 class CompiledSpecification:
     serialization: str = field(default="")
 
-    _module: Optional[ModuleType] = None
+    _module: ModuleType | None = None
 
     @property
     def module(self) -> ModuleType:
@@ -65,11 +64,14 @@ class Compiler(ABC):
 
     def compile(self, specification: TransformationSpecification) -> CompiledSpecification:
         """
-        Transform source object into an instance of the target class.
+        Compile a resolved transformation specification into an alternative representation.
 
-        :param specification:
-        :return:
+        :param specification: A fully resolved specification (e.g. from
+            ``Transformer.derived_specification``).  Must not be ``None``.
+        :return: The compiled specification.
         """
+        if specification is None:
+            raise TypeError("compile() requires a resolved specification")
         s = self._compile_header(specification)
         for chunk in self._compile_iterator(specification):
             s += chunk

@@ -16,16 +16,16 @@ URI: [linkmltr:SpecificationComponent](https://w3id.org/linkml/transformer/Speci
     class SpecificationComponent
       SpecificationComponent <|-- TransformationSpecification
       SpecificationComponent <|-- ElementDerivation
-      
+
       SpecificationComponent : comments
-        
+
       SpecificationComponent : description
-        
+
           SpecificationComponent --> None : description
-        
+
       SpecificationComponent : implements
-        
-      
+
+
 ```
 
 

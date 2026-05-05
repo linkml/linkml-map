@@ -20,58 +20,58 @@ URI: [linkmltr:ElementDerivation](https://w3id.org/linkml/transformer/ElementDer
  classDiagram
     class ElementDerivation
       SpecificationComponent <|-- ElementDerivation
-      
+
 
       ElementDerivation <|-- ClassDerivation
       ElementDerivation <|-- SlotDerivation
       ElementDerivation <|-- EnumDerivation
       ElementDerivation <|-- PermissibleValueDerivation
       ElementDerivation <|-- PrefixDerivation
-      
-      
+
+
       ElementDerivation : comments
-        
+
       ElementDerivation : copy_directives
-        
+
           ElementDerivation --> CopyDirective : copy_directives
-        
+
       ElementDerivation : description
-        
+
           ElementDerivation --> None : description
-        
+
       ElementDerivation : expression_to_expression_mappings
-        
+
           ElementDerivation --> KeyVal : expression_to_expression_mappings
-        
+
       ElementDerivation : expression_to_value_mappings
-        
+
           ElementDerivation --> KeyVal : expression_to_value_mappings
-        
+
       ElementDerivation : implements
-        
+
       ElementDerivation : is_a
-        
+
           ElementDerivation --> ElementDerivation : is_a
-        
+
       ElementDerivation : mirror_source
-        
+
       ElementDerivation : mixins
-        
+
           ElementDerivation --> ElementDerivation : mixins
-        
+
       ElementDerivation : name
-        
+
           ElementDerivation --> None : name
-        
+
       ElementDerivation : overrides
-        
+
           ElementDerivation --> Any : overrides
-        
+
       ElementDerivation : value_mappings
-        
+
           ElementDerivation --> KeyVal : value_mappings
-        
-      
+
+
 ```
 
 

@@ -8,10 +8,11 @@ Uses the scaffold-based testing architecture where:
 """
 
 import logging
+
 import pytest
 
 from linkml_map.transformer.object_transformer import ObjectTransformer
-from tests.conftest import add_to_container_test_setup, CONTAINER_TEST_SETUP_FUNCTIONS
+from tests.conftest import CONTAINER_TEST_SETUP_FUNCTIONS, add_to_container_test_setup
 from tests.scaffold.utils.apply_patch import apply_schema_patch, apply_transform_patch
 
 
@@ -247,9 +248,7 @@ def test_no_object_index_warning(container_scaffold, caplog):
     # Intentionally skip index() to trigger warning
 
     with caplog.at_level(logging.WARNING):
-        result = obj_tr.map_object(
-            container_scaffold["input_data"]["persons"][0], source_type="Person"
-        )
+        result = obj_tr.map_object(container_scaffold["input_data"]["persons"][0], source_type="Person")
 
     assert result.get("org_name") is None
     assert "object_index" in caplog.text

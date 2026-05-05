@@ -34,6 +34,3 @@ URI: [shex:nonLiteral](http://www.w3.org/ns/shex#nonLiteral)
 
 
 * from schema: https://w3id.org/linkml/transformer
-
-
-

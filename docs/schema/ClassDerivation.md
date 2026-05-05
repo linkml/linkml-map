@@ -18,62 +18,62 @@ URI: [linkmltr:ClassDerivation](https://w3id.org/linkml/transformer/ClassDerivat
  classDiagram
     class ClassDerivation
       ElementDerivation <|-- ClassDerivation
-      
+
       ClassDerivation : comments
-        
+
       ClassDerivation : copy_directives
-        
+
           ClassDerivation --> CopyDirective : copy_directives
-        
+
       ClassDerivation : description
-        
+
           ClassDerivation --> None : description
-        
+
       ClassDerivation : expression_to_expression_mappings
-        
+
           ClassDerivation --> KeyVal : expression_to_expression_mappings
-        
+
       ClassDerivation : expression_to_value_mappings
-        
+
           ClassDerivation --> KeyVal : expression_to_value_mappings
-        
+
       ClassDerivation : implements
-        
+
       ClassDerivation : is_a
-        
+
           ClassDerivation --> ElementDerivation : is_a
-        
+
       ClassDerivation : joins
-        
+
           ClassDerivation --> AliasedClass : joins
-        
+
       ClassDerivation : mirror_source
-        
+
       ClassDerivation : mixins
-        
+
           ClassDerivation --> ElementDerivation : mixins
-        
+
       ClassDerivation : name
-        
+
           ClassDerivation --> None : name
-        
+
       ClassDerivation : overrides
-        
+
           ClassDerivation --> Any : overrides
-        
+
       ClassDerivation : populated_from
-        
+
       ClassDerivation : slot_derivations
-        
+
           ClassDerivation --> SlotDerivation : slot_derivations
-        
+
       ClassDerivation : sources
-        
+
       ClassDerivation : value_mappings
-        
+
           ClassDerivation --> KeyVal : value_mappings
-        
-      
+
+
 ```
 
 

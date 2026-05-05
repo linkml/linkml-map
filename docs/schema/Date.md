@@ -34,6 +34,3 @@ URI: [xsd:date](http://www.w3.org/2001/XMLSchema#date)
 
 
 * from schema: https://w3id.org/linkml/transformer
-
-
-

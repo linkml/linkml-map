@@ -114,10 +114,18 @@ class TestDataLoaderSingleFile:
         assert rows[0]["id"] == "P:006"
         assert rows[0]["name"] == "Frank"
 
-    def test_single_file_cannot_use_identifier(self, sample_tsv_file: Path) -> None:
+    def test_single_file_identifier_matching_stem(self, sample_tsv_file: Path) -> None:
+        """Single-file loader supports identifier access when it matches the file stem."""
         loader = DataLoader(sample_tsv_file)
-        with pytest.raises(ValueError, match="Cannot use identifier-based access"):
-            _ = loader["Person"]
+        rows = list(loader["Person"])
+        assert len(rows) == 2
+        assert rows[0]["name"] == "Alice"
+
+    def test_single_file_identifier_not_matching_stem(self, sample_tsv_file: Path) -> None:
+        """Single-file loader raises FileNotFoundError for non-matching identifiers."""
+        loader = DataLoader(sample_tsv_file)
+        with pytest.raises(FileNotFoundError, match="Single-file loader has no data"):
+            _ = list(loader["Organization"])
 
     def test_is_single_file_property(self, sample_tsv_file: Path) -> None:
         loader = DataLoader(sample_tsv_file)
@@ -204,9 +212,7 @@ class TestIterSources:
         person_rows = list(sources["Person"])
         assert len(person_rows) == 2
 
-    def test_iter_sources_unifies_single_and_directory(
-        self, sample_tsv_file: Path, sample_data_dir: Path
-    ) -> None:
+    def test_iter_sources_unifies_single_and_directory(self, sample_tsv_file: Path, sample_data_dir: Path) -> None:
         """Both modes should work identically through iter_sources."""
         # Single file
         single_loader = DataLoader(sample_tsv_file)

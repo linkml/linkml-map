@@ -292,6 +292,7 @@ STUDY_FLATTEN_SPEC = {
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_transformer(spec):
     """Build an ObjectTransformer wired to the NMDC source/target schemas."""
     tr = ObjectTransformer()

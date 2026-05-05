@@ -999,4 +999,3 @@ _[https://docs\.google\.com/presentation/d/1DYiWXoz3iHM2PvMFD0hRpJ544tnHawg00PBw
     * Parasitizing converters
     * Direct mapping framework
   * TBD: Is this Koza2?
-
