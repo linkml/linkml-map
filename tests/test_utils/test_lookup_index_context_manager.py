@@ -16,6 +16,7 @@ from linkml_runtime import SchemaView
 
 from linkml_map.loaders.data_loaders import DataLoader
 from linkml_map.transformer.engine import transform_spec
+from linkml_map.transformer.errors import TransformationError
 from linkml_map.transformer.object_transformer import ObjectTransformer
 from linkml_map.utils.lookup_index import LookupIndex
 
@@ -150,19 +151,21 @@ def test_transform_spec_closes_lookup_index(tmp_path):
 
     loader = DataLoader(tmp_path)
 
-    # Consume the iterator fully
-    results = list(transform_spec(tr, loader))
+    # Capture the LookupIndex during iteration — before the cleanup finally runs.
+    held_index: LookupIndex | None = None
+    results = []
+    for row in transform_spec(tr, loader):
+        if held_index is None:
+            held_index = tr.lookup_index
+        results.append(row)
     assert len(results) == 1
 
-    # After transform_spec completes, the LookupIndex should be cleaned up.
-    # Accept either approach: set to None, or closed (operations raise).
-    if tr.lookup_index is None:
-        # Cleanup via nulling — acceptable
-        pass
-    else:
-        # Cleanup via close() — verify the connection is actually closed
-        with pytest.raises((duckdb.ConnectionException, duckdb.InvalidInputException)):
-            tr.lookup_index.register_table("should_fail", tmp_path / "sites.tsv", "site_code")
+    # Both signals must hold: detached AND closed. Asserting only one would
+    # let a regression that does the other slip through.
+    assert held_index is not None, "did not capture index during iteration"
+    assert tr.lookup_index is None, "owned index should be detached after iteration"
+    with pytest.raises((duckdb.ConnectionException, duckdb.InvalidInputException)):
+        held_index.register_table("should_fail", tmp_path / "sites.tsv", "site_code")
 
 
 def test_transform_spec_can_be_called_twice_on_same_transformer(tmp_path):
@@ -208,3 +211,101 @@ def test_transform_spec_can_be_called_twice_on_same_transformer(tmp_path):
     second = list(transform_spec(tr, loader))
     assert len(second) == 1
     assert second[0]["site_name"] == first[0]["site_name"]
+
+
+def test_transform_spec_does_not_close_caller_supplied_index(tmp_path):
+    """A caller-supplied LookupIndex must be left intact after transform_spec.
+
+    Ownership is the contract: when the caller pre-attaches an index,
+    transform_spec must not close or detach it — the caller is responsible
+    for its lifecycle.
+    """
+    (tmp_path / "samples.tsv").write_text("sample_id\tname\tsite_code\nS001\tAlpha\tSITE_A\n")
+    (tmp_path / "sites.tsv").write_text("site_code\tsite_name\nSITE_A\tBoston Medical\n")
+
+    spec_yaml = textwrap.dedent("""\
+        class_derivations:
+          FlatSample:
+            populated_from: samples
+            joins:
+              sites:
+                join_on: site_code
+            slot_derivations:
+              sample_id:
+                populated_from: sample_id
+              site_name:
+                expr: "{sites.site_name}"
+    """)
+
+    source_sv = SchemaView(SOURCE_SCHEMA_YAML)
+    target_sv = SchemaView(TARGET_SCHEMA_YAML)
+    tr = ObjectTransformer(unrestricted_eval=False)
+    tr.source_schemaview = source_sv
+    tr.target_schemaview = target_sv
+    tr.create_transformer_specification(yaml.safe_load(spec_yaml))
+
+    caller_index = LookupIndex()
+    tr.lookup_index = caller_index
+
+    loader = DataLoader(tmp_path)
+    results = list(transform_spec(tr, loader))
+    assert len(results) == 1
+
+    # Caller's index must still be attached and still usable.
+    assert tr.lookup_index is caller_index, "caller-supplied index must not be detached"
+    extra_tsv = tmp_path / "extra.tsv"
+    extra_tsv.write_text("k\tv\nA\t1\n")
+    caller_index.register_table("extra", extra_tsv, "k")
+    assert caller_index.is_registered("extra")
+    caller_index.close()  # caller's responsibility
+
+
+def test_transform_spec_closes_owned_index_on_exception(tmp_path):
+    """When iteration raises, the owned index must still be closed and detached.
+
+    The leak fix relies on the outer ``try/finally`` running cleanup even when
+    iteration exits exceptionally. A regression that moves the close out of the
+    finally would silently break this without dedicated coverage.
+    """
+    # Two rows: first succeeds, second triggers an IndexError via string
+    # indexing past the end of the name. The first successful yield gives the
+    # test a chance to capture tr.lookup_index before the cleanup finally runs.
+    (tmp_path / "samples.tsv").write_text("sample_id\tname\tsite_code\nS001\tAlpha\tSITE_A\nS002\tBo\tSITE_A\n")
+    (tmp_path / "sites.tsv").write_text("site_code\tsite_name\nSITE_A\tBoston Medical\n")
+
+    spec_yaml = textwrap.dedent("""\
+        class_derivations:
+          FlatSample:
+            populated_from: samples
+            joins:
+              sites:
+                join_on: site_code
+            slot_derivations:
+              sample_id:
+                populated_from: sample_id
+              site_name:
+                expr: "{sites.site_name}"
+              name:
+                expr: "{name}[3]"
+    """)
+
+    source_sv = SchemaView(SOURCE_SCHEMA_YAML)
+    target_sv = SchemaView(TARGET_SCHEMA_YAML)
+    tr = ObjectTransformer(unrestricted_eval=False)
+    tr.source_schemaview = source_sv
+    tr.target_schemaview = target_sv
+    tr.create_transformer_specification(yaml.safe_load(spec_yaml))
+
+    loader = DataLoader(tmp_path)
+
+    held_index: LookupIndex | None = None
+    with pytest.raises(TransformationError):
+        for row in transform_spec(tr, loader):
+            if held_index is None:
+                held_index = tr.lookup_index
+    # First row succeeded → we captured the index. Second row raised → the
+    # outer finally must have run cleanup before the exception propagated.
+    assert held_index is not None, "expected first row to yield before failure"
+    assert tr.lookup_index is None, "owned index must be detached even on exception"
+    with pytest.raises((duckdb.ConnectionException, duckdb.InvalidInputException)):
+        held_index.register_table("should_fail", tmp_path / "sites.tsv", "site_code")
