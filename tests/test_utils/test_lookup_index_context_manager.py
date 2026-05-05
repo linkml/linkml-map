@@ -1,9 +1,8 @@
 """Tests for LookupIndex context manager protocol and resource cleanup.
 
-These tests verify that LookupIndex supports ``with`` statement usage
-and that transform_spec properly cleans up its LookupIndex. Currently,
-LookupIndex does NOT implement __enter__/__exit__, so these tests are
-expected to fail until the protocol is added.
+Verifies that LookupIndex supports ``with`` statement usage and that
+``transform_spec`` properly closes (and detaches) the LookupIndex it
+created after iteration completes.
 
 See: https://github.com/linkml/linkml-map/issues/143
 """
@@ -19,7 +18,6 @@ from linkml_map.loaders.data_loaders import DataLoader
 from linkml_map.transformer.engine import transform_spec
 from linkml_map.transformer.object_transformer import ObjectTransformer
 from linkml_map.utils.lookup_index import LookupIndex
-
 
 # ---- Context manager protocol ----
 
@@ -37,7 +35,7 @@ def test_context_manager_basic(tmp_path):
         idx.register_table("data", tsv, "id")
         row = idx.lookup_row("data", "id", "A")
         assert row is not None
-        assert row["val"] == "1"
+        assert str(row["val"]) == "1"
 
     # After exiting: table registry is cleared
     assert not idx.is_registered("data")
@@ -114,25 +112,20 @@ TARGET_SCHEMA_YAML = textwrap.dedent("""\
 
 
 def test_transform_spec_closes_lookup_index(tmp_path):
-    """transform_spec should clean up its LookupIndex after iteration completes.
+    """transform_spec must clean up the LookupIndex it owns after iteration.
 
-    Currently, transform_spec creates a LookupIndex but never calls close(),
-    leaking the DuckDB connection. This test verifies proper cleanup.
+    When transform_spec creates its own LookupIndex (the caller did not
+    pre-attach one), it closes the connection AND detaches it from the
+    transformer in the outer ``finally``. Detaching is required so a
+    second call on the same transformer reinitializes a fresh index
+    rather than reusing the now-closed connection.
 
-    The implementation may clean up by either:
-    - Calling close() on the LookupIndex (connection raises on use), OR
-    - Setting transformer.lookup_index = None
-
-    Either approach is acceptable — the test checks both.
+    The test accepts either cleanup signal:
+    - ``transformer.lookup_index is None`` (detached), OR
+    - the index instance is held but DuckDB raises on use (closed).
     """
-    (tmp_path / "samples.tsv").write_text(
-        "sample_id\tname\tsite_code\n"
-        "S001\tAlpha\tSITE_A\n"
-    )
-    (tmp_path / "sites.tsv").write_text(
-        "site_code\tsite_name\n"
-        "SITE_A\tBoston Medical\n"
-    )
+    (tmp_path / "samples.tsv").write_text("sample_id\tname\tsite_code\nS001\tAlpha\tSITE_A\n")
+    (tmp_path / "sites.tsv").write_text("site_code\tsite_name\nSITE_A\tBoston Medical\n")
 
     spec_yaml = textwrap.dedent("""\
         class_derivations:
@@ -168,9 +161,50 @@ def test_transform_spec_closes_lookup_index(tmp_path):
         pass
     else:
         # Cleanup via close() — verify the connection is actually closed
-        with pytest.raises(
-            (duckdb.ConnectionException, duckdb.InvalidInputException)
-        ):
-            tr.lookup_index.register_table(
-                "should_fail", tmp_path / "sites.tsv", "site_code"
-            )
+        with pytest.raises((duckdb.ConnectionException, duckdb.InvalidInputException)):
+            tr.lookup_index.register_table("should_fail", tmp_path / "sites.tsv", "site_code")
+
+
+def test_transform_spec_can_be_called_twice_on_same_transformer(tmp_path):
+    """A second transform_spec call on the same transformer must succeed.
+
+    When transform_spec owns the LookupIndex it creates, it must detach the
+    closed index in the cleanup ``finally`` so a subsequent call does not
+    skip reinitialization (``owns_index`` would be False) and try to register
+    join tables on a closed connection.
+    """
+    (tmp_path / "samples.tsv").write_text("sample_id\tname\tsite_code\nS001\tAlpha\tSITE_A\n")
+    (tmp_path / "sites.tsv").write_text("site_code\tsite_name\nSITE_A\tBoston Medical\n")
+
+    spec_yaml = textwrap.dedent("""\
+        class_derivations:
+          FlatSample:
+            populated_from: samples
+            joins:
+              sites:
+                join_on: site_code
+            slot_derivations:
+              sample_id:
+                populated_from: sample_id
+              site_name:
+                expr: "{sites.site_name}"
+    """)
+
+    source_sv = SchemaView(SOURCE_SCHEMA_YAML)
+    target_sv = SchemaView(TARGET_SCHEMA_YAML)
+    tr = ObjectTransformer(unrestricted_eval=False)
+    tr.source_schemaview = source_sv
+    tr.target_schemaview = target_sv
+    tr.create_transformer_specification(yaml.safe_load(spec_yaml))
+
+    loader = DataLoader(tmp_path)
+
+    # First call — should succeed and clean up
+    first = list(transform_spec(tr, loader))
+    assert len(first) == 1
+
+    # Second call on the same transformer — must succeed, not blow up on a
+    # closed connection from the first call.
+    second = list(transform_spec(tr, loader))
+    assert len(second) == 1
+    assert second[0]["site_name"] == first[0]["site_name"]
