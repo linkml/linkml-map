@@ -62,6 +62,8 @@ class SQLCompiler(Compiler):
             stmt += f"INSERT INTO {cd.name} SELECT \n"
         col_trs = []
         for sd in cd.slot_derivations.values():
+            if sd.hide:
+                continue
             col_trs.append(self.compile_slot_derivation(sd))
         if not col_trs:
             return

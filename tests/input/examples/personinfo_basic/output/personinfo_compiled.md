@@ -56,7 +56,6 @@
 
 | Target | Target Range | Source | Source Range | Info |
 | ------ | ------ | ---- | ---- | ---- |
-| type | | None |  feature_type  | . | . |
 
 ### DenormMapping `<-` Mapping
 
