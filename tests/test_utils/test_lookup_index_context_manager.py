@@ -121,9 +121,11 @@ def test_transform_spec_closes_lookup_index(tmp_path):
     second call on the same transformer reinitializes a fresh index
     rather than reusing the now-closed connection.
 
-    The test accepts either cleanup signal:
-    - ``transformer.lookup_index is None`` (detached), OR
-    - the index instance is held but DuckDB raises on use (closed).
+    Both signals are required for the test to pass:
+    - ``transformer.lookup_index is None`` (detached), AND
+    - operations on the held index instance raise (closed).
+    Asserting only one would let a regression that does the other slip
+    through.
     """
     (tmp_path / "samples.tsv").write_text("sample_id\tname\tsite_code\nS001\tAlpha\tSITE_A\n")
     (tmp_path / "sites.tsv").write_text("site_code\tsite_name\nSITE_A\tBoston Medical\n")
@@ -307,5 +309,53 @@ def test_transform_spec_closes_owned_index_on_exception(tmp_path):
     # outer finally must have run cleanup before the exception propagated.
     assert held_index is not None, "expected first row to yield before failure"
     assert tr.lookup_index is None, "owned index must be detached even on exception"
+    with pytest.raises((duckdb.ConnectionException, duckdb.InvalidInputException)):
+        held_index.register_table("should_fail", tmp_path / "sites.tsv", "site_code")
+
+
+def test_transform_spec_closes_owned_index_on_early_iterator_close(tmp_path):
+    """Cleanup must run when a caller partially consumes and then closes the iterator.
+
+    Python generators run their ``finally`` blocks on ``.close()`` (a
+    ``GeneratorExit`` is raised at the suspended ``yield``). The fix
+    relies on this — but every other test fully exhausts the iterator,
+    so a refactor that broke early-close cleanup would not be caught.
+    """
+    (tmp_path / "samples.tsv").write_text("sample_id\tname\tsite_code\nS001\tAlpha\tSITE_A\nS002\tBeta\tSITE_A\n")
+    (tmp_path / "sites.tsv").write_text("site_code\tsite_name\nSITE_A\tBoston Medical\n")
+
+    spec_yaml = textwrap.dedent("""\
+        class_derivations:
+          FlatSample:
+            populated_from: samples
+            joins:
+              sites:
+                join_on: site_code
+            slot_derivations:
+              sample_id:
+                populated_from: sample_id
+              site_name:
+                expr: "{sites.site_name}"
+    """)
+
+    source_sv = SchemaView(SOURCE_SCHEMA_YAML)
+    target_sv = SchemaView(TARGET_SCHEMA_YAML)
+    tr = ObjectTransformer(unrestricted_eval=False)
+    tr.source_schemaview = source_sv
+    tr.target_schemaview = target_sv
+    tr.create_transformer_specification(yaml.safe_load(spec_yaml))
+
+    loader = DataLoader(tmp_path)
+
+    # Advance one row, capture the live index, then close the iterator early.
+    iterator = transform_spec(tr, loader)
+    first = next(iterator)
+    assert first["sample_id"] == "S001"
+    held_index = tr.lookup_index
+    assert held_index is not None, "index should exist after first yield"
+    iterator.close()
+
+    # finally must have fired: detached and closed even though we never exhausted.
+    assert tr.lookup_index is None, "owned index must be detached on early close"
     with pytest.raises((duckdb.ConnectionException, duckdb.InvalidInputException)):
         held_index.register_table("should_fail", tmp_path / "sites.tsv", "site_code")

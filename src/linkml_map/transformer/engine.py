@@ -35,6 +35,18 @@ def transform_spec(
        :meth:`ObjectTransformer.map_object`.
     3. Drops secondary tables when the block is done.
 
+    **LookupIndex ownership and cleanup:**
+
+    - If ``transformer.lookup_index`` is ``None`` on entry, this function
+      creates one, uses it for the duration of iteration, then closes it
+      and detaches it (sets ``transformer.lookup_index = None``) when the
+      iterator is exhausted, raises, or is closed early. Detachment lets a
+      subsequent call on the same transformer create a fresh index instead
+      of reusing the now-closed connection.
+    - If the caller pre-attached a ``LookupIndex``, this function uses it
+      but does **not** close or detach it. Lifecycle is the caller's
+      responsibility.
+
     :param transformer: A configured :class:`ObjectTransformer`.
     :param data_loader: Loader that can resolve table names to file paths.
     :param source_type: Optional explicit source type override.
