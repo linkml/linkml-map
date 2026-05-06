@@ -271,6 +271,14 @@ def _resolve_schema_path(
 ) -> tuple[str | None, bool]:
     """Resolve a schema path from explicit argument or spec field.
 
+    Auto-detection from a spec value supports **local file paths** (relative
+    to the spec file or absolute) and **URLs** (any value containing
+    ``://``). Identifier-style values (e.g. ``source_schema: biolink``) are
+    *not* auto-resolved — pass ``--source-schema`` / ``--target-schema``
+    explicitly to point at a real file or URL for those cases. Skipping
+    silently here prevents typos from triggering surprise network requests
+    during validation.
+
     :param spec_value: The ``source_schema`` or ``target_schema`` value from the spec.
     :param explicit: An explicitly provided schema path (overrides spec_value).
     :param base_path: Directory to resolve relative paths against (typically
@@ -293,6 +301,12 @@ def _resolve_schema_path(
     # URLs: let SchemaView attempt resolution with a timeout
     if "://" in spec_value:
         return spec_value, False
+    # Identifier-style values (no path, no URL): skip auto-detection.
+    logger.debug(
+        "Schema value %r is neither a resolvable path nor a URL; skipping auto-detection. "
+        "Pass --source-schema / --target-schema to validate against this schema.",
+        spec_value,
+    )
     return None, False
 
 
@@ -434,6 +448,12 @@ def _validate_class_derivation(
     # Validate slot_derivations (may be list or dict after normalization)
     slot_derivation_dicts = _iter_derivation_dicts(cd.get("slot_derivations", []))
 
+    # Join aliases — names like "demographics" in {demographics.age} that
+    # reference a joined table, not a slot on the source class. Excluded
+    # from expression-reference validation to avoid false-positive warnings.
+    joins = cd.get("joins") or {}
+    joined_aliases: set[str] = set(joins.keys()) if isinstance(joins, dict) else set()
+
     for sd in slot_derivation_dicts:
         _validate_slot_derivation(
             sd,
@@ -441,6 +461,7 @@ def _validate_class_derivation(
             cd_path,
             source_class_slots,
             target_class_slots,
+            joined_aliases,
             strict,
             messages,
         )
@@ -465,10 +486,17 @@ def _validate_slot_derivation(
     parent_path: str,
     source_class_slots: set[str] | None,
     target_class_slots: set[str] | None,
+    joined_aliases: set[str],
     strict: bool,
     messages: list[ValidationMessage],
 ) -> None:
-    """Validate a single slot derivation against schemas."""
+    """Validate a single slot derivation against schemas.
+
+    :param joined_aliases: Names declared in the parent class derivation's
+        ``joins`` mapping. Expression references to these names (e.g.
+        ``{demographics.age}``) are skipped — they refer to joined tables,
+        not source-class slots.
+    """
     sd_name = sd.get("name", "?")
     sd_path = f"{parent_path}.slot_derivations[{sd_name}]"
 
@@ -494,10 +522,11 @@ def _validate_slot_derivation(
                 )
             )
 
-    # Expression slot references
+    # Expression slot references — skip join aliases, they reference joined
+    # tables (validated against the joined class is a separate enhancement).
     expr = sd.get("expr")
     if expr is not None and source_class_slots is not None:
-        refs = extract_expr_slot_references(expr)
+        refs = extract_expr_slot_references(expr) - joined_aliases
         for ref in sorted(refs):
             if ref not in source_class_slots:
                 messages.append(

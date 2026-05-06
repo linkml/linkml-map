@@ -514,8 +514,18 @@ def invert(
     help="Write the resolved (merged + filtered) spec to a file path.  Use '-' for stdout.",
 )
 @click.argument("spec_files", nargs=-1, required=True, type=click.Path(exists=True))
-@click.option("--source-schema", type=click.Path(exists=True), help="Path to source LinkML schema.")
-@click.option("--target-schema", type=click.Path(exists=True), help="Path to target LinkML schema.")
+@click.option(
+    "--source-schema",
+    type=click.Path(exists=True),
+    help="Path to source LinkML schema. Overrides spec auto-detection. Use this for "
+    "specs with identifier-style source_schema values (auto-detect supports paths and URLs only).",
+)
+@click.option(
+    "--target-schema",
+    type=click.Path(exists=True),
+    help="Path to target LinkML schema. Overrides spec auto-detection. Use this for "
+    "specs with identifier-style target_schema values (auto-detect supports paths and URLs only).",
+)
 @click.option("--strict", is_flag=True, help="Treat warnings as errors.")
 @click.option("--no-warnings", is_flag=True, help="Suppress warning output.")
 def validate_spec_cmd(

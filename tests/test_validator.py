@@ -412,6 +412,35 @@ def test_semantics_valid_expr_reference():
     assert expr_msgs == []
 
 
+def test_semantics_join_alias_in_expr_no_warning():
+    """Join aliases in expressions must not produce false-positive warnings.
+
+    Regression: previously, an expression like ``{demographics.age}`` where
+    ``demographics`` is a ``joins:`` alias (not a source-class slot) would
+    fire an "Expression references 'demographics' which is not a slot..."
+    warning. Join aliases should be excluded from expression-reference
+    validation since they refer to joined tables.
+    """
+    spec = normalize_spec_dict(
+        {
+            "class_derivations": {
+                "Person": {
+                    "populated_from": "Person",
+                    "joins": {
+                        "demographics": {"join_on": "id"},
+                    },
+                    "slot_derivations": {
+                        "primary_email": {"expr": "{demographics.age_at_exam}"},
+                    },
+                },
+            },
+        }
+    )
+    msgs = validate_spec_semantics(spec, source_schema=str(PERSONINFO_SRC_SCHEMA))
+    bogus = [m for m in msgs if "demographics" in m.message and "not a slot" in m.message]
+    assert bogus == [], f"join alias 'demographics' should not be flagged: {bogus}"
+
+
 def test_semantics_enum_derivation_valid():
     """A valid enum derivation produces no errors."""
     spec = normalize_spec_dict(
@@ -480,7 +509,9 @@ def test_semantics_required_slot_warning():
 def test_semantics_auto_detect_schemas():
     """Schemas are auto-detected from the spec's source_schema/target_schema fields."""
     msgs = validate_spec_file(str(FLATTENING_TR))
-    # Structural validation passes; no schemas resolvable from URLs = no semantic errors
+    # FLATTENING_TR uses non-resolvable placeholder identifiers (s1/s2) for
+    # source_schema/target_schema, so auto-detection finds nothing to load
+    # and semantic validation is skipped — only structural checks run.
     errors = _errors(msgs)
     assert errors == []
 
