@@ -247,6 +247,75 @@ def test_entity_filter_excludes_other(
     assert obj["title"] == "Acme"
 
 
+def test_entity_filter_single_object(
+    runner: CliRunner,
+    split_specs: Path,
+    simple_schema: Path,
+    tmp_path: Path,
+) -> None:
+    """--entity must filter the spec on the single-object (YAML/JSON) path too.
+
+    Regression for the previous behavior where --entity was accepted on
+    YAML/JSON inputs but only affected --emit-spec, silently ignoring it
+    for the actual transformation.
+    """
+    obj_yaml = tmp_path / "person.yaml"
+    obj_yaml.write_text(yaml.dump({"id": "P:001", "name": "Alice"}))
+
+    # --entity Person + source-type Person → succeeds and produces Alice.
+    result = runner.invoke(
+        main,
+        [
+            "map-data",
+            "-T",
+            str(split_specs),
+            "-s",
+            str(simple_schema),
+            "--source-type",
+            "Person",
+            "--entity",
+            "Person",
+            "-f",
+            "yaml",
+            str(obj_yaml),
+        ],
+    )
+    assert result.exit_code == 0, result.stderr
+    out = yaml.safe_load(result.output)
+    assert out["name"] == "Alice"
+
+
+def test_entity_filter_no_match_errors(
+    runner: CliRunner,
+    split_specs: Path,
+    simple_schema: Path,
+    tmp_path: Path,
+) -> None:
+    """--entity that matches nothing must fail loudly, not silently produce zero output."""
+    obj_yaml = tmp_path / "person.yaml"
+    obj_yaml.write_text(yaml.dump({"id": "P:001", "name": "Alice"}))
+
+    result = runner.invoke(
+        main,
+        [
+            "map-data",
+            "-T",
+            str(split_specs),
+            "-s",
+            str(simple_schema),
+            "--source-type",
+            "Person",
+            "--entity",
+            "Nonexistent",
+            "-f",
+            "yaml",
+            str(obj_yaml),
+        ],
+    )
+    assert result.exit_code != 0
+    assert "Nonexistent" in result.stderr
+
+
 # --- --emit-spec tests ---
 
 

@@ -218,18 +218,31 @@ def _load_specs(tr: ObjectTransformer, transformer_specification: tuple[str, ...
     tr.load_transformer_specifications(transformer_specification)
 
 
-def _emit_spec_to_file(tr: ObjectTransformer, emit_spec: str, entity: str | None) -> None:
-    """Write the resolved specification to a file, optionally filtered by entity."""
+def _filter_spec_to_entity(tr: ObjectTransformer, entity: str | None) -> None:
+    """Restrict ``tr.specification.class_derivations`` to the named entity in place.
+
+    A no-op when *entity* is ``None``. This is the single source of truth for
+    --entity filtering: applied once on the loaded spec, both ``map_object``
+    (single-object) and ``transform_spec`` (streaming) then see only the
+    matching derivation. Raises if no derivation matches so the failure mode
+    is loud rather than silently producing zero output.
+    """
+    if not entity or tr.specification is None:
+        return
+    matched = [cd for cd in tr.specification.class_derivations if cd.name == entity]
+    if not matched:
+        names = ", ".join(cd.name for cd in tr.specification.class_derivations) or "(none)"
+        msg = f"--entity {entity!r} did not match any class_derivation. Available: {names}"
+        raise click.ClickException(msg)
+    tr.specification.class_derivations = matched
+
+
+def _emit_spec_to_file(tr: ObjectTransformer, emit_spec: str) -> None:
+    """Write the resolved specification (after any --entity filtering) to a file."""
     from linkml_runtime.dumpers import yaml_dumper
 
-    spec = tr.specification
-    if entity:
-        from copy import deepcopy
-
-        spec = deepcopy(spec)
-        spec.class_derivations = [cd for cd in spec.class_derivations if cd.name == entity]
     with open(emit_spec, "w", encoding="utf-8") as f:
-        f.write(yaml_dumper.dumps(spec))
+        f.write(yaml_dumper.dumps(tr.specification))
     logger.info("Wrote resolved spec to %s", emit_spec)
 
 
@@ -253,8 +266,9 @@ def _map_data_single(
     if target_schema:
         tr.target_schemaview = SchemaView(target_schema)
 
+    _filter_spec_to_entity(tr, entity)
     if emit_spec:
-        _emit_spec_to_file(tr, emit_spec, entity)
+        _emit_spec_to_file(tr, emit_spec)
 
     # Load input data (YAML or JSON)
     with open(input_data) as file:
@@ -322,8 +336,9 @@ def _map_data_streaming(
     if target_schema:
         tr.target_schemaview = SchemaView(target_schema)
 
+    _filter_spec_to_entity(tr, entity)
     if emit_spec:
-        _emit_spec_to_file(tr, emit_spec, entity)
+        _emit_spec_to_file(tr, emit_spec)
 
     # Initialize data loader
     data_loader = DataLoader(input_path)
@@ -333,7 +348,7 @@ def _map_data_streaming(
     on_error = errors.append if continue_on_error else None
 
     # Create transform iterator and chunk it
-    transform_iter = transform_spec(tr, data_loader, source_type, on_error=on_error, entity=entity)
+    transform_iter = transform_spec(tr, data_loader, source_type, on_error=on_error)
     chunks = chunked(transform_iter, chunk_size)
 
     # Resolve output format
@@ -417,7 +432,7 @@ def compile(
     tr = ObjectTransformer()
     tr.source_schemaview = sv
     _load_specs(tr, transformer_specification)
-    result = compiler.compile(tr.specification)
+    result = compiler.compile(tr.derived_specification)
     # dump as-is, no encoding
     dump_output(result.serialization, None, output)
 
