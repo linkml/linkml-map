@@ -514,8 +514,26 @@ def invert(
     help="Write the resolved (merged + filtered) spec to a file path.  Use '-' for stdout.",
 )
 @click.argument("spec_files", nargs=-1, required=True, type=click.Path(exists=True))
+@click.option(
+    "--source-schema",
+    type=click.Path(exists=True),
+    help="Path to source LinkML schema. Overrides spec auto-detection. Use this for "
+    "specs with identifier-style source_schema values (auto-detect supports paths and URLs only).",
+)
+@click.option(
+    "--target-schema",
+    type=click.Path(exists=True),
+    help="Path to target LinkML schema. Overrides spec auto-detection. Use this for "
+    "specs with identifier-style target_schema values (auto-detect supports paths and URLs only).",
+)
+@click.option("--strict", is_flag=True, help="Treat warnings as errors.")
+@click.option("--no-warnings", is_flag=True, help="Suppress warning output.")
 def validate_spec_cmd(
     spec_files: tuple[str, ...],
+    source_schema: str | None = None,
+    target_schema: str | None = None,
+    strict: bool = False,
+    no_warnings: bool = False,
     entity: str | None = None,
     merge: bool = False,
     emit_spec: str | None = None,
@@ -523,26 +541,54 @@ def validate_spec_cmd(
     """Validate transformation specification YAML files.
 
     Checks that each file conforms to the TransformationSpecification schema.
+    With --source-schema and/or --target-schema, also checks that class names,
+    slot names, and populated_from references resolve against the schemas.
+    Schemas are auto-detected from the spec's source_schema/target_schema
+    fields when not provided explicitly.
+
     Exits with code 1 if any file has validation errors.
 
     Example:
 
         linkml-map validate-spec my-transform.yaml
 
+        linkml-map validate-spec --source-schema src.yaml --target-schema tgt.yaml spec.yaml
+
         linkml-map validate-spec specs/*.yaml
 
         linkml-map validate-spec --merge --entity Person --emit-spec resolved.yaml specs/
     """
     if merge:
-        _validate_spec_merged(spec_files, entity=entity, emit_spec=emit_spec)
+        _validate_spec_merged(
+            spec_files,
+            entity=entity,
+            emit_spec=emit_spec,
+            source_schema=source_schema,
+            target_schema=target_schema,
+            strict=strict,
+            no_warnings=no_warnings,
+        )
     else:
         if entity or emit_spec:
             click.echo("--entity and --emit-spec require --merge", err=True)
             raise SystemExit(1)
-        _validate_spec_individual(spec_files)
+        _validate_spec_individual(
+            spec_files,
+            source_schema=source_schema,
+            target_schema=target_schema,
+            strict=strict,
+            no_warnings=no_warnings,
+        )
 
 
-def _validate_spec_individual(spec_files: tuple[str, ...]) -> None:
+def _validate_spec_individual(
+    spec_files: tuple[str, ...],
+    *,
+    source_schema: str | None = None,
+    target_schema: str | None = None,
+    strict: bool = False,
+    no_warnings: bool = False,
+) -> None:
     """Validate each spec file independently.
 
     Directories are expanded to their contained YAML files.
@@ -556,24 +602,49 @@ def _validate_spec_individual(spec_files: tuple[str, ...]) -> None:
         raise SystemExit(1)
 
     has_errors = False
+    has_warnings = False
     for path in resolved:
-        errors = validate_spec_file(str(path))
+        messages = validate_spec_file(
+            str(path),
+            source_schema=source_schema,
+            target_schema=target_schema,
+            strict=strict,
+        )
+        errors = [m for m in messages if m.severity == "error"]
+        warnings = [m for m in messages if m.severity == "warning"]
+
         if errors:
             has_errors = True
             click.echo(f"{path}:", err=True)
-            for error in errors:
-                click.echo(f"  {error}", err=True)
-        else:
-            click.echo(f"{path}: ok")
+            for msg in errors:
+                click.echo(f"  {msg}", err=True)
 
-    if has_errors:
+        if warnings:
+            has_warnings = True
+        if warnings and not no_warnings:
+            if not errors:
+                click.echo(f"{path}:", err=True)
+            for msg in warnings:
+                click.echo(f"  {msg}", err=True)
+
+        if not errors and not warnings:
+            click.echo(f"{path}: ok")
+        elif not errors:
+            click.echo(f"{path}: ok (with warnings)")
+
+    if has_errors or (strict and has_warnings):
         raise SystemExit(1)
 
 
 def _validate_spec_merged(
     spec_files: tuple[str, ...],
+    *,
     entity: str | None = None,
     emit_spec: str | None = None,
+    source_schema: str | None = None,
+    target_schema: str | None = None,
+    strict: bool = False,
+    no_warnings: bool = False,
 ) -> None:
     """Merge spec files, validate the result, optionally emit."""
     from linkml_map.utils.spec_merge import load_and_merge_specs
@@ -598,14 +669,35 @@ def _validate_spec_merged(
         elif isinstance(cd, dict):
             merged["class_derivations"] = {k: v for k, v in cd.items() if k == entity}
 
-    errors = validate_spec(merged)
+    messages = validate_spec(
+        merged,
+        source_schema=source_schema,
+        target_schema=target_schema,
+        strict=strict,
+    )
+    errors = [m for m in messages if m.severity == "error"]
+    warnings = [m for m in messages if m.severity == "warning"]
+
     if errors:
         click.echo("Merged spec validation errors:", err=True)
-        for error in errors:
-            click.echo(f"  {error}", err=True)
+        for msg in errors:
+            click.echo(f"  {msg}", err=True)
+
+    if warnings and not no_warnings:
+        click.echo("Merged spec validation warnings:", err=True)
+        for msg in warnings:
+            click.echo(f"  {msg}", err=True)
+
+    if errors:
         raise SystemExit(1)
 
-    click.echo("Merged spec: ok")
+    if warnings:
+        click.echo("Merged spec: ok (with warnings)")
+    else:
+        click.echo("Merged spec: ok")
+
+    if strict and warnings:
+        raise SystemExit(1)
 
     if emit_spec:
         from linkml_map.transformer.transformer import Transformer
