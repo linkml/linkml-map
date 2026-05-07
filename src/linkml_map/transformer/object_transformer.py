@@ -35,7 +35,34 @@ from linkml_map.utils.fk_utils import FKResolution, resolve_fk_path
 
 DICT_OBJ = dict[str, Any]
 
-_AMBIGUOUS = object()  # sentinel for columns present in both parent and nested tables
+
+class _AmbiguousType:
+    """Singleton sentinel for columns present in both parent and joined tables.
+
+    The single instance ``_AMBIGUOUS`` is identity-checked everywhere it is
+    used. ``__deepcopy__`` and ``__reduce__`` return the same instance so the
+    sentinel survives ``copy.deepcopy`` and ``pickle`` round-trips — without
+    these, a copied row would lose ambiguity detection silently.
+    """
+
+    _instance: _AmbiguousType | None = None
+
+    def __new__(cls) -> _AmbiguousType:
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __deepcopy__(self, memo: dict) -> _AmbiguousType:
+        return self
+
+    def __reduce__(self) -> tuple:
+        return (_AmbiguousType, ())
+
+    def __repr__(self) -> str:
+        return "<AMBIGUOUS>"
+
+
+_AMBIGUOUS = _AmbiguousType()
 
 
 class MergedRow(dict):
@@ -767,13 +794,29 @@ class ObjectTransformer(Transformer):
                             nested_source,
                         )
                 else:
-                    # No join spec for this nested source — cross-table reference can't be resolved
+                    # No join spec for this nested source — cross-table reference can't be resolved.
+                    # Re-derive the candidate set so the diagnostic tells the user *why* synthesis
+                    # failed (no overlap vs. multiple non-identifier candidates), recovering the
+                    # detail lost when the per-row resolution path was consolidated into
+                    # normalization-time synthesis.
+                    from linkml_map.utils.join_utils import find_common_columns
+
+                    common = find_common_columns(self.source_schemaview, parent_source, nested_source)
+                    if not common:
+                        reason = f"no columns are shared between {parent_source!r} and {nested_source!r}"
+                    else:
+                        candidates = ", ".join(sorted(common))
+                        reason = (
+                            f"multiple candidate join columns are shared between "
+                            f"{parent_source!r} and {nested_source!r} ({candidates}); "
+                            f"specify which to use"
+                        )
                     raise TransformationError(
                         message=(
                             f"Nested class {cls_derivation.name!r} has "
                             f"populated_from={nested_source!r} which differs from parent "
-                            f"populated_from={parent_source!r}, but no join could be "
-                            f"determined. Add an explicit joins: block."
+                            f"populated_from={parent_source!r}, but no implicit join could be "
+                            f"synthesized: {reason}. Add an explicit joins: block."
                         ),
                         class_derivation_name=cls_derivation.name,
                         class_populated_from=nested_source,

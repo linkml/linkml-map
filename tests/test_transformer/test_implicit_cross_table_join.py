@@ -247,7 +247,10 @@ def test_implicit_join_no_common_columns(data_dir):
     tr = _make_transformer(schema_no_common, TRANSFORM_SPEC, TARGET_SCHEMA_YAML)
     data_loader = DataLoader(data_dir)
 
-    with pytest.raises(TransformationError, match="no join could be determined"):
+    # Diagnostic should specifically call out that no columns are shared,
+    # so the user knows whether they need to (a) add a column or (b) pick
+    # between candidates.
+    with pytest.raises(TransformationError, match="no columns are shared"):
         list(transform_spec(tr, data_loader, source_type="Measurement"))
 
 
@@ -289,8 +292,14 @@ def test_implicit_join_multiple_non_id_common_columns(data_dir_ambiguous):
     tr = _make_transformer(schema_multi_common, TRANSFORM_SPEC, TARGET_SCHEMA_YAML)
     data_loader = DataLoader(data_dir_ambiguous)
 
-    with pytest.raises(TransformationError, match="no join could be determined"):
+    # Diagnostic should list the candidate columns so the user knows what to
+    # disambiguate — not just say "no join could be determined".
+    with pytest.raises(TransformationError) as exc:
         list(transform_spec(tr, data_loader, source_type="Measurement"))
+    msg = str(exc.value)
+    assert "multiple candidate join columns" in msg
+    assert "subject_id" in msg
+    assert "method" in msg
 
 
 def test_implicit_join_ambiguous_column_access_errors(data_dir):
@@ -389,7 +398,7 @@ def test_implicit_join_continue_on_error(data_dir):
 
     # Should collect errors instead of raising
     assert len(errors) == 2  # one per Measurement row
-    assert all("no join could be determined" in str(e) for e in errors)
+    assert all("no implicit join could be synthesized" in str(e) for e in errors)
     # Results should still be produced (with whatever the error handler allows)
     assert len(results) == 0  # rows that errored are skipped
 
@@ -658,3 +667,23 @@ def test_implicit_join_sparse_data_no_match(data_dir_sparse):
     # S_NODATA has no matching Reading — nested value is None, no error
     assert results[1]["id"] == "M2"
     assert results[1]["observation"]["value"] is None
+
+
+def test_ambiguous_sentinel_survives_deepcopy_and_pickle():
+    """The _AMBIGUOUS sentinel must remain identity-equal after deepcopy and pickle.
+
+    Identity is checked via ``is _AMBIGUOUS`` everywhere it's used. If the
+    sentinel doesn't survive copy/pickle, a copied or pickled MergedRow
+    would silently lose ambiguity detection and let the sentinel slip through
+    as a real value.
+    """
+    import copy
+    import pickle
+
+    from linkml_map.transformer.object_transformer import _AMBIGUOUS, _AmbiguousType
+
+    assert copy.deepcopy(_AMBIGUOUS) is _AMBIGUOUS
+    assert copy.copy(_AMBIGUOUS) is _AMBIGUOUS
+    assert pickle.loads(pickle.dumps(_AMBIGUOUS)) is _AMBIGUOUS
+    # Constructing a new instance returns the same singleton.
+    assert _AmbiguousType() is _AMBIGUOUS
