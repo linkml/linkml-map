@@ -133,6 +133,224 @@ def setup_uuid5_expr(scaffold):
     scaffold["expected"]["uuid_id"] = "abbe798e-d61b-5371-86f2-ea8e54129a50"
 
 
+@add_to_test_setup
+def setup_slot_fn_basic(scaffold):
+    """Reference a previously derived slot via slot()."""
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - name_length
+          - name_length_copy
+    slots:
+      name_length:
+        range: integer
+      name_length_copy:
+        range: integer
+""",
+    )
+
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          name_length:
+            expr: "strlen({name})"
+          name_length_copy:
+            expr: "slot('name_length')"
+""",
+    )
+
+    scaffold["expected"]["name_length"] = 11
+    scaffold["expected"]["name_length_copy"] = 11
+
+
+@add_to_test_setup
+def setup_hidden_slot(scaffold):
+    """Hidden slot suppressed from output but available via slot()."""
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - greeting
+    slots:
+      greeting:
+        range: string
+""",
+    )
+
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          _hidden_name:
+            hide: true
+            expr: "{name}"
+          greeting:
+            expr: "'Hello, ' + slot('_hidden_name') + '!'"
+""",
+    )
+
+    # _hidden_name should NOT appear in output
+    scaffold["expected"]["greeting"] = "Hello, alice adams!"
+
+
+@add_to_test_setup
+def setup_hidden_slot_with_value_mappings(scaffold):
+    """Hidden slot using value_mappings, referenced via slot()."""
+    apply_schema_patch(
+        scaffold["source_schema"],
+        """
+    classes:
+      Person:
+        slots:
+          - status_code
+    slots:
+      status_code:
+        range: string
+""",
+    )
+    scaffold["input_data"]["status_code"] = "A"
+
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - status_label
+    slots:
+      status_label:
+        range: string
+""",
+    )
+
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          _status:
+            hide: true
+            populated_from: status_code
+            value_mappings:
+              A: Active
+              I: Inactive
+          status_label:
+            expr: "'Status: ' + slot('_status')"
+""",
+    )
+
+    scaffold["expected"]["status_label"] = "Status: Active"
+
+
+@add_to_test_setup
+def setup_expression_mapping(scaffold):
+    """Map a value via expression_mappings."""
+
+    apply_schema_patch(
+        scaffold["source_schema"],
+        """
+    classes:
+      Person:
+        slots:
+          - visit_code
+    slots:
+      visit_code:
+        range: string
+""",
+    )
+
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - visit_id
+    slots:
+      visit_id:
+        range: string
+""",
+    )
+
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          visit_id:
+            populated_from: visit_code
+            expression_mappings:
+              "1": "uuid5('https://example.org/visit', {id} + '_SCREENING')"
+              "7": "uuid5('https://example.org/visit', {id} + '_BASELINE')"
+""",
+    )
+
+    scaffold["input_data"]["visit_code"] = "1"
+    from linkml_map.utils.eval_utils import _uuid5
+
+    scaffold["expected"]["visit_id"] = _uuid5("https://example.org/visit", "P:001_SCREENING")
+
+
+@add_to_test_setup
+def setup_value_mapping_literal(scaffold):
+    """Map a value via literal value in value_mappings (backward compat)."""
+
+    apply_schema_patch(
+        scaffold["source_schema"],
+        """
+    classes:
+      Person:
+        slots:
+          - role_code
+    slots:
+      role_code:
+        range: string
+""",
+    )
+
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - role_label
+    slots:
+      role_label:
+        range: string
+""",
+    )
+
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          role_label:
+            populated_from: role_code
+            value_mappings:
+              "A": Admin
+              "U": User
+""",
+    )
+
+    scaffold["input_data"]["role_code"] = "A"
+    scaffold["expected"]["role_label"] = "Admin"
+
+
 @pytest.mark.parametrize(
     "setup_func",
     TEST_SETUP_FUNCTIONS,
@@ -148,6 +366,230 @@ def test_unit(scaffold, setup_func):
 def test_integration(integration_scaffold):
     result = run_transformer(integration_scaffold)
     assert result == integration_scaffold["expected"]
+
+
+def test_hidden_slots_excluded_from_output(scaffold):
+    """Hidden slots must not appear in output keys."""
+    setup_hidden_slot(scaffold)
+    result = run_transformer(scaffold)
+    assert "_hidden_name" not in result
+    assert "greeting" in result
+
+
+def test_hidden_slot_with_value_mappings_excluded(scaffold):
+    """Hidden slot with value_mappings must not appear in output keys."""
+    setup_hidden_slot_with_value_mappings(scaffold)
+    result = run_transformer(scaffold)
+    assert "_status" not in result
+    assert "status_label" in result
+
+
+def test_slot_fn_in_expression_mapping(scaffold):
+    """slot() is available inside expression_mappings values, not just expr."""
+    apply_schema_patch(
+        scaffold["source_schema"],
+        """
+    classes:
+      Person:
+        slots:
+          - kind_code
+    slots:
+      kind_code:
+        range: string
+""",
+    )
+    scaffold["input_data"]["kind_code"] = "X"
+
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - kind_label
+    slots:
+      kind_label:
+        range: string
+""",
+    )
+
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          _suffix:
+            hide: true
+            expr: "'!'"
+          kind_label:
+            populated_from: kind_code
+            expression_mappings:
+              "X": "'extra' + slot('_suffix')"
+""",
+    )
+    result = run_transformer(scaffold)
+    assert result["kind_label"] == "extra!"
+
+
+def test_slot_fn_with_unrestricted_eval(scaffold):
+    """slot() is available in the asteval fallback path used by unrestricted_eval.
+
+    Uses lambda syntax which simpleeval rejects with InvalidExpression, forcing
+    _eval_expr to fall through to the asteval Interpreter. slot() must be in the
+    asteval usersyms for the expression to resolve.
+    """
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - asteval_label
+    slots:
+      asteval_label:
+        range: string
+""",
+    )
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          _src_name:
+            hide: true
+            expr: "{name}"
+          asteval_label:
+            expr: "target = (lambda v: v.upper())(slot('_src_name'))"
+""",
+    )
+    result = run_transformer(scaffold)
+    assert result["asteval_label"] == "ALICE ADAMS"
+
+
+def test_slot_fn_returns_none_for_missing(scaffold):
+    """slot() returns None for a slot name that doesn't exist."""
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - missing_ref
+    slots:
+      missing_ref:
+        range: string
+""",
+    )
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          missing_ref:
+            expr: "slot('nonexistent')"
+""",
+    )
+    result = run_transformer(scaffold)
+    assert result["missing_ref"] is None
+
+
+def test_value_mapping_no_match_returns_none(scaffold):
+    """Value mappings return None when the source value has no matching key."""
+
+    apply_schema_patch(
+        scaffold["source_schema"],
+        """
+    classes:
+      Person:
+        slots:
+          - code
+    slots:
+      code:
+        range: string
+""",
+    )
+
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - result
+    slots:
+      result:
+        range: string
+""",
+    )
+
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          result:
+            populated_from: code
+            value_mappings:
+              "A": alpha
+""",
+    )
+
+    scaffold["input_data"]["code"] = "Z"
+    result = run_transformer(scaffold)
+    assert result.get("result") is None
+
+
+def test_value_mappings_takes_precedence_over_expression_mappings(scaffold):
+    """When both value_mappings and expression_mappings have the same key, value_mappings wins."""
+
+    apply_schema_patch(
+        scaffold["source_schema"],
+        """
+    classes:
+      Person:
+        slots:
+          - code
+    slots:
+      code:
+        range: string
+""",
+    )
+
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - result
+    slots:
+      result:
+        range: string
+""",
+    )
+
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          result:
+            populated_from: code
+            value_mappings:
+              "A": literal_wins
+            expression_mappings:
+              "A": "'expression_loses'"
+""",
+    )
+
+    scaffold["input_data"]["code"] = "A"
+    result = run_transformer(scaffold)
+    assert result["result"] == "literal_wins"
 
 
 # ---------------------------------------------------------------------------

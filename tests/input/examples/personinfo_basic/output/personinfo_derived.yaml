@@ -135,9 +135,6 @@ classes:
         name: related_to
   SequenceFeature:
     name: SequenceFeature
-    attributes:
-      type:
-        name: type
   DenormMapping:
     name: DenormMapping
     attributes:

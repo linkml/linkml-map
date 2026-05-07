@@ -130,6 +130,37 @@ def test_definition_in_derivation() -> None:
     assert agent.is_a == "Thing"
 
 
+def test_hidden_slots_excluded_from_target_schema() -> None:
+    """Slots with hide: true must not appear as attributes on the derived target class.
+
+    Hidden slots are runtime-only intermediates for slot() references and have no
+    target-schema counterpart; SchemaMapper must skip them when materializing target
+    attributes.
+    """
+    tr = SchemaMapper()
+    tr.source_schemaview = SchemaView(SCHEMA1)
+    specification = TransformationSpecification(
+        id="test",
+        class_derivations={
+            "Agent": ClassDerivation(
+                name="Agent",
+                slot_derivations={
+                    "_intermediate": SlotDerivation(
+                        name="_intermediate",
+                        hide=True,
+                        target_definition={"range": "string"},
+                    ),
+                    "label": SlotDerivation(name="label", target_definition={"range": "string"}),
+                },
+            ),
+        },
+    )
+    target_schema = tr.derive_schema(specification)
+    agent = target_schema.classes["Agent"]
+    assert "_intermediate" not in agent.attributes
+    assert "label" in agent.attributes
+
+
 def test_derive_partial(mapper: SchemaMapper) -> None:
     """
     Tests partial spec limit case.

@@ -214,6 +214,10 @@ class SchemaMapper:
                     target_class,
                 )
         for slot_derivation in class_derivation.slot_derivations.values():
+            if slot_derivation.hide:
+                # Hidden slots are intermediates for slot() references at runtime
+                # and have no corresponding attribute in the target schema.
+                continue
             slot_definition = self._derive_slot(slot_derivation)
             target_class.attributes[slot_definition.name] = slot_definition
         if class_derivation.is_a:

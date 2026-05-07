@@ -78,6 +78,8 @@ class GraphvizCompiler(Compiler):
             source_record = Record(name=source_cn, source="source")
             target_record = Record(name=target_cn, source="target")
             for sd in cd.slot_derivations.values():
+                if sd.hide:
+                    continue
                 target_slot = sd.name
                 target_id = f"{target_record.id}:{target_slot}"
                 source_slot = sd.populated_from
