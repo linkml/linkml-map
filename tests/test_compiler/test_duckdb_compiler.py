@@ -21,6 +21,38 @@ def session() -> Session:
     return session
 
 
+def test_hidden_slots_excluded_from_sql() -> None:
+    """SQLCompiler must not emit columns for slot derivations with hide: true.
+
+    Hidden slots are runtime-only intermediates for slot() references; emitting
+    them as SQL columns would reference target columns that SchemaMapper does not
+    materialize, producing broken SQL.
+    """
+    from linkml_map.datamodel.transformer_model import (
+        ClassDerivation,
+        SlotDerivation,
+        TransformationSpecification,
+    )
+
+    spec = TransformationSpecification(
+        id="test",
+        class_derivations={
+            "Agent": ClassDerivation(
+                name="Agent",
+                populated_from="Person",
+                slot_derivations={
+                    "_intermediate": SlotDerivation(name="_intermediate", populated_from="name", hide=True),
+                    "label": SlotDerivation(name="label", populated_from="name"),
+                },
+            ),
+        },
+    )
+    compiler = SQLCompiler()
+    compiled = compiler.compile(spec)
+    assert "_intermediate" not in compiled.serialization
+    assert "label" in compiled.serialization
+
+
 def test_compile(session: Session) -> None:
     """Test the DuckDb compiler."""
     compiler = SQLCompiler()
