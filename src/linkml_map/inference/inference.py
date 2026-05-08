@@ -9,63 +9,23 @@ from linkml_map.utils.fk_utils import resolve_fk_path
 
 
 def _warn_deprecated_fields(specification: TransformationSpecification) -> None:
-    """Emit deprecation warnings for use of deprecated fields.
+    """Emit ``DeprecationWarning`` for any deprecated field usage.
 
-    Checks for ``sources`` (deprecated in favor of ``populated_from``)
-    and ``derived_from`` (deprecated, unused by runtime).
-    ``object_derivations`` warnings are emitted during normalization
-    (see ``Transformer._normalize_slot_class_derivations``).
-    Warnings are collapsed to one per field per derivation type to avoid noise.
+    Thin shim over ``validator._check_deprecated_fields`` that re-emits
+    deprecation-category messages as ``DeprecationWarning`` so runtime
+    callers (and any code with Python ``warnings`` filters configured)
+    keep getting the same signal they always did.
+
+    The same underlying check is consumed by static validation paths
+    (``validate-spec`` and pre-flight from other CLI commands) via
+    ``ValidationMessage`` records — see ``validator._check_deprecated_fields``.
     """
-    sources_counts: dict[str, list[str]] = {
-        "ClassDerivation": [],
-        "SlotDerivation": [],
-        "EnumDerivation": [],
-        "PermissibleValueDerivation": [],
-    }
-    derived_from_names: list[str] = []
+    from linkml_map.validator import _check_deprecated_fields
 
-    for cd in specification.class_derivations:
-        if cd.sources:
-            sources_counts["ClassDerivation"].append(cd.name)
-        for sd in cd.slot_derivations.values():
-            if sd.sources:
-                sources_counts["SlotDerivation"].append(sd.name)
-            if sd.derived_from:
-                derived_from_names.append(sd.name)
-    for ed in specification.enum_derivations.values():
-        if ed.sources:
-            sources_counts["EnumDerivation"].append(ed.name)
-        for pvd in ed.permissible_value_derivations.values():
-            if pvd.sources:
-                sources_counts["PermissibleValueDerivation"].append(pvd.name)
-
-    for deriv_type, names in sources_counts.items():
-        if names:
-            names_str = ", ".join(names[:5])
-            suffix = f" (and {len(names) - 5} more)" if len(names) > 5 else ""
-            warnings.warn(
-                f"{len(names)} {deriv_type}(s) use 'sources', which is deprecated: "
-                f"{names_str}{suffix}. "
-                f"Use 'populated_from' instead. "
-                f"'sources' will be removed in a future version.",
-                DeprecationWarning,
-                stacklevel=3,
-            )
-
-    if derived_from_names:
-        names_str = ", ".join(derived_from_names[:5])
-        suffix = f" (and {len(derived_from_names) - 5} more)" if len(derived_from_names) > 5 else ""
-        warnings.warn(
-            f"{len(derived_from_names)} SlotDerivation(s) use 'derived_from', "
-            f"which is deprecated and ignored by the runtime: "
-            f"{names_str}{suffix}. "
-            f"This field can be removed — source slot dependencies are "
-            f"derivable from 'expr'. "
-            f"'derived_from' will be removed in a future version.",
-            DeprecationWarning,
-            stacklevel=3,
-        )
+    spec_dict = specification.model_dump(exclude_none=True)
+    for msg in _check_deprecated_fields(spec_dict):
+        if msg.category == "deprecated":
+            warnings.warn(msg.message, DeprecationWarning, stacklevel=3)
 
 
 def induce_missing_values(specification: TransformationSpecification, source_schemaview: SchemaView) -> None:

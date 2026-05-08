@@ -63,11 +63,18 @@ _EXPR_SAFE_NAMES = frozenset(
 
 @dataclass
 class ValidationMessage:
-    """A single validation finding with severity and location context."""
+    """A single validation finding with severity and location context.
+
+    ``category`` is an optional tag that downstream consumers can use to
+    group or filter messages. The validator currently emits ``"deprecated"``
+    for warnings about deprecated field usage; other categories may be
+    added in the future.
+    """
 
     severity: Literal["error", "warning"]
     path: str
     message: str
+    category: str | None = None
 
     def __str__(self) -> str:
         return f"{self.path}: [{self.severity}] {self.message}"
@@ -327,6 +334,94 @@ def _iter_derivation_dicts(raw: Any) -> list[dict[str, Any]]:
             result.append(d)
         return result
     return []
+
+
+def _check_deprecated_fields(data: dict[str, Any]) -> list[ValidationMessage]:
+    """Check a normalized spec dict for use of deprecated fields.
+
+    Currently flags two deprecations:
+
+    * ``sources`` on ``ClassDerivation`` / ``SlotDerivation`` /
+      ``EnumDerivation`` / ``PermissibleValueDerivation`` — replaced by
+      ``populated_from``.
+    * ``derived_from`` on ``SlotDerivation`` — ignored by the runtime
+      and removable.
+
+    Findings are collapsed to one message per (deprecation, derivation
+    type) pair to keep output readable on large specs.
+
+    Other deprecations (``object_derivations`` flattening) are surfaced
+    during normalization in ``Transformer._normalize_slot_class_derivations``
+    and do not need to be re-emitted here.
+
+    :param data: A **normalized** spec dict (post ``normalize_spec_dict``).
+    :returns: A list of warning messages with ``category="deprecated"``.
+    """
+    messages: list[ValidationMessage] = []
+    sources_counts: dict[str, list[str]] = {
+        "ClassDerivation": [],
+        "SlotDerivation": [],
+        "EnumDerivation": [],
+        "PermissibleValueDerivation": [],
+    }
+    derived_from_names: list[str] = []
+
+    for cd in _iter_derivation_dicts(data.get("class_derivations")):
+        cd_name = cd.get("name", "<unnamed>")
+        if cd.get("sources"):
+            sources_counts["ClassDerivation"].append(cd_name)
+        for sd in _iter_derivation_dicts(cd.get("slot_derivations")):
+            sd_name = sd.get("name", "<unnamed>")
+            if sd.get("sources"):
+                sources_counts["SlotDerivation"].append(sd_name)
+            if sd.get("derived_from"):
+                derived_from_names.append(sd_name)
+
+    for ed in _iter_derivation_dicts(data.get("enum_derivations")):
+        ed_name = ed.get("name", "<unnamed>")
+        if ed.get("sources"):
+            sources_counts["EnumDerivation"].append(ed_name)
+        for pvd in _iter_derivation_dicts(ed.get("permissible_value_derivations")):
+            pvd_name = pvd.get("name", "<unnamed>")
+            if pvd.get("sources"):
+                sources_counts["PermissibleValueDerivation"].append(pvd_name)
+
+    for deriv_type, names in sources_counts.items():
+        if names:
+            preview = ", ".join(names[:5])
+            suffix = f" (and {len(names) - 5} more)" if len(names) > 5 else ""
+            messages.append(
+                ValidationMessage(
+                    severity="warning",
+                    category="deprecated",
+                    path=f"$.{deriv_type}",
+                    message=(
+                        f"{len(names)} {deriv_type}(s) use 'sources', which is deprecated: "
+                        f"{preview}{suffix}. Use 'populated_from' instead. "
+                        f"'sources' will be removed in a future version."
+                    ),
+                )
+            )
+
+    if derived_from_names:
+        preview = ", ".join(derived_from_names[:5])
+        suffix = f" (and {len(derived_from_names) - 5} more)" if len(derived_from_names) > 5 else ""
+        messages.append(
+            ValidationMessage(
+                severity="warning",
+                category="deprecated",
+                path="$.SlotDerivation",
+                message=(
+                    f"{len(derived_from_names)} SlotDerivation(s) use 'derived_from', "
+                    f"which is deprecated and ignored by the runtime: "
+                    f"{preview}{suffix}. This field can be removed — source slot "
+                    f"dependencies are derivable from 'expr'. 'derived_from' will "
+                    f"be removed in a future version."
+                ),
+            )
+        )
+
+    return messages
 
 
 def validate_spec_semantics(
@@ -613,6 +708,7 @@ def validate_spec(
     normalized = normalize_spec_dict(data)
     messages = _validate_structural(normalized, schema_path=schema_path)
     if not messages:
+        messages.extend(_check_deprecated_fields(normalized))
         messages.extend(
             validate_spec_semantics(
                 normalized,

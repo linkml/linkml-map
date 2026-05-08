@@ -540,3 +540,115 @@ def test_validation_message_str():
     """ValidationMessage.__str__ formats correctly."""
     msg = ValidationMessage(severity="error", path="class_derivations[Foo]", message="not found")
     assert str(msg) == "class_derivations[Foo]: [error] not found"
+
+
+# ---------------------------------------------------------------------------
+# Deprecation check
+# ---------------------------------------------------------------------------
+
+
+def test_check_deprecated_fields_sources_on_class_derivation():
+    """``sources`` on a ClassDerivation produces a deprecation message."""
+    from linkml_map.validator import _check_deprecated_fields
+
+    spec = normalize_spec_dict(
+        {
+            "class_derivations": {
+                "Person": {"populated_from": "Person", "sources": ["LegacyPerson"]},
+            },
+        }
+    )
+    msgs = _check_deprecated_fields(spec)
+    assert len(msgs) == 1
+    assert msgs[0].severity == "warning"
+    assert msgs[0].category == "deprecated"
+    assert "ClassDerivation" in msgs[0].message
+    assert "sources" in msgs[0].message
+    assert "Person" in msgs[0].message
+
+
+def test_check_deprecated_fields_derived_from_on_slot_derivation():
+    """``derived_from`` on a SlotDerivation produces a deprecation message."""
+    from linkml_map.validator import _check_deprecated_fields
+
+    spec = normalize_spec_dict(
+        {
+            "class_derivations": {
+                "Person": {
+                    "populated_from": "Person",
+                    "slot_derivations": {
+                        "full_name": {
+                            "expr": "{given_name} + ' ' + {family_name}",
+                            "derived_from": ["given_name", "family_name"],
+                        }
+                    },
+                },
+            },
+        }
+    )
+    msgs = _check_deprecated_fields(spec)
+    assert len(msgs) == 1
+    assert msgs[0].severity == "warning"
+    assert msgs[0].category == "deprecated"
+    assert "derived_from" in msgs[0].message
+    assert "full_name" in msgs[0].message
+
+
+def test_check_deprecated_fields_collapses_per_derivation_type():
+    """Multiple sources of the same kind collapse to one message per type."""
+    from linkml_map.validator import _check_deprecated_fields
+
+    spec = normalize_spec_dict(
+        {
+            "class_derivations": {
+                "A": {"populated_from": "A", "sources": ["X"]},
+                "B": {"populated_from": "B", "sources": ["Y"]},
+            },
+        }
+    )
+    msgs = _check_deprecated_fields(spec)
+    # Both ClassDerivations collapsed into a single ClassDerivation message.
+    assert len(msgs) == 1
+    assert "2 ClassDerivation(s)" in msgs[0].message
+
+
+def test_check_deprecated_fields_truncates_long_lists():
+    """When more than 5 derivations have a deprecated field, names are truncated."""
+    from linkml_map.validator import _check_deprecated_fields
+
+    cds = {f"C{i}": {"populated_from": f"C{i}", "sources": ["X"]} for i in range(7)}
+    spec = normalize_spec_dict({"class_derivations": cds})
+    msgs = _check_deprecated_fields(spec)
+    assert len(msgs) == 1
+    assert "(and 2 more)" in msgs[0].message
+
+
+def test_check_deprecated_fields_clean_spec_returns_empty():
+    """A spec with no deprecated field usage produces no messages."""
+    from linkml_map.validator import _check_deprecated_fields
+
+    spec = normalize_spec_dict(
+        {
+            "class_derivations": {
+                "Person": {
+                    "populated_from": "Person",
+                    "slot_derivations": {"name": {"populated_from": "name"}},
+                },
+            },
+        }
+    )
+    msgs = _check_deprecated_fields(spec)
+    assert msgs == []
+
+
+def test_validate_spec_includes_deprecation_messages():
+    """``validate_spec`` surfaces deprecation messages alongside other findings."""
+    spec = {
+        "class_derivations": {
+            "Person": {"populated_from": "Person", "sources": ["LegacyPerson"]},
+        },
+    }
+    msgs = validate_spec(spec)
+    deprecations = [m for m in msgs if m.category == "deprecated"]
+    assert len(deprecations) == 1
+    assert "sources" in deprecations[0].message
