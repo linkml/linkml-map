@@ -12,10 +12,44 @@ from linkml_map.utils.lookup_index import LookupIndex
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
+    from linkml_map.datamodel.transformer_model import ClassDerivation
     from linkml_map.loaders.data_loaders import DataLoader
     from linkml_map.transformer.object_transformer import ObjectTransformer
 
 logger = logging.getLogger(__name__)
+
+
+def _collect_all_joins(class_deriv: ClassDerivation) -> dict[str, tuple[str, str]]:
+    """Collect all join specs from a class derivation and its nested descendants.
+
+    Walks the slot_derivation tree recursively to find joins that were either
+    explicitly declared or synthesized during normalization.
+
+    :param class_deriv: Root class derivation to scan.
+    :returns: Dict of {table_name: (source_key, lookup_key)} for all joins found.
+    """
+    result: dict[str, tuple[str, str]] = {}
+
+    def _collect_from(cd: ClassDerivation) -> None:
+        if cd.joins:
+            for join_name, join_spec in cd.joins.items():
+                lookup_key = join_spec.lookup_key or join_spec.join_on
+                source_key = join_spec.source_key or join_spec.join_on
+                if not lookup_key or not source_key:
+                    msg = f"Join {join_name!r} must specify 'join_on' or both 'source_key' and 'lookup_key'"
+                    raise ValueError(msg)
+                existing = result.get(join_name)
+                if existing and existing != (source_key, lookup_key):
+                    msg = f"Conflicting join specs for {join_name!r}: {existing} vs ({source_key!r}, {lookup_key!r})"
+                    raise ValueError(msg)
+                result[join_name] = (source_key, lookup_key)
+        for sd in cd.slot_derivations.values():
+            if sd.class_derivations:
+                for nested_cd in sd.class_derivations:
+                    _collect_from(nested_cd)
+
+    _collect_from(class_deriv)
+    return result
 
 
 def transform_spec(
@@ -30,7 +64,9 @@ def transform_spec(
     For each block whose ``populated_from`` names a loadable table, this
     function:
 
-    1. Registers any ``joins`` as secondary tables in a :class:`LookupIndex`.
+    1. Registers any ``joins`` as secondary tables in a :class:`LookupIndex`,
+       including joins synthesized during normalization for implicit cross-table
+       references.
     2. Streams primary-table rows through
        :meth:`ObjectTransformer.map_object`.
     3. Drops secondary tables when the block is done.
@@ -73,14 +109,11 @@ def transform_spec(
 
             joined_tables: list[str] = []
             try:
-                # Register secondary (joined) tables
-                if class_deriv.joins:
-                    for join_name, join_spec in class_deriv.joins.items():
-                        lookup_key = join_spec.lookup_key or join_spec.join_on
-                        source_key = join_spec.source_key or join_spec.join_on
-                        if not lookup_key or not source_key:
-                            msg = f"Join {join_name!r} must specify 'join_on' or both 'source_key' and 'lookup_key'"
-                            raise ValueError(msg)
+                # Register all joined tables (explicit + synthesized from normalization).
+                # _collect_all_joins walks nested derivations and validates each join spec.
+                all_joins = _collect_all_joins(class_deriv)
+                for join_name, (_source_key, lookup_key) in all_joins.items():
+                    if join_name in data_loader and not transformer.lookup_index.is_registered(join_name):
                         join_path = data_loader.get_path(join_name)
                         transformer.lookup_index.register_table(join_name, join_path, lookup_key)
                         joined_tables.append(join_name)
