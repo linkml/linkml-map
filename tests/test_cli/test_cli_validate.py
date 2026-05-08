@@ -13,11 +13,6 @@ from tests import (
 )
 
 
-@pytest.fixture
-def runner() -> CliRunner:
-    return CliRunner(mix_stderr=False)
-
-
 def test_validate_spec_valid_file(runner: CliRunner) -> None:
     """A valid trans-spec file exits 0 and prints ok."""
     result = runner.invoke(main, ["validate-spec", str(FLATTENING_TR)])

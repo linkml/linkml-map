@@ -14,11 +14,6 @@ TABULAR_TRANSFORM = TABULAR_TEST_DIR / "transform" / "person_to_agent.transform.
 
 
 @pytest.fixture
-def runner() -> CliRunner:
-    return CliRunner(mix_stderr=False)
-
-
-@pytest.fixture
 def sample_tsv(tmp_path: Path) -> Path:
     tsv = tmp_path / "Person.tsv"
     tsv.write_text(
