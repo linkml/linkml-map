@@ -20,10 +20,10 @@ def _warn_deprecated_fields(specification: TransformationSpecification) -> None:
     (``validate-spec`` and pre-flight from other CLI commands) via
     ``ValidationMessage`` records — see ``validator._check_deprecated_fields``.
     """
-    from linkml_map.validator import _check_deprecated_fields
+    from linkml_map.validator import check_deprecated_fields
 
     spec_dict = specification.model_dump(exclude_none=True)
-    for msg in _check_deprecated_fields(spec_dict):
+    for msg in check_deprecated_fields(spec_dict):
         if msg.category == "deprecated":
             warnings.warn(msg.message, DeprecationWarning, stacklevel=3)
 

@@ -549,7 +549,7 @@ def test_validation_message_str():
 
 def test_check_deprecated_fields_sources_on_class_derivation():
     """``sources`` on a ClassDerivation produces a deprecation message."""
-    from linkml_map.validator import _check_deprecated_fields
+    from linkml_map.validator import check_deprecated_fields
 
     spec = normalize_spec_dict(
         {
@@ -558,7 +558,7 @@ def test_check_deprecated_fields_sources_on_class_derivation():
             },
         }
     )
-    msgs = _check_deprecated_fields(spec)
+    msgs = check_deprecated_fields(spec)
     assert len(msgs) == 1
     assert msgs[0].severity == "warning"
     assert msgs[0].category == "deprecated"
@@ -569,7 +569,7 @@ def test_check_deprecated_fields_sources_on_class_derivation():
 
 def test_check_deprecated_fields_derived_from_on_slot_derivation():
     """``derived_from`` on a SlotDerivation produces a deprecation message."""
-    from linkml_map.validator import _check_deprecated_fields
+    from linkml_map.validator import check_deprecated_fields
 
     spec = normalize_spec_dict(
         {
@@ -586,7 +586,7 @@ def test_check_deprecated_fields_derived_from_on_slot_derivation():
             },
         }
     )
-    msgs = _check_deprecated_fields(spec)
+    msgs = check_deprecated_fields(spec)
     assert len(msgs) == 1
     assert msgs[0].severity == "warning"
     assert msgs[0].category == "deprecated"
@@ -596,7 +596,7 @@ def test_check_deprecated_fields_derived_from_on_slot_derivation():
 
 def test_check_deprecated_fields_collapses_per_derivation_type():
     """Multiple sources of the same kind collapse to one message per type."""
-    from linkml_map.validator import _check_deprecated_fields
+    from linkml_map.validator import check_deprecated_fields
 
     spec = normalize_spec_dict(
         {
@@ -606,7 +606,7 @@ def test_check_deprecated_fields_collapses_per_derivation_type():
             },
         }
     )
-    msgs = _check_deprecated_fields(spec)
+    msgs = check_deprecated_fields(spec)
     # Both ClassDerivations collapsed into a single ClassDerivation message.
     assert len(msgs) == 1
     assert "2 ClassDerivation(s)" in msgs[0].message
@@ -614,18 +614,18 @@ def test_check_deprecated_fields_collapses_per_derivation_type():
 
 def test_check_deprecated_fields_truncates_long_lists():
     """When more than 5 derivations have a deprecated field, names are truncated."""
-    from linkml_map.validator import _check_deprecated_fields
+    from linkml_map.validator import check_deprecated_fields
 
     cds = {f"C{i}": {"populated_from": f"C{i}", "sources": ["X"]} for i in range(7)}
     spec = normalize_spec_dict({"class_derivations": cds})
-    msgs = _check_deprecated_fields(spec)
+    msgs = check_deprecated_fields(spec)
     assert len(msgs) == 1
     assert "(and 2 more)" in msgs[0].message
 
 
 def test_check_deprecated_fields_clean_spec_returns_empty():
     """A spec with no deprecated field usage produces no messages."""
-    from linkml_map.validator import _check_deprecated_fields
+    from linkml_map.validator import check_deprecated_fields
 
     spec = normalize_spec_dict(
         {
@@ -637,7 +637,7 @@ def test_check_deprecated_fields_clean_spec_returns_empty():
             },
         }
     )
-    msgs = _check_deprecated_fields(spec)
+    msgs = check_deprecated_fields(spec)
     assert msgs == []
 
 

@@ -336,7 +336,7 @@ def _iter_derivation_dicts(raw: Any) -> list[dict[str, Any]]:
     return []
 
 
-def _check_deprecated_fields(data: dict[str, Any]) -> list[ValidationMessage]:
+def check_deprecated_fields(data: dict[str, Any]) -> list[ValidationMessage]:
     """Check a normalized spec dict for use of deprecated fields.
 
     Currently flags two deprecations:
@@ -429,6 +429,8 @@ def validate_spec_semantics(
     *,
     source_schema: str | Path | None = None,
     target_schema: str | Path | None = None,
+    source_schemaview: SchemaView | None = None,
+    target_schemaview: SchemaView | None = None,
     strict: bool = False,
     spec_base_path: Path | None = None,
 ) -> list[ValidationMessage]:
@@ -437,9 +439,20 @@ def validate_spec_semantics(
     Checks that class names, slot names, ``populated_from`` references, and
     expression slot references resolve against the provided schemas.
 
+    Pre-loaded ``SchemaView`` instances take precedence over path-based
+    arguments; pass them when the caller already has schemas in memory
+    (e.g. CLI pre-flight after ``_load_specs``) to avoid re-fetching
+    remote schemas or re-parsing large local ones.
+
     :param data: A **normalized** spec dict.
-    :param source_schema: Path to the source LinkML schema.
-    :param target_schema: Path to the target LinkML schema.
+    :param source_schema: Path to the source LinkML schema (loaded only
+        if ``source_schemaview`` is not provided).
+    :param target_schema: Path to the target LinkML schema (loaded only
+        if ``target_schemaview`` is not provided).
+    :param source_schemaview: Pre-loaded source schema. Takes precedence
+        over ``source_schema``.
+    :param target_schemaview: Pre-loaded target schema. Takes precedence
+        over ``target_schema``.
     :param strict: If ``True``, unresolved expression slot references are
         errors instead of warnings.
     :param spec_base_path: Directory for resolving relative schema paths
@@ -448,36 +461,36 @@ def validate_spec_semantics(
     """
     messages: list[ValidationMessage] = []
 
-    # Resolve schemas (explicit args override spec fields)
-    source_path, source_explicit = _resolve_schema_path(data.get("source_schema"), source_schema, spec_base_path)
-    target_path, target_explicit = _resolve_schema_path(data.get("target_schema"), target_schema, spec_base_path)
+    source_sv: SchemaView | None = source_schemaview
+    target_sv: SchemaView | None = target_schemaview
 
-    source_sv: SchemaView | None = None
-    target_sv: SchemaView | None = None
-
-    if source_path:
-        try:
-            source_sv = _load_schemaview_with_timeout(source_path)
-        except Exception as exc:
-            messages.append(
-                ValidationMessage(
-                    severity="error" if source_explicit else "warning",
-                    path="source_schema",
-                    message=f"Could not load source schema '{source_path}': {exc}",
+    if source_sv is None:
+        source_path, source_explicit = _resolve_schema_path(data.get("source_schema"), source_schema, spec_base_path)
+        if source_path:
+            try:
+                source_sv = _load_schemaview_with_timeout(source_path)
+            except Exception as exc:
+                messages.append(
+                    ValidationMessage(
+                        severity="error" if source_explicit else "warning",
+                        path="source_schema",
+                        message=f"Could not load source schema '{source_path}': {exc}",
+                    )
                 )
-            )
 
-    if target_path:
-        try:
-            target_sv = _load_schemaview_with_timeout(target_path)
-        except Exception as exc:
-            messages.append(
-                ValidationMessage(
-                    severity="error" if target_explicit else "warning",
-                    path="target_schema",
-                    message=f"Could not load target schema '{target_path}': {exc}",
+    if target_sv is None:
+        target_path, target_explicit = _resolve_schema_path(data.get("target_schema"), target_schema, spec_base_path)
+        if target_path:
+            try:
+                target_sv = _load_schemaview_with_timeout(target_path)
+            except Exception as exc:
+                messages.append(
+                    ValidationMessage(
+                        severity="error" if target_explicit else "warning",
+                        path="target_schema",
+                        message=f"Could not load target schema '{target_path}': {exc}",
+                    )
                 )
-            )
 
     if source_sv is None and target_sv is None:
         return messages
@@ -708,7 +721,7 @@ def validate_spec(
     normalized = normalize_spec_dict(data)
     messages = _validate_structural(normalized, schema_path=schema_path)
     if not messages:
-        messages.extend(_check_deprecated_fields(normalized))
+        messages.extend(check_deprecated_fields(normalized))
         messages.extend(
             validate_spec_semantics(
                 normalized,

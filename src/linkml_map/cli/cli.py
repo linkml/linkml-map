@@ -235,21 +235,25 @@ def _pre_flight_validate(
 
     Validates the merged ``tr.specification`` (after multi-file loading
     is complete) so cross-file issues surface where users would see
-    them via ``validate-spec --merge``.
+    them via ``validate-spec --merge``. Reuses ``tr.source_schemaview``
+    and ``tr.target_schemaview`` when set, avoiding a duplicate load
+    of large or remote schemas.
     """
-    from linkml_map.validator import _check_deprecated_fields, validate_spec_semantics
+    from linkml_map.validator import check_deprecated_fields, validate_spec_semantics
 
     if tr.specification is None:
         return
 
     spec_dict = tr.specification.model_dump(exclude_none=True)
 
-    messages = list(_check_deprecated_fields(spec_dict))
+    messages = list(check_deprecated_fields(spec_dict))
     messages.extend(
         validate_spec_semantics(
             spec_dict,
             source_schema=source_schema,
             target_schema=target_schema,
+            source_schemaview=tr.source_schemaview,
+            target_schemaview=tr.target_schemaview,
         )
     )
 

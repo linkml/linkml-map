@@ -36,7 +36,14 @@ classes:
 
 @pytest.fixture
 def runner() -> CliRunner:
-    """CliRunner with stderr captured separately for pre-flight assertions."""
+    """CliRunner with default stream handling.
+
+    stdout and stderr are merged into ``result.output`` (click's default).
+    Tests assert against the merged stream — pre-flight messages go to
+    stderr via ``click.echo(err=True)`` and appear there alongside any
+    stdout output. ``mix_stderr=False`` is intentionally not used; see
+    https://github.com/linkml/linkml-map/issues/218 (broken under click 8.3+).
+    """
     return CliRunner()
 
 
