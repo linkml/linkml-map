@@ -19,7 +19,7 @@ TABULAR_TRANSFORM = TABULAR_TEST_DIR / "transform" / "person_to_agent.transform.
 @pytest.fixture
 def runner() -> CliRunner:
     """Command line interface test runner."""
-    return CliRunner(mix_stderr=False)
+    return CliRunner()
 
 
 @pytest.fixture

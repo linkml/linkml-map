@@ -15,7 +15,7 @@ from tests import (
 
 @pytest.fixture
 def runner() -> CliRunner:
-    return CliRunner(mix_stderr=False)
+    return CliRunner()
 
 
 def test_validate_spec_valid_file(runner: CliRunner) -> None:
