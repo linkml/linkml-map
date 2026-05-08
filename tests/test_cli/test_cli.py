@@ -26,17 +26,6 @@ from tests import (
 DERIVED_SCHEMA_NAME_LINE = "name: personinfo-derived"
 
 
-@pytest.fixture
-def runner() -> CliRunner:
-    """
-    Command line interface test runner.
-
-    :return: command line interface runner
-    :rtype: CliRunner
-    """
-    return CliRunner(mix_stderr=False)
-
-
 def test_main_help(runner: CliRunner) -> None:
     """
     Ensure that the help command contains the appropriate text.
