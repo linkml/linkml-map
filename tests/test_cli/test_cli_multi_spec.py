@@ -15,7 +15,7 @@ TABULAR_TRANSFORM = TABULAR_TEST_DIR / "transform" / "person_to_agent.transform.
 
 @pytest.fixture
 def runner() -> CliRunner:
-    return CliRunner(mix_stderr=False)
+    return CliRunner()
 
 
 @pytest.fixture
@@ -115,7 +115,7 @@ def test_multi_t_single_file(runner: CliRunner, sample_tsv: Path) -> None:
             str(sample_tsv),
         ],
     )
-    assert result.exit_code == 0, result.stderr
+    assert result.exit_code == 0, result.output
 
 
 def test_multi_t_directory(
@@ -142,7 +142,7 @@ def test_multi_t_directory(
             str(tsv),
         ],
     )
-    assert result.exit_code == 0, result.stderr
+    assert result.exit_code == 0, result.output
 
 
 def test_multi_t_multiple_files(
@@ -171,7 +171,7 @@ def test_multi_t_multiple_files(
             str(tsv),
         ],
     )
-    assert result.exit_code == 0, result.stderr
+    assert result.exit_code == 0, result.output
 
 
 # --- --entity tests ---
@@ -203,7 +203,7 @@ def test_entity_filter_streaming(
             str(data_dir),
         ],
     )
-    assert result.exit_code == 0, result.stderr
+    assert result.exit_code == 0, result.output
     lines = [line for line in result.output.strip().split("\n") if line]
     assert len(lines) == 1
     import json
@@ -238,7 +238,7 @@ def test_entity_filter_excludes_other(
             str(data_dir),
         ],
     )
-    assert result.exit_code == 0, result.stderr
+    assert result.exit_code == 0, result.output
     lines = [line for line in result.output.strip().split("\n") if line]
     assert len(lines) == 1
     import json
@@ -280,7 +280,7 @@ def test_entity_filter_single_object(
             str(obj_yaml),
         ],
     )
-    assert result.exit_code == 0, result.stderr
+    assert result.exit_code == 0, result.output
     out = yaml.safe_load(result.output)
     assert out["name"] == "Alice"
 
@@ -313,7 +313,7 @@ def test_entity_filter_no_match_errors(
         ],
     )
     assert result.exit_code != 0
-    assert "Nonexistent" in result.stderr
+    assert "Nonexistent" in result.output
 
 
 # --- --emit-spec tests ---
@@ -346,7 +346,7 @@ def test_emit_spec_on_map_data(
             str(tsv),
         ],
     )
-    assert result.exit_code == 0, result.stderr
+    assert result.exit_code == 0, result.output
     assert emit_path.exists()
     emitted = yaml.safe_load(emit_path.read_text())
     assert "class_derivations" in emitted
@@ -379,7 +379,7 @@ def test_emit_spec_with_entity_filter(
             str(tsv),
         ],
     )
-    assert result.exit_code == 0, result.stderr
+    assert result.exit_code == 0, result.output
     emitted = yaml.safe_load(emit_path.read_text())
     cd_names = [cd["name"] for cd in emitted["class_derivations"]]
     assert cd_names == ["Person"]
@@ -394,7 +394,7 @@ def test_validate_spec_merge(runner: CliRunner, split_specs: Path) -> None:
         main,
         ["validate-spec", "--merge", str(split_specs / "person.yaml"), str(split_specs / "org.yaml")],
     )
-    assert result.exit_code == 0, result.stderr
+    assert result.exit_code == 0, result.output
     assert "ok" in result.output
 
 
@@ -412,7 +412,7 @@ def test_validate_spec_merge_emit_to_file(runner: CliRunner, split_specs: Path, 
             str(split_specs / "org.yaml"),
         ],
     )
-    assert result.exit_code == 0, result.stderr
+    assert result.exit_code == 0, result.output
     assert emit_path.exists()
     emitted = yaml.safe_load(emit_path.read_text())
     assert "class_derivations" in emitted
@@ -431,7 +431,7 @@ def test_validate_spec_merge_emit_stdout(runner: CliRunner, split_specs: Path) -
             str(split_specs / "org.yaml"),
         ],
     )
-    assert result.exit_code == 0, result.stderr
+    assert result.exit_code == 0, result.output
     output_after_ok = result.output.split("Merged spec: ok\n", 1)[1]
     emitted = yaml.safe_load(output_after_ok)
     assert "class_derivations" in emitted
@@ -453,7 +453,7 @@ def test_validate_spec_merge_emit_entity(runner: CliRunner, split_specs: Path, t
             str(split_specs / "org.yaml"),
         ],
     )
-    assert result.exit_code == 0, result.stderr
+    assert result.exit_code == 0, result.output
     emitted = yaml.safe_load(emit_path.read_text())
     cd_names = [cd["name"] for cd in emitted["class_derivations"]]
     assert cd_names == ["Person"]
@@ -466,4 +466,4 @@ def test_validate_spec_entity_without_merge_errors(runner: CliRunner, split_spec
         ["validate-spec", "--entity", "Person", str(split_specs / "person.yaml")],
     )
     assert result.exit_code == 1
-    assert "--merge" in result.stderr
+    assert "--merge" in result.output

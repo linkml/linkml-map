@@ -15,7 +15,7 @@ from tests import (
 
 @pytest.fixture
 def runner() -> CliRunner:
-    return CliRunner(mix_stderr=False)
+    return CliRunner()
 
 
 def test_validate_spec_valid_file(runner: CliRunner) -> None:
@@ -49,7 +49,7 @@ def test_validate_spec_invalid_file(runner: CliRunner, tmp_path) -> None:
     bad.write_text("not_a_real_field: oops\n")
     result = runner.invoke(main, ["validate-spec", str(bad)])
     assert result.exit_code == 1
-    assert "not_a_real_field" in result.stderr
+    assert "not_a_real_field" in result.output
 
 
 def test_validate_spec_non_mapping(runner: CliRunner, tmp_path) -> None:
@@ -58,7 +58,7 @@ def test_validate_spec_non_mapping(runner: CliRunner, tmp_path) -> None:
     bad.write_text("- item\n")
     result = runner.invoke(main, ["validate-spec", str(bad)])
     assert result.exit_code == 1
-    assert "mapping" in result.stderr.lower()
+    assert "mapping" in result.output.lower()
 
 
 def test_validate_spec_mixed_valid_invalid(runner: CliRunner, tmp_path) -> None:
@@ -68,7 +68,7 @@ def test_validate_spec_mixed_valid_invalid(runner: CliRunner, tmp_path) -> None:
     result = runner.invoke(main, ["validate-spec", str(FLATTENING_TR), str(bad)])
     assert result.exit_code == 1
     assert any(line.endswith(": ok") for line in result.output.splitlines())
-    assert "bogus_field" in result.stderr
+    assert "bogus_field" in result.output
 
 
 def test_validate_spec_appears_in_help(runner: CliRunner) -> None:
@@ -95,7 +95,7 @@ def test_validate_spec_with_schemas(runner: CliRunner) -> None:
             str(FLATTENING_TR),
         ],
     )
-    assert result.exit_code == 0, f"stderr: {result.stderr}"
+    assert result.exit_code == 0, f"stderr: {result.output}"
     assert "ok" in result.output
 
 
@@ -113,7 +113,7 @@ def test_validate_spec_semantic_errors(runner: CliRunner, tmp_path) -> None:
         ],
     )
     assert result.exit_code == 1
-    assert "NonExistentClass" in result.stderr
+    assert "NonExistentClass" in result.output
 
 
 def test_validate_spec_strict_flag(runner: CliRunner, tmp_path) -> None:
@@ -151,7 +151,7 @@ def test_validate_spec_strict_flag(runner: CliRunner, tmp_path) -> None:
         ],
     )
     assert result.exit_code == 1
-    assert "bogus_slot" in result.stderr
+    assert "bogus_slot" in result.output
 
 
 def test_validate_spec_no_warnings(runner: CliRunner, tmp_path) -> None:
@@ -175,7 +175,7 @@ def test_validate_spec_no_warnings(runner: CliRunner, tmp_path) -> None:
             str(spec),
         ],
     )
-    assert "bogus_slot" in result.stderr
+    assert "bogus_slot" in result.output
 
     # With --no-warnings: warnings suppressed
     result = runner.invoke(
@@ -188,5 +188,5 @@ def test_validate_spec_no_warnings(runner: CliRunner, tmp_path) -> None:
             str(spec),
         ],
     )
-    assert "bogus_slot" not in result.stderr
+    assert "bogus_slot" not in result.output
     assert result.exit_code == 0

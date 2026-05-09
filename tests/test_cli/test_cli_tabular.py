@@ -19,7 +19,7 @@ TABULAR_TRANSFORM = TABULAR_TEST_DIR / "transform" / "person_to_agent.transform.
 @pytest.fixture
 def runner() -> CliRunner:
     """Command line interface test runner."""
-    return CliRunner(mix_stderr=False)
+    return CliRunner()
 
 
 @pytest.fixture
@@ -117,8 +117,8 @@ class TestMapDataTsv:
         )
         assert result.exit_code == 0
         # Output should contain transformed data
-        assert "label: Alice" in result.stdout
-        assert "label: Bob" in result.stdout
+        assert "label: Alice" in result.output
+        assert "label: Bob" in result.output
 
     def test_tsv_input_jsonl_output(
         self,
@@ -144,7 +144,7 @@ class TestMapDataTsv:
             ],
         )
         assert result.exit_code == 0
-        lines = [line for line in result.stdout.strip().split("\n") if line]
+        lines = [line for line in result.output.strip().split("\n") if line]
         assert len(lines) == 2  # Two rows in TSV
         # Each line should be valid JSON
         for line in lines:
@@ -176,7 +176,7 @@ class TestMapDataTsv:
             ],
         )
         assert result.exit_code == 0
-        lines = result.stdout.strip().split("\n")
+        lines = result.output.strip().split("\n")
         assert len(lines) == 3  # Header + 2 data rows
         # Check header
         assert "id" in lines[0]
@@ -212,7 +212,7 @@ class TestMapDataCsv:
             ],
         )
         assert result.exit_code == 0
-        data = json.loads(result.stdout)
+        data = json.loads(result.output)
         assert len(data) == 1
         assert data[0]["label"] == "Charlie"
 
@@ -240,7 +240,7 @@ class TestMapDataCsv:
             ],
         )
         assert result.exit_code == 0
-        lines = result.stdout.strip().split("\n")
+        lines = result.output.strip().split("\n")
         assert len(lines) == 2  # Header + 1 data row
         # Check comma separation
         assert "," in lines[0]
@@ -280,7 +280,7 @@ class TestMapDataDirectory:
             ],
         )
         assert result.exit_code == 0
-        lines = [line for line in result.stdout.strip().split("\n") if line]
+        lines = [line for line in result.output.strip().split("\n") if line]
         assert len(lines) >= 1
 
 
@@ -381,7 +381,7 @@ def test_additional_output_tsv_and_json(
             str(sample_tsv_data),
         ],
     )
-    assert result.exit_code == 0, result.stderr
+    assert result.exit_code == 0, result.output
 
     # Primary JSONL
     jsonl_lines = [line for line in primary.read_text().strip().split("\n") if line]
@@ -426,10 +426,10 @@ def test_additional_output_format_inferred(
             str(sample_tsv_data),
         ],
     )
-    assert result.exit_code == 0, result.stderr
+    assert result.exit_code == 0, result.output
 
     # stdout should have YAML
-    assert "label:" in result.stdout
+    assert "label:" in result.output
 
     # Additional JSONL file
     jsonl_lines = [line for line in extra_jsonl.read_text().strip().split("\n") if line]
@@ -464,10 +464,10 @@ def test_additional_output_stdout_primary(
             str(sample_tsv_data),
         ],
     )
-    assert result.exit_code == 0, result.stderr
+    assert result.exit_code == 0, result.output
 
     # stdout should have JSONL
-    stdout_lines = [line for line in result.stdout.strip().split("\n") if line]
+    stdout_lines = [line for line in result.output.strip().split("\n") if line]
     assert len(stdout_lines) == 2
 
     # Additional JSON file
@@ -503,7 +503,7 @@ class TestMapDataWithExistingTestData:
             ],
         )
         assert result.exit_code == 0
-        lines = [line for line in result.stdout.strip().split("\n") if line]
+        lines = [line for line in result.output.strip().split("\n") if line]
         assert len(lines) >= 1
         # Verify content
         first = json.loads(lines[0])
@@ -566,8 +566,8 @@ class TestTransformSpecEngine:
                 str(data_dir),
             ],
         )
-        assert result.exit_code == 0, result.stderr
-        lines = [line for line in result.stdout.strip().split("\n") if line]
+        assert result.exit_code == 0, result.output
+        lines = [line for line in result.output.strip().split("\n") if line]
         # One row from each derivation = 2 output lines
         assert len(lines) == 2
         objs = [json.loads(line) for line in lines]
@@ -606,8 +606,8 @@ class TestTransformSpecEngine:
                 str(data_dir),
             ],
         )
-        assert result.exit_code == 0, result.stderr
-        lines = [line for line in result.stdout.strip().split("\n") if line]
+        assert result.exit_code == 0, result.output
+        lines = [line for line in result.output.strip().split("\n") if line]
         # Only Person rows should appear (Organization is ignored)
         assert len(lines) == 1
         obj = json.loads(lines[0])
@@ -704,8 +704,8 @@ class TestContinueOnError:
         )
         assert result.exit_code == 1
         # Error summary should be in stderr
-        assert "2 transformation error(s)" in result.stderr
-        assert "slot_derivation=bad" in result.stderr
+        assert "2 transformation error(s)" in result.output
+        assert "slot_derivation=bad" in result.output
 
     def test_continue_on_error_no_errors_exits_0(
         self,
@@ -730,5 +730,5 @@ class TestContinueOnError:
             ],
         )
         assert result.exit_code == 0
-        lines = [line for line in result.stdout.strip().split("\n") if line]
+        lines = [line for line in result.output.strip().split("\n") if line]
         assert len(lines) == 2

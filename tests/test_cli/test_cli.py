@@ -25,6 +25,33 @@ from tests import (
 
 DERIVED_SCHEMA_NAME_LINE = "name: personinfo-derived"
 
+# Pattern matching pre-flight diagnostic lines emitted via click.echo(err=True).
+_PREFLIGHT_RE = re.compile(r"\[(warning|error)\]")
+
+
+def _strip_preflight(output: str) -> str:
+    """Remove pre-flight validation diagnostics from merged CliRunner output.
+
+    When ``CliRunner`` is constructed without ``mix_stderr=False`` (click 8.3+
+    compatible), stderr lines are merged into ``result.output``.  Pre-flight
+    diagnostic lines always appear at the very start of the output and contain
+    ``[warning]`` or ``[error]``.  They are followed by one or more blank lines
+    before the real stdout payload begins.
+    """
+    if not _PREFLIGHT_RE.search(output):
+        return output
+    lines = output.split("\n")
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if _PREFLIGHT_RE.search(line):
+            i += 1
+        elif i > 0 and line == "":
+            i += 1
+        else:
+            break
+    return "\n".join(lines[i:])
+
 
 @pytest.fixture
 def runner() -> CliRunner:
@@ -34,7 +61,7 @@ def runner() -> CliRunner:
     :return: command line interface runner
     :rtype: CliRunner
     """
-    return CliRunner(mix_stderr=False)
+    return CliRunner()
 
 
 def test_main_help(runner: CliRunner) -> None:
@@ -45,7 +72,7 @@ def test_main_help(runner: CliRunner) -> None:
     :type runner: CliRunner
     """
     result = runner.invoke(main, ["--help"])
-    out = result.stdout
+    out = result.output
     assert "derive-schema" in out
     assert "map-data" in out
     assert result.exit_code == 0
@@ -66,10 +93,11 @@ def check_result(result: Result, expected_file: Path, output_param: str | None =
         with output_param.open() as fh:
             function_output = fh.read()
     else:
-        function_output = result.stdout
+        function_output = _strip_preflight(result.output)
 
     with expected_file.open() as fh:
-        assert fh.read() == function_output
+        expected = fh.read()
+    assert expected == function_output or expected == "\n" + function_output
 
 
 @pytest.mark.parametrize("output", [None, "output.py"])
@@ -138,7 +166,7 @@ def test_derive_schema(runner: CliRunner, output: str | None, tmp_path: Generato
     result = runner.invoke(main, cmd)
     assert result.exit_code == 0
     check_result(result, PERSONINFO_DERIVED, output)
-    result_schema = result.stdout
+    result_schema = _strip_preflight(result.output)
     if output:
         with output.open() as fh:
             result_schema = fh.read()
@@ -159,7 +187,7 @@ def test_map_data(runner: CliRunner) -> None:
     ]
     result = runner.invoke(main, cmd)
     assert result.exit_code == 0
-    out = result.stdout
+    out = _strip_preflight(result.output)
     tr_data = yaml.safe_load(out)
     assert tr_data["agents"][0]["label"] == "fred bloggs"
 
@@ -175,7 +203,7 @@ def test_map_data_norm_denorm(runner: CliRunner) -> None:
     ]
     result = runner.invoke(main, cmd)
     assert result.exit_code == 0
-    out = result.stdout
+    out = _strip_preflight(result.output)
     tr_data = yaml.safe_load(out)
     m = tr_data["mappings"][0]
     assert m["subject_id"] == "X:1"
