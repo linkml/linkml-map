@@ -641,6 +641,45 @@ def test_eval_expr_with_mapping_none_literal() -> None:
     assert eval_expr_with_mapping("None", {}) is None
 
 
+# ---- Strict mode for unbound names (issue #213) ----
+
+
+def test_eval_unbound_name_default_returns_none() -> None:
+    """Non-strict (default) returns None for unbound names, preserving SQL-null semantics."""
+    from linkml_map.utils.eval_utils import eval_expr_with_mapping
+
+    assert eval_expr_with_mapping("{scroe}", {"score": 5}) is None
+
+
+def test_eval_unbound_name_default_logs_warning(caplog: pytest.LogCaptureFixture) -> None:
+    """Non-strict emits a warning so the unbound reference is not entirely silent."""
+    import logging
+
+    from linkml_map.utils.eval_utils import eval_expr_with_mapping
+
+    with caplog.at_level(logging.WARNING, logger="linkml_map.utils.eval_utils"):
+        result = eval_expr_with_mapping("{scroe}", {"score": 5})
+
+    assert result is None
+    assert any("scroe" in rec.message for rec in caplog.records)
+
+
+def test_eval_unbound_name_strict_raises() -> None:
+    """Strict surfaces unbound names as TransformationError with the offending name."""
+    from linkml_map.transformer.errors import TransformationError
+    from linkml_map.utils.eval_utils import eval_expr_with_mapping
+
+    with pytest.raises(TransformationError, match="scroe"):
+        eval_expr_with_mapping("{scroe}", {"score": 5}, strict=True)
+
+
+def test_eval_bound_name_with_none_value_returns_none_in_strict() -> None:
+    """A name that is bound to None resolves to None even in strict mode (real SQL null)."""
+    from linkml_map.utils.eval_utils import eval_expr_with_mapping
+
+    assert eval_expr_with_mapping("{score}", {"score": None}, strict=True) is None
+
+
 # ---- Distribution edge cases ----
 
 

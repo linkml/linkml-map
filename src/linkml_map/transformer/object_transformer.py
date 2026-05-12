@@ -6,7 +6,7 @@ import json
 import logging
 from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 import yaml
@@ -126,6 +126,26 @@ class Bindings(Mapping):
         self.class_deriv: ClassDerivation | None = class_deriv
         if bindings:
             self.bindings.update(bindings)
+        self._schema_slots: set[str] = self._collect_schema_slots()
+
+    def _collect_schema_slots(self) -> set[str]:
+        """Slot names declared on the source class.
+
+        Used by ``__getitem__`` to distinguish a schema-declared slot
+        absent from the current row (legitimate SQL null) from a name
+        that does not exist in the schema (typo / stale reference).
+
+        Explicit-join aliases are not added here — they are already
+        handled earlier in ``__getitem__`` via ``_join_specs``. Slots on
+        join-target classes are intentionally excluded so that a bare
+        reference like ``{score}`` (instead of ``{Reading.score}``)
+        surfaces as a typo in strict mode for explicit-join specs.
+        Implicit-join column resolution is a separate concern handled
+        by the runtime merge in ``_derive_nested_objects`` (#217).
+        """
+        if self.source_type and self.source_type in self.sv.all_classes():
+            return {s.name for s in self.sv.class_induced_slots(self.source_type)}
+        return set()
 
     @classmethod
     def from_context(cls, transformer: ObjectTransformer, context: DerivationContext) -> Bindings:
@@ -203,8 +223,16 @@ class Bindings(Mapping):
             elif name == self.source_type and name not in self.source_obj:
                 # Self-reference: {Reading.score} when source_type is Reading (non-merge context)
                 self.bindings[name] = DynObj(**self.source_obj)
-            else:
+            elif name in self.source_obj:
                 _ = self.get_ctxt_obj_and_dict({name: self.source_obj[name]})
+            elif name in self._schema_slots:
+                # Schema-declared slot absent from this row → SQL null.
+                # Distinct from a name that is not in the schema at all,
+                # which falls through and raises KeyError so simpleeval
+                # surfaces it as NameNotDefined (handled in strict mode).
+                return None
+            else:
+                raise KeyError(name)
 
         return self.bindings.get(name)
 
@@ -242,6 +270,10 @@ class ObjectTransformer(Transformer):
 
     object_index: ObjectIndex = None
     lookup_index: Any = None  # Optional[LookupIndex] — lazy import to avoid hard duckdb dep
+
+    _warned_unbound_names: set[str] = field(default_factory=set, repr=False)
+    """Names already warned about in non-strict mode. Shared across rows so
+    each unique unbound reference logs once per transform run, not once per row."""
 
     def index(self, source_obj: Any, target: str | None = None) -> None:
         """
@@ -510,7 +542,13 @@ class ObjectTransformer(Transformer):
             (e.g. ``slot`` for referencing previously derived target slots).
         """
         try:
-            return eval_expr_with_mapping(expr, bindings, functions=functions)
+            return eval_expr_with_mapping(
+                expr,
+                bindings,
+                functions=functions,
+                strict=self.strict,
+                warned_unbound=self._warned_unbound_names,
+            )
         except (InvalidExpression, TypeError, ValueError):
             if not self.unrestricted_eval:
                 raise
