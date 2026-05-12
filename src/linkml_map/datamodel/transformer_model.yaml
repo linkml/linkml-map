@@ -184,7 +184,7 @@ classes:
       version:
         description: Version string for the schema (e.g. semver or date-based).
         range: string
-        slot_uri: dcterms:hasVersion
+        slot_uri: schema:version
       schema_uri:
         description: The URI/IRI identifier of the schema (matches the schema's `id`).
         range: uri

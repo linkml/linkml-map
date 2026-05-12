@@ -234,7 +234,7 @@ class SchemaReference(ConfiguredBaseModel):
                        'PermissibleValueDerivation',
                        'Agent']} })
     version: Optional[str] = Field(default=None, description="""Version string for the schema (e.g. semver or date-based).""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'SchemaReference', 'Software'],
-         'slot_uri': 'dcterms:hasVersion'} })
+         'slot_uri': 'schema:version'} })
     schema_uri: Optional[str] = Field(default=None, description="""The URI/IRI identifier of the schema (matches the schema's `id`).""", json_schema_extra = { "linkml_meta": {'domain_of': ['SchemaReference']} })
     source_file: Optional[str] = Field(default=None, description="""Optional file path or URL from which the schema can be loaded.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SchemaReference']} })
 
