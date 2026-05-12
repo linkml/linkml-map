@@ -410,7 +410,18 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
     - Numeric-string coercion for comparison operators
     """
 
-    def __init__(self, **kwargs: Any) -> None:  # noqa: ANN401
+    def __init__(
+        self,
+        *,
+        strict: bool = False,
+        warned_unbound: set[str] | None = None,
+        **kwargs: Any,  # noqa: ANN401
+    ) -> None:
+        self.strict: bool = strict
+        # Shared across rows when the caller passes a set in. Per-evaluator
+        # default dedupes within a single expression eval (mostly a no-op
+        # since a given name appears once per expr, but cheap and safe).
+        self._warned_unbound: set[str] = warned_unbound if warned_unbound is not None else set()
         super().__init__(**kwargs)
         for op_type in (ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE):
             self.operators[op_type] = _coercing(self.operators[op_type])
@@ -436,14 +447,39 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
 
     def _eval_name(self, node: ast.Name) -> Any:  # noqa: ANN401
         """
-        Override name resolution to return None for unbound variables.
+        Override name resolution to surface unbound variables in strict mode.
 
-        The default simpleeval behavior raises ``NameNotDefined``.
-        In LinkML expressions, unbound variables resolve to None.
+        The default simpleeval behavior raises ``NameNotDefined`` when a
+        name has no binding. With ``strict=True``, this is re-raised as
+        a built-in :class:`NameError` so callers in the transformer can
+        wrap it with derivation context (see
+        ``ObjectTransformer._slot_error_context``). With ``strict=False``
+        it emits a warning and returns ``None`` (preserving SQL-style
+        null propagation for backward compatibility, while losing the
+        signal for typos and stale references).
+
+        ``NameError`` is deliberately chosen over ``TransformationError``
+        here: ``_slot_error_context`` only enriches non-``TransformationError``
+        exceptions with class/slot/row context. ``NameError`` is also
+        outside the ``(InvalidExpression, TypeError, ValueError)`` catch
+        list in ``ObjectTransformer._eval_expr``, so it propagates
+        cleanly past the ``unrestricted_eval`` fallback rather than
+        being swallowed.
+
+        Note: names that resolve to ``None`` (e.g. a schema-declared slot
+        absent from the current row) never reach this path — they
+        succeed via ``super()._eval_name`` and propagate ``None`` as
+        legitimate SQL null.
         """
         try:
             return super()._eval_name(node)
         except NameNotDefined:
+            msg = f"Expression references '{node.id}' which is not a slot on the source class. Typo or stale reference?"
+            if self.strict:
+                raise NameError(msg) from None
+            if node.id not in self._warned_unbound:
+                self._warned_unbound.add(node.id)
+                logger.warning("%s Returning None (run in strict mode to surface as an error).", msg)
             return None
 
     def _eval_set(self, node: ast.Set) -> Any:  # noqa: ANN401
@@ -503,15 +539,29 @@ def _distributed_getattr(obj: Any, attr: str) -> Any:  # noqa: ANN401
     return getattr(obj, attr)
 
 
-def _make_evaluator(names: Any, functions: Any = None) -> LinkMLEvaluator:  # noqa: ANN401
+def _make_evaluator(
+    names: Any,  # noqa: ANN401
+    functions: Any = None,  # noqa: ANN401
+    *,
+    strict: bool = False,
+    warned_unbound: set[str] | None = None,
+) -> LinkMLEvaluator:
     """Create a configured LinkMLEvaluator instance."""
-    return LinkMLEvaluator(names=names, functions=functions or FUNCTIONS)
+    return LinkMLEvaluator(
+        names=names,
+        functions=functions or FUNCTIONS,
+        strict=strict,
+        warned_unbound=warned_unbound,
+    )
 
 
 def eval_expr_with_mapping(
     expr: str,
     mapping: Mapping,
     functions: dict[str, Any] | None = None,
+    *,
+    strict: bool = False,
+    warned_unbound: set[str] | None = None,
 ) -> Any:  # noqa: ANN401
     """
     Evaluate a given expression, with restricted syntax.
@@ -523,11 +573,18 @@ def eval_expr_with_mapping(
     :param mapping: Variable bindings for the expression.
     :param functions: Additional functions to make available. Merged with
         built-in functions; caller-provided names take precedence.
+    :param strict: If ``True``, unbound names raise
+        :class:`~linkml_map.transformer.errors.TransformationError`
+        instead of warning and returning ``None``.
+    :param warned_unbound: Optional set used to dedupe non-strict
+        warnings across multiple ``eval_expr_with_mapping`` calls. Pass
+        the same set across all evaluations in a single transform run
+        so each unique unbound name is logged once, not once per row.
     """
     if expr == "None":
         return None
     merged = {**FUNCTIONS, **functions} if functions else None
-    evaluator = _make_evaluator(names=mapping, functions=merged)
+    evaluator = _make_evaluator(names=mapping, functions=merged, strict=strict, warned_unbound=warned_unbound)
     return evaluator.eval(expr)
 
 
