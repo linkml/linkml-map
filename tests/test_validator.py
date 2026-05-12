@@ -856,6 +856,50 @@ def test_nested_cd_implicit_join_emits_info():
     assert _nested_path_segment(infos[0].path)
 
 
+def test_implicit_join_overlap_columns_emit_ambiguity_warning():
+    """Non-join column overlap between parent and child surfaces #217 hazard.
+
+    JOINABLE_SCHEMA: Measurement(id, subject_id, method) and Reading(id,
+    subject_id, score). Implicit join on 'subject_id' leaves 'id' as a
+    non-join overlap — runtime ambiguity behavior is data-dependent
+    (#217 Bug 2), so warn statically.
+    """
+    sv = SchemaView(JOINABLE_SCHEMA)
+    spec = _nested_spec(outer_pf="Measurement", inner_pf="Reading")
+    msgs = validate_spec_semantics(spec, source_schemaview=sv)
+    overlap_warnings = [w for w in _warnings(msgs) if "#217" in w.message]
+    assert len(overlap_warnings) == 1
+    assert "'id'" in overlap_warnings[0].message
+    assert "ambiguously" in overlap_warnings[0].message
+
+
+def test_implicit_join_no_overlap_no_ambiguity_warning():
+    """When parent and child share only the join column, no #217 warning fires."""
+    sv = SchemaView(THREE_TABLE_SCHEMA)
+    # Outer + Middle share only 'shared_om' (which is the join key).
+    spec = _nested_spec(outer_pf="Outer", inner_pf="Middle")
+    msgs = validate_spec_semantics(spec, source_schemaview=sv)
+    overlap_warnings = [w for w in _warnings(msgs) if "#217" in w.message]
+    assert overlap_warnings == []
+
+
+def test_explicit_join_skips_overlap_warning():
+    """An explicit joins: block opts out of the implicit-join ambiguity check.
+
+    Users who declared the join explicitly have signaled intent; assume they
+    will disambiguate column refs themselves.
+    """
+    sv = SchemaView(JOINABLE_SCHEMA)
+    spec = _nested_spec(
+        outer_pf="Measurement",
+        inner_pf="Reading",
+        joins={"Reading": {"join_on": "subject_id"}},
+    )
+    msgs = validate_spec_semantics(spec, source_schemaview=sv)
+    overlap_warnings = [w for w in _warnings(msgs) if "#217" in w.message]
+    assert overlap_warnings == []
+
+
 def test_nested_cd_no_overlap_emits_warning():
     """No shared columns between parent and nested tables emits a WARNING (closes #211)."""
     sv = SchemaView(NO_OVERLAP_SCHEMA)

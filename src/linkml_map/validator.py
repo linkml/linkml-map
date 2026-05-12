@@ -818,6 +818,32 @@ def _check_cross_table_join(
                 ),
             )
         )
+        # Surface the column-overlap hazard for #217 Bug 2 (data-dependent
+        # ambiguity). When parent and child share non-join columns, runtime
+        # behavior depends on whether the join lookup hits: a match merges
+        # rows and marks shared columns _AMBIGUOUS (unqualified access
+        # errors), but a miss leaves the bare parent row in place and
+        # silently returns the parent's value for that column. Flag it
+        # statically so users disambiguate before sparse data exposes it.
+        parent_slots = {s.name for s in source_sv.class_induced_slots(parent_source)}
+        nested_slots = {s.name for s in source_sv.class_induced_slots(nested_source)}
+        overlap = (parent_slots & nested_slots) - {key}
+        if overlap:
+            shared = ", ".join(f"'{c}'" for c in sorted(overlap))
+            messages.append(
+                ValidationMessage(
+                    severity="warning",
+                    path=nested_path,
+                    message=(
+                        f"Implicit join between '{parent_source}' and '{nested_source}' "
+                        f"on '{key}' — overlapping non-join columns {{{shared}}} will "
+                        f"resolve ambiguously: error on rows with a join match "
+                        f"(_AMBIGUOUS sentinel), silent parent value on rows without "
+                        f"(#217). Disambiguate with an explicit joins: alias or "
+                        f"dotted-reference form."
+                    ),
+                )
+            )
         return
 
     common = find_common_columns(source_sv, parent_source, nested_source)
