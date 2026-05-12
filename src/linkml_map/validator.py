@@ -812,9 +812,9 @@ def _check_cross_table_join(
                 path=nested_path,
                 message=(
                     f"Nested 'populated_from={nested_source}' differs from parent "
-                    f"'populated_from={parent_source}'. No explicit joins: block; "
-                    f"implicit join will be synthesized on column '{key}'. "
-                    f"Consider declaring the join explicitly."
+                    f"'populated_from={parent_source}'. No explicit join entry for "
+                    f"'{nested_source}'; implicit join will be synthesized on column "
+                    f"'{key}'. Consider declaring the join explicitly."
                 ),
             )
         )
@@ -836,8 +836,8 @@ def _check_cross_table_join(
             message=(
                 f"Nested 'populated_from={nested_source}' differs from parent "
                 f"'populated_from={parent_source}', but no implicit join can be "
-                f"synthesized: {reason}. Add an explicit joins: block — cross-table "
-                f"values will otherwise resolve to null."
+                f"synthesized: {reason}. Add an explicit join entry for "
+                f"'{nested_source}' — cross-table values will otherwise resolve to null."
             ),
         )
     )
