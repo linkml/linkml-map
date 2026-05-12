@@ -88,7 +88,7 @@ classes:
       version:
         description: version of this transformation specification
         range: string
-        slot_uri: dcterms:version
+        slot_uri: dcterms:hasVersion
       prefixes:
         description: maps prefixes to URL expansions
         range: KeyVal
