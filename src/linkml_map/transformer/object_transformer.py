@@ -6,7 +6,7 @@ import json
 import logging
 from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 import yaml
@@ -36,6 +36,69 @@ from linkml_map.utils.fk_utils import FKResolution, resolve_fk_path
 DICT_OBJ = dict[str, Any]
 
 
+class _AmbiguousType:
+    """Singleton sentinel for columns present in both parent and joined tables.
+
+    The single instance ``_AMBIGUOUS`` is identity-checked everywhere it is
+    used. ``__deepcopy__`` and ``__reduce__`` return the same instance so the
+    sentinel survives ``copy.deepcopy`` and ``pickle`` round-trips — without
+    these, a copied row would lose ambiguity detection silently.
+    """
+
+    _instance: _AmbiguousType | None = None
+
+    def __new__(cls) -> _AmbiguousType:
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __deepcopy__(self, memo: dict) -> _AmbiguousType:
+        return self
+
+    def __reduce__(self) -> tuple:
+        return (_AmbiguousType, ())
+
+    def __repr__(self) -> str:
+        return "<AMBIGUOUS>"
+
+
+_AMBIGUOUS = _AmbiguousType()
+
+
+class MergedRow(dict):
+    """A dict that remembers the original un-merged rows from an implicit join.
+
+    Behaves identically to a regular dict for all normal operations.
+    The original rows are accessible via :attr:`rows_by_table` so that
+    dot-notation disambiguation (e.g., ``Reading.id``) can resolve
+    ambiguous columns to table-specific values.
+    """
+
+    def __init__(self, merged: dict, rows_by_table: dict[str, dict]) -> None:
+        super().__init__(merged)
+        self.rows_by_table = rows_by_table
+
+
+def _raise_ambiguous_column(
+    column: str,
+    *,
+    class_deriv: ClassDerivation | None = None,
+    slot_derivation: SlotDerivation | None = None,
+) -> None:
+    """Raise a TransformationError for an ambiguous column access."""
+    raise TransformationError(
+        message=(
+            f"Column {column!r} is ambiguous — it exists in both the parent "
+            f"and nested source tables. Use dot notation (e.g., 'TableName.{column}') "
+            f"to disambiguate."
+        ),
+        class_derivation_name=class_deriv.name if class_deriv else None,
+        class_populated_from=class_deriv.populated_from if class_deriv else None,
+        slot_derivation_name=slot_derivation.name if slot_derivation else None,
+        slot_populated_from=slot_derivation.populated_from if slot_derivation else None,
+    )
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -63,6 +126,26 @@ class Bindings(Mapping):
         self.class_deriv: ClassDerivation | None = class_deriv
         if bindings:
             self.bindings.update(bindings)
+        self._schema_slots: set[str] = self._collect_schema_slots()
+
+    def _collect_schema_slots(self) -> set[str]:
+        """Slot names declared on the source class.
+
+        Used by ``__getitem__`` to distinguish a schema-declared slot
+        absent from the current row (legitimate SQL null) from a name
+        that does not exist in the schema (typo / stale reference).
+
+        Explicit-join aliases are not added here — they are already
+        handled earlier in ``__getitem__`` via ``_join_specs``. Slots on
+        join-target classes are intentionally excluded so that a bare
+        reference like ``{score}`` (instead of ``{Reading.score}``)
+        surfaces as a typo in strict mode for explicit-join specs.
+        Implicit-join column resolution is a separate concern handled
+        by the runtime merge in ``_derive_nested_objects`` (#217).
+        """
+        if self.source_type and self.source_type in self.sv.all_classes():
+            return {s.name for s in self.sv.class_induced_slots(self.source_type)}
+        return set()
 
     @classmethod
     def from_context(cls, transformer: ObjectTransformer, context: DerivationContext) -> Bindings:
@@ -133,8 +216,23 @@ class Bindings(Mapping):
         if name not in self.bindings:
             if name in self._join_specs:
                 self.bindings[name] = self._resolve_join(name)
-            else:
+            elif name in self.source_obj and self.source_obj[name] is _AMBIGUOUS:
+                _raise_ambiguous_column(name, class_deriv=self.class_deriv)
+            elif isinstance(self.source_obj, MergedRow) and name in self.source_obj.rows_by_table:
+                self.bindings[name] = DynObj(**self.source_obj.rows_by_table[name])
+            elif name == self.source_type and name not in self.source_obj:
+                # Self-reference: {Reading.score} when source_type is Reading (non-merge context)
+                self.bindings[name] = DynObj(**self.source_obj)
+            elif name in self.source_obj:
                 _ = self.get_ctxt_obj_and_dict({name: self.source_obj[name]})
+            elif name in self._schema_slots:
+                # Schema-declared slot absent from this row → SQL null.
+                # Distinct from a name that is not in the schema at all,
+                # which falls through and raises KeyError so simpleeval
+                # surfaces it as NameNotDefined (handled in strict mode).
+                return None
+            else:
+                raise KeyError(name)
 
         return self.bindings.get(name)
 
@@ -172,6 +270,18 @@ class ObjectTransformer(Transformer):
 
     object_index: ObjectIndex = None
     lookup_index: Any = None  # Optional[LookupIndex] — lazy import to avoid hard duckdb dep
+
+    _warned_unbound_names: set[str] = field(default_factory=set, repr=False)
+    """Names already warned about in non-strict mode.
+
+    Shared across all expression evaluations on this transformer
+    instance — each unique unbound reference logs once, not once per
+    row. The set is never cleared automatically, so a transformer
+    reused across multiple logical runs will not re-warn for the same
+    typo. This is the intended behavior: if a spec has a typo, one
+    warning per typo across the lifetime of the transformer is enough.
+    Construct a fresh ``ObjectTransformer`` if you want a clean slate.
+    """
 
     def index(self, source_obj: Any, target: str | None = None) -> None:
         """
@@ -366,6 +476,22 @@ class ObjectTransformer(Transformer):
                 table_name, field_path = populated_from.split(".", 1)
                 if context.class_deriv.joins and table_name in context.class_deriv.joins:
                     (v, source_class_slot) = self._perform_join_resolution(table_name, field_path, context)
+                elif isinstance(context.source_obj, MergedRow) and table_name in context.source_obj.rows_by_table:
+                    v = context.source_obj.rows_by_table[table_name].get(field_path)
+                    source_class_slot = (
+                        context.sv.induced_slot(field_path, table_name)
+                        if table_name in context.sv.all_classes()
+                        else None
+                    )
+                elif table_name == context.source_type:
+                    v = context.source_obj.get(field_path)
+                    if v is _AMBIGUOUS:
+                        _raise_ambiguous_column(
+                            field_path,
+                            class_deriv=context.class_deriv,
+                            slot_derivation=slot_derivation,
+                        )
+                    source_class_slot = context.sv.induced_slot(field_path, context.source_type)
                 else:
                     (v, source_class_slot) = self._resolve_fk_or_literal(
                         populated_from,
@@ -388,10 +514,16 @@ class ObjectTransformer(Transformer):
         elif slot_derivation.sources:
             (v, source_class_slot) = self._resolve_sources(slot_derivation, context)
         elif slot_derivation.class_derivations:
-            v = self._derive_nested_objects(slot_derivation, context.source_obj, target_type)
+            v = self._derive_nested_objects(slot_derivation, context.source_obj, target_type, context.class_deriv)
         else:
             source_class_slot = context.sv.induced_slot(slot_derivation.name, context.source_type)
             v = context.source_obj.get(slot_derivation.name, None)
+            if v is _AMBIGUOUS:
+                _raise_ambiguous_column(
+                    slot_derivation.name,
+                    class_deriv=context.class_deriv,
+                    slot_derivation=slot_derivation,
+                )
 
         if source_class_slot and v is not None and not slot_derivation.hide:
             target_range = slot_derivation.range
@@ -418,7 +550,13 @@ class ObjectTransformer(Transformer):
             (e.g. ``slot`` for referencing previously derived target slots).
         """
         try:
-            return eval_expr_with_mapping(expr, bindings, functions=functions)
+            return eval_expr_with_mapping(
+                expr,
+                bindings,
+                functions=functions,
+                strict=self.strict,
+                warned_unbound=self._warned_unbound_names,
+            )
         except (InvalidExpression, TypeError, ValueError):
             if not self.unrestricted_eval:
                 raise
@@ -514,6 +652,12 @@ class ObjectTransformer(Transformer):
             )
             raise ValueError(msg)
         v = context.source_obj.get(populated_from, None)
+        if v is _AMBIGUOUS:
+            _raise_ambiguous_column(
+                populated_from,
+                class_deriv=context.class_deriv,
+                slot_derivation=slot_derivation,
+            )
         source_class_slot = context.sv.induced_slot(populated_from, context.source_type)
         return v, source_class_slot
 
@@ -571,6 +715,46 @@ class ObjectTransformer(Transformer):
                 source_class_slot = context.sv.induced_slot(field_path, joined_class)
         return v, source_class_slot
 
+    @staticmethod
+    def _merge_rows(
+        parent_row: DICT_OBJ,
+        joined_row: DICT_OBJ,
+        join_key: str,
+        parent_source: str,
+        nested_source: str,
+    ) -> MergedRow:
+        """Merge parent and joined rows, marking ambiguous columns.
+
+        Columns present in both rows (except the join key) are set to the
+        ``_AMBIGUOUS`` sentinel so that slot resolution raises a clear error
+        instead of silently picking one. The original rows are preserved in
+        the returned :class:`MergedRow` for dot-notation disambiguation.
+
+        :param parent_row: Row from the parent table.
+        :param joined_row: Row from the joined table.
+        :param join_key: The column used to join (kept from parent).
+        :param parent_source: Parent table name (for logging).
+        :param nested_source: Joined table name (for logging).
+        :returns: MergedRow with ambiguous markers and original rows.
+        """
+        ambiguous = {k for k in parent_row if k in joined_row and k != join_key}
+        merged = {}
+        for k, v in parent_row.items():
+            merged[k] = _AMBIGUOUS if k in ambiguous else v
+        for k, v in joined_row.items():
+            if k not in merged:
+                merged[k] = v
+
+        if ambiguous:
+            logger.debug(
+                "Ambiguous columns %s shared between %s and %s — dot notation required",
+                sorted(ambiguous),
+                parent_source,
+                nested_source,
+            )
+
+        return MergedRow(merged, rows_by_table={parent_source: parent_row, nested_source: joined_row})
+
     def _apply_offset(self, value: Any, slot_derivation: SlotDerivation, source_obj: DICT_OBJ) -> Any:
         """Apply an offset calculation using a value from another source field."""
         off = slot_derivation.offset
@@ -614,13 +798,78 @@ class ObjectTransformer(Transformer):
         )
         return v, source_class_slot
 
-    def _derive_nested_objects(self, slot_derivation: SlotDerivation, source_obj: DICT_OBJ, target_type: str) -> Any:
-        """Build nested objects from slot-level class_derivation declarations."""
+    def _derive_nested_objects(
+        self,
+        slot_derivation: SlotDerivation,
+        source_obj: DICT_OBJ,
+        target_type: str,
+        parent_class_deriv: ClassDerivation,
+    ) -> Any:
+        """Build nested objects from slot-level class_derivation declarations.
+
+        When a nested class_derivation has a different ``populated_from`` than
+        its parent and the parent has a matching join spec (explicit or
+        synthesized during normalization), this method resolves the joined row
+        and merges it with the parent row before passing it to ``map_object``.
+
+        :param slot_derivation: The slot derivation that declares nested class_derivations.
+        :param source_obj: The current (parent) source row.
+        :param target_type: Target class name for cardinality decisions.
+        :param parent_class_deriv: The parent's ClassDerivation (carries join specs).
+        """
         derived_objs = []
+        parent_source = parent_class_deriv.populated_from or parent_class_deriv.name
 
         for cls_derivation in slot_derivation.class_derivations:
+            nested_source = cls_derivation.populated_from
+            effective_obj = source_obj
+
+            if nested_source and nested_source != parent_source:
+                has_join = parent_class_deriv.joins and nested_source in parent_class_deriv.joins
+                if has_join:
+                    # Join spec exists (explicit or synthesized) — resolve and merge
+                    joined_row = self._resolve_joined_row(nested_source, source_obj, parent_class_deriv)
+                    if joined_row is not None:
+                        join_spec = parent_class_deriv.joins[nested_source]
+                        join_key = join_spec.join_on or join_spec.source_key or ""
+                        effective_obj = self._merge_rows(
+                            source_obj,
+                            joined_row,
+                            join_key,
+                            parent_source,
+                            nested_source,
+                        )
+                else:
+                    # No join spec for this nested source — cross-table reference can't be resolved.
+                    # Re-derive the candidate set so the diagnostic tells the user *why* synthesis
+                    # failed (no overlap vs. multiple non-identifier candidates), recovering the
+                    # detail lost when the per-row resolution path was consolidated into
+                    # normalization-time synthesis.
+                    from linkml_map.utils.join_utils import find_common_columns
+
+                    common = find_common_columns(self.source_schemaview, parent_source, nested_source)
+                    if not common:
+                        reason = f"no columns are shared between {parent_source!r} and {nested_source!r}"
+                    else:
+                        candidates = ", ".join(sorted(common))
+                        reason = (
+                            f"multiple candidate join columns are shared between "
+                            f"{parent_source!r} and {nested_source!r} ({candidates}); "
+                            f"specify which to use"
+                        )
+                    raise TransformationError(
+                        message=(
+                            f"Nested class {cls_derivation.name!r} has "
+                            f"populated_from={nested_source!r} which differs from parent "
+                            f"populated_from={parent_source!r}, but no implicit join could be "
+                            f"synthesized: {reason}. Add an explicit joins: block."
+                        ),
+                        class_derivation_name=cls_derivation.name,
+                        class_populated_from=nested_source,
+                    )
+
             nested_result = self.map_object(
-                source_obj,
+                effective_obj,
                 source_type=cls_derivation.populated_from,
                 target_type=cls_derivation.name,
                 class_derivation=cls_derivation,

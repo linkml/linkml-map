@@ -17,6 +17,7 @@ from linkml_runtime.utils.yamlutils import YAMLRoot
 from pydantic import BaseModel
 
 from linkml_map.datamodel.transformer_model import (
+    AliasedClass,
     ClassDerivation,
     CollectionType,
     EnumDerivation,
@@ -24,6 +25,7 @@ from linkml_map.datamodel.transformer_model import (
     TransformationSpecification,
 )
 from linkml_map.inference.inference import induce_missing_values
+from linkml_map.utils.join_utils import pick_join_key
 from linkml_map.utils.schema_patch import apply_schema_patch
 
 logger = logging.getLogger(__name__)
@@ -76,6 +78,18 @@ class Transformer(ABC):
 
     unrestricted_eval: bool = field(default=False)
     """Set to True to allow arbitrary evals as part of transformation."""
+
+    strict: bool = field(default=False)
+    """Raise on expression references that do not resolve to a schema slot.
+
+    When ``False`` (the default), unresolved names emit a warning and the
+    expression evaluator returns ``None`` (preserving SQL-style null
+    propagation for legitimate empty values but losing the signal for
+    typos). When ``True``, unresolved names raise
+    :class:`~linkml_map.transformer.errors.TransformationError`, which
+    surfaces typos, stale references, and wrong-table accesses that
+    would otherwise produce silent nulls in the output.
+    """
 
     _curie_converter: Converter = None
 
@@ -323,7 +337,68 @@ class Transformer(ABC):
             self._apply_source_schema_patches()
             self._derived_specification = deepcopy(self.specification)
             induce_missing_values(self._derived_specification, self.source_schemaview)
+            self._synthesize_implicit_joins(self._derived_specification)
         return self._derived_specification
+
+    def _synthesize_implicit_joins(self, spec: TransformationSpecification) -> None:
+        """Add explicit join specs for nested class_derivations with cross-table references.
+
+        Walks all nested class_derivations. When a nested CD has a different
+        ``populated_from`` than its parent and no explicit ``joins:`` block,
+        synthesizes an ``AliasedClass`` join entry on the parent CD using
+        :func:`pick_join_key` to determine the join column.
+
+        Mutates *spec* in place.
+
+        :param spec: The derived specification to augment.
+        """
+        sv = self.source_schemaview
+        if sv is None:
+            return
+
+        for cd in spec.class_derivations:
+            parent_source = cd.populated_from or cd.name
+            self._walk_and_synthesize_joins(cd, parent_source, sv)
+
+    def _walk_and_synthesize_joins(
+        self,
+        class_deriv: ClassDerivation,
+        parent_source: str,
+        sv: SchemaView,
+    ) -> None:
+        """Recursively walk slot_derivations and synthesize joins on parent CDs.
+
+        :param class_deriv: The parent ClassDerivation to add joins to.
+        :param parent_source: The parent's populated_from.
+        :param sv: Source schema view.
+        """
+        for sd in class_deriv.slot_derivations.values():
+            if not sd.class_derivations:
+                continue
+            for nested_cd in sd.class_derivations:
+                nested_source = nested_cd.populated_from or parent_source
+
+                # Synthesize a join when the nested CD references a different table
+                if nested_source != parent_source:
+                    join_key = pick_join_key(sv, parent_source, nested_source)
+                    if join_key is not None:
+                        if class_deriv.joins is None:
+                            class_deriv.joins = {}
+                        if nested_source not in class_deriv.joins:
+                            class_deriv.joins[nested_source] = AliasedClass(
+                                alias=nested_source,
+                                join_on=join_key,
+                            )
+                            logger.info(
+                                "Synthesized implicit join: %s.joins[%r] on column %r",
+                                class_deriv.name,
+                                nested_source,
+                                join_key,
+                            )
+
+                # Always recurse into nested CD's own slots
+                if nested_cd.slot_derivations:
+                    self._walk_and_synthesize_joins(nested_cd, nested_source, sv)
 
     def _get_class_derivation(self, target_class_name: str) -> ClassDerivation:
         spec = self.derived_specification

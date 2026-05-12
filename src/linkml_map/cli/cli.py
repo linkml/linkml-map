@@ -87,6 +87,16 @@ def main(verbose: int, quiet: bool) -> None:
     help="Allow unrestricted eval of python expressions.",
 )
 @click.option(
+    "--strict/--no-strict",
+    default=False,
+    show_default=True,
+    help=(
+        "Raise an error when an expression references a name that is not a slot "
+        "on the source class. Recommended for real data transforms; the default "
+        "warns and returns None for backward compatibility."
+    ),
+)
+@click.option(
     "--output-format",
     "-f",
     type=click.Choice(["yaml", "json", "jsonl", "tsv", "csv"]),
@@ -218,6 +228,49 @@ def _load_specs(tr: ObjectTransformer, transformer_specification: tuple[str, ...
     tr.load_transformer_specifications(transformer_specification)
 
 
+def _pre_flight_validate(
+    tr: ObjectTransformer,
+    *,
+    source_schema: str | None = None,
+    target_schema: str | None = None,
+) -> None:
+    """Surface static spec checks before performing a CLI action.
+
+    Runs deprecation checks and reference resolution against the loaded
+    specification, printing all findings to stderr. **Does not gate** —
+    even error-severity findings are informational only; the runtime
+    remains the authoritative arbiter of whether a transformation can
+    actually execute. Users who want fail-fast behavior should run
+    ``validate-spec --strict`` separately.
+
+    Validates the merged ``tr.specification`` (after multi-file loading
+    is complete) so cross-file issues surface where users would see
+    them via ``validate-spec --merge``. Reuses ``tr.source_schemaview``
+    and ``tr.target_schemaview`` when set, avoiding a duplicate load
+    of large or remote schemas.
+    """
+    from linkml_map.validator import check_deprecated_fields, validate_spec_semantics
+
+    if tr.specification is None:
+        return
+
+    spec_dict = tr.specification.model_dump(exclude_none=True)
+
+    messages = list(check_deprecated_fields(spec_dict))
+    messages.extend(
+        validate_spec_semantics(
+            spec_dict,
+            source_schema=source_schema,
+            target_schema=target_schema,
+            source_schemaview=tr.source_schemaview,
+            target_schemaview=tr.target_schemaview,
+        )
+    )
+
+    for msg in messages:
+        click.echo(str(msg), err=True)
+
+
 def _filter_spec_to_entity(tr: ObjectTransformer, entity: str | None) -> None:
     """Restrict ``tr.specification.class_derivations`` to the named entity in place.
 
@@ -266,6 +319,7 @@ def _map_data_single(
     if target_schema:
         tr.target_schemaview = SchemaView(target_schema)
 
+    _pre_flight_validate(tr, source_schema=schema, target_schema=target_schema)
     _filter_spec_to_entity(tr, entity)
     if emit_spec:
         _emit_spec_to_file(tr, emit_spec)
@@ -336,6 +390,7 @@ def _map_data_streaming(
     if target_schema:
         tr.target_schemaview = SchemaView(target_schema)
 
+    _pre_flight_validate(tr, source_schema=schema, target_schema=target_schema)
     _filter_spec_to_entity(tr, entity)
     if emit_spec:
         _emit_spec_to_file(tr, emit_spec)
@@ -432,6 +487,7 @@ def compile(
     tr = ObjectTransformer()
     tr.source_schemaview = sv
     _load_specs(tr, transformer_specification)
+    _pre_flight_validate(tr, source_schema=schema)
     result = compiler.compile(tr.derived_specification)
     # dump as-is, no encoding
     dump_output(result.serialization, None, output)
@@ -464,6 +520,7 @@ def derive_schema(
     logger.info(f"Transforming {schema} using {transformer_specification}")
     tr = ObjectTransformer()
     _load_specs(tr, transformer_specification)
+    _pre_flight_validate(tr, source_schema=schema)
     mapper = SchemaMapper(transformer=tr)
     mapper.source_schemaview = SchemaView(schema)
     target_schema = mapper.derive_schema()
@@ -491,6 +548,7 @@ def invert(
     logger.info(f"Inverting {transformer_specification} using {schema} as source")
     tr = ObjectTransformer()
     _load_specs(tr, transformer_specification)
+    _pre_flight_validate(tr, source_schema=schema)
     inverter = TransformationSpecificationInverter(
         source_schemaview=SchemaView(schema),
         **kwargs,
