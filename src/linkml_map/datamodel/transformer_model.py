@@ -177,7 +177,7 @@ class TransformationSpecification(SpecificationComponent):
     publication_date: Optional[date] = Field(default=None, description="""date of publication of this transformation specification""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification'], 'slot_uri': 'dcterms:issued'} })
     license: Optional[str] = Field(default=None, description="""license under which this transformation specification is published""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification'], 'slot_uri': 'dcterms:license'} })
     version: Optional[str] = Field(default=None, description="""version of this transformation specification""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'Software'],
-         'slot_uri': 'dcterms:hasVersion'} })
+         'slot_uri': 'schema:version'} })
     prefixes: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""maps prefixes to URL expansions""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification'], 'slot_uri': 'sh:declare'} })
     copy_directives: Optional[dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     source_schema: Optional[str] = Field(default=None, description="""name of the schema that describes the source (input) objects""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification']} })
