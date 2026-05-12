@@ -26,8 +26,6 @@ from typing import Any
 
 from simpleeval import EvalWithCompoundTypes, NameNotDefined
 
-from linkml_map.transformer.errors import TransformationError
-
 logger = logging.getLogger(__name__)
 
 
@@ -452,11 +450,21 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
         Override name resolution to surface unbound variables in strict mode.
 
         The default simpleeval behavior raises ``NameNotDefined`` when a
-        name has no binding. With ``strict=True``, that surfaces as a
-        :class:`TransformationError`; with ``strict=False`` it emits a
-        warning and returns ``None`` (preserving SQL-style null
-        propagation for backward compatibility, while losing the signal
-        for typos and stale references).
+        name has no binding. With ``strict=True``, this is re-raised as
+        a built-in :class:`NameError` so callers in the transformer can
+        wrap it with derivation context (see
+        ``ObjectTransformer._slot_error_context``). With ``strict=False``
+        it emits a warning and returns ``None`` (preserving SQL-style
+        null propagation for backward compatibility, while losing the
+        signal for typos and stale references).
+
+        ``NameError`` is deliberately chosen over ``TransformationError``
+        here: ``_slot_error_context`` only enriches non-``TransformationError``
+        exceptions with class/slot/row context. ``NameError`` is also
+        outside the ``(InvalidExpression, TypeError, ValueError)`` catch
+        list in ``ObjectTransformer._eval_expr``, so it propagates
+        cleanly past the ``unrestricted_eval`` fallback rather than
+        being swallowed.
 
         Note: names that resolve to ``None`` (e.g. a schema-declared slot
         absent from the current row) never reach this path — they
@@ -468,7 +476,7 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
         except NameNotDefined:
             msg = f"Expression references '{node.id}' which is not a slot on the source class. Typo or stale reference?"
             if self.strict:
-                raise TransformationError(msg) from None
+                raise NameError(msg) from None
             if node.id not in self._warned_unbound:
                 self._warned_unbound.add(node.id)
                 logger.warning("%s Returning None (run in strict mode to surface as an error).", msg)

@@ -272,8 +272,16 @@ class ObjectTransformer(Transformer):
     lookup_index: Any = None  # Optional[LookupIndex] — lazy import to avoid hard duckdb dep
 
     _warned_unbound_names: set[str] = field(default_factory=set, repr=False)
-    """Names already warned about in non-strict mode. Shared across rows so
-    each unique unbound reference logs once per transform run, not once per row."""
+    """Names already warned about in non-strict mode.
+
+    Shared across all expression evaluations on this transformer
+    instance — each unique unbound reference logs once, not once per
+    row. The set is never cleared automatically, so a transformer
+    reused across multiple logical runs will not re-warn for the same
+    typo. This is the intended behavior: if a spec has a typo, one
+    warning per typo across the lifetime of the transformer is enough.
+    Construct a fresh ``ObjectTransformer`` if you want a clean slate.
+    """
 
     def index(self, source_obj: Any, target: str | None = None) -> None:
         """

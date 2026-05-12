@@ -192,7 +192,7 @@ def _write_typo_spec_fixture(tmp_path: Path) -> tuple[Path, Path, Path]:
         "    populated_from: Person\n"
         "    slot_derivations:\n"
         "      name:\n"
-        '        expr: "{scroe}"\n'
+        '        expr: "{scroe}"\n'  # codespell:ignore
     )
     input_path = tmp_path / "input.yaml"
     input_path.write_text("id: p1\nscore: 5\n")
@@ -217,7 +217,7 @@ def test_map_data_strict_flag_surfaces_typo(runner: CliRunner, tmp_path: Path) -
         ],
     )
     assert result.exit_code != 0
-    assert "scroe" in (result.stderr + str(result.exception))
+    assert "scroe" in (result.stderr + str(result.exception))  # codespell:ignore
 
 
 def test_map_data_no_strict_default_succeeds(runner: CliRunner, tmp_path: Path) -> None:

@@ -2,8 +2,8 @@
 
 In non-strict mode the evaluator preserves SQL-style null propagation but
 emits a warning when an expression references a name that is not a slot
-on the source class (or any explicit join target). In strict mode the
-same condition raises ``TransformationError``.
+on the source class. In strict mode the same condition raises
+``TransformationError``.
 
 A schema-declared slot that is absent from the current row must still
 resolve to ``None`` in both modes — that case is a real SQL null, not
@@ -48,14 +48,14 @@ def _make_transformer(transform_spec: dict, *, strict: bool) -> ObjectTransforme
     return transformer
 
 
-TYPO_SPEC = yaml.safe_load("""
-class_derivations:
-  Agent:
-    populated_from: Person
-    slot_derivations:
-      name:
-        expr: "{scroe}"
-""")
+TYPO_SPEC = yaml.safe_load(
+    "class_derivations:\n"
+    "  Agent:\n"
+    "    populated_from: Person\n"
+    "    slot_derivations:\n"
+    "      name:\n"
+    '        expr: "{scroe}"\n'  # codespell:ignore
+)
 
 
 VALID_SPEC = yaml.safe_load("""
@@ -69,10 +69,17 @@ class_derivations:
 
 
 def test_typo_strict_raises() -> None:
-    """Strict mode raises TransformationError when an expression references a non-slot."""
+    """Strict mode raises TransformationError when an expression references a non-slot.
+
+    The raw ``NameError`` from ``_eval_name`` is wrapped by
+    ``_slot_error_context`` so the surfaced exception carries class /
+    slot / source-row context for diagnostics.
+    """
     transformer = _make_transformer(TYPO_SPEC, strict=True)
-    with pytest.raises(TransformationError, match="scroe"):
+    with pytest.raises(TransformationError, match="scroe") as exc_info:  # codespell:ignore
         transformer.map_object({"id": "p1", "age": 30, "score": 5}, source_type="Person")
+    assert exc_info.value.class_derivation_name == "Agent"
+    assert exc_info.value.slot_derivation_name == "name"
 
 
 def test_typo_non_strict_warns_and_returns_none(caplog: pytest.LogCaptureFixture) -> None:
@@ -81,7 +88,7 @@ def test_typo_non_strict_warns_and_returns_none(caplog: pytest.LogCaptureFixture
     with caplog.at_level(logging.WARNING, logger="linkml_map.utils.eval_utils"):
         result = transformer.map_object({"id": "p1", "age": 30, "score": 5}, source_type="Person")
     assert result == {"name": None}
-    assert any("scroe" in rec.message for rec in caplog.records)
+    assert any("scroe" in rec.message for rec in caplog.records)  # codespell:ignore
 
 
 @pytest.mark.parametrize("strict", [True, False])
@@ -135,7 +142,7 @@ def test_non_strict_warning_dedupes_across_rows(caplog: pytest.LogCaptureFixture
         for row in rows:
             transformer.map_object(row, source_type="Person")
 
-    scroe_warnings = [rec for rec in caplog.records if "scroe" in rec.message]
-    assert len(scroe_warnings) == 1, (
-        f"Expected one warning for the 'scroe' typo across {len(rows)} rows, got {len(scroe_warnings)}"
+    typo_warnings = [rec for rec in caplog.records if "scroe" in rec.message]  # codespell:ignore
+    assert len(typo_warnings) == 1, (
+        f"Expected one warning for the typo across {len(rows)} rows, got {len(typo_warnings)}"
     )
