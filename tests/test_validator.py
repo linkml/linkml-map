@@ -1216,3 +1216,97 @@ def test_personinfo_to_agent_fixture_inheritance_resolves():
     msgs = validate_spec_file(fixture)
     inheritance_errors = [m for m in _errors(msgs) if "does not resolve" in m.message]
     assert inheritance_errors == []
+
+
+def test_is_a_unresolved_skipped_when_no_target_schema():
+    """Without target_sv, an is_a miss against the spec pool alone is not an error.
+
+    The reference might be a valid target-schema class name; we can't tell
+    without the target schema, so we don't error on a half-checked pool.
+    """
+    spec = normalize_spec_dict(
+        {
+            "class_derivations": {
+                "Agent": {"is_a": "TotallyMadeUpName", "populated_from": "Person"},
+            }
+        }
+    )
+    msgs = validate_spec_semantics(spec, source_schema=str(PERSONINFO_SRC_SCHEMA))
+    inheritance_errors = [m for m in _errors(msgs) if "does not resolve" in m.message]
+    assert inheritance_errors == []
+
+
+# ---------------------------------------------------------------------------
+# Incomplete-join-spec detection on cross-table boundaries
+# ---------------------------------------------------------------------------
+
+
+def test_cross_table_empty_explicit_join_emits_warning():
+    """An explicit joins: entry that's empty fails at runtime — surface it here."""
+    sv = SchemaView(JOINABLE_SCHEMA)
+    spec = _nested_spec(
+        outer_pf="Measurement",
+        inner_pf="Reading",
+        joins={"Reading": {}},
+    )
+    msgs = validate_spec_semantics(spec, source_schemaview=sv)
+    warnings = [m for m in _warnings(msgs) if "missing keys" in m.message]
+    assert len(warnings) == 1
+    assert "Reading" in warnings[0].message
+
+
+def test_cross_table_source_lookup_keys_satisfy_join():
+    """A join spec using source_key + lookup_key (not join_on) is valid."""
+    sv = SchemaView(JOINABLE_SCHEMA)
+    spec = _nested_spec(
+        outer_pf="Measurement",
+        inner_pf="Reading",
+        joins={"Reading": {"source_key": "subject_id", "lookup_key": "subject_id"}},
+    )
+    msgs = validate_spec_semantics(spec, source_schemaview=sv)
+    incomplete = [m for m in _warnings(msgs) if "missing keys" in m.message]
+    assert incomplete == []
+
+
+def test_cross_table_source_key_only_emits_warning():
+    """source_key without lookup_key (and no join_on) fails — both keys required."""
+    sv = SchemaView(JOINABLE_SCHEMA)
+    spec = _nested_spec(
+        outer_pf="Measurement",
+        inner_pf="Reading",
+        joins={"Reading": {"source_key": "subject_id"}},
+    )
+    msgs = validate_spec_semantics(spec, source_schemaview=sv)
+    warnings = [m for m in _warnings(msgs) if "missing keys" in m.message]
+    assert len(warnings) == 1
+
+
+# ---------------------------------------------------------------------------
+# Joined-class error message includes resolved class name when aliased
+# ---------------------------------------------------------------------------
+
+
+def test_joined_class_attr_error_uses_class_named_when_aliased():
+    """Error message names the actual joined class, not just the alias, when class_named is set."""
+    sv = SchemaView(JOINABLE_SCHEMA)
+    spec = normalize_spec_dict(
+        {
+            "class_derivations": {
+                "Outer": {
+                    "populated_from": "Measurement",
+                    "joins": {
+                        "readings": {"join_on": "subject_id", "class_named": "Reading"},
+                    },
+                    "slot_derivations": {
+                        "computed": {"expr": "{readings.bogus_field}"},
+                    },
+                }
+            }
+        }
+    )
+    msgs = validate_spec_semantics(spec, source_schemaview=sv)
+    warnings = [m for m in _warnings(msgs) if "readings.bogus_field" in m.message]
+    assert len(warnings) == 1
+    msg = warnings[0].message
+    assert "joined class 'Reading'" in msg
+    assert "alias 'readings'" in msg

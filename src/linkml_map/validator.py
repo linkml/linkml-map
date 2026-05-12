@@ -689,8 +689,8 @@ def _build_joined_class_map(
     cd: dict[str, Any],
     source_sv: SchemaView | None,
     slot_derivation_dicts: list[dict[str, Any]],
-) -> dict[str, set[str] | None]:
-    """Map alias names to the slot set of their joined class.
+) -> dict[str, tuple[str, set[str] | None]]:
+    """Map alias names to the resolved joined-class name and its slot set.
 
     Combines two sources of "joined tables" visible from this CD's
     expressions:
@@ -705,11 +705,14 @@ def _build_joined_class_map(
     :param source_sv: Source schema view, or ``None``.
     :param slot_derivation_dicts: Pre-iterated slot derivations (avoids
         re-walking).
-    :returns: Mapping of alias name to its joined class's slot set. Value
-        is ``None`` when the joined class can't be resolved in the source
-        schema (or when no source schema is available).
+    :returns: Mapping of alias name to a ``(joined_class_name, slot_set)``
+        tuple. ``slot_set`` is ``None`` when the joined class can't be
+        resolved in the source schema (or when no source schema is
+        available). The class name is tracked separately so error
+        messages can distinguish alias from class for explicit
+        ``class_named`` joins.
     """
-    result: dict[str, set[str] | None] = {}
+    result: dict[str, tuple[str, set[str] | None]] = {}
 
     joins = cd.get("joins") or {}
     if isinstance(joins, dict):
@@ -720,9 +723,10 @@ def _build_joined_class_map(
             else:
                 joined_class = alias
             if source_sv is not None and joined_class in set(source_sv.all_classes()):
-                result[alias] = {s.name for s in source_sv.class_induced_slots(joined_class)}
+                slots = {s.name for s in source_sv.class_induced_slots(joined_class)}
+                result[alias] = (joined_class, slots)
             else:
-                result[alias] = None
+                result[alias] = (joined_class, None)
 
     parent_source = cd.get("populated_from")
     if source_sv is not None and parent_source:
@@ -732,9 +736,10 @@ def _build_joined_class_map(
                 nested_source = nested.get("populated_from")
                 if nested_source and nested_source != parent_source and nested_source not in result:
                     if nested_source in all_classes:
-                        result[nested_source] = {s.name for s in source_sv.class_induced_slots(nested_source)}
+                        slots = {s.name for s in source_sv.class_induced_slots(nested_source)}
+                        result[nested_source] = (nested_source, slots)
                     else:
-                        result[nested_source] = None
+                        result[nested_source] = (nested_source, None)
 
     return result
 
@@ -764,6 +769,29 @@ def _check_cross_table_join(
 
     parent_joins = parent_cd.get("joins") or {}
     if isinstance(parent_joins, dict) and nested_source in parent_joins:
+        # Explicit join is present — verify the spec carries enough keys to
+        # actually resolve a row, mirroring the runtime check in
+        # ``_resolve_joined_row``. A structurally-valid-but-empty entry like
+        # ``joins: {Reading: {}}`` would otherwise pass validation but blow
+        # up at transform time with ``ValueError: Join spec ... must
+        # specify 'join_on' or both 'source_key' and 'lookup_key'``.
+        spec = parent_joins[nested_source]
+        spec_dict = spec if isinstance(spec, dict) else {}
+        join_on = spec_dict.get("join_on")
+        source_key = spec_dict.get("source_key")
+        lookup_key = spec_dict.get("lookup_key")
+        if not join_on and not (source_key and lookup_key):
+            messages.append(
+                ValidationMessage(
+                    severity="warning",
+                    path=nested_path,
+                    message=(
+                        f"Join spec for '{nested_source}' is missing keys: "
+                        f"must specify 'join_on' or both 'source_key' and "
+                        f"'lookup_key'. Runtime will raise ValueError."
+                    ),
+                )
+            )
         return
 
     if source_sv is None:
@@ -831,7 +859,11 @@ def _check_class_inheritance_refs(
     2. A class in the target schema (matches LinkML's ``is_a`` convention
        on plain schemas).
 
-    A reference that resolves to neither emits an ``error``.
+    A reference that resolves to neither emits an ``error`` — but only when
+    ``target_sv`` is available. Without the target schema, half the pool is
+    unknown, so a miss against the spec pool alone is ambiguous (it could
+    still be a valid target schema reference) and is left unchecked rather
+    than risk a false positive.
     """
     parents: list[tuple[str, str]] = []
     is_a = cd.get("is_a")
@@ -841,10 +873,10 @@ def _check_class_inheritance_refs(
     if isinstance(mixins, list):
         parents.extend(("mixins", m) for m in mixins if isinstance(m, str))
 
-    if not parents:
+    if not parents or target_sv is None:
         return
 
-    target_classes = set(target_sv.all_classes()) if target_sv is not None else set()
+    target_classes = set(target_sv.all_classes())
 
     for field_label, parent_name in parents:
         if parent_name in derivation_pool:
@@ -869,18 +901,19 @@ def _validate_slot_derivation(
     parent_path: str,
     source_class_slots: set[str] | None,
     target_class_slots: set[str] | None,
-    joined_class_slots: dict[str, set[str] | None],
+    joined_class_slots: dict[str, tuple[str, set[str] | None]],
     strict: bool,
     messages: list[ValidationMessage],
 ) -> None:
     """Validate a single slot derivation against schemas.
 
     :param joined_class_slots: Mapping of alias name (from explicit
-        ``joins:`` or an implicit-join target) to the slot set of the
-        joined class. Expression bare-name references to these aliases
-        are excluded from source-class checks, and attribute references
-        like ``{alias.field}`` are validated against the joined class's
-        slots. Value of ``None`` means the joined class is unknown — the
+        ``joins:`` or an implicit-join target) to a tuple of
+        ``(joined_class_name, slot_set)``. Expression bare-name
+        references to these aliases are excluded from source-class
+        checks, and attribute references like ``{alias.field}`` are
+        validated against the joined class's slot set. A ``slot_set``
+        of ``None`` means the joined class couldn't be resolved — the
         bare alias is still tolerated, but attribute access is skipped.
     """
     sd_name = sd.get("name", "?")
@@ -933,9 +966,16 @@ def _validate_slot_derivation(
     for base, attrs in attr_refs.items():
         if base not in joined_class_slots:
             continue
-        joined_slots = joined_class_slots[base]
+        joined_class, joined_slots = joined_class_slots[base]
         if joined_slots is None:
             continue
+        # When the alias differs from the resolved class name (explicit
+        # ``class_named``), surface both so the user knows which schema
+        # class was actually checked.
+        if joined_class == base:
+            class_descriptor = f"joined class '{joined_class}'"
+        else:
+            class_descriptor = f"joined class '{joined_class}' (alias '{base}')"
         for attr in sorted(attrs):
             if attr not in joined_slots:
                 messages.append(
@@ -943,7 +983,7 @@ def _validate_slot_derivation(
                         severity="error" if strict else "warning",
                         path=sd_path,
                         message=(
-                            f"Expression references '{base}.{attr}' but '{attr}' is not a slot on joined class '{base}'"
+                            f"Expression references '{base}.{attr}' but '{attr}' is not a slot on {class_descriptor}"
                         ),
                     )
                 )
