@@ -55,7 +55,7 @@ class_derivations:
         expr: "{'name': source_schema.name}"
         description: |-
           Maps source_schema (a SchemaReference) to a Source object,
-          extracting `.name`. Other fields (`schema_version`, `schema_uri`,
+          extracting `.name`. Other fields (`version`, `schema_uri`,
           `source_file`) can be added here if needed downstream.
       object_source:
         expr: "{'name': target_schema.name}"
