@@ -265,7 +265,7 @@ def _load_schemaview_with_timeout(path: str, timeout: int = _SCHEMA_LOAD_TIMEOUT
 
 
 def _resolve_schema_path(
-    spec_value: str | None,
+    spec_value: str | dict | None,
     explicit: str | Path | None,
     base_path: Path | None,
 ) -> tuple[str | None, bool]:
@@ -279,7 +279,9 @@ def _resolve_schema_path(
     silently here prevents typos from triggering surprise network requests
     during validation.
 
-    :param spec_value: The ``source_schema`` or ``target_schema`` value from the spec.
+    :param spec_value: The ``source_schema`` or ``target_schema`` value from
+        the spec. May be a ``SchemaReference`` dict (current schema form) or
+        a plain string (legacy form, still accepted by this resolver).
     :param explicit: An explicitly provided schema path (overrides spec_value).
     :param base_path: Directory to resolve relative paths against (typically
         the directory containing the spec file).
@@ -290,6 +292,14 @@ def _resolve_schema_path(
         return str(explicit), True
     if spec_value is None:
         return None, False
+    # `source_schema` / `target_schema` are SchemaReference objects; prefer
+    # `source_file` (explicit locator) and fall back to `name` for back-compat
+    # with specs that still use the bare-string form.
+    if isinstance(spec_value, dict):
+        locator = spec_value.get("source_file") or spec_value.get("name")
+        if locator is None:
+            return None, False
+        spec_value = locator
     # Try relative to spec file directory
     if base_path is not None:
         candidate = base_path / spec_value

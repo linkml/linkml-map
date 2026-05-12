@@ -52,11 +52,16 @@ class_derivations:
       reviewer:
         populated_from: reviewer
       subject_source:
-        expr: "{'name': source_schema}"
-        description: Maps source_schema string to a Source object with name field
+        expr: "{'name': source_schema.name}"
+        description: |-
+          Maps source_schema (a SchemaReference) to a Source object,
+          extracting `.name`. Other fields (`schema_version`, `schema_uri`,
+          `source_file`) can be added here if needed downstream.
       object_source:
-        expr: "{'name': target_schema}"
-        description: Maps target_schema string to a Source object with name field
+        expr: "{'name': target_schema.name}"
+        description: |-
+          Maps target_schema (a SchemaReference) to a Source object,
+          extracting `.name`.
 
   Agent:
     populated_from: Agent
