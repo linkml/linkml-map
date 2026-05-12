@@ -175,7 +175,7 @@ classes:
       derive a target element from a source element.
     attributes:
       name:
-        key: true
+        identifier: true
         description: Name of the element in the target schema
       copy_directives:
         range: CopyDirective

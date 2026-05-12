@@ -34,7 +34,7 @@ def runner() -> CliRunner:
     :return: command line interface runner
     :rtype: CliRunner
     """
-    return CliRunner(mix_stderr=False)
+    return CliRunner()
 
 
 def test_main_help(runner: CliRunner) -> None:

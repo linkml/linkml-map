@@ -7,7 +7,7 @@ TODO: fill in extra description here
 ## Repo management
 
 This repo uses `uv` for managing dependencies. Never use commands like `pip` to add or manage dependencies.
-`uv run` is the best way to run things, unless you are using `justfile` or `makefile` target
+`uv run` is the best way to run things, unless there is a `makefile` target that fits.
 
 `mkdocs` is used for documentation.
 ## This is a Python repository
@@ -21,11 +21,10 @@ Layout:
 
 Building and testing:
 
-* `just --list` to see all commands
-* `just test` performs unit tests, doctests, ruff/linting
-* `just test-full` as above plus integration tests
-
-You can run the underlying commands (with `uv run ...`) but in general justfile targets should be favored.
+* `uv run pytest` - run unit tests
+* `uv run pytest -m integration` - run integration tests
+* `uv run ruff check .` and `uv run ruff format .` - lint and format
+* `make` targets (e.g. `make src/linkml_map/datamodel/transformer_model.py`) regenerate the pydantic model from the YAML schema
 
 Best practice:
 

@@ -26,6 +26,7 @@ class_derivations:
     #  "*":
     #    copy_all: true
   Entity:
+    description: Abstract base derivation for entity-like target classes
   Agent:
     is_a: Entity
     populated_from: Person
