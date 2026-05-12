@@ -713,6 +713,7 @@ def _build_joined_class_map(
         ``class_named`` joins.
     """
     result: dict[str, tuple[str, set[str] | None]] = {}
+    all_classes = set(source_sv.all_classes()) if source_sv is not None else set()
 
     joins = cd.get("joins") or {}
     if isinstance(joins, dict):
@@ -722,7 +723,7 @@ def _build_joined_class_map(
                 joined_class = spec.get("class_named") or alias
             else:
                 joined_class = alias
-            if source_sv is not None and joined_class in set(source_sv.all_classes()):
+            if source_sv is not None and joined_class in all_classes:
                 slots = {s.name for s in source_sv.class_induced_slots(joined_class)}
                 result[alias] = (joined_class, slots)
             else:
@@ -730,7 +731,6 @@ def _build_joined_class_map(
 
     parent_source = cd.get("populated_from")
     if source_sv is not None and parent_source:
-        all_classes = set(source_sv.all_classes())
         for sd in slot_derivation_dicts:
             for nested in _iter_derivation_dicts(sd.get("class_derivations", [])):
                 nested_source = nested.get("populated_from")
