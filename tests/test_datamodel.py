@@ -397,12 +397,12 @@ def test_schema_reference_yaml_object_form_loads(tmp_path) -> None:
 id: structured-spec
 source_schema:
   name: personinfo
-  version: 1.0
+  version: '1.0'
   schema_uri: https://w3id.org/linkml/map/example/personinfo.yaml
   source_file: schemas/personinfo.yaml
 target_schema:
   name: agent
-  version: 2.0
+  version: '2.0'
 """
     spec_path = tmp_path / "spec.yaml"
     spec_path.write_text(yaml_str)
