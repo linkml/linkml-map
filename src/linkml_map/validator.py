@@ -272,23 +272,22 @@ def _load_schemaview_with_timeout(path: str, timeout: int = _SCHEMA_LOAD_TIMEOUT
 
 
 def _resolve_schema_path(
-    spec_value: str | dict | None,
+    spec_value: dict | None,
     explicit: str | Path | None,
     base_path: Path | None,
 ) -> tuple[str | None, bool]:
     """Resolve a schema path from explicit argument or spec field.
 
-    Auto-detection from a spec value supports **local file paths** (relative
-    to the spec file or absolute) and **URLs** (any value containing
-    ``://``). Identifier-style values (e.g. ``source_schema: biolink``) are
-    *not* auto-resolved — pass ``--source-schema`` / ``--target-schema``
-    explicitly to point at a real file or URL for those cases. Skipping
-    silently here prevents typos from triggering surprise network requests
-    during validation.
+    Auto-detection reads ``source_file`` (preferred) or ``name`` from the
+    ``SchemaReference`` and supports **local file paths** (relative to the
+    spec file or absolute) and **URLs** (any value containing ``://``).
+    Identifier-style values (e.g. ``name: biolink``) are *not* auto-resolved
+    — pass ``--source-schema`` / ``--target-schema`` explicitly to point at
+    a real file or URL for those cases. Skipping silently here prevents typos
+    from triggering surprise network requests during validation.
 
     :param spec_value: The ``source_schema`` or ``target_schema`` value from
-        the spec. May be a ``SchemaReference`` dict (current schema form) or
-        a plain string (legacy form, still accepted by this resolver).
+        the normalized spec — a ``SchemaReference`` dict.
     :param explicit: An explicitly provided schema path (overrides spec_value).
     :param base_path: Directory to resolve relative paths against (typically
         the directory containing the spec file).
@@ -299,30 +298,25 @@ def _resolve_schema_path(
         return str(explicit), True
     if spec_value is None:
         return None, False
-    # `source_schema` / `target_schema` are SchemaReference objects; prefer
-    # `source_file` (explicit locator) and fall back to `name` for back-compat
-    # with specs that still use the bare-string form.
-    if isinstance(spec_value, dict):
-        locator = spec_value.get("source_file") or spec_value.get("name")
-        if locator is None:
-            return None, False
-        spec_value = locator
+    locator = spec_value.get("source_file") or spec_value.get("name")
+    if locator is None:
+        return None, False
     # Try relative to spec file directory
     if base_path is not None:
-        candidate = base_path / spec_value
+        candidate = base_path / locator
         if candidate.exists():
             return str(candidate), False
     # Try as-is (absolute path)
-    if Path(spec_value).exists():
-        return spec_value, False
+    if Path(locator).exists():
+        return locator, False
     # URLs: let SchemaView attempt resolution with a timeout
-    if "://" in spec_value:
-        return spec_value, False
+    if "://" in locator:
+        return locator, False
     # Identifier-style values (no path, no URL): skip auto-detection.
     logger.debug(
         "Schema value %r is neither a resolvable path nor a URL; skipping auto-detection. "
         "Pass --source-schema / --target-schema to validate against this schema.",
-        spec_value,
+        locator,
     )
     return None, False
 
