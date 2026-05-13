@@ -1062,6 +1062,40 @@ def test_nested_cd_no_source_schema_no_cross_table_messages():
     assert cross == []
 
 
+def test_identity_case_parent_cd_validated_against_runtime():
+    """A parent CD with no populated_from uses its name as the source class.
+
+    Runtime falls back to ``parent_class_deriv.populated_from or
+    parent_class_deriv.name`` (see ObjectTransformer._derive_nested_objects),
+    so the validator must too — otherwise nested cross-table refs from an
+    identity-style outer CD silently pass.
+    """
+    sv = SchemaView(JOINABLE_SCHEMA)
+    spec = normalize_spec_dict(
+        {
+            "class_derivations": {
+                # Outer "Measurement" CD — no populated_from, identity case.
+                "Measurement": {
+                    "slot_derivations": {
+                        "observation": {
+                            "class_derivations": [{"Inner": {"populated_from": "Reading"}}],
+                        },
+                        "computed": {"expr": "{Reading.bogus_field}"},
+                    },
+                }
+            }
+        }
+    )
+    msgs = validate_spec_semantics(spec, source_schemaview=sv)
+    # Cross-table check should fire (Measurement → Reading is a real boundary).
+    infos = [m for m in _infos(msgs) if "implicit join" in m.message]
+    assert len(infos) == 1
+    assert "subject_id" in infos[0].message
+    # Attribute ref against Reading should be validated — bogus_field caught.
+    attr_warnings = [m for m in _warnings(msgs) if "Reading.bogus_field" in m.message]
+    assert len(attr_warnings) == 1
+
+
 # ---------------------------------------------------------------------------
 # is_a / mixins resolution (#219, Option C)
 # ---------------------------------------------------------------------------

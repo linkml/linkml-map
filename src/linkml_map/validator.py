@@ -729,7 +729,10 @@ def _build_joined_class_map(
             else:
                 result[alias] = (joined_class, None)
 
-    parent_source = cd.get("populated_from")
+    # Identity case: when populated_from is omitted, the runtime treats the
+    # CD's own name as the parent source. Match that behavior here so nested
+    # CDs reachable from an identity-CD still get cross-table validation.
+    parent_source = cd.get("populated_from") or cd.get("name")
     if source_sv is not None and parent_source:
         for sd in slot_derivation_dicts:
             for nested in _iter_derivation_dicts(sd.get("class_derivations", [])):
@@ -763,7 +766,9 @@ def _check_cross_table_join(
       with the same diagnostic the runtime would raise.
     """
     nested_source = nested_cd.get("populated_from")
-    parent_source = parent_cd.get("populated_from")
+    # Identity case for the parent: fall back to its name when populated_from
+    # is omitted (matches _derive_nested_objects in the runtime).
+    parent_source = parent_cd.get("populated_from") or parent_cd.get("name")
     if not nested_source or not parent_source or nested_source == parent_source:
         return
 
