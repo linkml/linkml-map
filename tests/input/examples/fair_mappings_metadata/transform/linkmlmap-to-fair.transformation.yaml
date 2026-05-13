@@ -10,7 +10,8 @@ prefixes:
   linkmlmap: https://w3id.org/linkml/transformer/
   fair_mappings_schema: https://w3id.org/mapping-commons/fair-mappings-schema/
 
-source_schema: src/linkml_map/datamodel/transformer_model.yaml
+source_schema:
+  name: src/linkml_map/datamodel/transformer_model.yaml
 # Note: target_schema should point to a local checkout of fair-mappings-schema
 # The transformation will still work without the target schema, but with warnings
 # target_schema: path/to/fair-mappings-schema/src/fair_mappings_schema/schema/fair_mappings_schema.yaml
@@ -51,11 +52,16 @@ class_derivations:
       reviewer:
         populated_from: reviewer
       subject_source:
-        expr: "{'name': source_schema}"
-        description: Maps source_schema string to a Source object with name field
+        expr: "{'name': source_schema.name}"
+        description: |-
+          Maps source_schema (a SchemaReference) to a Source object,
+          extracting `.name`. Other fields (`version`, `schema_uri`,
+          `source_file`) can be added here if needed downstream.
       object_source:
-        expr: "{'name': target_schema}"
-        description: Maps target_schema string to a Source object with name field
+        expr: "{'name': target_schema.name}"
+        description: |-
+          Maps target_schema (a SchemaReference) to a Source object,
+          extracting `.name`.
 
   Agent:
     populated_from: Agent

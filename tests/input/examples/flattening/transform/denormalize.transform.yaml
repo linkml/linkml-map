@@ -2,8 +2,10 @@ id: denormalize-mapping
 title: denormalize mappings
 prefixes:
   foo: foo
-source_schema: s1
-target_schema: s2
+source_schema:
+  name: s1
+target_schema:
+  name: s2
 class_derivations:
   MappingSet:
     populated_from: MappingSet

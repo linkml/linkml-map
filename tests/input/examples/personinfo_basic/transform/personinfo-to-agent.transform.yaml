@@ -13,8 +13,10 @@ creator:
 author:
   - id: https://orcid.org/0000-0002-7356-1779
 publication_date: 2025-08-14
-source_schema: https://w3id.org/linkml/map/example/personinfo.yaml
-target_schema: https://w3id.org/linkml/map/example/agent.yaml
+source_schema:
+  name: https://w3id.org/linkml/map/example/personinfo.yaml
+target_schema:
+  name: https://w3id.org/linkml/map/example/agent.yaml
 mapping_method: semapv:ManualMappingCuration
 class_derivations:
   Container:

@@ -44,9 +44,11 @@ reviewer:
     id: orcid:0000-0001-1111-2222
     name: Alice Johnson
 
-# source_schema and target_schema (simple strings in linkml-map)
-source_schema: legacy_gene_expression.yaml
-target_schema: biolink_model.yaml
+# source_schema and target_schema (SchemaReference objects in linkml-map)
+source_schema:
+  name: legacy_gene_expression.yaml
+target_schema:
+  name: biolink_model.yaml
 
 # ============================================================================
 # ACTUAL TRANSFORMATION CONTENT (commented out due to dynamic_object bug)
