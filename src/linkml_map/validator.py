@@ -71,7 +71,7 @@ class ValidationMessage:
     added in the future.
     """
 
-    severity: Literal["error", "warning"]
+    severity: Literal["error", "warning", "info"]
     path: str
     message: str
     category: str | None = None
@@ -238,6 +238,45 @@ def extract_expr_slot_references(expr: str) -> set[str]:
             bound.add(node.target.id)
 
     return names - _EXPR_SAFE_NAMES - bound
+
+
+def extract_expr_attribute_references(expr: str) -> dict[str, set[str]]:
+    """Extract ``base.attr`` accesses from a LinkML expression.
+
+    Used to validate cross-table references like ``{joined_table.field}``
+    against the joined class's slot list. The ``src.attr`` form is excluded
+    because :func:`extract_expr_slot_references` already treats it as a bare
+    slot reference on the source class.
+
+    :param expr: A LinkML expression string.
+    :returns: Mapping of base name to the set of attributes accessed on it.
+
+    Example::
+
+        >>> result = extract_expr_attribute_references("{demographics.age}")
+        >>> sorted(result["demographics"])
+        ['age']
+        >>> extract_expr_attribute_references("plain_var")
+        {}
+        >>> extract_expr_attribute_references("src.foo")
+        {}
+    """
+    try:
+        tree = ast.parse(expr, mode="eval")
+    except SyntaxError:
+        try:
+            tree = ast.parse(expr, mode="exec")
+        except SyntaxError:
+            return {}
+
+    result: dict[str, set[str]] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
+            base = node.value.id
+            if base == "src" or base in _EXPR_SAFE_NAMES:
+                continue
+            result.setdefault(base, set()).add(node.attr)
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -499,9 +538,15 @@ def validate_spec_semantics(
     if source_sv is None and target_sv is None:
         return messages
 
-    # Validate class_derivations
+    # Top-level class_derivation name pool — used to resolve is_a / mixins
+    # references against spec-internal derivations (#219). Matches the
+    # runtime's _find_class_derivation_by_name which only inspects the
+    # top-level CD list.
+    derivation_pool = _collect_class_derivation_pool(data)
+
+    # Validate class_derivations (recurses into nested CDs internally)
     for cd in _iter_derivation_dicts(data.get("class_derivations", [])):
-        _validate_class_derivation(cd, source_sv, target_sv, strict, messages)
+        _validate_class_derivation(cd, source_sv, target_sv, strict, messages, derivation_pool=derivation_pool)
 
     # Validate enum_derivations
     for ed in _iter_derivation_dicts(data.get("enum_derivations", [])):
@@ -510,16 +555,54 @@ def validate_spec_semantics(
     return messages
 
 
+def _collect_class_derivation_pool(data: dict[str, Any]) -> set[str]:
+    """Names of all top-level class_derivations in the spec.
+
+    This is the pool used to resolve ``is_a`` and ``mixins`` references
+    against spec-internal derivations (#219). Only top-level CDs are
+    included, matching the runtime's
+    :meth:`~linkml_map.transformer.transformer.Transformer._find_class_derivation_by_name`
+    which raises ``KeyError`` for anything not at the top level.
+    """
+    return {cd.get("name") for cd in _iter_derivation_dicts(data.get("class_derivations", [])) if cd.get("name")}
+
+
 def _validate_class_derivation(
     cd: dict[str, Any],
     source_sv: SchemaView | None,
     target_sv: SchemaView | None,
     strict: bool,
     messages: list[ValidationMessage],
+    parent_class_deriv: dict[str, Any] | None = None,
+    parent_path: str = "",
+    derivation_pool: set[str] | None = None,
 ) -> None:
-    """Validate a single class derivation against schemas."""
+    """Validate a single class derivation against schemas.
+
+    Recurses into nested ``class_derivations`` declared under any slot
+    derivation, threading the parent CD through so cross-table references
+    (#211) can be diagnosed.
+
+    :param parent_class_deriv: For nested CDs, the enclosing class
+        derivation's dict. ``None`` for top-level CDs.
+    :param parent_path: Path prefix for nested validation messages
+        (e.g. ``class_derivations[Outer].slot_derivations[inner]``).
+        Empty string for top-level CDs.
+    :param derivation_pool: Names of all top-level class_derivations in
+        the spec. Used to resolve ``is_a``/``mixins`` (#219). ``None``
+        skips the check.
+    """
     cd_name = cd.get("name", "?")
-    cd_path = f"class_derivations[{cd_name}]"
+    cd_path = f"{parent_path}.class_derivations[{cd_name}]" if parent_path else f"class_derivations[{cd_name}]"
+
+    # Cross-table check for nested CDs (closes #211): does the nested CD's
+    # populated_from differ from its parent's, and can the join be resolved?
+    if parent_class_deriv is not None:
+        _check_cross_table_join(cd, parent_class_deriv, source_sv, cd_path, messages)
+
+    # is_a / mixins resolution check (closes #219).
+    if derivation_pool is not None:
+        _check_class_inheritance_refs(cd, cd_path, derivation_pool, target_sv, messages)
 
     # Target: class name should exist
     target_class_slots: set[str] | None = None
@@ -560,23 +643,37 @@ def _validate_class_derivation(
     # Validate slot_derivations (may be list or dict after normalization)
     slot_derivation_dicts = _iter_derivation_dicts(cd.get("slot_derivations", []))
 
-    # Join aliases — names like "demographics" in {demographics.age} that
-    # reference a joined table, not a slot on the source class. Excluded
-    # from expression-reference validation to avoid false-positive warnings.
-    joins = cd.get("joins") or {}
-    joined_aliases: set[str] = set(joins.keys()) if isinstance(joins, dict) else set()
+    # Build alias -> slot-set map for cross-table expression reference checks.
+    # Covers both explicit `joins:` aliases and the nested-CD populated_from
+    # targets that #212's normalization will synthesize joins for.
+    joined_class_slots = _build_joined_class_map(cd, source_sv, slot_derivation_dicts)
 
     for sd in slot_derivation_dicts:
+        sd_name = sd.get("name", "?")
+        sd_path = f"{cd_path}.slot_derivations[{sd_name}]"
         _validate_slot_derivation(
             sd,
             cd_name,
             cd_path,
             source_class_slots,
             target_class_slots,
-            joined_aliases,
+            joined_class_slots,
             strict,
             messages,
         )
+
+        # Recurse into nested class_derivations declared on this slot.
+        for nested_cd in _iter_derivation_dicts(sd.get("class_derivations", [])):
+            _validate_class_derivation(
+                nested_cd,
+                source_sv,
+                target_sv,
+                strict,
+                messages,
+                parent_class_deriv=cd,
+                parent_path=sd_path,
+                derivation_pool=derivation_pool,
+            )
 
     # Warning: target class has required slots with no derivation
     if target_sv is not None and target_class_slots is not None:
@@ -592,22 +689,241 @@ def _validate_class_derivation(
                 )
 
 
+def _build_joined_class_map(
+    cd: dict[str, Any],
+    source_sv: SchemaView | None,
+    slot_derivation_dicts: list[dict[str, Any]],
+) -> dict[str, tuple[str, set[str] | None]]:
+    """Map alias names to the resolved joined-class name and its slot set.
+
+    Combines two sources of "joined tables" visible from this CD's
+    expressions:
+
+    1. Explicit ``joins:`` aliases on this CD. The joined class is
+       ``joins[alias].class_named`` if set, otherwise the alias name.
+    2. Implicit join targets — nested ``class_derivations`` whose
+       ``populated_from`` differs from this CD's, which the engine's
+       normalization pass (#212) will auto-resolve.
+
+    :param cd: This class derivation dict.
+    :param source_sv: Source schema view, or ``None``.
+    :param slot_derivation_dicts: Pre-iterated slot derivations (avoids
+        re-walking).
+    :returns: Mapping of alias name to a ``(joined_class_name, slot_set)``
+        tuple. ``slot_set`` is ``None`` when the joined class can't be
+        resolved in the source schema (or when no source schema is
+        available). The class name is tracked separately so error
+        messages can distinguish alias from class for explicit
+        ``class_named`` joins.
+    """
+    result: dict[str, tuple[str, set[str] | None]] = {}
+    all_classes = set(source_sv.all_classes()) if source_sv is not None else set()
+
+    joins = cd.get("joins") or {}
+    if isinstance(joins, dict):
+        for alias, spec in joins.items():
+            joined_class: str
+            if isinstance(spec, dict):
+                joined_class = spec.get("class_named") or alias
+            else:
+                joined_class = alias
+            if source_sv is not None and joined_class in all_classes:
+                slots = {s.name for s in source_sv.class_induced_slots(joined_class)}
+                result[alias] = (joined_class, slots)
+            else:
+                result[alias] = (joined_class, None)
+
+    # Identity case: when populated_from is omitted, the runtime treats the
+    # CD's own name as the parent source. Match that behavior here so nested
+    # CDs reachable from an identity-CD still get cross-table validation.
+    parent_source = cd.get("populated_from") or cd.get("name")
+    if source_sv is not None and parent_source:
+        for sd in slot_derivation_dicts:
+            for nested in _iter_derivation_dicts(sd.get("class_derivations", [])):
+                nested_source = nested.get("populated_from")
+                if nested_source and nested_source != parent_source and nested_source not in result:
+                    if nested_source in all_classes:
+                        slots = {s.name for s in source_sv.class_induced_slots(nested_source)}
+                        result[nested_source] = (nested_source, slots)
+                    else:
+                        result[nested_source] = (nested_source, None)
+
+    return result
+
+
+def _check_cross_table_join(
+    nested_cd: dict[str, Any],
+    parent_cd: dict[str, Any],
+    source_sv: SchemaView | None,
+    nested_path: str,
+    messages: list[ValidationMessage],
+) -> None:
+    """Diagnose nested CDs that reference a different source table than their parent.
+
+    Closes #211 at validate-spec time. Mirrors the runtime synthesis logic
+    in :class:`~linkml_map.transformer.transformer.Transformer`:
+
+    - Explicit ``joins:`` covers the nested source → no message.
+    - No explicit join, :func:`~linkml_map.utils.join_utils.pick_join_key`
+      returns a column → ``info`` (#212 will auto-synthesize at runtime).
+    - No explicit join, no implicit join can be synthesized → ``warning``
+      with the same diagnostic the runtime would raise.
+    """
+    nested_source = nested_cd.get("populated_from")
+    # Identity case for the parent: fall back to its name when populated_from
+    # is omitted (matches _derive_nested_objects in the runtime).
+    parent_source = parent_cd.get("populated_from") or parent_cd.get("name")
+    if not nested_source or not parent_source or nested_source == parent_source:
+        return
+
+    parent_joins = parent_cd.get("joins") or {}
+    if isinstance(parent_joins, dict) and nested_source in parent_joins:
+        # Explicit join is present — verify the spec carries enough keys to
+        # actually resolve a row, mirroring the runtime check in
+        # ``_resolve_joined_row``. A structurally-valid-but-empty entry like
+        # ``joins: {Reading: {}}`` would otherwise pass validation but blow
+        # up at transform time with ``ValueError: Join spec ... must
+        # specify 'join_on' or both 'source_key' and 'lookup_key'``.
+        spec = parent_joins[nested_source]
+        spec_dict = spec if isinstance(spec, dict) else {}
+        join_on = spec_dict.get("join_on")
+        source_key = spec_dict.get("source_key")
+        lookup_key = spec_dict.get("lookup_key")
+        if not join_on and not (source_key and lookup_key):
+            messages.append(
+                ValidationMessage(
+                    severity="warning",
+                    path=nested_path,
+                    message=(
+                        f"Join spec for '{nested_source}' is missing keys: "
+                        f"must specify 'join_on' or both 'source_key' and "
+                        f"'lookup_key'. Runtime will raise ValueError."
+                    ),
+                )
+            )
+        return
+
+    if source_sv is None:
+        return
+
+    from linkml_map.utils.join_utils import find_common_columns, pick_join_key
+
+    all_classes = set(source_sv.all_classes())
+    if parent_source not in all_classes or nested_source not in all_classes:
+        # Missing-class errors are emitted elsewhere; can't predict joinability.
+        return
+
+    key = pick_join_key(source_sv, parent_source, nested_source)
+    if key is not None:
+        messages.append(
+            ValidationMessage(
+                severity="info",
+                path=nested_path,
+                message=(
+                    f"Nested 'populated_from={nested_source}' differs from parent "
+                    f"'populated_from={parent_source}'. No explicit join entry for "
+                    f"'{nested_source}'; implicit join will be synthesized on column "
+                    f"'{key}'. Consider declaring the join explicitly."
+                ),
+            )
+        )
+        return
+
+    common = find_common_columns(source_sv, parent_source, nested_source)
+    if not common:
+        reason = f"no columns are shared between '{parent_source}' and '{nested_source}'"
+    else:
+        candidates = ", ".join(f"'{c}'" for c in sorted(common))
+        reason = (
+            f"multiple candidate join columns are shared between '{parent_source}' "
+            f"and '{nested_source}' ({candidates}); cannot pick automatically"
+        )
+    messages.append(
+        ValidationMessage(
+            severity="warning",
+            path=nested_path,
+            message=(
+                f"Nested 'populated_from={nested_source}' differs from parent "
+                f"'populated_from={parent_source}', but no implicit join can be "
+                f"synthesized: {reason}. Add an explicit join entry for "
+                f"'{nested_source}' — cross-table values will otherwise resolve to null."
+            ),
+        )
+    )
+
+
+def _check_class_inheritance_refs(
+    cd: dict[str, Any],
+    cd_path: str,
+    derivation_pool: set[str],
+    target_sv: SchemaView | None,
+    messages: list[ValidationMessage],
+) -> None:
+    """Resolve ``is_a`` and ``mixins`` string references (closes #219).
+
+    Each reference must resolve to either:
+
+    1. A top-level ``class_derivation`` in this spec (matches the runtime's
+       ``_find_class_derivation_by_name`` behavior), or
+    2. A class in the target schema (matches LinkML's ``is_a`` convention
+       on plain schemas).
+
+    A reference that resolves to neither emits an ``error`` — but only when
+    ``target_sv`` is available. Without the target schema, half the pool is
+    unknown, so a miss against the spec pool alone is ambiguous (it could
+    still be a valid target schema reference) and is left unchecked rather
+    than risk a false positive.
+    """
+    parents: list[tuple[str, str]] = []
+    is_a = cd.get("is_a")
+    if isinstance(is_a, str):
+        parents.append(("is_a", is_a))
+    mixins = cd.get("mixins")
+    if isinstance(mixins, list):
+        parents.extend(("mixins", m) for m in mixins if isinstance(m, str))
+
+    if not parents or target_sv is None:
+        return
+
+    target_classes = set(target_sv.all_classes())
+
+    for field_label, parent_name in parents:
+        if parent_name in derivation_pool:
+            continue
+        if parent_name in target_classes:
+            continue
+        messages.append(
+            ValidationMessage(
+                severity="error",
+                path=cd_path,
+                message=(
+                    f"'{field_label}: {parent_name}' does not resolve to a "
+                    f"class_derivation in this spec or a class in the target schema"
+                ),
+            )
+        )
+
+
 def _validate_slot_derivation(
     sd: dict[str, Any],
     parent_class_name: str,
     parent_path: str,
     source_class_slots: set[str] | None,
     target_class_slots: set[str] | None,
-    joined_aliases: set[str],
+    joined_class_slots: dict[str, tuple[str, set[str] | None]],
     strict: bool,
     messages: list[ValidationMessage],
 ) -> None:
     """Validate a single slot derivation against schemas.
 
-    :param joined_aliases: Names declared in the parent class derivation's
-        ``joins`` mapping. Expression references to these names (e.g.
-        ``{demographics.age}``) are skipped — they refer to joined tables,
-        not source-class slots.
+    :param joined_class_slots: Mapping of alias name (from explicit
+        ``joins:`` or an implicit-join target) to a tuple of
+        ``(joined_class_name, slot_set)``. Expression bare-name
+        references to these aliases are excluded from source-class
+        checks, and attribute references like ``{alias.field}`` are
+        validated against the joined class's slot set. A ``slot_set``
+        of ``None`` means the joined class couldn't be resolved — the
+        bare alias is still tolerated, but attribute access is skipped.
     """
     sd_name = sd.get("name", "?")
     sd_path = f"{parent_path}.slot_derivations[{sd_name}]"
@@ -634,18 +950,50 @@ def _validate_slot_derivation(
                 )
             )
 
-    # Expression slot references — skip join aliases, they reference joined
-    # tables (validated against the joined class is a separate enhancement).
     expr = sd.get("expr")
-    if expr is not None and source_class_slots is not None:
-        refs = extract_expr_slot_references(expr) - joined_aliases
-        for ref in sorted(refs):
-            if ref not in source_class_slots:
+    if expr is None or source_class_slots is None:
+        return
+
+    joined_aliases = set(joined_class_slots.keys())
+
+    # Bare-name expression refs — exclude join aliases (they're a "base", not
+    # a slot on the source class).
+    refs = extract_expr_slot_references(expr) - joined_aliases
+    for ref in sorted(refs):
+        if ref not in source_class_slots:
+            messages.append(
+                ValidationMessage(
+                    severity="error" if strict else "warning",
+                    path=sd_path,
+                    message=f"Expression references '{ref}' which is not a slot on the source class",
+                )
+            )
+
+    # Cross-table attribute refs — partial #213 coverage: {alias.field}
+    # validated against the joined class's slots when known.
+    attr_refs = extract_expr_attribute_references(expr)
+    for base, attrs in attr_refs.items():
+        if base not in joined_class_slots:
+            continue
+        joined_class, joined_slots = joined_class_slots[base]
+        if joined_slots is None:
+            continue
+        # When the alias differs from the resolved class name (explicit
+        # ``class_named``), surface both so the user knows which schema
+        # class was actually checked.
+        if joined_class == base:
+            class_descriptor = f"joined class '{joined_class}'"
+        else:
+            class_descriptor = f"joined class '{joined_class}' (alias '{base}')"
+        for attr in sorted(attrs):
+            if attr not in joined_slots:
                 messages.append(
                     ValidationMessage(
                         severity="error" if strict else "warning",
                         path=sd_path,
-                        message=f"Expression references '{ref}' which is not a slot on the source class",
+                        message=(
+                            f"Expression references '{base}.{attr}' but '{attr}' is not a slot on {class_descriptor}"
+                        ),
                     )
                 )
 
