@@ -1,15 +1,21 @@
+---
+search:
+  boost: 10.0
+---
 
-
-# Class: Inverse
+# Class: Inverse 
 
 
 _Used for back references in mapping to relational model_
 
 
 
+<div data-search-exclude markdown="1">
 
 
-URI: [linkmltr:Inverse](https://w3id.org/linkml/transformer/Inverse)
+
+URI: [linkmlmap:Inverse](https://w3id.org/linkml/transformer/Inverse)
+
 
 
 
@@ -17,22 +23,18 @@ URI: [linkmltr:Inverse](https://w3id.org/linkml/transformer/Inverse)
 ```mermaid
  classDiagram
     class Inverse
+    click Inverse href "../Inverse/"
       Inverse : class_name
-
-          Inverse --> None : class_name
-
+        
       Inverse : slot_name
-
-          Inverse --> None : slot_name
-
-
+        
+      
 ```
 
 
 
 
 <!-- no inheritance hierarchy -->
-
 
 ## Slots
 
@@ -54,6 +56,11 @@ URI: [linkmltr:Inverse](https://w3id.org/linkml/transformer/Inverse)
 
 
 
+
+
+
+
+
 ## Aliases
 
 
@@ -62,9 +69,8 @@ URI: [linkmltr:Inverse](https://w3id.org/linkml/transformer/Inverse)
 
 
 
+
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -78,13 +84,13 @@ URI: [linkmltr:Inverse](https://w3id.org/linkml/transformer/Inverse)
 
 
 
-
 ## Mappings
 
 | Mapping Type | Mapped Value |
 | ---  | ---  |
-| self | linkmltr:Inverse |
-| native | linkmltr:Inverse |
+| self | linkmlmap:Inverse |
+| native | linkmlmap:Inverse |
+
 
 
 
@@ -136,7 +142,6 @@ attributes:
     name: slot_name
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    alias: slot_name
     owner: Inverse
     domain_of:
     - Inverse
@@ -144,10 +149,9 @@ attributes:
     name: class_name
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    alias: class_name
     owner: Inverse
     domain_of:
     - Inverse
 
 ```
-</details>
+</details></div>

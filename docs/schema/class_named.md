@@ -1,16 +1,20 @@
+---
+search:
+  boost: 5.0
+---
 
-
-# Slot: class_named
+# Slot: class_named 
 
 
 _local alias for the class_
 
 
 
-URI: [linkmltr:class_named](https://w3id.org/linkml/transformer/class_named)
+<div data-search-exclude markdown="1">
 
 
 
+URI: [linkmlmap:class_named](https://w3id.org/linkml/transformer/class_named)
 <!-- no inheritance hierarchy -->
 
 
@@ -28,18 +32,37 @@ URI: [linkmltr:class_named](https://w3id.org/linkml/transformer/class_named)
 
 
 
-
 ## Properties
 
-* Range: NONE
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | NONE |
+| Domain Of | [AliasedClass](AliasedClass.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [AliasedClass](AliasedClass.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -53,6 +76,16 @@ URI: [linkmltr:class_named](https://w3id.org/linkml/transformer/class_named)
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:class_named |
+| native | linkmlmap:class_named |
+
+
+
+
 ## LinkML Source
 
 <details>
@@ -61,10 +94,9 @@ name: class_named
 description: local alias for the class
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
-alias: class_named
 owner: AliasedClass
 domain_of:
 - AliasedClass
 
 ```
-</details>
+</details></div>

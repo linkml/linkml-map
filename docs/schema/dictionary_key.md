@@ -1,11 +1,15 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: dictionary_key 
+
+<div data-search-exclude markdown="1">
 
 
-# Slot: dictionary_key
 
-URI: [linkmltr:dictionary_key](https://w3id.org/linkml/transformer/dictionary_key)
-
-
-
+URI: [linkmlmap:dictionary_key](https://w3id.org/linkml/transformer/dictionary_key)
 <!-- no inheritance hierarchy -->
 
 
@@ -23,18 +27,37 @@ URI: [linkmltr:dictionary_key](https://w3id.org/linkml/transformer/dictionary_ke
 
 
 
-
 ## Properties
 
-* Range: [String](String.md)
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | [String](String.md) |
+| Domain Of | [SlotDerivation](SlotDerivation.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [SlotDerivation](SlotDerivation.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -48,6 +71,16 @@ URI: [linkmltr:dictionary_key](https://w3id.org/linkml/transformer/dictionary_ke
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:dictionary_key |
+| native | linkmlmap:dictionary_key |
+
+
+
+
 ## LinkML Source
 
 <details>
@@ -55,11 +88,10 @@ URI: [linkmltr:dictionary_key](https://w3id.org/linkml/transformer/dictionary_ke
 name: dictionary_key
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
-alias: dictionary_key
 owner: SlotDerivation
 domain_of:
 - SlotDerivation
 range: string
 
 ```
-</details>
+</details></div>

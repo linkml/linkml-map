@@ -1,16 +1,20 @@
+---
+search:
+  boost: 5.0
+---
 
-
-# Slot: title
+# Slot: title 
 
 
 _human readable title for this transformation specification_
 
 
 
+<div data-search-exclude markdown="1">
+
+
+
 URI: [dcterms:title](http://purl.org/dc/terms/title)
-
-
-
 <!-- no inheritance hierarchy -->
 
 
@@ -28,18 +32,38 @@ URI: [dcterms:title](http://purl.org/dc/terms/title)
 
 
 
-
 ## Properties
 
-* Range: NONE
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | NONE |
+| Domain Of | [TransformationSpecification](TransformationSpecification.md) |
+| Slot URI | [dcterms:title](http://purl.org/dc/terms/title) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [TransformationSpecification](TransformationSpecification.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -53,6 +77,16 @@ URI: [dcterms:title](http://purl.org/dc/terms/title)
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | dcterms:title |
+| native | linkmlmap:title |
+
+
+
+
 ## LinkML Source
 
 <details>
@@ -62,10 +96,9 @@ description: human readable title for this transformation specification
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 slot_uri: dcterms:title
-alias: title
 owner: TransformationSpecification
 domain_of:
 - TransformationSpecification
 
 ```
-</details>
+</details></div>

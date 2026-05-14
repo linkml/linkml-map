@@ -1,11 +1,15 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: over_slots 
+
+<div data-search-exclude markdown="1">
 
 
-# Slot: over_slots
 
-URI: [linkmltr:over_slots](https://w3id.org/linkml/transformer/over_slots)
-
-
-
+URI: [linkmlmap:over_slots](https://w3id.org/linkml/transformer/over_slots)
 <!-- no inheritance hierarchy -->
 
 
@@ -23,20 +27,38 @@ URI: [linkmltr:over_slots](https://w3id.org/linkml/transformer/over_slots)
 
 
 
-
 ## Properties
 
-* Range: [String](String.md)
+### Type and Range
 
-* Multivalued: True
+| Property | Value |
+| --- | --- |
+| Range | [String](String.md) |
+| Domain Of | [StringificationConfiguration](StringificationConfiguration.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+| Multivalued | Yes |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [StringificationConfiguration](StringificationConfiguration.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -50,6 +72,16 @@ URI: [linkmltr:over_slots](https://w3id.org/linkml/transformer/over_slots)
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:over_slots |
+| native | linkmlmap:over_slots |
+
+
+
+
 ## LinkML Source
 
 <details>
@@ -57,12 +89,11 @@ URI: [linkmltr:over_slots](https://w3id.org/linkml/transformer/over_slots)
 name: over_slots
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
-multivalued: true
-alias: over_slots
 owner: StringificationConfiguration
 domain_of:
 - StringificationConfiguration
 range: string
+multivalued: true
 
 ```
-</details>
+</details></div>

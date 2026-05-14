@@ -1,16 +1,20 @@
+---
+search:
+  boost: 5.0
+---
 
-
-# Slot: implements
+# Slot: implements 
 
 
 _A reference to a specification that this component implements._
 
 
 
-URI: [linkmltr:implements](https://w3id.org/linkml/transformer/implements)
+<div data-search-exclude markdown="1">
 
 
 
+URI: [linkmlmap:implements](https://w3id.org/linkml/transformer/implements)
 <!-- no inheritance hierarchy -->
 
 
@@ -21,15 +25,15 @@ URI: [linkmltr:implements](https://w3id.org/linkml/transformer/implements)
 
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
-| [EnumDerivation](EnumDerivation.md) | A specification of how to derive the value of a target enum from a source enu... |  no  |
 | [SpecificationComponent](SpecificationComponent.md) |  |  no  |
-| [ClassDerivation](ClassDerivation.md) | A specification of how to derive a target class from a source class |  no  |
-| [PrefixDerivation](PrefixDerivation.md) |  |  no  |
-| [SlotDerivation](SlotDerivation.md) | A specification of how to derive the value of a target slot from a source slo... |  no  |
 | [TransformationSpecification](TransformationSpecification.md) | A collection of mappings between source and target classes |  no  |
+| [ElementDerivation](ElementDerivation.md) | An abstract grouping for classes that provide a specification of how to deriv... |  no  |
+| [ClassDerivation](ClassDerivation.md) | A specification of how to derive a target class from a source class |  no  |
+| [ObjectDerivation](ObjectDerivation.md) | Deprecated |  no  |
+| [SlotDerivation](SlotDerivation.md) | A specification of how to derive the value of a target slot from a source slo... |  no  |
+| [EnumDerivation](EnumDerivation.md) | A specification of how to derive the value of a target enum from a source enu... |  no  |
 | [PermissibleValueDerivation](PermissibleValueDerivation.md) | A specification of how to derive the value of a PV from a source enum |  no  |
-| [ElementDerivation](ElementDerivation.md) | An abstract grouping for classes that provide a specification of how to  deri... |  no  |
-
+| [PrefixDerivation](PrefixDerivation.md) |  |  no  |
 
 
 
@@ -38,17 +42,36 @@ URI: [linkmltr:implements](https://w3id.org/linkml/transformer/implements)
 
 ## Properties
 
-* Range: [Uriorcurie](Uriorcurie.md)
+### Type and Range
 
-* Multivalued: True
+| Property | Value |
+| --- | --- |
+| Range | [Uriorcurie](Uriorcurie.md) |
+| Domain Of | [SpecificationComponent](SpecificationComponent.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+| Multivalued | Yes |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [SpecificationComponent](SpecificationComponent.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -62,6 +85,16 @@ URI: [linkmltr:implements](https://w3id.org/linkml/transformer/implements)
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:implements |
+| native | linkmlmap:implements |
+
+
+
+
 ## LinkML Source
 
 <details>
@@ -70,12 +103,11 @@ name: implements
 description: A reference to a specification that this component implements.
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
-multivalued: true
-alias: implements
 owner: SpecificationComponent
 domain_of:
 - SpecificationComponent
 range: uriorcurie
+multivalued: true
 
 ```
-</details>
+</details></div>

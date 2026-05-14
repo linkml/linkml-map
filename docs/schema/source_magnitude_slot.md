@@ -1,11 +1,15 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: source_magnitude_slot 
+
+<div data-search-exclude markdown="1">
 
 
-# Slot: source_magnitude_slot
 
-URI: [linkmltr:source_magnitude_slot](https://w3id.org/linkml/transformer/source_magnitude_slot)
-
-
-
+URI: [linkmlmap:source_magnitude_slot](https://w3id.org/linkml/transformer/source_magnitude_slot)
 <!-- no inheritance hierarchy -->
 
 
@@ -23,18 +27,37 @@ URI: [linkmltr:source_magnitude_slot](https://w3id.org/linkml/transformer/source
 
 
 
-
 ## Properties
 
-* Range: NONE
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | NONE |
+| Domain Of | [UnitConversionConfiguration](UnitConversionConfiguration.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [UnitConversionConfiguration](UnitConversionConfiguration.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -48,6 +71,16 @@ URI: [linkmltr:source_magnitude_slot](https://w3id.org/linkml/transformer/source
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:source_magnitude_slot |
+| native | linkmlmap:source_magnitude_slot |
+
+
+
+
 ## LinkML Source
 
 <details>
@@ -55,10 +88,9 @@ URI: [linkmltr:source_magnitude_slot](https://w3id.org/linkml/transformer/source
 name: source_magnitude_slot
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
-alias: source_magnitude_slot
 owner: UnitConversionConfiguration
 domain_of:
 - UnitConversionConfiguration
 
 ```
-</details>
+</details></div>

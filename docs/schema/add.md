@@ -1,11 +1,15 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: add 
+
+<div data-search-exclude markdown="1">
 
 
-# Slot: add
 
-URI: [linkmltr:add](https://w3id.org/linkml/transformer/add)
-
-
-
+URI: [linkmlmap:add](https://w3id.org/linkml/transformer/add)
 <!-- no inheritance hierarchy -->
 
 
@@ -23,18 +27,37 @@ URI: [linkmltr:add](https://w3id.org/linkml/transformer/add)
 
 
 
-
 ## Properties
 
-* Range: [Any](Any.md)
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | [Any](Any.md) |
+| Domain Of | [CopyDirective](CopyDirective.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [CopyDirective](CopyDirective.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -48,6 +71,16 @@ URI: [linkmltr:add](https://w3id.org/linkml/transformer/add)
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:add |
+| native | linkmlmap:add |
+
+
+
+
 ## LinkML Source
 
 <details>
@@ -55,11 +88,10 @@ URI: [linkmltr:add](https://w3id.org/linkml/transformer/add)
 name: add
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
-alias: add
 owner: CopyDirective
 domain_of:
 - CopyDirective
 range: Any
 
 ```
-</details>
+</details></div>

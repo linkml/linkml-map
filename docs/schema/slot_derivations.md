@@ -1,11 +1,15 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: slot_derivations 
+
+<div data-search-exclude markdown="1">
 
 
-# Slot: slot_derivations
 
-URI: [linkmltr:slot_derivations](https://w3id.org/linkml/transformer/slot_derivations)
-
-
-
+URI: [linkmlmap:slot_derivations](https://w3id.org/linkml/transformer/slot_derivations)
 <!-- no inheritance hierarchy -->
 
 
@@ -16,9 +20,8 @@ URI: [linkmltr:slot_derivations](https://w3id.org/linkml/transformer/slot_deriva
 
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
-| [ClassDerivation](ClassDerivation.md) | A specification of how to derive a target class from a source class |  no  |
 | [TransformationSpecification](TransformationSpecification.md) | A collection of mappings between source and target classes |  no  |
-
+| [ClassDerivation](ClassDerivation.md) | A specification of how to derive a target class from a source class |  no  |
 
 
 
@@ -27,7 +30,22 @@ URI: [linkmltr:slot_derivations](https://w3id.org/linkml/transformer/slot_deriva
 
 ## Properties
 
-* Range: NONE
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | NONE |
+| Domain Of | [TransformationSpecification](TransformationSpecification.md), [ClassDerivation](ClassDerivation.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+
+
+
+
+
 
 
 
@@ -40,6 +58,14 @@ URI: [linkmltr:slot_derivations](https://w3id.org/linkml/transformer/slot_deriva
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:slot_derivations |
+| native | linkmlmap:slot_derivations |
+
+
 
 
 ## LinkML Source
@@ -47,10 +73,9 @@ URI: [linkmltr:slot_derivations](https://w3id.org/linkml/transformer/slot_deriva
 <details>
 ```yaml
 name: slot_derivations
-alias: slot_derivations
 domain_of:
 - TransformationSpecification
 - ClassDerivation
 
 ```
-</details>
+</details></div>
