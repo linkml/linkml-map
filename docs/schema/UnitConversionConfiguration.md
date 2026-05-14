@@ -1,10 +1,16 @@
+---
+search:
+  boost: 10.0
+---
+
+# Class: UnitConversionConfiguration 
+
+<div data-search-exclude markdown="1">
 
 
-# Class: UnitConversionConfiguration
 
+URI: [linkmlmap:UnitConversionConfiguration](https://w3id.org/linkml/transformer/UnitConversionConfiguration)
 
-
-URI: [linkmltr:UnitConversionConfiguration](https://w3id.org/linkml/transformer/UnitConversionConfiguration)
 
 
 
@@ -12,42 +18,32 @@ URI: [linkmltr:UnitConversionConfiguration](https://w3id.org/linkml/transformer/
 ```mermaid
  classDiagram
     class UnitConversionConfiguration
+    click UnitConversionConfiguration href "../UnitConversionConfiguration/"
+      UnitConversionConfiguration : none_if_non_numeric
+        
       UnitConversionConfiguration : source_magnitude_slot
-
-          UnitConversionConfiguration --> None : source_magnitude_slot
-
+        
       UnitConversionConfiguration : source_unit
-
-          UnitConversionConfiguration --> None : source_unit
-
+        
       UnitConversionConfiguration : source_unit_scheme
-
+        
       UnitConversionConfiguration : source_unit_slot
-
-          UnitConversionConfiguration --> None : source_unit_slot
-
+        
       UnitConversionConfiguration : target_magnitude_slot
-
-          UnitConversionConfiguration --> None : target_magnitude_slot
-
+        
       UnitConversionConfiguration : target_unit
-
-          UnitConversionConfiguration --> None : target_unit
-
+        
       UnitConversionConfiguration : target_unit_scheme
-
+        
       UnitConversionConfiguration : target_unit_slot
-
-          UnitConversionConfiguration --> None : target_unit_slot
-
-
+        
+      
 ```
 
 
 
 
 <!-- no inheritance hierarchy -->
-
 
 ## Slots
 
@@ -61,6 +57,7 @@ URI: [linkmltr:UnitConversionConfiguration](https://w3id.org/linkml/transformer/
 | [source_magnitude_slot](source_magnitude_slot.md) | 0..1 <br/> [String](String.md) |  | direct |
 | [target_unit_slot](target_unit_slot.md) | 0..1 <br/> [String](String.md) |  | direct |
 | [target_magnitude_slot](target_magnitude_slot.md) | 0..1 <br/> [String](String.md) |  | direct |
+| [none_if_non_numeric](none_if_non_numeric.md) | 0..1 <br/> [Boolean](Boolean.md) | If true, return None when the source value cannot be coerced to a numeric typ... | direct |
 
 
 
@@ -77,9 +74,13 @@ URI: [linkmltr:UnitConversionConfiguration](https://w3id.org/linkml/transformer/
 
 
 
+
+
+
+
+
+
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -93,13 +94,13 @@ URI: [linkmltr:UnitConversionConfiguration](https://w3id.org/linkml/transformer/
 
 
 
-
 ## Mappings
 
 | Mapping Type | Mapped Value |
 | ---  | ---  |
-| self | linkmltr:UnitConversionConfiguration |
-| native | linkmltr:UnitConversionConfiguration |
+| self | linkmlmap:UnitConversionConfiguration |
+| native | linkmlmap:UnitConversionConfiguration |
+
 
 
 
@@ -170,6 +171,16 @@ attributes:
     rank: 1000
     domain_of:
     - UnitConversionConfiguration
+  none_if_non_numeric:
+    name: none_if_non_numeric
+    description: If true, return None when the source value cannot be coerced to a
+      numeric type instead of raising an error. This is an explicit opt-in for columns
+      that contain non-numeric coded values (e.g. 'A', 'M') mixed with numeric data.
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    domain_of:
+    - UnitConversionConfiguration
+    range: boolean
 
 ```
 </details>
@@ -185,7 +196,6 @@ attributes:
     name: target_unit
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    alias: target_unit
     owner: UnitConversionConfiguration
     domain_of:
     - UnitConversionConfiguration
@@ -195,7 +205,6 @@ attributes:
     - value: ucum
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    alias: target_unit_scheme
     owner: UnitConversionConfiguration
     domain_of:
     - UnitConversionConfiguration
@@ -204,7 +213,6 @@ attributes:
     name: source_unit
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    alias: source_unit
     owner: UnitConversionConfiguration
     domain_of:
     - UnitConversionConfiguration
@@ -214,7 +222,6 @@ attributes:
     - value: ucum
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    alias: source_unit_scheme
     owner: UnitConversionConfiguration
     domain_of:
     - UnitConversionConfiguration
@@ -223,7 +230,6 @@ attributes:
     name: source_unit_slot
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    alias: source_unit_slot
     owner: UnitConversionConfiguration
     domain_of:
     - UnitConversionConfiguration
@@ -231,7 +237,6 @@ attributes:
     name: source_magnitude_slot
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    alias: source_magnitude_slot
     owner: UnitConversionConfiguration
     domain_of:
     - UnitConversionConfiguration
@@ -239,7 +244,6 @@ attributes:
     name: target_unit_slot
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    alias: target_unit_slot
     owner: UnitConversionConfiguration
     domain_of:
     - UnitConversionConfiguration
@@ -247,10 +251,20 @@ attributes:
     name: target_magnitude_slot
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    alias: target_magnitude_slot
     owner: UnitConversionConfiguration
     domain_of:
     - UnitConversionConfiguration
+  none_if_non_numeric:
+    name: none_if_non_numeric
+    description: If true, return None when the source value cannot be coerced to a
+      numeric type instead of raising an error. This is an explicit opt-in for columns
+      that contain non-numeric coded values (e.g. 'A', 'M') mixed with numeric data.
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    owner: UnitConversionConfiguration
+    domain_of:
+    - UnitConversionConfiguration
+    range: boolean
 
 ```
-</details>
+</details></div>

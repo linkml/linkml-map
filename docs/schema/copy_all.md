@@ -1,11 +1,20 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: copy_all 
 
 
-# Slot: copy_all
-
-URI: [linkmltr:copy_all](https://w3id.org/linkml/transformer/copy_all)
+_Copy all sub-elements of the Element being derived._
 
 
 
+<div data-search-exclude markdown="1">
+
+
+
+URI: [linkmlmap:copy_all](https://w3id.org/linkml/transformer/copy_all)
 <!-- no inheritance hierarchy -->
 
 
@@ -23,18 +32,37 @@ URI: [linkmltr:copy_all](https://w3id.org/linkml/transformer/copy_all)
 
 
 
-
 ## Properties
 
-* Range: [Boolean](Boolean.md)
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | [Boolean](Boolean.md) |
+| Domain Of | [CopyDirective](CopyDirective.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [CopyDirective](CopyDirective.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -48,18 +76,28 @@ URI: [linkmltr:copy_all](https://w3id.org/linkml/transformer/copy_all)
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:copy_all |
+| native | linkmlmap:copy_all |
+
+
+
+
 ## LinkML Source
 
 <details>
 ```yaml
 name: copy_all
+description: Copy all sub-elements of the Element being derived.
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
-alias: copy_all
 owner: CopyDirective
 domain_of:
 - CopyDirective
 range: boolean
 
 ```
-</details>
+</details></div>

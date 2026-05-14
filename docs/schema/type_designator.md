@@ -1,11 +1,15 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: type_designator 
+
+<div data-search-exclude markdown="1">
 
 
-# Slot: type_designator
 
-URI: [linkmltr:type_designator](https://w3id.org/linkml/transformer/type_designator)
-
-
-
+URI: [linkmlmap:type_designator](https://w3id.org/linkml/transformer/type_designator)
 <!-- no inheritance hierarchy -->
 
 
@@ -23,18 +27,37 @@ URI: [linkmltr:type_designator](https://w3id.org/linkml/transformer/type_designa
 
 
 
-
 ## Properties
 
-* Range: [Boolean](Boolean.md)
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | [Boolean](Boolean.md) |
+| Domain Of | [SlotDerivation](SlotDerivation.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [SlotDerivation](SlotDerivation.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -48,6 +71,16 @@ URI: [linkmltr:type_designator](https://w3id.org/linkml/transformer/type_designa
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:type_designator |
+| native | linkmlmap:type_designator |
+
+
+
+
 ## LinkML Source
 
 <details>
@@ -55,11 +88,10 @@ URI: [linkmltr:type_designator](https://w3id.org/linkml/transformer/type_designa
 name: type_designator
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
-alias: type_designator
 owner: SlotDerivation
 domain_of:
 - SlotDerivation
 range: boolean
 
 ```
-</details>
+</details></div>

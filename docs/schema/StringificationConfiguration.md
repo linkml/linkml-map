@@ -1,10 +1,16 @@
+---
+search:
+  boost: 10.0
+---
+
+# Class: StringificationConfiguration 
+
+<div data-search-exclude markdown="1">
 
 
-# Class: StringificationConfiguration
 
+URI: [linkmlmap:StringificationConfiguration](https://w3id.org/linkml/transformer/StringificationConfiguration)
 
-
-URI: [linkmltr:StringificationConfiguration](https://w3id.org/linkml/transformer/StringificationConfiguration)
 
 
 
@@ -12,17 +18,25 @@ URI: [linkmltr:StringificationConfiguration](https://w3id.org/linkml/transformer
 ```mermaid
  classDiagram
     class StringificationConfiguration
+    click StringificationConfiguration href "../StringificationConfiguration/"
       StringificationConfiguration : delimiter
-
+        
       StringificationConfiguration : over_slots
-
+        
       StringificationConfiguration : reversed
-
+        
       StringificationConfiguration : syntax
+        
+          
+    
+        
+        
+        StringificationConfiguration --> "0..1" SerializationSyntaxType : syntax
+        click SerializationSyntaxType href "../SerializationSyntaxType/"
+    
 
-          StringificationConfiguration --> SerializationSyntaxType : syntax
-
-
+        
+      
 ```
 
 
@@ -30,14 +44,13 @@ URI: [linkmltr:StringificationConfiguration](https://w3id.org/linkml/transformer
 
 <!-- no inheritance hierarchy -->
 
-
 ## Slots
 
 | Name | Cardinality and Range | Description | Inheritance |
 | ---  | --- | --- | --- |
 | [delimiter](delimiter.md) | 0..1 <br/> [String](String.md) |  | direct |
 | [reversed](reversed.md) | 0..1 <br/> [Boolean](Boolean.md) |  | direct |
-| [over_slots](over_slots.md) | 0..* <br/> [String](String.md) |  | direct |
+| [over_slots](over_slots.md) | * <br/> [String](String.md) |  | direct |
 | [syntax](syntax.md) | 0..1 <br/> [SerializationSyntaxType](SerializationSyntaxType.md) |  | direct |
 
 
@@ -55,9 +68,13 @@ URI: [linkmltr:StringificationConfiguration](https://w3id.org/linkml/transformer
 
 
 
+
+
+
+
+
+
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -71,13 +88,13 @@ URI: [linkmltr:StringificationConfiguration](https://w3id.org/linkml/transformer
 
 
 
-
 ## Mappings
 
 | Mapping Type | Mapped Value |
 | ---  | ---  |
-| self | linkmltr:StringificationConfiguration |
-| native | linkmltr:StringificationConfiguration |
+| self | linkmlmap:StringificationConfiguration |
+| native | linkmlmap:StringificationConfiguration |
+
 
 
 
@@ -116,10 +133,10 @@ attributes:
     name: over_slots
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    multivalued: true
     domain_of:
     - StringificationConfiguration
     range: string
+    multivalued: true
   syntax:
     name: syntax
     examples:
@@ -149,7 +166,6 @@ attributes:
     - value: ;
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    alias: delimiter
     owner: StringificationConfiguration
     domain_of:
     - StringificationConfiguration
@@ -158,7 +174,6 @@ attributes:
     name: reversed
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    alias: reversed
     owner: StringificationConfiguration
     domain_of:
     - StringificationConfiguration
@@ -167,12 +182,11 @@ attributes:
     name: over_slots
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    multivalued: true
-    alias: over_slots
     owner: StringificationConfiguration
     domain_of:
     - StringificationConfiguration
     range: string
+    multivalued: true
   syntax:
     name: syntax
     examples:
@@ -180,11 +194,10 @@ attributes:
     - value: yaml
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    alias: syntax
     owner: StringificationConfiguration
     domain_of:
     - StringificationConfiguration
     range: SerializationSyntaxType
 
 ```
-</details>
+</details></div>

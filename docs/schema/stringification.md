@@ -1,11 +1,15 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: stringification 
+
+<div data-search-exclude markdown="1">
 
 
-# Slot: stringification
 
-URI: [linkmltr:stringification](https://w3id.org/linkml/transformer/stringification)
-
-
-
+URI: [linkmlmap:stringification](https://w3id.org/linkml/transformer/stringification)
 <!-- no inheritance hierarchy -->
 
 
@@ -23,18 +27,37 @@ URI: [linkmltr:stringification](https://w3id.org/linkml/transformer/stringificat
 
 
 
-
 ## Properties
 
-* Range: [StringificationConfiguration](StringificationConfiguration.md)
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | [StringificationConfiguration](StringificationConfiguration.md) |
+| Domain Of | [SlotDerivation](SlotDerivation.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [SlotDerivation](SlotDerivation.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -48,6 +71,16 @@ URI: [linkmltr:stringification](https://w3id.org/linkml/transformer/stringificat
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:stringification |
+| native | linkmlmap:stringification |
+
+
+
+
 ## LinkML Source
 
 <details>
@@ -55,11 +88,10 @@ URI: [linkmltr:stringification](https://w3id.org/linkml/transformer/stringificat
 name: stringification
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
-alias: stringification
 owner: SlotDerivation
 domain_of:
 - SlotDerivation
 range: StringificationConfiguration
 
 ```
-</details>
+</details></div>

@@ -1,16 +1,20 @@
+---
+search:
+  boost: 5.0
+---
 
-
-# Slot: prefixes
+# Slot: prefixes 
 
 
 _maps prefixes to URL expansions_
 
 
 
+<div data-search-exclude markdown="1">
+
+
+
 URI: [sh:declare](http://www.w3.org/ns/shacl#declare)
-
-
-
 <!-- no inheritance hierarchy -->
 
 
@@ -28,20 +32,39 @@ URI: [sh:declare](http://www.w3.org/ns/shacl#declare)
 
 
 
-
 ## Properties
 
-* Range: [KeyVal](KeyVal.md)
+### Type and Range
 
-* Multivalued: True
+| Property | Value |
+| --- | --- |
+| Range | [KeyVal](KeyVal.md) |
+| Domain Of | [TransformationSpecification](TransformationSpecification.md) |
+| Slot URI | [sh:declare](http://www.w3.org/ns/shacl#declare) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+| Multivalued | Yes |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [TransformationSpecification](TransformationSpecification.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -55,6 +78,16 @@ URI: [sh:declare](http://www.w3.org/ns/shacl#declare)
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | sh:declare |
+| native | linkmlmap:prefixes |
+
+
+
+
 ## LinkML Source
 
 <details>
@@ -64,13 +97,12 @@ description: maps prefixes to URL expansions
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 slot_uri: sh:declare
-multivalued: true
-alias: prefixes
 owner: TransformationSpecification
 domain_of:
 - TransformationSpecification
 range: KeyVal
+multivalued: true
 inlined: true
 
 ```
-</details>
+</details></div>

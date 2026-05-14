@@ -1,11 +1,15 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: hide 
+
+<div data-search-exclude markdown="1">
 
 
-# Slot: hide
 
-URI: [linkmltr:hide](https://w3id.org/linkml/transformer/hide)
-
-
-
+URI: [linkmlmap:hide](https://w3id.org/linkml/transformer/hide)
 <!-- no inheritance hierarchy -->
 
 
@@ -25,10 +29,24 @@ URI: [linkmltr:hide](https://w3id.org/linkml/transformer/hide)
 
 
 
-
 ## Properties
 
-* Range: NONE
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | NONE |
+| Domain Of | [SlotDerivation](SlotDerivation.md), [EnumDerivation](EnumDerivation.md), [PermissibleValueDerivation](PermissibleValueDerivation.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+
+
+
+
+
 
 
 
@@ -41,6 +59,14 @@ URI: [linkmltr:hide](https://w3id.org/linkml/transformer/hide)
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:hide |
+| native | linkmlmap:hide |
+
+
 
 
 ## LinkML Source
@@ -48,11 +74,10 @@ URI: [linkmltr:hide](https://w3id.org/linkml/transformer/hide)
 <details>
 ```yaml
 name: hide
-alias: hide
 domain_of:
 - SlotDerivation
 - EnumDerivation
 - PermissibleValueDerivation
 
 ```
-</details>
+</details></div>

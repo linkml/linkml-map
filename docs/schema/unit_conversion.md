@@ -1,11 +1,15 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: unit_conversion 
+
+<div data-search-exclude markdown="1">
 
 
-# Slot: unit_conversion
 
-URI: [linkmltr:unit_conversion](https://w3id.org/linkml/transformer/unit_conversion)
-
-
-
+URI: [linkmlmap:unit_conversion](https://w3id.org/linkml/transformer/unit_conversion)
 <!-- no inheritance hierarchy -->
 
 
@@ -23,18 +27,37 @@ URI: [linkmltr:unit_conversion](https://w3id.org/linkml/transformer/unit_convers
 
 
 
-
 ## Properties
 
-* Range: [UnitConversionConfiguration](UnitConversionConfiguration.md)
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | [UnitConversionConfiguration](UnitConversionConfiguration.md) |
+| Domain Of | [SlotDerivation](SlotDerivation.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [SlotDerivation](SlotDerivation.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -48,6 +71,16 @@ URI: [linkmltr:unit_conversion](https://w3id.org/linkml/transformer/unit_convers
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:unit_conversion |
+| native | linkmlmap:unit_conversion |
+
+
+
+
 ## LinkML Source
 
 <details>
@@ -55,11 +88,10 @@ URI: [linkmltr:unit_conversion](https://w3id.org/linkml/transformer/unit_convers
 name: unit_conversion
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
-alias: unit_conversion
 owner: SlotDerivation
 domain_of:
 - SlotDerivation
 range: UnitConversionConfiguration
 
 ```
-</details>
+</details></div>

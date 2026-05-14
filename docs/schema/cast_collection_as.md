@@ -1,11 +1,15 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: cast_collection_as 
+
+<div data-search-exclude markdown="1">
 
 
-# Slot: cast_collection_as
 
-URI: [linkmltr:cast_collection_as](https://w3id.org/linkml/transformer/cast_collection_as)
-
-
-
+URI: [linkmlmap:cast_collection_as](https://w3id.org/linkml/transformer/cast_collection_as)
 <!-- no inheritance hierarchy -->
 
 
@@ -23,18 +27,37 @@ URI: [linkmltr:cast_collection_as](https://w3id.org/linkml/transformer/cast_coll
 
 
 
-
 ## Properties
 
-* Range: [CollectionType](CollectionType.md)
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | [CollectionType](CollectionType.md) |
+| Domain Of | [SlotDerivation](SlotDerivation.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [SlotDerivation](SlotDerivation.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -48,6 +71,16 @@ URI: [linkmltr:cast_collection_as](https://w3id.org/linkml/transformer/cast_coll
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:cast_collection_as |
+| native | linkmlmap:cast_collection_as |
+
+
+
+
 ## LinkML Source
 
 <details>
@@ -55,11 +88,10 @@ URI: [linkmltr:cast_collection_as](https://w3id.org/linkml/transformer/cast_coll
 name: cast_collection_as
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
-alias: cast_collection_as
 owner: SlotDerivation
 domain_of:
 - SlotDerivation
 range: CollectionType
 
 ```
-</details>
+</details></div>

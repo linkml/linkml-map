@@ -1,11 +1,20 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: exclude_all 
 
 
-# Slot: exclude_all
-
-URI: [linkmltr:exclude_all](https://w3id.org/linkml/transformer/exclude_all)
+_Do not copy any of the sub-elements of the Element being derived._
 
 
 
+<div data-search-exclude markdown="1">
+
+
+
+URI: [linkmlmap:exclude_all](https://w3id.org/linkml/transformer/exclude_all)
 <!-- no inheritance hierarchy -->
 
 
@@ -23,18 +32,37 @@ URI: [linkmltr:exclude_all](https://w3id.org/linkml/transformer/exclude_all)
 
 
 
-
 ## Properties
 
-* Range: [Boolean](Boolean.md)
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | [Boolean](Boolean.md) |
+| Domain Of | [CopyDirective](CopyDirective.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [CopyDirective](CopyDirective.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -48,18 +76,28 @@ URI: [linkmltr:exclude_all](https://w3id.org/linkml/transformer/exclude_all)
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:exclude_all |
+| native | linkmlmap:exclude_all |
+
+
+
+
 ## LinkML Source
 
 <details>
 ```yaml
 name: exclude_all
+description: Do not copy any of the sub-elements of the Element being derived.
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
-alias: exclude_all
 owner: CopyDirective
 domain_of:
 - CopyDirective
 range: boolean
 
 ```
-</details>
+</details></div>

@@ -1,11 +1,18 @@
-# Enum: CollectionType
+---
+search:
+  boost: 2.0
+---
+
+
+# Enum: CollectionType 
 
 
 
-URI: [CollectionType](CollectionType.md)
+<div data-search-exclude markdown="1">
+
+URI: [linkmlmap:CollectionType](https://w3id.org/linkml/transformer/CollectionType)
 
 ## Permissible Values
-
 | Value | Meaning | Description |
 | --- | --- | --- |
 | SingleValued | None |  |
@@ -27,9 +34,11 @@ URI: [CollectionType](CollectionType.md)
 
 
 
+
+
+
+
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -39,6 +48,8 @@ URI: [CollectionType](CollectionType.md)
 
 
 * from schema: https://w3id.org/linkml/transformer
+
+
 
 
 
@@ -62,3 +73,5 @@ permissible_values:
 
 ```
 </details>
+
+</div>
