@@ -1,16 +1,20 @@
+---
+search:
+  boost: 5.0
+---
 
-
-# Slot: description
+# Slot: description 
 
 
 _description of the specification component_
 
 
 
+<div data-search-exclude markdown="1">
+
+
+
 URI: [dcterms:description](http://purl.org/dc/terms/description)
-
-
-
 <!-- no inheritance hierarchy -->
 
 
@@ -21,15 +25,15 @@ URI: [dcterms:description](http://purl.org/dc/terms/description)
 
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
-| [EnumDerivation](EnumDerivation.md) | A specification of how to derive the value of a target enum from a source enu... |  no  |
 | [SpecificationComponent](SpecificationComponent.md) |  |  no  |
-| [ClassDerivation](ClassDerivation.md) | A specification of how to derive a target class from a source class |  no  |
-| [PrefixDerivation](PrefixDerivation.md) |  |  no  |
-| [SlotDerivation](SlotDerivation.md) | A specification of how to derive the value of a target slot from a source slo... |  no  |
 | [TransformationSpecification](TransformationSpecification.md) | A collection of mappings between source and target classes |  no  |
+| [ElementDerivation](ElementDerivation.md) | An abstract grouping for classes that provide a specification of how to deriv... |  no  |
+| [ClassDerivation](ClassDerivation.md) | A specification of how to derive a target class from a source class |  no  |
+| [ObjectDerivation](ObjectDerivation.md) | Deprecated |  no  |
+| [SlotDerivation](SlotDerivation.md) | A specification of how to derive the value of a target slot from a source slo... |  no  |
+| [EnumDerivation](EnumDerivation.md) | A specification of how to derive the value of a target enum from a source enu... |  no  |
 | [PermissibleValueDerivation](PermissibleValueDerivation.md) | A specification of how to derive the value of a PV from a source enum |  no  |
-| [ElementDerivation](ElementDerivation.md) | An abstract grouping for classes that provide a specification of how to  deri... |  no  |
-
+| [PrefixDerivation](PrefixDerivation.md) |  |  no  |
 
 
 
@@ -38,15 +42,36 @@ URI: [dcterms:description](http://purl.org/dc/terms/description)
 
 ## Properties
 
-* Range: NONE
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | NONE |
+| Domain Of | [SpecificationComponent](SpecificationComponent.md) |
+| Slot URI | [dcterms:description](http://purl.org/dc/terms/description) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [SpecificationComponent](SpecificationComponent.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -60,6 +85,16 @@ URI: [dcterms:description](http://purl.org/dc/terms/description)
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | dcterms:description |
+| native | linkmlmap:description |
+
+
+
+
 ## LinkML Source
 
 <details>
@@ -69,10 +104,9 @@ description: description of the specification component
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 slot_uri: dcterms:description
-alias: description
 owner: SpecificationComponent
 domain_of:
 - SpecificationComponent
 
 ```
-</details>
+</details></div>

@@ -1,11 +1,15 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: source_unit_scheme 
+
+<div data-search-exclude markdown="1">
 
 
-# Slot: source_unit_scheme
 
-URI: [linkmltr:source_unit_scheme](https://w3id.org/linkml/transformer/source_unit_scheme)
-
-
-
+URI: [linkmlmap:source_unit_scheme](https://w3id.org/linkml/transformer/source_unit_scheme)
 <!-- no inheritance hierarchy -->
 
 
@@ -23,10 +27,29 @@ URI: [linkmltr:source_unit_scheme](https://w3id.org/linkml/transformer/source_un
 
 
 
-
 ## Properties
 
-* Range: [String](String.md)
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | [String](String.md) |
+| Domain Of | [UnitConversionConfiguration](UnitConversionConfiguration.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [UnitConversionConfiguration](UnitConversionConfiguration.md) |
+
+
+
+
+
 
 
 
@@ -39,9 +62,9 @@ URI: [linkmltr:source_unit_scheme](https://w3id.org/linkml/transformer/source_un
 | --- |
 | ucum |
 
+
+
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -55,6 +78,16 @@ URI: [linkmltr:source_unit_scheme](https://w3id.org/linkml/transformer/source_un
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:source_unit_scheme |
+| native | linkmlmap:source_unit_scheme |
+
+
+
+
 ## LinkML Source
 
 <details>
@@ -64,11 +97,10 @@ examples:
 - value: ucum
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
-alias: source_unit_scheme
 owner: UnitConversionConfiguration
 domain_of:
 - UnitConversionConfiguration
 range: string
 
 ```
-</details>
+</details></div>

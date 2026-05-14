@@ -1,11 +1,15 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: mixins 
+
+<div data-search-exclude markdown="1">
 
 
-# Slot: mixins
 
 URI: [linkml:mixins](https://w3id.org/linkml/mixins)
-
-
-
 <!-- no inheritance hierarchy -->
 
 
@@ -16,13 +20,13 @@ URI: [linkml:mixins](https://w3id.org/linkml/mixins)
 
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
-| [EnumDerivation](EnumDerivation.md) | A specification of how to derive the value of a target enum from a source enu... |  no  |
+| [ElementDerivation](ElementDerivation.md) | An abstract grouping for classes that provide a specification of how to deriv... |  no  |
 | [ClassDerivation](ClassDerivation.md) | A specification of how to derive a target class from a source class |  no  |
-| [PrefixDerivation](PrefixDerivation.md) |  |  no  |
+| [ObjectDerivation](ObjectDerivation.md) | Deprecated |  no  |
 | [SlotDerivation](SlotDerivation.md) | A specification of how to derive the value of a target slot from a source slo... |  no  |
+| [EnumDerivation](EnumDerivation.md) | A specification of how to derive the value of a target enum from a source enu... |  no  |
 | [PermissibleValueDerivation](PermissibleValueDerivation.md) | A specification of how to derive the value of a PV from a source enum |  no  |
-| [ElementDerivation](ElementDerivation.md) | An abstract grouping for classes that provide a specification of how to  deri... |  no  |
-
+| [PrefixDerivation](PrefixDerivation.md) |  |  no  |
 
 
 
@@ -31,17 +35,37 @@ URI: [linkml:mixins](https://w3id.org/linkml/mixins)
 
 ## Properties
 
-* Range: [ElementDerivation](ElementDerivation.md)
+### Type and Range
 
-* Multivalued: True
+| Property | Value |
+| --- | --- |
+| Range | [ElementDerivation](ElementDerivation.md) |
+| Domain Of | [ElementDerivation](ElementDerivation.md) |
+| Slot URI | [linkml:mixins](https://w3id.org/linkml/mixins) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+| Multivalued | Yes |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [ElementDerivation](ElementDerivation.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -55,6 +79,16 @@ URI: [linkml:mixins](https://w3id.org/linkml/mixins)
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkml:mixins |
+| native | linkmlmap:mixins |
+
+
+
+
 ## LinkML Source
 
 <details>
@@ -63,13 +97,12 @@ name: mixins
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 slot_uri: linkml:mixins
-multivalued: true
-alias: mixins
 owner: ElementDerivation
 domain_of:
 - ElementDerivation
 range: ElementDerivation
+multivalued: true
 inlined: false
 
 ```
-</details>
+</details></div>
