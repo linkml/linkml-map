@@ -1,16 +1,20 @@
+---
+search:
+  boost: 5.0
+---
 
-
-# Slot: inverse_of
+# Slot: inverse_of 
 
 
 _Used to specify a class-slot tuple that is the inverse of the derived/target slot. This is used primarily for mapping to relational databases or formalisms that do not allow multiple values. The class representing the repeated element has a foreign key slot inserted in that 'back references' the original multivalued slot._
 
 
 
-URI: [linkmltr:inverse_of](https://w3id.org/linkml/transformer/inverse_of)
+<div data-search-exclude markdown="1">
 
 
 
+URI: [linkmlmap:inverse_of](https://w3id.org/linkml/transformer/inverse_of)
 <!-- no inheritance hierarchy -->
 
 
@@ -28,10 +32,31 @@ URI: [linkmltr:inverse_of](https://w3id.org/linkml/transformer/inverse_of)
 
 
 
-
 ## Properties
 
-* Range: [Inverse](Inverse.md)
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | [Inverse](Inverse.md) |
+| Domain Of | [SlotDerivation](SlotDerivation.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [SlotDerivation](SlotDerivation.md) |
+
+
+
+
+
+
+
 
 
 
@@ -43,12 +68,20 @@ URI: [linkmltr:inverse_of](https://w3id.org/linkml/transformer/inverse_of)
 
 
 
-
-
 ### Schema Source
 
 
 * from schema: https://w3id.org/linkml/transformer
+
+
+
+
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:inverse_of |
+| native | linkmlmap:inverse_of |
 
 
 
@@ -64,11 +97,10 @@ description: Used to specify a class-slot tuple that is the inverse of the deriv
   foreign key slot inserted in that 'back references' the original multivalued slot.
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
-alias: inverse_of
 owner: SlotDerivation
 domain_of:
 - SlotDerivation
 range: Inverse
 
 ```
-</details>
+</details></div>

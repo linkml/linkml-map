@@ -1,11 +1,15 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: delimiter 
+
+<div data-search-exclude markdown="1">
 
 
-# Slot: delimiter
 
-URI: [linkmltr:delimiter](https://w3id.org/linkml/transformer/delimiter)
-
-
-
+URI: [linkmlmap:delimiter](https://w3id.org/linkml/transformer/delimiter)
 <!-- no inheritance hierarchy -->
 
 
@@ -23,10 +27,29 @@ URI: [linkmltr:delimiter](https://w3id.org/linkml/transformer/delimiter)
 
 
 
-
 ## Properties
 
-* Range: [String](String.md)
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | [String](String.md) |
+| Domain Of | [StringificationConfiguration](StringificationConfiguration.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [StringificationConfiguration](StringificationConfiguration.md) |
+
+
+
+
+
 
 
 
@@ -41,9 +64,9 @@ URI: [linkmltr:delimiter](https://w3id.org/linkml/transformer/delimiter)
 | | |
 | ; |
 
+
+
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -53,6 +76,16 @@ URI: [linkmltr:delimiter](https://w3id.org/linkml/transformer/delimiter)
 
 
 * from schema: https://w3id.org/linkml/transformer
+
+
+
+
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:delimiter |
+| native | linkmlmap:delimiter |
 
 
 
@@ -68,11 +101,10 @@ examples:
 - value: ;
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
-alias: delimiter
 owner: StringificationConfiguration
 domain_of:
 - StringificationConfiguration
 range: string
 
 ```
-</details>
+</details></div>

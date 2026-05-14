@@ -1,15 +1,21 @@
+---
+search:
+  boost: 10.0
+---
 
-
-# Class: EnumDerivation
+# Class: EnumDerivation 
 
 
 _A specification of how to derive the value of a target enum from a source enum_
 
 
 
+<div data-search-exclude markdown="1">
 
 
-URI: [linkmltr:EnumDerivation](https://w3id.org/linkml/transformer/EnumDerivation)
+
+URI: [linkmlmap:EnumDerivation](https://w3id.org/linkml/transformer/EnumDerivation)
+
 
 
 
@@ -17,63 +23,128 @@ URI: [linkmltr:EnumDerivation](https://w3id.org/linkml/transformer/EnumDerivatio
 ```mermaid
  classDiagram
     class EnumDerivation
+    click EnumDerivation href "../EnumDerivation/"
       ElementDerivation <|-- EnumDerivation
-
+        click ElementDerivation href "../ElementDerivation/"
+      
       EnumDerivation : comments
-
+        
       EnumDerivation : copy_directives
+        
+          
+    
+        
+        
+        EnumDerivation --> "*" CopyDirective : copy_directives
+        click CopyDirective href "../CopyDirective/"
+    
 
-          EnumDerivation --> CopyDirective : copy_directives
-
+        
       EnumDerivation : description
-
-          EnumDerivation --> None : description
-
+        
       EnumDerivation : expr
+        
+      EnumDerivation : expression_mappings
+        
+          
+    
+        
+        
+        EnumDerivation --> "*" KeyVal : expression_mappings
+        click KeyVal href "../KeyVal/"
+    
 
+        
       EnumDerivation : expression_to_expression_mappings
+        
+          
+    
+        
+        
+        EnumDerivation --> "*" KeyVal : expression_to_expression_mappings
+        click KeyVal href "../KeyVal/"
+    
 
-          EnumDerivation --> KeyVal : expression_to_expression_mappings
-
+        
       EnumDerivation : expression_to_value_mappings
+        
+          
+    
+        
+        
+        EnumDerivation --> "*" KeyVal : expression_to_value_mappings
+        click KeyVal href "../KeyVal/"
+    
 
-          EnumDerivation --> KeyVal : expression_to_value_mappings
-
+        
       EnumDerivation : hide
-
+        
       EnumDerivation : implements
-
+        
       EnumDerivation : is_a
+        
+          
+    
+        
+        
+        EnumDerivation --> "0..1" ElementDerivation : is_a
+        click ElementDerivation href "../ElementDerivation/"
+    
 
-          EnumDerivation --> ElementDerivation : is_a
-
+        
       EnumDerivation : mirror_source
-
+        
       EnumDerivation : mixins
+        
+          
+    
+        
+        
+        EnumDerivation --> "*" ElementDerivation : mixins
+        click ElementDerivation href "../ElementDerivation/"
+    
 
-          EnumDerivation --> ElementDerivation : mixins
-
+        
       EnumDerivation : name
-
-          EnumDerivation --> None : name
-
+        
       EnumDerivation : overrides
+        
+          
+    
+        
+        
+        EnumDerivation --> "0..1" Any : overrides
+        click Any href "../Any/"
+    
 
-          EnumDerivation --> Any : overrides
-
+        
       EnumDerivation : permissible_value_derivations
+        
+          
+    
+        
+        
+        EnumDerivation --> "*" PermissibleValueDerivation : permissible_value_derivations
+        click PermissibleValueDerivation href "../PermissibleValueDerivation/"
+    
 
-          EnumDerivation --> PermissibleValueDerivation : permissible_value_derivations
-
+        
       EnumDerivation : populated_from
-
+        
       EnumDerivation : sources
-
+        
       EnumDerivation : value_mappings
+        
+          
+    
+        
+        
+        EnumDerivation --> "*" KeyVal : value_mappings
+        click KeyVal href "../KeyVal/"
+    
 
-          EnumDerivation --> KeyVal : value_mappings
-
-
+        
+      
 ```
 
 
@@ -86,28 +157,28 @@ URI: [linkmltr:EnumDerivation](https://w3id.org/linkml/transformer/EnumDerivatio
         * **EnumDerivation**
 
 
-
 ## Slots
 
 | Name | Cardinality and Range | Description | Inheritance |
 | ---  | --- | --- | --- |
-| [name](name.md) | 0..1 <br/> [String](String.md) | Target enum name | direct |
-| [populated_from](populated_from.md) | 0..1 <br/> [EnumReference](EnumReference.md) | Source enum name | direct |
-| [sources](sources.md) | 0..* <br/> [EnumReference](EnumReference.md) |  | direct |
+| [name](name.md) | 1 <br/> [String](String.md) | Target enum name | direct |
+| [populated_from](populated_from.md) | 0..1 <br/> [EnumReference](EnumReference.md) | Source enum to derive this target enum from | direct |
+| [sources](sources.md) | * <br/> [EnumReference](EnumReference.md) | Deprecated | direct |
 | [expr](expr.md) | 0..1 <br/> [String](String.md) | An expression to be evaluated on the source object to derive the target slot | direct |
 | [hide](hide.md) | 0..1 <br/> [Boolean](Boolean.md) | True if this is suppressed | direct |
-| [permissible_value_derivations](permissible_value_derivations.md) | 0..* <br/> [PermissibleValueDerivation](PermissibleValueDerivation.md) | Instructions on how to derive a set of PVs in the target schema | direct |
-| [copy_directives](copy_directives.md) | 0..* <br/> [CopyDirective](CopyDirective.md) |  | [ElementDerivation](ElementDerivation.md) |
+| [permissible_value_derivations](permissible_value_derivations.md) | * <br/> [PermissibleValueDerivation](PermissibleValueDerivation.md) | Instructions on how to derive a set of PVs in the target schema | direct |
+| [copy_directives](copy_directives.md) | * <br/> [CopyDirective](CopyDirective.md) |  | [ElementDerivation](ElementDerivation.md) |
 | [overrides](overrides.md) | 0..1 <br/> [Any](Any.md) | overrides source schema slots | [ElementDerivation](ElementDerivation.md) |
 | [is_a](is_a.md) | 0..1 <br/> [ElementDerivation](ElementDerivation.md) |  | [ElementDerivation](ElementDerivation.md) |
-| [mixins](mixins.md) | 0..* <br/> [ElementDerivation](ElementDerivation.md) |  | [ElementDerivation](ElementDerivation.md) |
-| [value_mappings](value_mappings.md) | 0..* <br/> [KeyVal](KeyVal.md) | A mapping table that is applied directly to mappings, in order of precedence | [ElementDerivation](ElementDerivation.md) |
-| [expression_to_value_mappings](expression_to_value_mappings.md) | 0..* <br/> [KeyVal](KeyVal.md) | A mapping table in which the keys are expressions | [ElementDerivation](ElementDerivation.md) |
-| [expression_to_expression_mappings](expression_to_expression_mappings.md) | 0..* <br/> [KeyVal](KeyVal.md) | A mapping table in which the keys and values are expressions | [ElementDerivation](ElementDerivation.md) |
+| [mixins](mixins.md) | * <br/> [ElementDerivation](ElementDerivation.md) |  | [ElementDerivation](ElementDerivation.md) |
+| [value_mappings](value_mappings.md) | * <br/> [KeyVal](KeyVal.md) | A mapping table that is applied directly to mappings, in order of precedence | [ElementDerivation](ElementDerivation.md) |
+| [expression_mappings](expression_mappings.md) | * <br/> [KeyVal](KeyVal.md) | A mapping table where the values are expressions evaluated against source bin... | [ElementDerivation](ElementDerivation.md) |
+| [expression_to_value_mappings](expression_to_value_mappings.md) | * <br/> [KeyVal](KeyVal.md) | A mapping table in which the keys are boolean expressions and the values are ... | [ElementDerivation](ElementDerivation.md) |
+| [expression_to_expression_mappings](expression_to_expression_mappings.md) | * <br/> [KeyVal](KeyVal.md) | A mapping table in which the keys and values are expressions | [ElementDerivation](ElementDerivation.md) |
 | [mirror_source](mirror_source.md) | 0..1 <br/> [Boolean](Boolean.md) |  | [ElementDerivation](ElementDerivation.md) |
 | [description](description.md) | 0..1 <br/> [String](String.md) | description of the specification component | [SpecificationComponent](SpecificationComponent.md) |
-| [implements](implements.md) | 0..* <br/> [Uriorcurie](Uriorcurie.md) | A reference to a specification that this component implements | [SpecificationComponent](SpecificationComponent.md) |
-| [comments](comments.md) | 0..* <br/> [String](String.md) | A list of comments about this component | [SpecificationComponent](SpecificationComponent.md) |
+| [implements](implements.md) | * <br/> [Uriorcurie](Uriorcurie.md) | A reference to a specification that this component implements | [SpecificationComponent](SpecificationComponent.md) |
+| [comments](comments.md) | * <br/> [String](String.md) | A list of comments about this component | [SpecificationComponent](SpecificationComponent.md) |
 
 
 
@@ -124,9 +195,13 @@ URI: [linkmltr:EnumDerivation](https://w3id.org/linkml/transformer/EnumDerivatio
 
 
 
+
+
+
+
+
+
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -140,13 +215,13 @@ URI: [linkmltr:EnumDerivation](https://w3id.org/linkml/transformer/EnumDerivatio
 
 
 
-
 ## Mappings
 
 | Mapping Type | Mapped Value |
 | ---  | ---  |
-| self | linkmltr:EnumDerivation |
-| native | linkmltr:EnumDerivation |
+| self | linkmlmap:EnumDerivation |
+| native | linkmlmap:EnumDerivation |
+
 
 
 
@@ -172,14 +247,16 @@ attributes:
     from_schema: https://w3id.org/linkml/transformer
     key: true
     domain_of:
+    - SchemaReference
     - ElementDerivation
+    - ObjectDerivation
     - SlotDerivation
     - EnumDerivation
     - PermissibleValueDerivation
-    required: true
+    - Agent
   populated_from:
     name: populated_from
-    description: Source enum name
+    description: Source enum to derive this target enum from.
     from_schema: https://w3id.org/linkml/transformer
     domain_of:
     - ClassDerivation
@@ -189,14 +266,17 @@ attributes:
     range: EnumReference
   sources:
     name: sources
+    description: Deprecated. Use populated_from instead.
+    deprecated: Deprecated. Use populated_from instead. See https://github.com/linkml/linkml-map/issues/193
+      for planned list support in populated_from. Will be removed in a future version.
     from_schema: https://w3id.org/linkml/transformer
-    multivalued: true
     domain_of:
     - ClassDerivation
     - SlotDerivation
     - EnumDerivation
     - PermissibleValueDerivation
     range: EnumReference
+    multivalued: true
   expr:
     name: expr
     description: An expression to be evaluated on the source object to derive the
@@ -221,10 +301,10 @@ attributes:
     description: Instructions on how to derive a set of PVs in the target schema
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    multivalued: true
     domain_of:
     - EnumDerivation
     range: PermissibleValueDerivation
+    multivalued: true
     inlined: true
 
 ```
@@ -245,19 +325,20 @@ attributes:
     description: Target enum name
     from_schema: https://w3id.org/linkml/transformer
     key: true
-    alias: name
     owner: EnumDerivation
     domain_of:
+    - SchemaReference
     - ElementDerivation
+    - ObjectDerivation
     - SlotDerivation
     - EnumDerivation
     - PermissibleValueDerivation
+    - Agent
     required: true
   populated_from:
     name: populated_from
-    description: Source enum name
+    description: Source enum to derive this target enum from.
     from_schema: https://w3id.org/linkml/transformer
-    alias: populated_from
     owner: EnumDerivation
     domain_of:
     - ClassDerivation
@@ -267,9 +348,10 @@ attributes:
     range: EnumReference
   sources:
     name: sources
+    description: Deprecated. Use populated_from instead.
+    deprecated: Deprecated. Use populated_from instead. See https://github.com/linkml/linkml-map/issues/193
+      for planned list support in populated_from. Will be removed in a future version.
     from_schema: https://w3id.org/linkml/transformer
-    multivalued: true
-    alias: sources
     owner: EnumDerivation
     domain_of:
     - ClassDerivation
@@ -277,12 +359,12 @@ attributes:
     - EnumDerivation
     - PermissibleValueDerivation
     range: EnumReference
+    multivalued: true
   expr:
     name: expr
     description: An expression to be evaluated on the source object to derive the
       target slot. Should be specified using the LinkML expression language.
     from_schema: https://w3id.org/linkml/transformer
-    alias: expr
     owner: EnumDerivation
     domain_of:
     - SlotDerivation
@@ -293,7 +375,6 @@ attributes:
     name: hide
     description: True if this is suppressed
     from_schema: https://w3id.org/linkml/transformer
-    alias: hide
     owner: EnumDerivation
     domain_of:
     - SlotDerivation
@@ -305,30 +386,27 @@ attributes:
     description: Instructions on how to derive a set of PVs in the target schema
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    multivalued: true
-    alias: permissible_value_derivations
     owner: EnumDerivation
     domain_of:
     - EnumDerivation
     range: PermissibleValueDerivation
+    multivalued: true
     inlined: true
   copy_directives:
     name: copy_directives
     from_schema: https://w3id.org/linkml/transformer
-    rank: 1000
-    multivalued: true
-    alias: copy_directives
     owner: EnumDerivation
     domain_of:
+    - TransformationSpecification
     - ElementDerivation
     range: CopyDirective
+    multivalued: true
     inlined: true
   overrides:
     name: overrides
     description: overrides source schema slots
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    alias: overrides
     owner: EnumDerivation
     domain_of:
     - ElementDerivation
@@ -338,7 +416,6 @@ attributes:
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     slot_uri: linkml:is_a
-    alias: is_a
     owner: EnumDerivation
     domain_of:
     - ElementDerivation
@@ -348,55 +425,72 @@ attributes:
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     slot_uri: linkml:mixins
-    multivalued: true
-    alias: mixins
     owner: EnumDerivation
     domain_of:
     - ElementDerivation
     range: ElementDerivation
+    multivalued: true
     inlined: false
   value_mappings:
     name: value_mappings
     description: A mapping table that is applied directly to mappings, in order of
-      precedence
+      precedence. Keys should always be quoted in YAML to prevent type coercion —
+      unquoted true/false become booleans and bare numbers become integers, which
+      will not match the stringified source value used for lookup.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    multivalued: true
-    alias: value_mappings
     owner: EnumDerivation
     domain_of:
     - ElementDerivation
     range: KeyVal
+    multivalued: true
+    inlined: true
+  expression_mappings:
+    name: expression_mappings
+    description: A mapping table where the values are expressions evaluated against
+      source bindings. Looked up by the same key as value_mappings (the stringified
+      source value). Keys should always be quoted (see value_mappings). If both value_mappings
+      and expression_mappings are present, value_mappings takes precedence for keys
+      that appear in both.
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    owner: EnumDerivation
+    domain_of:
+    - ElementDerivation
+    range: KeyVal
+    multivalued: true
     inlined: true
   expression_to_value_mappings:
     name: expression_to_value_mappings
-    description: A mapping table in which the keys are expressions
+    description: 'A mapping table in which the keys are boolean expressions and the
+      values are literal results. On enum derivations, used for scalar binning: each
+      key is evaluated with value() bound to the incoming value, and the first truthy
+      key''s value is returned as the target permissible value. See issue #99.'
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    multivalued: true
-    alias: expression_to_value_mappings
     owner: EnumDerivation
     domain_of:
     - ElementDerivation
     range: KeyVal
+    multivalued: true
     inlined: true
   expression_to_expression_mappings:
     name: expression_to_expression_mappings
     description: A mapping table in which the keys and values are expressions
+    deprecated: 'Deprecated: use case() with and/or operators instead (#127). Will
+      be removed before 1.0.'
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    multivalued: true
-    alias: expression_to_expression_mappings
     owner: EnumDerivation
     domain_of:
     - ElementDerivation
     range: KeyVal
+    multivalued: true
     inlined: true
   mirror_source:
     name: mirror_source
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    alias: mirror_source
     owner: EnumDerivation
     domain_of:
     - ElementDerivation
@@ -407,7 +501,6 @@ attributes:
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     slot_uri: dcterms:description
-    alias: description
     owner: EnumDerivation
     domain_of:
     - SpecificationComponent
@@ -417,12 +510,11 @@ attributes:
     description: A reference to a specification that this component implements.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    multivalued: true
-    alias: implements
     owner: EnumDerivation
     domain_of:
     - SpecificationComponent
     range: uriorcurie
+    multivalued: true
   comments:
     name: comments
     description: A list of comments about this component. Comments are free text,
@@ -431,12 +523,11 @@ attributes:
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     slot_uri: rdfs:comment
-    multivalued: true
-    alias: comments
     owner: EnumDerivation
     domain_of:
     - SpecificationComponent
     range: string
+    multivalued: true
 
 ```
-</details>
+</details></div>

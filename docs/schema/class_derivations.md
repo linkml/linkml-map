@@ -1,16 +1,15 @@
+---
+search:
+  boost: 5.0
+---
 
+# Slot: class_derivations 
 
-# Slot: class_derivations
-
-
-_Instructions on how to derive a set of classes in the target schema from classes in the source schema._
-
-
-
-URI: [linkmltr:class_derivations](https://w3id.org/linkml/transformer/class_derivations)
+<div data-search-exclude markdown="1">
 
 
 
+URI: [linkmlmap:class_derivations](https://w3id.org/linkml/transformer/class_derivations)
 <!-- no inheritance hierarchy -->
 
 
@@ -22,7 +21,8 @@ URI: [linkmltr:class_derivations](https://w3id.org/linkml/transformer/class_deri
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
 | [TransformationSpecification](TransformationSpecification.md) | A collection of mappings between source and target classes |  no  |
-
+| [ObjectDerivation](ObjectDerivation.md) | Deprecated |  no  |
+| [SlotDerivation](SlotDerivation.md) | A specification of how to derive the value of a target slot from a source slo... |  no  |
 
 
 
@@ -31,9 +31,22 @@ URI: [linkmltr:class_derivations](https://w3id.org/linkml/transformer/class_deri
 
 ## Properties
 
-* Range: [ClassDerivation](ClassDerivation.md)
+### Type and Range
 
-* Multivalued: True
+| Property | Value |
+| --- | --- |
+| Range | NONE |
+| Domain Of | [TransformationSpecification](TransformationSpecification.md), [ObjectDerivation](ObjectDerivation.md), [SlotDerivation](SlotDerivation.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+
+
+
+
+
 
 
 
@@ -46,11 +59,12 @@ URI: [linkmltr:class_derivations](https://w3id.org/linkml/transformer/class_deri
 
 
 
+## Mappings
 
-### Schema Source
-
-
-* from schema: https://w3id.org/linkml/transformer
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:class_derivations |
+| native | linkmlmap:class_derivations |
 
 
 
@@ -60,17 +74,10 @@ URI: [linkmltr:class_derivations](https://w3id.org/linkml/transformer/class_deri
 <details>
 ```yaml
 name: class_derivations
-description: Instructions on how to derive a set of classes in the target schema from
-  classes in the source schema.
-from_schema: https://w3id.org/linkml/transformer
-rank: 1000
-multivalued: true
-alias: class_derivations
-owner: TransformationSpecification
 domain_of:
 - TransformationSpecification
-range: ClassDerivation
-inlined: true
+- ObjectDerivation
+- SlotDerivation
 
 ```
-</details>
+</details></div>

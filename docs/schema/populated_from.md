@@ -1,11 +1,15 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: populated_from 
+
+<div data-search-exclude markdown="1">
 
 
-# Slot: populated_from
 
-URI: [linkmltr:populated_from](https://w3id.org/linkml/transformer/populated_from)
-
-
-
+URI: [linkmlmap:populated_from](https://w3id.org/linkml/transformer/populated_from)
 <!-- no inheritance hierarchy -->
 
 
@@ -16,8 +20,8 @@ URI: [linkmltr:populated_from](https://w3id.org/linkml/transformer/populated_fro
 
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
-| [SlotDerivation](SlotDerivation.md) | A specification of how to derive the value of a target slot from a source slo... |  no  |
 | [ClassDerivation](ClassDerivation.md) | A specification of how to derive a target class from a source class |  no  |
+| [SlotDerivation](SlotDerivation.md) | A specification of how to derive the value of a target slot from a source slo... |  no  |
 | [EnumDerivation](EnumDerivation.md) | A specification of how to derive the value of a target enum from a source enu... |  no  |
 | [PermissibleValueDerivation](PermissibleValueDerivation.md) | A specification of how to derive the value of a PV from a source enum |  no  |
 
@@ -26,10 +30,24 @@ URI: [linkmltr:populated_from](https://w3id.org/linkml/transformer/populated_fro
 
 
 
-
 ## Properties
 
-* Range: NONE
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | NONE |
+| Domain Of | [ClassDerivation](ClassDerivation.md), [SlotDerivation](SlotDerivation.md), [EnumDerivation](EnumDerivation.md), [PermissibleValueDerivation](PermissibleValueDerivation.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+
+
+
+
+
 
 
 
@@ -42,6 +60,14 @@ URI: [linkmltr:populated_from](https://w3id.org/linkml/transformer/populated_fro
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:populated_from |
+| native | linkmlmap:populated_from |
+
+
 
 
 ## LinkML Source
@@ -49,7 +75,6 @@ URI: [linkmltr:populated_from](https://w3id.org/linkml/transformer/populated_fro
 <details>
 ```yaml
 name: populated_from
-alias: populated_from
 domain_of:
 - ClassDerivation
 - SlotDerivation
@@ -57,4 +82,4 @@ domain_of:
 - PermissibleValueDerivation
 
 ```
-</details>
+</details></div>

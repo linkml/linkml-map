@@ -1,16 +1,20 @@
+---
+search:
+  boost: 5.0
+---
 
-
-# Slot: enum_derivations
+# Slot: enum_derivations 
 
 
 _Instructions on how to derive a set of enums in the target schema_
 
 
 
-URI: [linkmltr:enum_derivations](https://w3id.org/linkml/transformer/enum_derivations)
+<div data-search-exclude markdown="1">
 
 
 
+URI: [linkmlmap:enum_derivations](https://w3id.org/linkml/transformer/enum_derivations)
 <!-- no inheritance hierarchy -->
 
 
@@ -28,20 +32,38 @@ URI: [linkmltr:enum_derivations](https://w3id.org/linkml/transformer/enum_deriva
 
 
 
-
 ## Properties
 
-* Range: [EnumDerivation](EnumDerivation.md)
+### Type and Range
 
-* Multivalued: True
+| Property | Value |
+| --- | --- |
+| Range | [EnumDerivation](EnumDerivation.md) |
+| Domain Of | [TransformationSpecification](TransformationSpecification.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+| Multivalued | Yes |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [TransformationSpecification](TransformationSpecification.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -55,6 +77,16 @@ URI: [linkmltr:enum_derivations](https://w3id.org/linkml/transformer/enum_deriva
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:enum_derivations |
+| native | linkmlmap:enum_derivations |
+
+
+
+
 ## LinkML Source
 
 <details>
@@ -63,13 +95,12 @@ name: enum_derivations
 description: Instructions on how to derive a set of enums in the target schema
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
-multivalued: true
-alias: enum_derivations
 owner: TransformationSpecification
 domain_of:
 - TransformationSpecification
 range: EnumDerivation
+multivalued: true
 inlined: true
 
 ```
-</details>
+</details></div>

@@ -1,16 +1,20 @@
+---
+search:
+  boost: 0.5
+---
+
+# Slot: derived_from  <span style="color: red;"><strong> (DEPRECATED) </strong></span> 
 
 
-# Slot: derived_from
-
-
-_Source slots that are used to derive this slot. This can be computed from the expr, if the expr is declarative._
+_Deprecated. This field is ignored by the runtime and will be removed. It was intended to list source slots feeding into an expr-based derivation, but this information is fully derivable from the expr itself._
 
 
 
-URI: [linkmltr:derived_from](https://w3id.org/linkml/transformer/derived_from)
+<div data-search-exclude markdown="1">
 
 
 
+URI: [linkmlmap:derived_from](https://w3id.org/linkml/transformer/derived_from)
 <!-- no inheritance hierarchy -->
 
 
@@ -28,20 +32,38 @@ URI: [linkmltr:derived_from](https://w3id.org/linkml/transformer/derived_from)
 
 
 
-
 ## Properties
 
-* Range: [SlotReference](SlotReference.md)
+### Type and Range
 
-* Multivalued: True
+| Property | Value |
+| --- | --- |
+| Range | [SlotReference](SlotReference.md) |
+| Domain Of | [SlotDerivation](SlotDerivation.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+| Multivalued | Yes |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [SlotDerivation](SlotDerivation.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -55,21 +77,33 @@ URI: [linkmltr:derived_from](https://w3id.org/linkml/transformer/derived_from)
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:derived_from |
+| native | linkmlmap:derived_from |
+
+
+
+
 ## LinkML Source
 
 <details>
 ```yaml
 name: derived_from
-description: Source slots that are used to derive this slot. This can be computed
-  from the expr, if the expr is declarative.
+description: Deprecated. This field is ignored by the runtime and will be removed.
+  It was intended to list source slots feeding into an expr-based derivation, but
+  this information is fully derivable from the expr itself.
+deprecated: This field is fully derivable from expr and is not used by the runtime.
+  It will be removed in a future version.
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
-multivalued: true
-alias: derived_from
 owner: SlotDerivation
 domain_of:
 - SlotDerivation
 range: SlotReference
+multivalued: true
 
 ```
-</details>
+</details></div>

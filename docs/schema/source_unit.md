@@ -1,11 +1,15 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: source_unit 
+
+<div data-search-exclude markdown="1">
 
 
-# Slot: source_unit
 
-URI: [linkmltr:source_unit](https://w3id.org/linkml/transformer/source_unit)
-
-
-
+URI: [linkmlmap:source_unit](https://w3id.org/linkml/transformer/source_unit)
 <!-- no inheritance hierarchy -->
 
 
@@ -23,18 +27,37 @@ URI: [linkmltr:source_unit](https://w3id.org/linkml/transformer/source_unit)
 
 
 
-
 ## Properties
 
-* Range: NONE
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | NONE |
+| Domain Of | [UnitConversionConfiguration](UnitConversionConfiguration.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [UnitConversionConfiguration](UnitConversionConfiguration.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -48,6 +71,16 @@ URI: [linkmltr:source_unit](https://w3id.org/linkml/transformer/source_unit)
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:source_unit |
+| native | linkmlmap:source_unit |
+
+
+
+
 ## LinkML Source
 
 <details>
@@ -55,10 +88,9 @@ URI: [linkmltr:source_unit](https://w3id.org/linkml/transformer/source_unit)
 name: source_unit
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
-alias: source_unit
 owner: UnitConversionConfiguration
 domain_of:
 - UnitConversionConfiguration
 
 ```
-</details>
+</details></div>

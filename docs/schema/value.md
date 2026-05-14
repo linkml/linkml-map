@@ -1,11 +1,15 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: value 
+
+<div data-search-exclude markdown="1">
 
 
-# Slot: value
 
-URI: [linkmltr:value](https://w3id.org/linkml/transformer/value)
-
-
-
+URI: [linkmlmap:value](https://w3id.org/linkml/transformer/value)
 <!-- no inheritance hierarchy -->
 
 
@@ -16,8 +20,8 @@ URI: [linkmltr:value](https://w3id.org/linkml/transformer/value)
 
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
+| [SlotDerivation](SlotDerivation.md) | A specification of how to derive the value of a target slot from a source slo... |  no  |
 | [KeyVal](KeyVal.md) |  |  no  |
-
 
 
 
@@ -26,7 +30,22 @@ URI: [linkmltr:value](https://w3id.org/linkml/transformer/value)
 
 ## Properties
 
-* Range: [Any](Any.md)
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | NONE |
+| Domain Of | [SlotDerivation](SlotDerivation.md), [KeyVal](KeyVal.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+
+
+
+
+
 
 
 
@@ -39,11 +58,12 @@ URI: [linkmltr:value](https://w3id.org/linkml/transformer/value)
 
 
 
+## Mappings
 
-### Schema Source
-
-
-* from schema: https://w3id.org/linkml/transformer
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:value |
+| native | linkmlmap:value |
 
 
 
@@ -53,13 +73,9 @@ URI: [linkmltr:value](https://w3id.org/linkml/transformer/value)
 <details>
 ```yaml
 name: value
-from_schema: https://w3id.org/linkml/transformer
-rank: 1000
-alias: value
-owner: KeyVal
 domain_of:
+- SlotDerivation
 - KeyVal
-range: Any
 
 ```
-</details>
+</details></div>
