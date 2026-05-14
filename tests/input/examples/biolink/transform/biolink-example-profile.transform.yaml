@@ -2,8 +2,10 @@ id: example-biolink-profile
 title: Example Biolink Profile
 prefixes:
   biolink: https://w3id.org/biolink/vocab/
-source_schema: biolink
-target_schema: monarch
+source_schema:
+  name: biolink
+target_schema:
+  name: monarch
 
 #slot_names_match: true    # autopopulates slot.populated_from
 #class_names_match: true   # autopopulates class.populated_from

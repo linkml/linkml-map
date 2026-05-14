@@ -79,6 +79,18 @@ class Transformer(ABC):
     unrestricted_eval: bool = field(default=False)
     """Set to True to allow arbitrary evals as part of transformation."""
 
+    strict: bool = field(default=False)
+    """Raise on expression references that do not resolve to a schema slot.
+
+    When ``False`` (the default), unresolved names emit a warning and the
+    expression evaluator returns ``None`` (preserving SQL-style null
+    propagation for legitimate empty values but losing the signal for
+    typos). When ``True``, unresolved names raise
+    :class:`~linkml_map.transformer.errors.TransformationError`, which
+    surfaces typos, stale references, and wrong-table accesses that
+    would otherwise produce silent nulls in the output.
+    """
+
     _curie_converter: Converter = None
 
     def map_object(self, obj: OBJECT_TYPE, source_type: str | None = None, **kwargs: Any) -> OBJECT_TYPE:

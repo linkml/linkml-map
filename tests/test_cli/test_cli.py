@@ -164,6 +164,85 @@ def test_map_data(runner: CliRunner) -> None:
     assert tr_data["agents"][0]["label"] == "fred bloggs"
 
 
+def _write_typo_spec_fixture(tmp_path: Path) -> tuple[Path, Path, Path]:
+    """Write a minimal schema + spec (with a typo'd expr) + input row to tmp_path.
+
+    Returns (schema_path, spec_path, input_path).
+    """
+    schema_path = tmp_path / "schema.yaml"
+    schema_path.write_text(
+        "id: https://example.org/typo-source\n"
+        "name: typo_source\n"
+        "prefixes:\n"
+        "  linkml: https://w3id.org/linkml/\n"
+        "imports:\n"
+        "  - linkml:types\n"
+        "default_range: string\n"
+        "classes:\n"
+        "  Person:\n"
+        "    attributes:\n"
+        "      id: {identifier: true}\n"
+        "      score: {range: integer}\n"
+    )
+    spec_path = tmp_path / "spec.yaml"
+    spec_path.write_text(
+        "source_schema:\n"
+        "  name: typo_source\n"
+        "class_derivations:\n"
+        "  Agent:\n"
+        "    populated_from: Person\n"
+        "    slot_derivations:\n"
+        "      name:\n"
+        '        expr: "{scroe}"\n'  # codespell:ignore
+    )
+    input_path = tmp_path / "input.yaml"
+    input_path.write_text("id: p1\nscore: 5\n")
+    return schema_path, spec_path, input_path
+
+
+def test_map_data_strict_flag_surfaces_typo(runner: CliRunner, tmp_path: Path) -> None:
+    """`--strict` makes an expression typo fail the command instead of silent null."""
+    schema_path, spec_path, input_path = _write_typo_spec_fixture(tmp_path)
+    result = runner.invoke(
+        main,
+        [
+            "map-data",
+            "--strict",
+            "-T",
+            str(spec_path),
+            "-s",
+            str(schema_path),
+            "--source-type",
+            "Person",
+            str(input_path),
+        ],
+    )
+    assert result.exit_code != 0
+    assert "scroe" in (result.stderr + str(result.exception))  # codespell:ignore
+
+
+def test_map_data_no_strict_default_succeeds(runner: CliRunner, tmp_path: Path) -> None:
+    """Default (non-strict) preserves backward-compat: exits 0, produces empty/null output."""
+    schema_path, spec_path, input_path = _write_typo_spec_fixture(tmp_path)
+    result = runner.invoke(
+        main,
+        [
+            "map-data",
+            "-T",
+            str(spec_path),
+            "-s",
+            str(schema_path),
+            "--source-type",
+            "Person",
+            str(input_path),
+        ],
+    )
+    assert result.exit_code == 0
+    # Null values are omitted by the YAML dumper, so {name: None} round-trips to {}.
+    out = yaml.safe_load(result.stdout) or {}
+    assert out.get("name") is None
+
+
 def test_map_data_norm_denorm(runner: CliRunner) -> None:
     cmd = [
         "map-data",

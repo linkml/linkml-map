@@ -87,6 +87,16 @@ def main(verbose: int, quiet: bool) -> None:
     help="Allow unrestricted eval of python expressions.",
 )
 @click.option(
+    "--strict/--no-strict",
+    default=False,
+    show_default=True,
+    help=(
+        "Raise an error when an expression references a name that is not a slot "
+        "on the source class. Recommended for real data transforms; the default "
+        "warns and returns None for backward compatibility."
+    ),
+)
+@click.option(
     "--output-format",
     "-f",
     type=click.Choice(["yaml", "json", "jsonl", "tsv", "csv"]),
