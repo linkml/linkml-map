@@ -359,6 +359,10 @@ def test_copy_whitelisting(mapper: SchemaMapper) -> None:
             ["name"],
         ),
         (CopyDirective(element_name="Person", include=["name", "age"]), ["name", "age"]),
+        (
+            CopyDirective(element_name="Person", copy_all=True, include=["name"]),
+            ["id", "name", "age"],
+        ),
     ],
 )
 def test_copy_directive_on_slot_list(directive: CopyDirective, expected_slots: list[str]) -> None:
