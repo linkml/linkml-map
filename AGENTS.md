@@ -7,7 +7,7 @@ TODO: fill in extra description here
 ## Repo management
 
 This repo uses `uv` for managing dependencies. Never use commands like `pip` to add or manage dependencies.
-`uv run` is the best way to run things, unless there is a `makefile` target that fits.
+`uv run` is the best way to run things, unless there is a `Makefile` target that fits.
 
 `mkdocs` is used for documentation.
 ## This is a Python repository
