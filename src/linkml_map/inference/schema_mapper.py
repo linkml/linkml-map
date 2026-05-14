@@ -81,12 +81,11 @@ class SchemaMapper:
             for element in src_elements:
                 tgt_elements.append(element)
         if copy_directive.exclude:
-            for element in src_elements:
-                if copy_directive.exclude:
+            for element in copy_directive.exclude:
+                if element in tgt_elements:
                     tgt_elements.remove(element)
         if copy_directive.exclude_all:
-            for element in tgt_elements:
-                tgt_elements.remove(element)
+            tgt_elements.clear()
         if copy_directive.include:
             for element in copy_directive.include:
                 if element in src_elements:
