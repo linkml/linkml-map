@@ -1,0 +1,1746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    
+    <link rel="canonical" href="https://linkml.github.io/linkml-map/examples/biolink-subsetting/">
+    <link rel="shortcut icon" href="../../img/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <title>Biolink subsetting - LinkML-Map</title>
+    <link href="../../css/bootstrap-3.3.7.min.css" rel="stylesheet">
+    <link href="../../css/font-awesome-4.7.0.css" rel="stylesheet">
+    <link href="../../css/base.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/highlight.css">
+    <link href="../../assets/_mkdocstrings.css" rel="stylesheet">
+    <link href="../../css/ansi-colours.css" rel="stylesheet">
+    <link href="../../css/jupyter-cells.css" rel="stylesheet">
+    <link href="../../css/pandas-dataframe.css" rel="stylesheet">
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+
+    <script src="../../js/jquery-3.2.1.min.js"></script>
+    <script src="../../js/bootstrap-3.3.7.min.js"></script>
+    <script src="../../js/highlight.pack.js"></script>
+    
+    <base target="_top">
+    <script>
+      var base_url = '../..';
+      var is_top_frame = false;
+        
+        var pageToc = [
+          {title: "Biolink Model Subsetting", url: "#_top", children: [
+              {title: "Creating a Transformation Specification Manually in YAML format.", url: "#creating-a-transformation-specification-manually-in-yaml-format" },
+              {title: "Creating a TransformationSpecification using SchemaView and an existing model.", url: "#creating-a-transformationspecification-using-schemaview-and-an-existing-model" },
+              {title: "Use derived schema to generate different serializations of the derived model", url: "#use-derived-schema-to-generate-different-serializations-of-the-derived-model" },
+          ]},
+        ];
+
+    </script>
+    <script src="../../js/base.js"></script> 
+</head>
+
+<body>
+<script>
+if (is_top_frame) { $('body').addClass('wm-top-page'); }
+</script>
+
+
+
+<div class="container-fluid wm-page-content">
+  <a name="_top"></a>
+    
+
+    
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script>
+(function() {
+  function addWidgetsRenderer() {
+    var requireJsScript = document.createElement('script');
+    requireJsScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js';
+
+    var mimeElement = document.querySelector('script[type="application/vnd.jupyter.widget-view+json"]');
+    var jupyterWidgetsScript = document.createElement('script');
+    var widgetRendererSrc = 'https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js';
+    var widgetState;
+
+    // Fallback for older version:
+    try {
+      widgetState = mimeElement && JSON.parse(mimeElement.innerHTML);
+
+      if (widgetState && (widgetState.version_major < 2 || !widgetState.version_major)) {
+        widgetRendererSrc = 'jupyter-js-widgets@*/dist/embed.js';
+      }
+    } catch(e) {}
+
+    jupyterWidgetsScript.src = widgetRendererSrc;
+
+    document.body.appendChild(requireJsScript);
+    document.body.appendChild(jupyterWidgetsScript);
+  }
+
+  document.addEventListener('DOMContentLoaded', addWidgetsRenderer);
+}());
+</script>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="biolink-model-subsetting">Biolink Model Subsetting</h1>
+<p>This notebook demonstrates how to subset the Biolink Model using the Biolink Model schema and a transformation specification in two different ways: first using a transformation specification defined manually in YAML and loaded from the filesystem, and second, using a subset of classes retrieved using SchemaView dynamically.</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>First, we import several LinkML helper packages including SchemaView: https://linkml.io/linkml/developers/schemaview.html 
+SchemaView is a LinkML schema introspection tool that provides helpful functions to retrieve model elements by name.  It also supports navigating ancestors and descendants of any model element, including classes, slots, types, and permissible values in enumerations.  </p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pytest</span><span class="w"> </span><span class="kn">import</span> <span class="n">fixture</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">linkml_runtime.dumpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">yaml_dumper</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.datamodel.transformer_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">TransformationSpecification</span><span class="p">,</span> <span class="n">ClassDerivation</span><span class="p">,</span> <span class="n">SlotDerivation</span><span class="p">,</span> <span class="n">CopyDirective</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.inference.schema_mapper</span><span class="w"> </span><span class="kn">import</span> <span class="n">SchemaMapper</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.session</span><span class="w"> </span><span class="kn">import</span> <span class="n">Session</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">linkml_runtime.utils.schemaview</span><span class="w"> </span><span class="kn">import</span> <span class="n">SchemaView</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.utils.loaders</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_specification</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">linkml_runtime.utils.formatutils</span><span class="w"> </span><span class="kn">import</span> <span class="n">camelcase</span><span class="p">,</span> <span class="n">underscore</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pprint</span><span class="w"> </span><span class="kn">import</span> <span class="n">pprint</span>
+
+<span class="n">REPO_ROOT</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span>
+</code></pre></div>
+
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>SchemaView can accept a variety of imports to initialize, including a Path or string representation of a Path or (as we do in this case), a URL of a raw LinkML schema. </p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="n">schema_url</span> <span class="o">=</span> <span class="s2">&quot;https://raw.githubusercontent.com/biolink/biolink-model/master/biolink-model.yaml&quot;</span>
+<span class="n">sv</span> <span class="o">=</span> <span class="n">SchemaView</span><span class="p">(</span><span class="n">schema_url</span><span class="p">)</span>
+</code></pre></div>
+
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="creating-a-transformation-specification-manually-in-yaml-format">Creating a Transformation Specification Manually in YAML format.</h3>
+<p>In our first example, we develop a "Transform Specification" for Biolink Model using Class and Slot Derivations as defined by the linkml-map transformation language.  More about that here: https://linkml.io/linkml-map/#TransformationSpecification/</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="n">transform_file</span> <span class="o">=</span> <span class="n">REPO_ROOT</span> <span class="o">/</span> <span class="s2">&quot;tests/input/examples/biolink/transform/biolink-example-profile.transform.yaml&quot;</span>
+<span class="c1"># Initialize Session and SchemaBuilder</span>
+<span class="n">session</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span>
+
+<span class="c1"># Set the source schema in the session</span>
+<span class="n">session</span><span class="o">.</span><span class="n">set_source_schema</span><span class="p">(</span><span class="n">sv</span><span class="p">)</span>
+
+<span class="n">tr_spec</span> <span class="o">=</span> <span class="n">load_specification</span><span class="p">(</span><span class="n">transform_file</span><span class="p">)</span>
+<span class="n">mapper</span> <span class="o">=</span> <span class="n">SchemaMapper</span><span class="p">()</span>
+<span class="n">mapper</span><span class="o">.</span><span class="n">source_schemaview</span> <span class="o">=</span> <span class="n">sv</span>
+
+<span class="n">target_schema_obj</span> <span class="o">=</span> <span class="n">mapper</span><span class="o">.</span><span class="n">derive_schema</span><span class="p">(</span><span class="n">specification</span><span class="o">=</span><span class="n">tr_spec</span><span class="p">,</span>
+                                         <span class="n">target_schema_id</span><span class="o">=</span><span class="s2">&quot;biolink-profile&quot;</span><span class="p">,</span>
+                                        <span class="n">target_schema_name</span><span class="o">=</span><span class="s2">&quot;BiolinkProfile&quot;</span><span class="p">)</span>
+
+
+<span class="n">yaml_dumper</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">target_schema_obj</span><span class="p">,</span> <span class="s2">&quot;biolink-profile.yaml&quot;</span><span class="p">)</span>
+
+<span class="n">transformed_sv</span> <span class="o">=</span> <span class="n">SchemaView</span><span class="p">(</span><span class="s2">&quot;biolink-profile.yaml&quot;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">class_name</span> <span class="ow">in</span> <span class="n">transformed_sv</span><span class="o">.</span><span class="n">all_classes</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">class_name</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">slot_name</span> <span class="ow">in</span> <span class="n">transformed_sv</span><span class="o">.</span><span class="n">all_slots</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">slot_name</span><span class="p">)</span>
+</code></pre></div>
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+<code>NamedThing
+Gene
+Disease
+PhenotypicFeature
+Association
+GeneToPhenotypicFeatureAssociation
+
+id
+name
+category
+symbol
+subject
+predicate
+object
+</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="err">!</span><span class="n">gen</span><span class="o">-</span><span class="n">pydantic</span> <span class="n">biolink</span><span class="o">-</span><span class="n">profile</span><span class="o">.</span><span class="n">yaml</span>
+</code></pre></div>
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+<code>Exception: range: label type
+</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Note:
+* Still in development is the tracing of provenance between a source schema and a destination schema.  Right now there is no provenance.<br />
+* If a class, slot, enum, or type is not included at all in the Derivation, it will not be pushed forward to the destination schema.  In development is an option to pull all non-specified components of the source model into the destination model.
+* You can do transformations on a derivation as well, see: https://linkml.io/linkml-map/#examples/Tutorial/#using-expressions
+* You can transform data as well as schemas, but this is currently "beta" level development.
+* Custom types are not pulled forward; this is a result of an error at the moment.</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="creating-a-transformationspecification-using-schemaview-and-an-existing-model">Creating a TransformationSpecification using SchemaView and an existing model.</h3>
+<p>In our second example, we use the Biolink Model directly to derive classes and slots programmatically according to a simple list of "subset classes" that we want to extract from the main model in order to produce a subset model according to our specification.</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>First, we write a method to extract the classes and slots from Biolink Model using SchemaView</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_biolink_class_derivations</span><span class="p">(</span><span class="n">sv</span><span class="p">,</span> <span class="n">subset_classes</span><span class="p">)</span> <span class="o">-&amp;</span><span class="n">gt</span><span class="p">;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function to get Biolink class definitions</span>
+
+<span class="sd">    :param sv: SchemaView object</span>
+<span class="sd">    :param subset_classes: List of classes to subset</span>
+<span class="sd">    :return: Dictionary of class derivations incl slot derivations</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Example implementation to fetch class definitions</span>
+    <span class="c1"># This should be replaced with the actual implementation</span>
+    <span class="n">class_derivations</span> <span class="o">=</span><span class="p">{}</span>
+    <span class="k">for</span> <span class="n">class_name</span> <span class="ow">in</span> <span class="n">subset_classes</span><span class="p">:</span>
+        <span class="n">class_derivation</span> <span class="o">=</span> <span class="n">ClassDerivation</span><span class="p">(</span><span class="n">populated_from</span><span class="o">=</span><span class="n">class_name</span><span class="p">,</span>
+                                           <span class="n">name</span><span class="o">=</span><span class="n">camelcase</span><span class="p">(</span><span class="n">class_name</span><span class="p">))</span>
+        <span class="n">induced_slots</span> <span class="o">=</span> <span class="n">sv</span><span class="o">.</span><span class="n">class_induced_slots</span><span class="p">(</span><span class="n">class_name</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="n">induced_slots</span><span class="p">:</span>
+            <span class="n">slot_derivation</span> <span class="o">=</span> <span class="n">SlotDerivation</span><span class="p">(</span><span class="n">populated_from</span><span class="o">=</span><span class="n">slot</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">underscore</span><span class="p">(</span><span class="n">slot</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+            <span class="n">class_derivation</span><span class="o">.</span><span class="n">slot_derivations</span><span class="p">[</span><span class="n">underscore</span><span class="p">(</span><span class="n">slot</span><span class="o">.</span><span class="n">name</span><span class="p">)]</span> <span class="o">=</span> <span class="n">slot_derivation</span>
+        <span class="n">class_derivations</span><span class="p">[</span><span class="n">camelcase</span><span class="p">(</span><span class="n">class_name</span><span class="p">)]</span> <span class="o">=</span> <span class="n">class_derivation</span>
+    <span class="k">return</span> <span class="n">class_derivations</span>
+</code></pre></div>
+
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_biolink_class_derivations_direct</span><span class="p">(</span><span class="n">sv</span><span class="p">,</span> <span class="n">subset_classes</span><span class="p">)</span> <span class="o">-&amp;</span><span class="n">gt</span><span class="p">;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function to get Biolink class definitions</span>
+
+<span class="sd">    :param sv: SchemaView object</span>
+<span class="sd">    :param subset_classes: List of classes to subset</span>
+<span class="sd">    :return: Dictionary of class derivations incl slot derivations</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Example implementation to fetch class definitions</span>
+    <span class="c1"># This should be replaced with the actual implementation</span>
+    <span class="n">class_derivations</span> <span class="o">=</span><span class="p">{}</span>
+    <span class="k">for</span> <span class="n">class_name</span> <span class="ow">in</span> <span class="n">subset_classes</span><span class="p">:</span>
+        <span class="n">class_derivation</span> <span class="o">=</span> <span class="n">ClassDerivation</span><span class="p">(</span><span class="n">populated_from</span><span class="o">=</span><span class="n">class_name</span><span class="p">,</span>
+                                           <span class="n">name</span><span class="o">=</span><span class="n">camelcase</span><span class="p">(</span><span class="n">class_name</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="n">sv</span><span class="o">.</span><span class="n">get_class</span><span class="p">(</span><span class="n">class_name</span><span class="p">)</span><span class="o">.</span><span class="n">slots</span><span class="p">:</span>
+            <span class="n">slot_derivation</span> <span class="o">=</span> <span class="n">SlotDerivation</span><span class="p">(</span><span class="n">populated_from</span><span class="o">=</span><span class="n">slot</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">underscore</span><span class="p">(</span><span class="n">slot</span><span class="p">))</span>
+            <span class="n">class_derivation</span><span class="o">.</span><span class="n">slot_derivations</span><span class="p">[</span><span class="n">underscore</span><span class="p">(</span><span class="n">slot</span><span class="p">)]</span> <span class="o">=</span> <span class="n">slot_derivation</span>
+        <span class="n">class_derivations</span><span class="p">[</span><span class="n">camelcase</span><span class="p">(</span><span class="n">class_name</span><span class="p">)]</span> <span class="o">=</span> <span class="n">class_derivation</span>
+    <span class="k">return</span> <span class="n">class_derivations</span>
+</code></pre></div>
+
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="n">session</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span>
+
+<span class="c1"># Set the source schema in the session</span>
+<span class="n">session</span><span class="o">.</span><span class="n">set_source_schema</span><span class="p">(</span><span class="n">sv</span><span class="p">)</span>
+
+<span class="n">subset_classes</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;gene&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;disease&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;case to phenotypic feature association&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;gene to disease association&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;gene to phenotypic feature association&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;case&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;phenotypic feature&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+
+<span class="n">class_derivations</span> <span class="o">=</span> <span class="n">get_biolink_class_derivations_direct</span><span class="p">(</span><span class="n">sv</span><span class="p">,</span> <span class="n">subset_classes</span><span class="p">)</span>
+<span class="n">copy_type_directives</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">type_name</span><span class="p">:</span> <span class="n">CopyDirective</span><span class="p">(</span><span class="n">element_name</span><span class="o">=</span><span class="n">type_name</span><span class="p">,</span> <span class="n">copy_all</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">type_name</span><span class="p">,</span> <span class="n">type_def</span> <span class="ow">in</span> <span class="n">sv</span><span class="o">.</span><span class="n">all_types</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="n">ts</span> <span class="o">=</span> <span class="n">TransformationSpecification</span><span class="p">(</span><span class="n">class_derivations</span><span class="o">=</span><span class="n">class_derivations</span><span class="p">,</span> <span class="n">copy_directives</span><span class="o">=</span><span class="n">copy_type_directives</span><span class="p">)</span>
+
+<span class="n">mapper</span> <span class="o">=</span> <span class="n">SchemaMapper</span><span class="p">()</span>
+<span class="n">mapper</span><span class="o">.</span><span class="n">source_schemaview</span> <span class="o">=</span> <span class="n">sv</span>
+
+<span class="n">target_schema_obj</span> <span class="o">=</span> <span class="n">mapper</span><span class="o">.</span><span class="n">derive_schema</span><span class="p">(</span>
+    <span class="n">specification</span><span class="o">=</span><span class="n">ts</span><span class="p">,</span> <span class="n">target_schema_id</span><span class="o">=</span><span class="s2">&quot;biolink-subset&quot;</span><span class="p">,</span> <span class="n">target_schema_name</span><span class="o">=</span><span class="s2">&quot;BiolinkSubset&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># ugly bit of hacking to demonstrate end-to-end functionality</span>
+<span class="n">target_schema_obj</span><span class="o">.</span><span class="n">types</span> <span class="o">=</span> <span class="n">sv</span><span class="o">.</span><span class="n">all_types</span><span class="p">()</span>
+
+<span class="n">yaml_dumper</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">target_schema_obj</span><span class="p">,</span> <span class="s2">&quot;biolink-subset.yaml&quot;</span><span class="p">)</span>
+
+<span class="n">transformed_sv</span> <span class="o">=</span> <span class="n">SchemaView</span><span class="p">(</span><span class="s2">&quot;biolink-subset.yaml&quot;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">class_name</span> <span class="ow">in</span> <span class="n">transformed_sv</span><span class="o">.</span><span class="n">all_classes</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;class derived: &quot;</span><span class="p">,</span> <span class="n">class_name</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">slot_name</span> <span class="ow">in</span> <span class="n">transformed_sv</span><span class="o">.</span><span class="n">all_slots</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;slot derived: &quot;</span><span class="p">,</span> <span class="n">slot_name</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">type_name</span> <span class="ow">in</span> <span class="n">transformed_sv</span><span class="o">.</span><span class="n">all_types</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;type copied: &quot;</span><span class="p">,</span> <span class="n">type_name</span><span class="p">)</span>
+</code></pre></div>
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+<code>class derived:  Gene
+class derived:  Disease
+class derived:  CaseToPhenotypicFeatureAssociation
+class derived:  GeneToDiseaseAssociation
+class derived:  GeneToPhenotypicFeatureAssociation
+class derived:  Case
+class derived:  PhenotypicFeature
+slot derived:  symbol
+slot derived:  xref
+slot derived:  has_biological_sequence
+slot derived:  id
+slot derived:  in_taxon
+slot derived:  in_taxon_label
+slot derived:  provided_by
+slot derived:  full_name
+slot derived:  synonym
+slot derived:  iri
+slot derived:  category
+slot derived:  type
+slot derived:  name
+slot derived:  description
+slot derived:  has_attribute
+slot derived:  deprecated
+slot derived:  subject
+slot derived:  predicate
+slot derived:  object
+slot derived:  sex_qualifier
+slot derived:  disease_context_qualifier
+slot derived:  subject_specialization_qualifier
+slot derived:  object_specialization_qualifier
+slot derived:  anatomical_context_qualifier
+slot derived:  negated
+slot derived:  qualifier
+slot derived:  qualifiers
+slot derived:  publications
+slot derived:  has_evidence
+slot derived:  knowledge_source
+slot derived:  primary_knowledge_source
+slot derived:  aggregator_knowledge_source
+slot derived:  knowledge_level
+slot derived:  agent_type
+slot derived:  timepoint
+slot derived:  original_subject
+slot derived:  original_predicate
+slot derived:  original_object
+slot derived:  subject_category
+slot derived:  object_category
+slot derived:  subject_closure
+slot derived:  object_closure
+slot derived:  subject_category_closure
+slot derived:  object_category_closure
+slot derived:  subject_namespace
+slot derived:  object_namespace
+slot derived:  subject_label_closure
+slot derived:  object_label_closure
+slot derived:  retrieval_source_ids
+slot derived:  p_value
+slot derived:  adjusted_p_value
+slot derived:  has_supporting_studies
+slot derived:  has_count
+slot derived:  has_total
+slot derived:  has_quotient
+slot derived:  has_percentage
+slot derived:  subject_aspect_qualifier
+slot derived:  subject_direction_qualifier
+slot derived:  object_aspect_qualifier
+slot derived:  object_direction_qualifier
+slot derived:  qualified_predicate
+slot derived:  frequency_qualifier
+type copied:  string
+type copied:  integer
+type copied:  boolean
+type copied:  float
+type copied:  double
+type copied:  decimal
+type copied:  time
+type copied:  date
+type copied:  datetime
+type copied:  date_or_datetime
+type copied:  uriorcurie
+type copied:  curie
+type copied:  uri
+type copied:  ncname
+type copied:  objectidentifier
+type copied:  nodeidentifier
+type copied:  jsonpointer
+type copied:  jsonpath
+type copied:  sparqlpath
+type copied:  chemical formula value
+type copied:  iri type
+type copied:  label type
+type copied:  predicate type
+type copied:  narrative text
+type copied:  symbol type
+type copied:  frequency value
+type copied:  percentage frequency value
+type copied:  quotient
+type copied:  unit
+type copied:  time type
+type copied:  biological sequence
+</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="c1"># print the content of the new schema in LinkML YAML format to view here in the notebook</span>
+<span class="n">yaml_content</span> <span class="o">=</span> <span class="n">yaml_dumper</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">target_schema_obj</span><span class="p">)</span>  <span class="c1"># Serialize to a string</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">yaml_content</span><span class="p">)</span>
+</code></pre></div>
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+<code>name: BiolinkSubset
+id: biolink-subset
+imports:
+- linkml:types
+prefixes:
+  AGRKB:
+    prefix_prefix: AGRKB
+    prefix_reference: https://www.alliancegenome.org/
+  apollo:
+    prefix_prefix: apollo
+    prefix_reference: https://github.com/GMOD/Apollo
+  AspGD:
+    prefix_prefix: AspGD
+    prefix_reference: http://www.aspergillusgenome.org/cgi-bin/locus.pl?dbid=
+  biolink:
+    prefix_prefix: biolink
+    prefix_reference: https://w3id.org/biolink/vocab/
+  bioschemas:
+    prefix_prefix: bioschemas
+    prefix_reference: https://bioschemas.org/
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  CAID:
+    prefix_prefix: CAID
+    prefix_reference: http://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_caid?caid=
+  CHADO:
+    prefix_prefix: CHADO
+    prefix_reference: http://gmod.org/wiki/Chado/
+  ChemBank:
+    prefix_prefix: ChemBank
+    prefix_reference: http://chembank.broadinstitute.org/chemistry/viewMolecule.htm?cbid=
+  CHEMBL.MECHANISM:
+    prefix_prefix: CHEMBL.MECHANISM
+    prefix_reference: https://www.ebi.ac.uk/chembl/mechanism/inspect/
+  CID:
+    prefix_prefix: CID
+    prefix_reference: http://pubchem.ncbi.nlm.nih.gov/compound/
+  CLINVAR:
+    prefix_prefix: CLINVAR
+    prefix_reference: http://identifiers.org/clinvar
+  COAR_RESOURCE:
+    prefix_prefix: COAR_RESOURCE
+    prefix_reference: http://purl.org/coar/resource_type/
+  COG:
+    prefix_prefix: COG
+    prefix_reference: https://www.ncbi.nlm.nih.gov/research/cog-project/
+  ComplexPortal:
+    prefix_prefix: ComplexPortal
+    prefix_reference: https://www.ebi.ac.uk/complexportal/complex/
+  CPT:
+    prefix_prefix: CPT
+    prefix_reference: https://www.ama-assn.org/practice-management/cpt/
+  CTD.CHEMICAL:
+    prefix_prefix: CTD.CHEMICAL
+    prefix_reference: http://ctdbase.org/detail.go?type=chem&amp;acc=
+  CTD.DISEASE:
+    prefix_prefix: CTD.DISEASE
+    prefix_reference: http://ctdbase.org/detail.go?type=disease&amp;db=MESH&amp;acc=
+  CTD.GENE:
+    prefix_prefix: CTD.GENE
+    prefix_reference: http://ctdbase.org/detail.go?type=gene&amp;acc=
+  CTD:
+    prefix_prefix: CTD
+    prefix_reference: http://ctdbase.org/
+  DGIdb:
+    prefix_prefix: DGIdb
+    prefix_reference: https://www.dgidb.org/interaction_types
+  dcat:
+    prefix_prefix: dcat
+    prefix_reference: http://www.w3.org/ns/dcat#
+  dct:
+    prefix_prefix: dct
+    prefix_reference: http://purl.org/dc/terms/
+  dcid:
+    prefix_prefix: dcid
+    prefix_reference: https://datacommons.org/browser/
+  doi:
+    prefix_prefix: doi
+    prefix_reference: https://doi.org/
+  DOID-PROPERTY:
+    prefix_prefix: DOID-PROPERTY
+    prefix_reference: http://purl.obolibrary.org/obo/doid#
+  DrugCentral:
+    prefix_prefix: DrugCentral
+    prefix_reference: http://drugcentral.org/drugcard/
+  ECTO:
+    prefix_prefix: ECTO
+    prefix_reference: http://purl.obolibrary.org/obo/ECTO_
+  EDAM-DATA:
+    prefix_prefix: EDAM-DATA
+    prefix_reference: http://edamontology.org/data_
+  EDAM-FORMAT:
+    prefix_prefix: EDAM-FORMAT
+    prefix_reference: http://edamontology.org/format_
+  EDAM-OPERATION:
+    prefix_prefix: EDAM-OPERATION
+    prefix_reference: http://edamontology.org/operation_
+  EDAM-TOPIC:
+    prefix_prefix: EDAM-TOPIC
+    prefix_reference: http://edamontology.org/topic_
+  EFO:
+    prefix_prefix: EFO
+    prefix_reference: http://www.ebi.ac.uk/efo/EFO_
+  ExO:
+    prefix_prefix: ExO
+    prefix_reference: http://purl.obolibrary.org/obo/ExO_
+  fabio:
+    prefix_prefix: fabio
+    prefix_reference: http://purl.org/spar/fabio/
+  foaf:
+    prefix_prefix: foaf
+    prefix_reference: http://xmlns.com/foaf/0.1/
+  foodb.compound:
+    prefix_prefix: foodb.compound
+    prefix_reference: http://foodb.ca/compounds/
+  foodb.food:
+    prefix_prefix: foodb.food
+    prefix_reference: http://foodb.ca/foods/
+  FYECO:
+    prefix_prefix: FYECO
+    prefix_reference: https://www.pombase.org/term/
+  FYPO:
+    prefix_prefix: FYPO
+    prefix_reference: http://purl.obolibrary.org/obo/FYPO_
+  gff3:
+    prefix_prefix: gff3
+    prefix_reference: https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md#
+  GOREL:
+    prefix_prefix: GOREL
+    prefix_reference: http://purl.obolibrary.org/obo/GOREL_
+  GOP:
+    prefix_prefix: GOP
+    prefix_reference: http://purl.obolibrary.org/obo/go#
+  gpi:
+    prefix_prefix: gpi
+    prefix_reference: https://github.com/geneontology/go-annotation/blob/master/specs/gpad-gpi-2-0.md#
+  GSID:
+    prefix_prefix: GSID
+    prefix_reference: https://scholar.google.com/citations?user=
+  GTEx:
+    prefix_prefix: GTEx
+    prefix_reference: https://www.gtexportal.org/home/gene/
+  GTOPDB:
+    prefix_prefix: GTOPDB
+    prefix_reference: https://www.guidetopharmacology.org/GRAC/LigandDisplayForward?ligandId=
+  gtpo:
+    prefix_prefix: gtpo
+    prefix_reference: https://rdf.guidetopharmacology.org/ns/gtpo#
+  HANCESTRO:
+    prefix_prefix: HANCESTRO
+    prefix_reference: http://www.ebi.ac.uk/ancestro/ancestro_
+  HCPCS:
+    prefix_prefix: HCPCS
+    prefix_reference: http://purl.bioontology.org/ontology/HCPCS/
+  HsapDv:
+    prefix_prefix: HsapDv
+    prefix_reference: http://purl.obolibrary.org/obo/HsapDv_
+  ICD10:
+    prefix_prefix: ICD10
+    prefix_reference: https://icd.codes/icd9cm/
+  ICD9:
+    prefix_prefix: ICD9
+    prefix_reference: http://translator.ncats.nih.gov/ICD9_
+  interpro:
+    prefix_prefix: interpro
+    prefix_reference: https://www.ebi.ac.uk/interpro/entry/
+  INO:
+    prefix_prefix: INO
+    prefix_reference: http://purl.obolibrary.org/obo/INO_
+  isbn:
+    prefix_prefix: isbn
+    prefix_reference: https://www.isbn-international.org/identifier/
+  isni:
+    prefix_prefix: isni
+    prefix_reference: https://isni.org/isni/
+  issn:
+    prefix_prefix: issn
+    prefix_reference: https://portal.issn.org/resource/ISSN/
+  ncats.drug:
+    prefix_prefix: ncats.drug
+    prefix_reference: https://drugs.ncats.io/drug/
+  KEGG.BRITE:
+    prefix_prefix: KEGG.BRITE
+    prefix_reference: 'https://bioregistry.io/kegg.brite:'
+  KEGG:
+    prefix_prefix: KEGG
+    prefix_reference: http://www.kegg.jp/entry/
+  KEGG.GENES:
+    prefix_prefix: KEGG.GENES
+    prefix_reference: 'https://bioregistry.io/kegg.genes:bsu:'
+  KEGG.PATHWAY:
+    prefix_prefix: KEGG.PATHWAY
+    prefix_reference: 'https://bioregistry.io/kegg.pathway:'
+  KEGG.RCLASS:
+    prefix_prefix: KEGG.RCLASS
+    prefix_reference: 'https://www.genome.jp/dbget-bin/www_bget?rc:'
+  LOINC:
+    prefix_prefix: LOINC
+    prefix_reference: http://loinc.org/rdf/
+  MAXO:
+    prefix_prefix: MAXO
+    prefix_reference: http://purl.obolibrary.org/obo/MAXO_
+  medgen:
+    prefix_prefix: medgen
+    prefix_reference: https://www.ncbi.nlm.nih.gov/medgen/
+  metacyc.reaction:
+    prefix_prefix: metacyc.reaction
+    prefix_reference: 'http://identifiers.org/metacyc.reaction:'
+  METANETX.REACTION:
+    prefix_prefix: METANETX.REACTION
+    prefix_reference: https://www.metanetx.org/equa_info/
+  MESH:
+    prefix_prefix: MESH
+    prefix_reference: http://id.nlm.nih.gov/mesh/
+  MI:
+    prefix_prefix: MI
+    prefix_reference: http://purl.obolibrary.org/obo/MI_
+  mirbase:
+    prefix_prefix: mirbase
+    prefix_reference: http://identifiers.org/mirbase
+  mmmp.biomaps:
+    prefix_prefix: mmmp.biomaps
+    prefix_reference: 'https://bioregistry.io/mmmp.biomaps:'
+  MmusDv:
+    prefix_prefix: MmusDv
+    prefix_reference: http://purl.obolibrary.org/obo/MMUSDV_
+  MSigDB:
+    prefix_prefix: MSigDB
+    prefix_reference: https://www.gsea-msigdb.org/gsea/msigdb/
+  NBO-PROPERTY:
+    prefix_prefix: NBO-PROPERTY
+    prefix_reference: http://purl.obolibrary.org/obo/nbo#
+  ncats.bioplanet:
+    prefix_prefix: ncats.bioplanet
+    prefix_reference: https://tripod.nih.gov/bioplanet/detail.jsp?pid=
+  NCBIGene:
+    prefix_prefix: NCBIGene
+    prefix_reference: http://identifiers.org/ncbigene/
+  NCIT-OBO:
+    prefix_prefix: NCIT-OBO
+    prefix_reference: http://purl.obolibrary.org/obo/ncit#
+  NDDF:
+    prefix_prefix: NDDF
+    prefix_reference: http://purl.bioontology.org/ontology/NDDF/
+  NLMID:
+    prefix_prefix: NLMID
+    prefix_reference: https://www.ncbi.nlm.nih.gov/nlmcatalog/?term=
+  OBAN:
+    prefix_prefix: OBAN
+    prefix_reference: http://purl.org/oban/
+  OMIM.PS:
+    prefix_prefix: OMIM.PS
+    prefix_reference: https://www.omim.org/phenotypicSeries/
+  ORCID:
+    prefix_prefix: ORCID
+    prefix_reference: https://orcid.org/
+  orphanet:
+    prefix_prefix: orphanet
+    prefix_reference: http://www.orpha.net/ORDO/Orphanet_
+  os:
+    prefix_prefix: os
+    prefix_reference: https://github.com/cmungall/owlstar/blob/master/owlstar.ttl
+  PANTHER.FAMILY:
+    prefix_prefix: PANTHER.FAMILY
+    prefix_reference: http://www.pantherdb.org/panther/family.do?clsAccession=
+  PathWhiz:
+    prefix_prefix: PathWhiz
+    prefix_reference: http://smpdb.ca/pathways/#
+  pav:
+    prefix_prefix: pav
+    prefix_reference: http://purl.org/pav/
+  PHARMGKB.DRUG:
+    prefix_prefix: PHARMGKB.DRUG
+    prefix_reference: https://www.pharmgkb.org/chemical/
+  PHARMGKB.DISEASE:
+    prefix_prefix: PHARMGKB.DISEASE
+    prefix_reference: https://www.pharmgkb.org/disease/
+  PHARMGKB.GENE:
+    prefix_prefix: PHARMGKB.GENE
+    prefix_reference: https://www.pharmgkb.org/gene/
+  PHARMGKB.PATHWAYS:
+    prefix_prefix: PHARMGKB.PATHWAYS
+    prefix_reference: https://www.pharmgkb.org/pathway/
+  PHARMGKB.VARIANT:
+    prefix_prefix: PHARMGKB.VARIANT
+    prefix_reference: https://www.pharmgkb.org/variant/
+  PHAROS:
+    prefix_prefix: PHAROS
+    prefix_reference: http://pharos.nih.gov
+  PomBase:
+    prefix_prefix: PomBase
+    prefix_reference: https://www.pombase.org/gene/
+  prov:
+    prefix_prefix: prov
+    prefix_reference: http://www.w3.org/ns/prov#
+  qud:
+    prefix_prefix: qud
+    prefix_reference: http://qudt.org/1.1/schema/qudt#
+  REPODB:
+    prefix_prefix: REPODB
+    prefix_reference: http://apps.chiragjpgroup.org/repoDB/
+  ResearchID:
+    prefix_prefix: ResearchID
+    prefix_reference: https://publons.com/researcher/
+  RO:
+    prefix_prefix: RO
+    prefix_reference: http://purl.obolibrary.org/obo/RO_
+  RXNORM:
+    prefix_prefix: RXNORM
+    prefix_reference: http://purl.bioontology.org/ontology/RXNORM/
+  RXCUI:
+    prefix_prefix: RXCUI
+    prefix_reference: https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&amp;searchTerm=
+  schema:
+    prefix_prefix: schema
+    prefix_reference: http://schema.org/
+  ScopusID:
+    prefix_prefix: ScopusID
+    prefix_reference: https://www.scopus.com/authid/detail.uri?authorId=
+  SEED.REACTION:
+    prefix_prefix: SEED.REACTION
+    prefix_reference: https://modelseed.org/biochem/reactions/
+  SEMMEDDB:
+    prefix_prefix: SEMMEDDB
+    prefix_reference: https://skr3.nlm.nih.gov/SemMedDB
+  SIO:
+    prefix_prefix: SIO
+    prefix_reference: http://semanticscience.org/resource/SIO_
+  SNOMEDCT:
+    prefix_prefix: SNOMEDCT
+    prefix_reference: http://snomed.info/id/
+  SPDI:
+    prefix_prefix: SPDI
+    prefix_reference: https://api.ncbi.nlm.nih.gov/variation/v0/spdi/
+  UBERGRAPH:
+    prefix_prefix: UBERGRAPH
+    prefix_reference: http://translator.renci.org/ubergraph-axioms.ofn#
+  UBERON_CORE:
+    prefix_prefix: UBERON_CORE
+    prefix_reference: http://purl.obolibrary.org/obo/uberon/core#
+  UBERON_NONAMESPACE:
+    prefix_prefix: UBERON_NONAMESPACE
+    prefix_reference: http://purl.obolibrary.org/obo/core#
+  STY:
+    prefix_prefix: STY
+    prefix_reference: http://purl.bioontology.org/ontology/STY/
+  UMLSSG:
+    prefix_prefix: UMLSSG
+    prefix_reference: https://lhncbc.nlm.nih.gov/semanticnetwork/download/sg_archive/SemGroups-v04.txt
+  UniProtKB:
+    prefix_prefix: UniProtKB
+    prefix_reference: http://purl.uniprot.org/uniprot/
+  UNIPROT.ISOFORM:
+    prefix_prefix: UNIPROT.ISOFORM
+    prefix_reference: http://purl.uniprot.org/isoforms/
+  VANDF:
+    prefix_prefix: VANDF
+    prefix_reference: https://www.nlm.nih.gov/research/umls/sourcereleasedocs/current/VANDF/
+  UO-PROPERTY:
+    prefix_prefix: UO-PROPERTY
+    prefix_reference: http://purl.obolibrary.org/obo/uo#
+  VMC:
+    prefix_prefix: VMC
+    prefix_reference: https://github.com/ga4gh/vr-spec/
+  WBls:
+    prefix_prefix: WBls
+    prefix_reference: http://purl.obolibrary.org/obo/WBls_
+  WBbt:
+    prefix_prefix: WBbt
+    prefix_reference: http://purl.obolibrary.org/obo/WBbt_
+  WBVocab:
+    prefix_prefix: WBVocab
+    prefix_reference: http://bio2rdf.org/wormbase_vocabulary
+  WIKIDATA:
+    prefix_prefix: WIKIDATA
+    prefix_reference: https://www.wikidata.org/entity/
+  WIKIDATA_PROPERTY:
+    prefix_prefix: WIKIDATA_PROPERTY
+    prefix_reference: https://www.wikidata.org/prop/
+  wgs:
+    prefix_prefix: wgs
+    prefix_reference: http://www.w3.org/2003/01/geo/wgs84_pos
+  XPO:
+    prefix_prefix: XPO
+    prefix_reference: http://purl.obolibrary.org/obo/XPO_
+  Xenbase:
+    prefix_prefix: Xenbase
+    prefix_reference: http://www.xenbase.org/gene/showgene.do?method=display&amp;geneId=
+  PMC:
+    prefix_prefix: PMC
+    prefix_reference: http://europepmc.org/articles/PMC
+default_prefix: biolink-subset/
+default_range: string
+types:
+  string:
+    name: string
+    description: A character string
+    notes:
+    - In RDF serializations, a slot with range of string is treated as a literal or
+      type xsd:string.   If you are authoring schemas in LinkML YAML, the type is
+      referenced with the lower case "string".
+    from_schema: https://w3id.org/linkml/types
+    exact_mappings:
+    - schema:Text
+    base: str
+    uri: xsd:string
+  integer:
+    name: integer
+    description: An integer
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "integer".
+    from_schema: https://w3id.org/linkml/types
+    exact_mappings:
+    - schema:Integer
+    base: int
+    uri: xsd:integer
+  boolean:
+    name: boolean
+    description: A binary (true or false) value
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "boolean".
+    from_schema: https://w3id.org/linkml/types
+    exact_mappings:
+    - schema:Boolean
+    base: Bool
+    uri: xsd:boolean
+    repr: bool
+  float:
+    name: float
+    description: A real number that conforms to the xsd:float specification
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "float".
+    from_schema: https://w3id.org/linkml/types
+    exact_mappings:
+    - schema:Float
+    base: float
+    uri: xsd:float
+  double:
+    name: double
+    description: A real number that conforms to the xsd:double specification
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "double".
+    from_schema: https://w3id.org/linkml/types
+    close_mappings:
+    - schema:Float
+    base: float
+    uri: xsd:double
+  decimal:
+    name: decimal
+    description: A real number with arbitrary precision that conforms to the xsd:decimal
+      specification
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "decimal".
+    from_schema: https://w3id.org/linkml/types
+    broad_mappings:
+    - schema:Number
+    base: Decimal
+    uri: xsd:decimal
+  time:
+    name: time
+    description: A time object represents a (local) time of day, independent of any
+      particular day
+    notes:
+    - URI is dateTime because OWL reasoners do not work with straight date or time
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "time".
+    from_schema: https://w3id.org/linkml/types
+    exact_mappings:
+    - schema:Time
+    base: XSDTime
+    uri: xsd:time
+    repr: str
+  date:
+    name: date
+    description: a date (year, month and day) in an idealized calendar
+    notes:
+    - URI is dateTime because OWL reasoners don't work with straight date or time
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "date".
+    from_schema: https://w3id.org/linkml/types
+    exact_mappings:
+    - schema:Date
+    base: XSDDate
+    uri: xsd:date
+    repr: str
+  datetime:
+    name: datetime
+    description: The combination of a date and time
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "datetime".
+    from_schema: https://w3id.org/linkml/types
+    exact_mappings:
+    - schema:DateTime
+    base: XSDDateTime
+    uri: xsd:dateTime
+    repr: str
+  date_or_datetime:
+    name: date_or_datetime
+    description: Either a date or a datetime
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "date_or_datetime".
+    from_schema: https://w3id.org/linkml/types
+    base: str
+    uri: linkml:DateOrDatetime
+    repr: str
+  uriorcurie:
+    name: uriorcurie
+    description: a URI or a CURIE
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "uriorcurie".
+    from_schema: https://w3id.org/linkml/types
+    base: URIorCURIE
+    uri: xsd:anyURI
+    repr: str
+  curie:
+    name: curie
+    conforms_to: https://www.w3.org/TR/curie/
+    description: a compact URI
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "curie".
+    comments:
+    - in RDF serializations this MUST be expanded to a URI
+    - in non-RDF serializations MAY be serialized as the compact representation
+    from_schema: https://w3id.org/linkml/types
+    base: Curie
+    uri: xsd:string
+    repr: str
+  uri:
+    name: uri
+    conforms_to: https://www.ietf.org/rfc/rfc3987.txt
+    description: a complete URI
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "uri".
+    comments:
+    - in RDF serializations a slot with range of uri is treated as a literal or type
+      xsd:anyURI unless it is an identifier or a reference to an identifier, in which
+      case it is translated directly to a node
+    from_schema: https://w3id.org/linkml/types
+    close_mappings:
+    - schema:URL
+    base: URI
+    uri: xsd:anyURI
+    repr: str
+  ncname:
+    name: ncname
+    description: Prefix part of CURIE
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "ncname".
+    from_schema: https://w3id.org/linkml/types
+    base: NCName
+    uri: xsd:string
+    repr: str
+  objectidentifier:
+    name: objectidentifier
+    description: A URI or CURIE that represents an object in the model.
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "objectidentifier".
+    comments:
+    - Used for inheritance and type checking
+    from_schema: https://w3id.org/linkml/types
+    base: ElementIdentifier
+    uri: shex:iri
+    repr: str
+  nodeidentifier:
+    name: nodeidentifier
+    description: A URI, CURIE or BNODE that represents a node in a model.
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "nodeidentifier".
+    from_schema: https://w3id.org/linkml/types
+    base: NodeIdentifier
+    uri: shex:nonLiteral
+    repr: str
+  jsonpointer:
+    name: jsonpointer
+    conforms_to: https://datatracker.ietf.org/doc/html/rfc6901
+    description: A string encoding a JSON Pointer. The value of the string MUST conform
+      to JSON Point syntax and SHOULD dereference to a valid object within the current
+      instance document when encoded in tree form.
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "jsonpointer".
+    from_schema: https://w3id.org/linkml/types
+    base: str
+    uri: xsd:string
+    repr: str
+  jsonpath:
+    name: jsonpath
+    conforms_to: https://www.ietf.org/archive/id/draft-goessner-dispatch-jsonpath-00.html
+    description: A string encoding a JSON Path. The value of the string MUST conform
+      to JSON Point syntax and SHOULD dereference to zero or more valid objects within
+      the current instance document when encoded in tree form.
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "jsonpath".
+    from_schema: https://w3id.org/linkml/types
+    base: str
+    uri: xsd:string
+    repr: str
+  sparqlpath:
+    name: sparqlpath
+    conforms_to: https://www.w3.org/TR/sparql11-query/#propertypaths
+    description: A string encoding a SPARQL Property Path. The value of the string
+      MUST conform to SPARQL syntax and SHOULD dereference to zero or more valid objects
+      within the current instance document when encoded as RDF.
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "sparqlpath".
+    from_schema: https://w3id.org/linkml/types
+    base: str
+    uri: xsd:string
+    repr: str
+  chemical formula value:
+    name: chemical formula value
+    description: A chemical formula
+    notes:
+    - Should be implemented as a stronger type
+    from_schema: https://w3id.org/biolink/biolink-model
+    base: str
+    uri: xsd:string
+  iri type:
+    name: iri type
+    description: An IRI
+    from_schema: https://w3id.org/biolink/biolink-model
+    typeof: uriorcurie
+    uri: xsd:string
+  label type:
+    name: label type
+    description: A string that provides a human-readable name for an entity
+    from_schema: https://w3id.org/biolink/biolink-model
+    typeof: string
+    uri: xsd:string
+  predicate type:
+    name: predicate type
+    description: A CURIE from the biolink related_to hierarchy. For example, biolink:related_to,
+      biolink:causes, biolink:treats.
+    from_schema: https://w3id.org/biolink/biolink-model
+    typeof: uriorcurie
+    uri: xsd:string
+  narrative text:
+    name: narrative text
+    description: A string that provides a human-readable description of something
+    from_schema: https://w3id.org/biolink/biolink-model
+    typeof: string
+    uri: xsd:string
+  symbol type:
+    name: symbol type
+    from_schema: https://w3id.org/biolink/biolink-model
+    typeof: string
+    uri: xsd:string
+  frequency value:
+    name: frequency value
+    from_schema: https://w3id.org/biolink/biolink-model
+    typeof: string
+    uri: UO:0000105
+  percentage frequency value:
+    name: percentage frequency value
+    from_schema: https://w3id.org/biolink/biolink-model
+    typeof: double
+    uri: UO:0000187
+  quotient:
+    name: quotient
+    from_schema: https://w3id.org/biolink/biolink-model
+    aliases:
+    - ratio
+    typeof: double
+    uri: UO:0010006
+  unit:
+    name: unit
+    id_prefixes:
+    - UO
+    from_schema: https://w3id.org/biolink/biolink-model
+    exact_mappings:
+    - qud:Unit
+    typeof: string
+    uri: UO:0000000
+  time type:
+    name: time type
+    from_schema: https://w3id.org/biolink/biolink-model
+    typeof: time
+    uri: xsd:time
+  biological sequence:
+    name: biological sequence
+    from_schema: https://w3id.org/biolink/biolink-model
+    typeof: string
+    uri: xsd:string
+classes:
+  Gene:
+    name: Gene
+    id_prefixes:
+    - NCBIGene
+    - ENSEMBL
+    - HGNC
+    - MGI
+    - ZFIN
+    - dictyBase
+    - WB
+    - WormBase
+    - FB
+    - RGD
+    - SGD
+    - PomBase
+    - OMIM
+    - KEGG.GENES
+    - UMLS
+    - Xenbase
+    - AspGD
+    - PHARMGKB.GENE
+    description: A region (or regions) that includes all of the sequence elements
+      necessary to encode a functional transcript. A gene locus may include regulatory
+      regions, transcribed regions and/or other functional sequence regions.
+    in_subset:
+    - translator_minimal
+    - model_organism_database
+    exact_mappings:
+    - SO:0000704
+    - SIO:010035
+    - WIKIDATA:Q7187
+    - dcid:Gene
+    narrow_mappings:
+    - bioschemas:gene
+    broad_mappings:
+    - NCIT:C45822
+    attributes:
+      symbol:
+        name: symbol
+        description: Symbol for a particular thing
+        exact_mappings:
+        - AGRKB:symbol
+        - gpi:DB_Object_Symbol
+        is_a: node property
+        domain: named thing
+        domain_of:
+        - gene
+      xref:
+        name: xref
+        description: A database cross reference or alternative identifier for a NamedThing
+          or edge between two NamedThings.  This property should point to a database
+          record or webpage that supports the existence of the edge, or gives more
+          detail about the edge. This property can be used on a node or edge to provide
+          multiple URIs or CURIE cross references.
+        in_subset:
+        - translator_minimal
+        aliases:
+        - dbxref
+        - Dbxref
+        - DbXref
+        - record_url
+        - source_record_urls
+        narrow_mappings:
+        - gff3:Dbxref
+        - gpi:DB_Xrefs
+        domain: named thing
+        domain_of:
+        - named thing
+        - publication
+        - retrieval source
+        - gene
+        - gene product mixin
+        range: uriorcurie
+        multivalued: true
+  Disease:
+    name: Disease
+    id_prefixes:
+    - MONDO
+    - DOID
+    - OMIM
+    - OMIM.PS
+    - orphanet
+    - EFO
+    - UMLS
+    - MESH
+    - MEDDRA
+    - NCIT
+    - SNOMEDCT
+    - medgen
+    - ICD10
+    - ICD9
+    - KEGG.DISEASE
+    - HP
+    - MP
+    - PHARMGKB.DISEASE
+    description: A disorder of structure or function, especially one that produces
+      specific signs, phenotypes or symptoms or that affects a specific location and
+      is not simply a direct result of physical injury.  A disposition to undergo
+      pathological processes that exists in an organism because of one or more disorders
+      in that organism.
+    in_subset:
+    - model_organism_database
+    - translator_minimal
+    aliases:
+    - condition
+    - disorder
+    - medical condition
+    exact_mappings:
+    - MONDO:0000001
+    - DOID:4
+    - NCIT:C2991
+    - WIKIDATA:Q12136
+    - SIO:010299
+    - UMLSSG:DISO
+    - STY:T047
+    - dcid:Disease
+    narrow_mappings:
+    - STY:T019
+    - STY:T020
+    - STY:T048
+    - STY:T049
+    - STY:T191
+    - MONDO:0042489
+  CaseToPhenotypicFeatureAssociation:
+    name: CaseToPhenotypicFeatureAssociation
+    description: An association between a case (e.g. individual patient) and a phenotypic
+      feature in which the individual has or has had the phenotype.
+    defining_slots:
+    - subject
+    - object
+  GeneToDiseaseAssociation:
+    name: GeneToDiseaseAssociation
+    comments:
+    - NCIT:R176 refers to the inverse relationship
+    exact_mappings:
+    - SIO:000983
+    close_mappings:
+    - dcid:DiseaseGeneAssociation
+    defining_slots:
+    - subject
+    - object
+  GeneToPhenotypicFeatureAssociation:
+    name: GeneToPhenotypicFeatureAssociation
+    exact_mappings:
+    - WBVocab:Gene-Phenotype-Association
+    defining_slots:
+    - subject
+    - object
+  Case:
+    name: Case
+    description: An individual (human) organism that has a patient role in some clinical
+      context.
+    aliases:
+    - patient
+    - proband
+  PhenotypicFeature:
+    name: PhenotypicFeature
+    id_prefixes:
+    - HP
+    - EFO
+    - NCIT
+    - UMLS
+    - MEDDRA
+    - MP
+    - ZP
+    - UPHENO
+    - APO
+    - FBcv
+    - WBPhenotype
+    - SNOMEDCT
+    - MESH
+    - XPO
+    - FYPO
+    - TO
+    description: A combination of entity and quality that makes up a phenotyping statement.
+      An observable characteristic of an individual resulting from the interaction
+      of its genotype with its molecular and physical environment.
+    examples:
+    - value: MP:0001262
+      description: decreased body weight
+    in_subset:
+    - model_organism_database
+    aliases:
+    - sign
+    - symptom
+    - phenotype
+    - trait
+    - endophenotype
+    exact_mappings:
+    - UPHENO:0001001
+    - SIO:010056
+    - WIKIDATA:Q104053
+    - UMLS:C4021819
+    - NCIT:C16977
+    - SNOMEDCT:8116006
+    - MESH:D010641
+    narrow_mappings:
+    - STY:T184
+    - WIKIDATA:Q169872
+    - WIKIDATA:Q25203551
+    - ZP:00000000
+    - FBcv:0001347
+    - HP:0000118
+    - MP:0000001
+    - WBPhenotype:0000886
+    - XPO:00000000
+    - FYPO:0000001
+    - APO:0000017
+    - TO:0000387
+    - STY:T190
+    broad_mappings:
+    - BFO:0000019
+    - PATO:0000001
+
+</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Notes:
+* notice that if we remove a parent class from this, e.g. remove "NamedThing" - the <code>is_a</code> path in the descendent classes will be absent.  this is to prevent unreachable element errors.
+* notice that helpful defaults are brought in like prefixes, descriptions, aliases, mappings, etc.
+  * there will likely be cases where metamodel elements in LinkML are not automatically transferred to the derived schema (as will all our generators, we are working towards feature parity).<br />
+* notice that the transformation automatically makes what were, independent <code>slot</code> definitions in Biolink Model into <code>attributes</code>.  These are more or less functionally equivalent in LinkML, however if you want to specify a slot that can be reused outside of a particular class, it is still best practice to do so with a slot definition rather than an attribute as to not repeat slot definitions.</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="use-derived-schema-to-generate-different-serializations-of-the-derived-model">Use derived schema to generate different serializations of the derived model</h3>
+<p>Now that we have a YAML dump of our derived model, we can use standard LinkML tooling to produce:
+* python dataclasses and pydantic models of our derived schema
+* navigate our derived schema with a SchemaView instance
+* create and deploy automated documentation with the derived schema (see https://github.com/linkml/linkml-project-cookiecutter for more details on using the derived schema in a standard setup)</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="err">!</span><span class="n">gen</span><span class="o">-</span><span class="n">pydantic</span> <span class="n">biolink</span><span class="o">-</span><span class="n">subset</span><span class="o">.</span><span class="n">yaml</span>
+</code></pre></div>
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+<code>from __future__ import annotations 
+from datetime import (
+    datetime,
+    date
+)
+from decimal import Decimal 
+from enum import Enum 
+import re
+import sys
+from typing import (
+    Any,
+    ClassVar,
+    List,
+    Literal,
+    Dict,
+    Optional,
+    Union
+)
+from pydantic.version import VERSION  as PYDANTIC_VERSION 
+if int(PYDANTIC_VERSION[0])&gt;=2:
+    from pydantic import (
+        BaseModel,
+        ConfigDict,
+        Field,
+        RootModel,
+        field_validator
+    )
+else:
+    from pydantic import (
+        BaseModel,
+        Field,
+        validator
+    )
+
+metamodel_version = "None"
+version = "None"
+
+
+class ConfiguredBaseModel(BaseModel):
+    model_config = ConfigDict(
+        validate_assignment = True,
+        validate_default = True,
+        extra = "forbid",
+        arbitrary_types_allowed = True,
+        use_enum_values = True,
+        strict = False,
+    )
+    pass
+
+
+
+
+class LinkMLMeta(RootModel):
+    root: Dict[str, Any] = {}
+    model_config = ConfigDict(frozen=True)
+
+    def __getattr__(self, key:str):
+        return getattr(self.root, key)
+
+    def __getitem__(self, key:str):
+        return self.root[key]
+
+    def __setitem__(self, key:str, value):
+        self.root[key] = value
+
+
+linkml_meta = LinkMLMeta({'default_prefix': 'biolink-subset/',
+     'id': 'biolink-subset',
+     'name': 'BiolinkSubset'} )
+
+
+class Gene(ConfiguredBaseModel):
+    """
+    A region (or regions) that includes all of the sequence elements necessary to encode a functional transcript. A gene locus may include regulatory regions, transcribed regions and/or other functional sequence regions.
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'broad_mappings': ['NCIT:C45822'],
+         'exact_mappings': ['SO:0000704', 'SIO:010035', 'WIKIDATA:Q7187', 'dcid:Gene'],
+         'from_schema': 'biolink-subset',
+         'id_prefixes': ['NCBIGene',
+                         'ENSEMBL',
+                         'HGNC',
+                         'MGI',
+                         'ZFIN',
+                         'dictyBase',
+                         'WB',
+                         'WormBase',
+                         'FB',
+                         'RGD',
+                         'SGD',
+                         'PomBase',
+                         'OMIM',
+                         'KEGG.GENES',
+                         'UMLS',
+                         'Xenbase',
+                         'AspGD',
+                         'PHARMGKB.GENE'],
+         'in_subset': ['translator_minimal', 'model_organism_database'],
+         'narrow_mappings': ['bioschemas:gene']})
+
+    symbol: Optional[str] = Field(None, description="""Symbol for a particular thing""", json_schema_extra = { "linkml_meta": {'alias': 'symbol',
+         'domain': 'named thing',
+         'domain_of': ['gene', 'Gene'],
+         'exact_mappings': ['AGRKB:symbol', 'gpi:DB_Object_Symbol'],
+         'is_a': 'node property'} })
+    xref: Optional[List[str]] = Field(default_factory=list, description="""A database cross reference or alternative identifier for a NamedThing or edge between two NamedThings.  This property should point to a database record or webpage that supports the existence of the edge, or gives more detail about the edge. This property can be used on a node or edge to provide multiple URIs or CURIE cross references.""", json_schema_extra = { "linkml_meta": {'alias': 'xref',
+         'aliases': ['dbxref', 'Dbxref', 'DbXref', 'record_url', 'source_record_urls'],
+         'domain': 'named thing',
+         'domain_of': ['named thing',
+                       'publication',
+                       'retrieval source',
+                       'gene',
+                       'gene product mixin',
+                       'Gene'],
+         'in_subset': ['translator_minimal'],
+         'narrow_mappings': ['gff3:Dbxref', 'gpi:DB_Xrefs']} })
+
+
+class Disease(ConfiguredBaseModel):
+    """
+    A disorder of structure or function, especially one that produces specific signs, phenotypes or symptoms or that affects a specific location and is not simply a direct result of physical injury.  A disposition to undergo pathological processes that exists in an organism because of one or more disorders in that organism.
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'aliases': ['condition', 'disorder', 'medical condition'],
+         'exact_mappings': ['MONDO:0000001',
+                            'DOID:4',
+                            'NCIT:C2991',
+                            'WIKIDATA:Q12136',
+                            'SIO:010299',
+                            'UMLSSG:DISO',
+                            'STY:T047',
+                            'dcid:Disease'],
+         'from_schema': 'biolink-subset',
+         'id_prefixes': ['MONDO',
+                         'DOID',
+                         'OMIM',
+                         'OMIM.PS',
+                         'orphanet',
+                         'EFO',
+                         'UMLS',
+                         'MESH',
+                         'MEDDRA',
+                         'NCIT',
+                         'SNOMEDCT',
+                         'medgen',
+                         'ICD10',
+                         'ICD9',
+                         'KEGG.DISEASE',
+                         'HP',
+                         'MP',
+                         'PHARMGKB.DISEASE'],
+         'in_subset': ['model_organism_database', 'translator_minimal'],
+         'narrow_mappings': ['STY:T019',
+                             'STY:T020',
+                             'STY:T048',
+                             'STY:T049',
+                             'STY:T191',
+                             'MONDO:0042489']})
+
+    pass
+
+
+class CaseToPhenotypicFeatureAssociation(ConfiguredBaseModel):
+    """
+    An association between a case (e.g. individual patient) and a phenotypic feature in which the individual has or has had the phenotype.
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'defining_slots': ['subject', 'object'], 'from_schema': 'biolink-subset'})
+
+    pass
+
+
+class GeneToDiseaseAssociation(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'close_mappings': ['dcid:DiseaseGeneAssociation'],
+         'comments': ['NCIT:R176 refers to the inverse relationship'],
+         'defining_slots': ['subject', 'object'],
+         'exact_mappings': ['SIO:000983'],
+         'from_schema': 'biolink-subset'})
+
+    pass
+
+
+class GeneToPhenotypicFeatureAssociation(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'defining_slots': ['subject', 'object'],
+         'exact_mappings': ['WBVocab:Gene-Phenotype-Association'],
+         'from_schema': 'biolink-subset'})
+
+    pass
+
+
+class Case(ConfiguredBaseModel):
+    """
+    An individual (human) organism that has a patient role in some clinical context.
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'aliases': ['patient', 'proband'], 'from_schema': 'biolink-subset'})
+
+    pass
+
+
+class PhenotypicFeature(ConfiguredBaseModel):
+    """
+    A combination of entity and quality that makes up a phenotyping statement. An observable characteristic of an individual resulting from the interaction of its genotype with its molecular and physical environment.
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'aliases': ['sign', 'symptom', 'phenotype', 'trait', 'endophenotype'],
+         'broad_mappings': ['BFO:0000019', 'PATO:0000001'],
+         'exact_mappings': ['UPHENO:0001001',
+                            'SIO:010056',
+                            'WIKIDATA:Q104053',
+                            'UMLS:C4021819',
+                            'NCIT:C16977',
+                            'SNOMEDCT:8116006',
+                            'MESH:D010641'],
+         'examples': [{'description': 'decreased body weight', 'value': 'MP:0001262'}],
+         'from_schema': 'biolink-subset',
+         'id_prefixes': ['HP',
+                         'EFO',
+                         'NCIT',
+                         'UMLS',
+                         'MEDDRA',
+                         'MP',
+                         'ZP',
+                         'UPHENO',
+                         'APO',
+                         'FBcv',
+                         'WBPhenotype',
+                         'SNOMEDCT',
+                         'MESH',
+                         'XPO',
+                         'FYPO',
+                         'TO'],
+         'in_subset': ['model_organism_database'],
+         'narrow_mappings': ['STY:T184',
+                             'WIKIDATA:Q169872',
+                             'WIKIDATA:Q25203551',
+                             'ZP:00000000',
+                             'FBcv:0001347',
+                             'HP:0000118',
+                             'MP:0000001',
+                             'WBPhenotype:0000886',
+                             'XPO:00000000',
+                             'FYPO:0000001',
+                             'APO:0000017',
+                             'TO:0000387',
+                             'STY:T190']})
+
+    pass
+
+
+# Model rebuild
+# see https://pydantic-docs.helpmanual.io/usage/models/#rebuilding-a-model
+Gene.model_rebuild()
+Disease.model_rebuild()
+CaseToPhenotypicFeatureAssociation.model_rebuild()
+GeneToDiseaseAssociation.model_rebuild()
+GeneToPhenotypicFeatureAssociation.model_rebuild()
+Case.model_rebuild()
+PhenotypicFeature.model_rebuild()
+
+</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="err">!</span><span class="n">gen</span><span class="o">-</span><span class="n">doc</span> <span class="n">biolink</span><span class="o">-</span><span class="n">subset</span><span class="o">.</span><span class="n">yaml</span> <span class="o">-</span><span class="n">d</span> <span class="n">docs</span>
+</code></pre></div>
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+<code>ValueError: No such slot as "node property"
+</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code>
+</code></pre></div>
+
+</div>
+</div>
+
+  <br>
+    
+
+    <br>
+</div>
+
+<footer class="container-fluid wm-page-content">
+      <p>
+        <a href="https://github.com/linkml/linkml-map/edit/master/docs/examples/biolink-subsetting.ipynb"><i class="fa fa-github"></i>
+Edit on GitHub</a>
+      </p>
+  <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a> using <a href="https://github.com/gristlabs/mkdocs-windmill">Windmill</a> theme by Grist Labs.</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    
+    <link rel="canonical" href="https://linkml.github.io/linkml-map/schema/functions/">
+    <link rel="shortcut icon" href="../../img/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <title>Functions Package - LinkML-Map</title>
+    <link href="../../css/bootstrap-3.3.7.min.css" rel="stylesheet">
+    <link href="../../css/font-awesome-4.7.0.css" rel="stylesheet">
+    <link href="../../css/base.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/highlight.css">
+    <link href="../../assets/_mkdocstrings.css" rel="stylesheet">
+    <link href="../../css/ansi-colours.css" rel="stylesheet">
+    <link href="../../css/jupyter-cells.css" rel="stylesheet">
+    <link href="../../css/pandas-dataframe.css" rel="stylesheet">
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+
+    <script src="../../js/jquery-3.2.1.min.js"></script>
+    <script src="../../js/bootstrap-3.3.7.min.js"></script>
+    <script src="../../js/highlight.pack.js"></script>
+    
+    <base target="_top">
+    <script>
+      var base_url = '../..';
+      var is_top_frame = false;
+        
+        var pageToc = [
+          {title: "Functions Package", url: "#_top", children: [
+              {title: "Unit Conversion", url: "#unit-conversion" },
+              {title: "DimensionalityError", url: "#linkml_map.functions.unit_conversion.DimensionalityError" },
+              {title: "QuantitySyntaxError", url: "#linkml_map.functions.unit_conversion.QuantitySyntaxError" },
+              {title: "UndefinedUnitError", url: "#linkml_map.functions.unit_conversion.UndefinedUnitError" },
+              {title: "UnitSystem", url: "#linkml_map.functions.unit_conversion.UnitSystem" },
+              {title: "convert_units", url: "#linkml_map.functions.unit_conversion.convert_units" },
+              {title: "get_unit_registry", url: "#linkml_map.functions.unit_conversion.get_unit_registry" },
+              {title: "normalize_unit", url: "#linkml_map.functions.unit_conversion.normalize_unit" },
+          ]},
+        ];
+
+    </script>
+    <script src="../../js/base.js"></script> 
+</head>
+
+<body>
+<script>
+if (is_top_frame) { $('body').addClass('wm-top-page'); }
+</script>
+
+
+
+<div class="container-fluid wm-page-content">
+  <a name="_top"></a>
+    
+
+    
+
+    <h1 id="functions-package">Functions Package</h1>
+<h2 id="unit-conversion">Unit Conversion</h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+
+    <div class="doc doc-contents first">
+
+        <p>Basic unit conversion functions.</p>
+<p>Currently only native pint units or UCUM units are supported.</p>
+<p>For UCUM, the ucumvert library is used to convert UCUM units to pint units,
+see <code>&lt;https://github.com/dalito/ucumvert&gt;</code>_.</p>
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="linkml_map.functions.unit_conversion.DimensionalityError" class="doc doc-heading">
+            <code>DimensionalityError</code>
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="Exception">Exception</span></code></p>
+
+
+        <p>Raised when a unit conversion cannot be performed.</p>
+<p>Note: equivalent to the pint error, but the
+pint dependency is optional</p>
+
+
+
+
+
+
+
+              <details class="quote">
+                <summary>Source code in <code>src/linkml_map/functions/unit_conversion.py</code></summary>
+                <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">DimensionalityError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised when a unit conversion cannot be performed.</span>
+
+<span class="sd">    Note: equivalent to the pint error, but the</span>
+<span class="sd">    pint dependency is optional</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="linkml_map.functions.unit_conversion.QuantitySyntaxError" class="doc doc-heading">
+            <code>QuantitySyntaxError</code>
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="Exception">Exception</span></code></p>
+
+
+        <p>Raised when a quantity cannot be parsed.</p>
+
+
+
+
+
+
+
+              <details class="quote">
+                <summary>Source code in <code>src/linkml_map/functions/unit_conversion.py</code></summary>
+                <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">QuantitySyntaxError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised when a quantity cannot be parsed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="linkml_map.functions.unit_conversion.UndefinedUnitError" class="doc doc-heading">
+            <code>UndefinedUnitError</code>
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="Exception">Exception</span></code></p>
+
+
+        <p>Raised when a unit is not defined.</p>
+<p>Note: equivalent to the pint error, but the
+pint dependency is optional</p>
+
+
+
+
+
+
+
+              <details class="quote">
+                <summary>Source code in <code>src/linkml_map/functions/unit_conversion.py</code></summary>
+                <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">UndefinedUnitError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised when a unit is not defined.</span>
+
+<span class="sd">    Note: equivalent to the pint error, but the</span>
+<span class="sd">    pint dependency is optional</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="linkml_map.functions.unit_conversion.UnitSystem" class="doc doc-heading">
+            <code>UnitSystem</code>
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="str">str</span></code>, <code><span title="enum.Enum">Enum</span></code></p>
+
+
+        <p>Enumeration of supported unit systems.</p>
+
+
+
+
+
+
+
+              <details class="quote">
+                <summary>Source code in <code>src/linkml_map/functions/unit_conversion.py</code></summary>
+                <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">18</span>
+<span class="normal">19</span>
+<span class="normal">20</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">UnitSystem</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Enumeration of supported unit systems.&quot;&quot;&quot;</span>
+
+    <span class="n">UCUM</span> <span class="o">=</span> <span class="s2">&quot;ucum&quot;</span>
+    <span class="n">IEC61360</span> <span class="o">=</span> <span class="s2">&quot;iec61360&quot;</span>
+    <span class="n">SI</span> <span class="o">=</span> <span class="s2">&quot;SI&quot;</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="linkml_map.functions.unit_conversion.convert_units" class="doc doc-heading">
+            <code class=" language-python"><span class="n">convert_units</span><span class="p">(</span><span class="n">magnitude</span><span class="p">,</span> <span class="n">from_unit</span><span class="p">,</span> <span class="n">to_unit</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Convert a quantity between units.</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>convert_units(1, "m", "cm")
+100.0
+convert_units(1, "m", "cm", system=UnitSystem.UCUM)
+100.0
+convert_units(1, "m", "cm", system=UnitSystem.SI)
+100.0
+convert_units(1.0, "hectare", "m^2", system=UnitSystem.SI)
+10000.0
+convert_units(1.0, "hectare", "m ** 2", system=UnitSystem.SI)
+10000.0
+convert_units(1.0, "hectare", "m ** 2", system=None)
+10000.0
+convert_units(1.0, "km2", "m2", system=UnitSystem.UCUM)
+1000000.0
+convert_units("100", "m", "cm")
+10000.0
+convert_units("3.14", "m", "cm")
+314.0</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>:param magnitude:
+:param from_unit:
+:param to_unit:
+:return: converted magnitude</p>
+
+
+            <details class="quote">
+              <summary>Source code in <code>src/linkml_map/functions/unit_conversion.py</code></summary>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 55</span>
+<span class="normal"> 56</span>
+<span class="normal"> 57</span>
+<span class="normal"> 58</span>
+<span class="normal"> 59</span>
+<span class="normal"> 60</span>
+<span class="normal"> 61</span>
+<span class="normal"> 62</span>
+<span class="normal"> 63</span>
+<span class="normal"> 64</span>
+<span class="normal"> 65</span>
+<span class="normal"> 66</span>
+<span class="normal"> 67</span>
+<span class="normal"> 68</span>
+<span class="normal"> 69</span>
+<span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">convert_units</span><span class="p">(</span>
+    <span class="n">magnitude</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span> <span class="n">from_unit</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">to_unit</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">system</span><span class="p">:</span> <span class="n">UnitSystem</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert a quantity between units.</span>
+
+<span class="sd">    &gt;&gt;&gt; convert_units(1, &quot;m&quot;, &quot;cm&quot;)</span>
+<span class="sd">    100.0</span>
+<span class="sd">    &gt;&gt;&gt; convert_units(1, &quot;m&quot;, &quot;cm&quot;, system=UnitSystem.UCUM)</span>
+<span class="sd">    100.0</span>
+<span class="sd">    &gt;&gt;&gt; convert_units(1, &quot;m&quot;, &quot;cm&quot;, system=UnitSystem.SI)</span>
+<span class="sd">    100.0</span>
+<span class="sd">    &gt;&gt;&gt; convert_units(1.0, &quot;hectare&quot;, &quot;m^2&quot;, system=UnitSystem.SI)</span>
+<span class="sd">    10000.0</span>
+<span class="sd">    &gt;&gt;&gt; convert_units(1.0, &quot;hectare&quot;, &quot;m ** 2&quot;, system=UnitSystem.SI)</span>
+<span class="sd">    10000.0</span>
+<span class="sd">    &gt;&gt;&gt; convert_units(1.0, &quot;hectare&quot;, &quot;m ** 2&quot;, system=None)</span>
+<span class="sd">    10000.0</span>
+<span class="sd">    &gt;&gt;&gt; convert_units(1.0, &quot;km2&quot;, &quot;m2&quot;, system=UnitSystem.UCUM)</span>
+<span class="sd">    1000000.0</span>
+<span class="sd">    &gt;&gt;&gt; convert_units(&quot;100&quot;, &quot;m&quot;, &quot;cm&quot;)</span>
+<span class="sd">    10000.0</span>
+<span class="sd">    &gt;&gt;&gt; convert_units(&quot;3.14&quot;, &quot;m&quot;, &quot;cm&quot;)</span>
+<span class="sd">    314.0</span>
+
+<span class="sd">    :param magnitude:</span>
+<span class="sd">    :param from_unit:</span>
+<span class="sd">    :param to_unit:</span>
+<span class="sd">    :return: converted magnitude</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">magnitude</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">magnitude</span><span class="p">)</span>
+    <span class="n">ureg</span><span class="p">:</span> <span class="n">pint</span><span class="o">.</span><span class="n">UnitRegistry</span> <span class="o">=</span> <span class="n">get_unit_registry</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
+    <span class="n">from_unit</span> <span class="o">=</span> <span class="n">normalize_unit</span><span class="p">(</span><span class="n">from_unit</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
+    <span class="n">to_unit</span> <span class="o">=</span> <span class="n">normalize_unit</span><span class="p">(</span><span class="n">to_unit</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">from_unit_q</span> <span class="o">=</span> <span class="n">ureg</span><span class="o">.</span><span class="n">parse_units</span><span class="p">(</span><span class="n">from_unit</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">lark</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">UnexpectedCharacters</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Cannot parse unit: </span><span class="si">{</span><span class="n">from_unit</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">raise</span> <span class="n">UndefinedUnitError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">err</span>
+    <span class="k">except</span> <span class="n">pint</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">UndefinedUnitError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Unknown source unit: </span><span class="si">{</span><span class="n">from_unit</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">raise</span> <span class="n">UndefinedUnitError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">err</span>
+    <span class="n">quantity</span> <span class="o">=</span> <span class="n">magnitude</span> <span class="o">*</span> <span class="n">from_unit_q</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">quantity</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">to_unit</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
+    <span class="k">except</span> <span class="n">pint</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">UndefinedUnitError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Unknown target unit: </span><span class="si">{</span><span class="n">from_unit</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">raise</span> <span class="n">UndefinedUnitError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">err</span>
+    <span class="k">except</span> <span class="n">pint</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">DimensionalityError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Cannot convert from </span><span class="si">{</span><span class="n">from_unit</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">to_unit</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">raise</span> <span class="n">DimensionalityError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">err</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="linkml_map.functions.unit_conversion.get_unit_registry" class="doc doc-heading">
+            <code class=" language-python"><span class="n">get_unit_registry</span><span class="p">(</span><span class="n">system</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
+  </span>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Get a unit registry.</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>ureg = get_unit_registry(UnitSystem.UCUM)
+ureg.from_ucum("m/s2.kg")
+<Quantity(1.0, 'meter * kilogram / second ** 2')>
+str(<em>)
+'1.0 kilogram * meter / second ** 2'
+ureg.from_ucum("m[H2O]{35Cel}")  # UCUM code with annotation
+<Quantity(1, 'm_H2O')>
+</em>.to("mbar")
+<Quantity(98.0665, 'millibar')>
+ureg("degC")   # a standard pint unit
+<Quantity(1, 'degree_Celsius')>
+ureg.from_ucum("g/m2")
+<Quantity(1.0, 'gram / meter ** 2')>
+_.to(ureg.from_ucum("kg/m2"))
+<Quantity(0.001, 'kilogram / meter ** 2')>
+ureg.from_ucum("nmol/mmol{Cre}")
+<Quantity(1.0, 'nanomole / millimole')>
+sireg = get_unit_registry(UnitSystem.SI)
+sireg("degC")
+<Quantity(1, 'degree_Celsius')>
+sireg("ha")
+<Quantity(1, 'hectare')></p>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>:param system: currently only supported values are None or UnitSystem.UCUM
+:return:</p>
+
+
+            <details class="quote">
+              <summary>Source code in <code>src/linkml_map/functions/unit_conversion.py</code></summary>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@lru_cache</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_unit_registry</span><span class="p">(</span>
+    <span class="n">system</span><span class="p">:</span> <span class="n">UnitSystem</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pint</span><span class="o">.</span><span class="n">UnitRegistry</span> <span class="o">|</span> <span class="n">PintUcumRegistry</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get a unit registry.</span>
+
+<span class="sd">    &gt;&gt;&gt; ureg = get_unit_registry(UnitSystem.UCUM)</span>
+<span class="sd">    &gt;&gt;&gt; ureg.from_ucum(&quot;m/s2.kg&quot;)</span>
+<span class="sd">    &lt;Quantity(1.0, &#39;meter * kilogram / second ** 2&#39;)&gt;</span>
+<span class="sd">    &gt;&gt;&gt; str(_)</span>
+<span class="sd">    &#39;1.0 kilogram * meter / second ** 2&#39;</span>
+<span class="sd">    &gt;&gt;&gt; ureg.from_ucum(&quot;m[H2O]{35Cel}&quot;)  # UCUM code with annotation</span>
+<span class="sd">    &lt;Quantity(1, &#39;m_H2O&#39;)&gt;</span>
+<span class="sd">    &gt;&gt;&gt; _.to(&quot;mbar&quot;)</span>
+<span class="sd">    &lt;Quantity(98.0665, &#39;millibar&#39;)&gt;</span>
+<span class="sd">    &gt;&gt;&gt; ureg(&quot;degC&quot;)   # a standard pint unit</span>
+<span class="sd">    &lt;Quantity(1, &#39;degree_Celsius&#39;)&gt;</span>
+<span class="sd">    &gt;&gt;&gt; ureg.from_ucum(&quot;g/m2&quot;)</span>
+<span class="sd">    &lt;Quantity(1.0, &#39;gram / meter ** 2&#39;)&gt;</span>
+<span class="sd">    &gt;&gt;&gt; _.to(ureg.from_ucum(&quot;kg/m2&quot;))</span>
+<span class="sd">    &lt;Quantity(0.001, &#39;kilogram / meter ** 2&#39;)&gt;</span>
+<span class="sd">    &gt;&gt;&gt; ureg.from_ucum(&quot;nmol/mmol{Cre}&quot;)</span>
+<span class="sd">    &lt;Quantity(1.0, &#39;nanomole / millimole&#39;)&gt;</span>
+<span class="sd">    &gt;&gt;&gt; sireg = get_unit_registry(UnitSystem.SI)</span>
+<span class="sd">    &gt;&gt;&gt; sireg(&quot;degC&quot;)</span>
+<span class="sd">    &lt;Quantity(1, &#39;degree_Celsius&#39;)&gt;</span>
+<span class="sd">    &gt;&gt;&gt; sireg(&quot;ha&quot;)</span>
+<span class="sd">    &lt;Quantity(1, &#39;hectare&#39;)&gt;</span>
+
+<span class="sd">    :param system: currently only supported values are None or UnitSystem.UCUM</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">pint</span>
+
+    <span class="n">ureg</span> <span class="o">=</span> <span class="n">pint</span><span class="o">.</span><span class="n">UnitRegistry</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">system</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ureg</span>
+    <span class="k">if</span> <span class="n">system</span> <span class="ow">in</span> <span class="n">REGISTRIES</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">REGISTRIES</span><span class="p">[</span><span class="n">system</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">system</span><span class="o">.</span><span class="n">value</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">ureg</span><span class="o">.</span><span class="n">sys</span><span class="p">):</span>
+        <span class="n">ureg</span><span class="o">.</span><span class="n">default_system</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">return</span> <span class="n">ureg</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Unknown unit system: </span><span class="si">{</span><span class="n">system</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="linkml_map.functions.unit_conversion.normalize_unit" class="doc doc-heading">
+            <code class=" language-python"><span class="n">normalize_unit</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Normalize the unit to UnitSystem.UCUM, if possible.</p>
+
+
+            <details class="quote">
+              <summary>Source code in <code>src/linkml_map/functions/unit_conversion.py</code></summary>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">normalize_unit</span><span class="p">(</span><span class="n">unit</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">system</span><span class="p">:</span> <span class="n">UnitSystem</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Normalize the unit to UnitSystem.UCUM, if possible.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">system</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">system</span> <span class="o">!=</span> <span class="n">UnitSystem</span><span class="o">.</span><span class="n">UCUM</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">unit</span>
+
+    <span class="c1"># this is UnitSystem.UCUM</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">get_unit_registry</span><span class="p">(</span><span class="n">system</span><span class="p">)</span><span class="o">.</span><span class="n">from_ucum</span><span class="p">(</span><span class="n">unit</span><span class="p">))</span>
+    <span class="k">except</span> <span class="n">pint</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">UndefinedUnitError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Unknown unit: </span><span class="si">{</span><span class="n">unit</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">raise</span> <span class="n">UndefinedUnitError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">err</span>
+    <span class="k">except</span> <span class="n">lark</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">UnexpectedCharacters</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Cannot parse unit: </span><span class="si">{</span><span class="n">unit</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">raise</span> <span class="n">UndefinedUnitError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">err</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+  <br>
+    
+
+    <br>
+</div>
+
+<footer class="container-fluid wm-page-content">
+      <p>
+        <a href="https://github.com/linkml/linkml-map/edit/master/docs/schema/functions.md"><i class="fa fa-github"></i>
+Edit on GitHub</a>
+      </p>
+  <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a> using <a href="https://github.com/gristlabs/mkdocs-windmill">Windmill</a> theme by Grist Labs.</p>
+</footer>
+
+</body>
+</html>

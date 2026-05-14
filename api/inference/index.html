@@ -1,0 +1,2125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    
+    <link rel="canonical" href="https://linkml.github.io/linkml-map/api/inference/">
+    <link rel="shortcut icon" href="../../img/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <title>Inference - LinkML-Map</title>
+    <link href="../../css/bootstrap-3.3.7.min.css" rel="stylesheet">
+    <link href="../../css/font-awesome-4.7.0.css" rel="stylesheet">
+    <link href="../../css/base.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/highlight.css">
+    <link href="../../assets/_mkdocstrings.css" rel="stylesheet">
+    <link href="../../css/ansi-colours.css" rel="stylesheet">
+    <link href="../../css/jupyter-cells.css" rel="stylesheet">
+    <link href="../../css/pandas-dataframe.css" rel="stylesheet">
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+
+    <script src="../../js/jquery-3.2.1.min.js"></script>
+    <script src="../../js/bootstrap-3.3.7.min.js"></script>
+    <script src="../../js/highlight.pack.js"></script>
+    
+    <base target="_top">
+    <script>
+      var base_url = '../..';
+      var is_top_frame = false;
+        
+        var pageToc = [
+          {title: "Inference Package", url: "#_top", children: [
+              {title: "Inference Utils", url: "#inference-utils" },
+              {title: "induce_missing_values", url: "#linkml_map.inference.inference.induce_missing_values" },
+              {title: "Inverter", url: "#inverter" },
+              {title: "NonInvertibleSpecificationError", url: "#linkml_map.inference.inverter.NonInvertibleSpecificationError" },
+              {title: "TransformationSpecificationInverter", url: "#linkml_map.inference.inverter.TransformationSpecificationInverter" },
+              {title: "Schema Mapper", url: "#schema-mapper" },
+              {title: "copy_attributes", url: "#linkml_map.inference.schema_mapper.SchemaMapper.copy_attributes" },
+              {title: "derive_schema", url: "#linkml_map.inference.schema_mapper.SchemaMapper.derive_schema" },
+          ]},
+        ];
+
+    </script>
+    <script src="../../js/base.js"></script> 
+</head>
+
+<body>
+<script>
+if (is_top_frame) { $('body').addClass('wm-top-page'); }
+</script>
+
+
+
+<div class="container-fluid wm-page-content">
+  <a name="_top"></a>
+    
+
+    
+    
+      
+    
+
+  <div class="row wm-article-nav-buttons" role="navigation" aria-label="navigation">
+    
+    <div class="wm-article-nav pull-right">
+      <a href="../expressions/" class="btn btn-xs btn-default pull-right">
+        Next
+        <i class="fa fa-chevron-right" aria-hidden="true"></i>
+      </a>
+      <a href="../expressions/" class="btn btn-xs btn-link">
+        Expressions
+      </a>
+    </div>
+    
+    <div class="wm-article-nav">
+      <a href="../compiler/" class="btn btn-xs btn-default pull-left">
+        <i class="fa fa-chevron-left" aria-hidden="true"></i>
+        Previous</a><a href="../compiler/" class="btn btn-xs btn-link">
+        Compiler
+      </a>
+    </div>
+    
+  </div>
+
+    
+
+    <h1 id="inference-package">Inference Package</h1>
+<h2 id="inference-utils">Inference Utils</h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+
+    <div class="doc doc-contents first">
+
+        <p>Infer missing values in a specification.</p>
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="linkml_map.inference.inference.induce_missing_values" class="doc doc-heading">
+            <code class=" language-python"><span class="n">induce_missing_values</span><span class="p">(</span><span class="n">specification</span><span class="p">,</span> <span class="n">source_schemaview</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Infer missing values in a specification.</p>
+<p>Currently only uses copy directives.</p>
+<p>:param specification:
+:param source_schemaview:
+:return:</p>
+
+
+            <details class="quote">
+              <summary>Source code in <code>src/linkml_map/inference/inference.py</code></summary>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span>
+<span class="normal">71</span>
+<span class="normal">72</span>
+<span class="normal">73</span>
+<span class="normal">74</span>
+<span class="normal">75</span>
+<span class="normal">76</span>
+<span class="normal">77</span>
+<span class="normal">78</span>
+<span class="normal">79</span>
+<span class="normal">80</span>
+<span class="normal">81</span>
+<span class="normal">82</span>
+<span class="normal">83</span>
+<span class="normal">84</span>
+<span class="normal">85</span>
+<span class="normal">86</span>
+<span class="normal">87</span>
+<span class="normal">88</span>
+<span class="normal">89</span>
+<span class="normal">90</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">induce_missing_values</span><span class="p">(</span><span class="n">specification</span><span class="p">:</span> <span class="n">TransformationSpecification</span><span class="p">,</span> <span class="n">source_schemaview</span><span class="p">:</span> <span class="n">SchemaView</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Infer missing values in a specification.</span>
+
+<span class="sd">    Currently only uses copy directives.</span>
+
+<span class="sd">    :param specification:</span>
+<span class="sd">    :param source_schemaview:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">specification</span><span class="o">.</span><span class="n">class_derivations</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">cd</span><span class="o">.</span><span class="n">populated_from</span><span class="p">:</span>
+            <span class="n">cd</span><span class="o">.</span><span class="n">populated_from</span> <span class="o">=</span> <span class="n">cd</span><span class="o">.</span><span class="n">name</span>
+    <span class="n">_warn_deprecated_fields</span><span class="p">(</span><span class="n">specification</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">specification</span><span class="o">.</span><span class="n">class_derivations</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">sd</span> <span class="ow">in</span> <span class="n">cd</span><span class="o">.</span><span class="n">slot_derivations</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">sd</span><span class="o">.</span><span class="n">class_derivations</span><span class="p">:</span>
+                <span class="c1"># skip inference for nested class derivations; inferences come from</span>
+                <span class="c1"># the class derivation later</span>
+                <span class="k">continue</span>
+            <span class="c1"># for null mappings, assume that the slot is copied from the same slot in the source</span>
+            <span class="c1"># TODO: decide if this is the desired behavior</span>
+            <span class="k">if</span> <span class="n">sd</span><span class="o">.</span><span class="n">populated_from</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">sd</span><span class="o">.</span><span class="n">expr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">sd</span><span class="o">.</span><span class="n">populated_from</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">if</span> <span class="n">sd</span><span class="o">.</span><span class="n">range</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">sd</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">sd</span><span class="o">.</span><span class="n">range</span> <span class="o">=</span> <span class="s2">&quot;string&quot;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">sd</span><span class="o">.</span><span class="n">range</span> <span class="ow">and</span> <span class="n">sd</span><span class="o">.</span><span class="n">populated_from</span><span class="p">:</span>
+                <span class="c1"># auto-populate range field</span>
+                <span class="k">if</span> <span class="n">cd</span><span class="o">.</span><span class="n">populated_from</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">source_schemaview</span><span class="o">.</span><span class="n">all_classes</span><span class="p">():</span>
+                    <span class="k">continue</span>
+
+                <span class="n">populated_from_slot</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">populated_from</span>
+
+                <span class="n">source_induced_slot_range</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="s2">&quot;.&quot;</span> <span class="ow">in</span> <span class="n">populated_from_slot</span> <span class="ow">and</span> <span class="n">cd</span><span class="o">.</span><span class="n">joins</span><span class="p">:</span>
+                    <span class="n">table_name</span><span class="p">,</span> <span class="n">field_path</span> <span class="o">=</span> <span class="n">populated_from_slot</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">cd</span><span class="o">.</span><span class="n">joins</span><span class="p">:</span>
+                        <span class="n">joined_class</span> <span class="o">=</span> <span class="n">cd</span><span class="o">.</span><span class="n">joins</span><span class="p">[</span><span class="n">table_name</span><span class="p">]</span><span class="o">.</span><span class="n">class_named</span> <span class="ow">or</span> <span class="n">table_name</span>
+                        <span class="k">if</span> <span class="n">joined_class</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">source_schemaview</span><span class="o">.</span><span class="n">all_classes</span><span class="p">():</span>
+                            <span class="k">continue</span>
+                        <span class="k">if</span> <span class="n">field_path</span> <span class="ow">in</span> <span class="n">source_schemaview</span><span class="o">.</span><span class="n">class_induced_slots</span><span class="p">(</span><span class="n">joined_class</span><span class="p">):</span>
+                            <span class="n">source_induced_slot</span> <span class="o">=</span> <span class="n">source_schemaview</span><span class="o">.</span><span class="n">induced_slot</span><span class="p">(</span><span class="n">field_path</span><span class="p">,</span> <span class="n">joined_class</span><span class="p">)</span>
+                            <span class="n">source_induced_slot_range</span> <span class="o">=</span> <span class="n">source_induced_slot</span><span class="o">.</span><span class="n">range</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">continue</span>
+
+                <span class="k">if</span> <span class="n">source_induced_slot_range</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">fk_resolution</span> <span class="o">=</span> <span class="n">resolve_fk_path</span><span class="p">(</span><span class="n">source_schemaview</span><span class="p">,</span> <span class="n">cd</span><span class="o">.</span><span class="n">populated_from</span><span class="p">,</span> <span class="n">populated_from_slot</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">fk_resolution</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">fk_resolution</span><span class="o">.</span><span class="n">final_slot</span><span class="p">:</span>
+                            <span class="k">continue</span>
+                        <span class="n">source_induced_slot_range</span> <span class="o">=</span> <span class="n">fk_resolution</span><span class="o">.</span><span class="n">final_slot</span><span class="o">.</span><span class="n">range</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">source_induced_slot</span> <span class="o">=</span> <span class="n">source_schemaview</span><span class="o">.</span><span class="n">induced_slot</span><span class="p">(</span><span class="n">populated_from_slot</span><span class="p">,</span> <span class="n">cd</span><span class="o">.</span><span class="n">populated_from</span><span class="p">)</span>
+                        <span class="n">source_induced_slot_range</span> <span class="o">=</span> <span class="n">source_induced_slot</span><span class="o">.</span><span class="n">range</span>
+
+                <span class="k">for</span> <span class="n">range_cd</span> <span class="ow">in</span> <span class="n">specification</span><span class="o">.</span><span class="n">class_derivations</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">range_cd</span><span class="o">.</span><span class="n">populated_from</span> <span class="o">==</span> <span class="n">source_induced_slot_range</span><span class="p">:</span>
+                        <span class="n">sd</span><span class="o">.</span><span class="n">range</span> <span class="o">=</span> <span class="n">range_cd</span><span class="o">.</span><span class="n">name</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="inverter">Inverter</h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+
+    <div class="doc doc-contents first">
+
+        <p>Invert a transformation specification.</p>
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="linkml_map.inference.inverter.NonInvertibleSpecificationError" class="doc doc-heading">
+            <code>NonInvertibleSpecificationError</code>
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="ValueError">ValueError</span></code></p>
+
+
+        <p>Error thrown when a specification is not invertible.</p>
+
+
+
+
+
+
+
+              <details class="quote">
+                <summary>Source code in <code>src/linkml_map/inference/inverter.py</code></summary>
+                <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">23</span>
+<span class="normal">24</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">NonInvertibleSpecificationError</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Error thrown when a specification is not invertible.&quot;&quot;&quot;</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="linkml_map.inference.inverter.TransformationSpecificationInverter" class="doc doc-heading">
+            <code>TransformationSpecificationInverter</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+
+        <p>Invert a transformation specification.</p>
+
+
+
+
+
+
+
+              <details class="quote">
+                <summary>Source code in <code>src/linkml_map/inference/inverter.py</code></summary>
+                <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 27</span>
+<span class="normal"> 28</span>
+<span class="normal"> 29</span>
+<span class="normal"> 30</span>
+<span class="normal"> 31</span>
+<span class="normal"> 32</span>
+<span class="normal"> 33</span>
+<span class="normal"> 34</span>
+<span class="normal"> 35</span>
+<span class="normal"> 36</span>
+<span class="normal"> 37</span>
+<span class="normal"> 38</span>
+<span class="normal"> 39</span>
+<span class="normal"> 40</span>
+<span class="normal"> 41</span>
+<span class="normal"> 42</span>
+<span class="normal"> 43</span>
+<span class="normal"> 44</span>
+<span class="normal"> 45</span>
+<span class="normal"> 46</span>
+<span class="normal"> 47</span>
+<span class="normal"> 48</span>
+<span class="normal"> 49</span>
+<span class="normal"> 50</span>
+<span class="normal"> 51</span>
+<span class="normal"> 52</span>
+<span class="normal"> 53</span>
+<span class="normal"> 54</span>
+<span class="normal"> 55</span>
+<span class="normal"> 56</span>
+<span class="normal"> 57</span>
+<span class="normal"> 58</span>
+<span class="normal"> 59</span>
+<span class="normal"> 60</span>
+<span class="normal"> 61</span>
+<span class="normal"> 62</span>
+<span class="normal"> 63</span>
+<span class="normal"> 64</span>
+<span class="normal"> 65</span>
+<span class="normal"> 66</span>
+<span class="normal"> 67</span>
+<span class="normal"> 68</span>
+<span class="normal"> 69</span>
+<span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TransformationSpecificationInverter</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Invert a transformation specification.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">source_schemaview</span><span class="p">:</span> <span class="n">SchemaView</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The source schema for the forward transformation.</span>
+<span class="sd">    Note this becomes the target schema for the generated inverse transformation,</span>
+<span class="sd">    because the goal of the inverted transformation is to map back to the original source.&quot;&quot;&quot;</span>
+
+    <span class="n">target_schemaview</span><span class="p">:</span> <span class="n">SchemaView</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The target schema for the forward transformation.</span>
+<span class="sd">    Note this becomes the source schema for the generated inverse transformation.&quot;&quot;&quot;</span>
+
+    <span class="n">strict</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">invert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec</span><span class="p">:</span> <span class="n">TransformationSpecification</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TransformationSpecification</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Invert a transformation specification.</span>
+
+<span class="sd">        :param spec:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Inverting specification&quot;</span><span class="p">)</span>
+        <span class="n">inverted_spec</span> <span class="o">=</span> <span class="n">TransformationSpecification</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">class_derivations</span><span class="p">:</span>
+            <span class="n">inverted_cd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">invert_class_derivation</span><span class="p">(</span><span class="n">cd</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span>
+            <span class="n">inverted_spec</span><span class="o">.</span><span class="n">class_derivations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inverted_cd</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ed</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">enum_derivations</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">inverted_ed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">invert_enum_derivation</span><span class="p">(</span><span class="n">ed</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span>
+            <span class="n">inverted_spec</span><span class="o">.</span><span class="n">enum_derivations</span><span class="p">[</span><span class="n">inverted_ed</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">inverted_ed</span>
+        <span class="k">return</span> <span class="n">inverted_spec</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">invert_class_derivation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cd</span><span class="p">:</span> <span class="n">ClassDerivation</span><span class="p">,</span> <span class="n">spec</span><span class="p">:</span> <span class="n">TransformationSpecification</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ClassDerivation</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Invert a class derivation.</span>
+
+<span class="sd">        :param cd:</span>
+<span class="sd">        :param spec:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">inverted_cd</span> <span class="o">=</span> <span class="n">ClassDerivation</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">cd</span><span class="o">.</span><span class="n">populated_from</span> <span class="k">if</span> <span class="n">cd</span><span class="o">.</span><span class="n">populated_from</span> <span class="k">else</span> <span class="n">cd</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">populated_from</span><span class="o">=</span><span class="n">cd</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">sd</span> <span class="ow">in</span> <span class="n">cd</span><span class="o">.</span><span class="n">slot_derivations</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">sd</span><span class="o">.</span><span class="n">hide</span><span class="p">:</span>
+                <span class="c1"># Hidden slots have no target counterpart, so they have nothing</span>
+                <span class="c1"># to invert from.</span>
+                <span class="k">continue</span>
+            <span class="n">inverted_sd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">invert_slot_derivation</span><span class="p">(</span><span class="n">sd</span><span class="p">,</span> <span class="n">cd</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">inverted_sd</span><span class="p">:</span>
+                <span class="n">inverted_cd</span><span class="o">.</span><span class="n">slot_derivations</span><span class="p">[</span><span class="n">inverted_sd</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">inverted_sd</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">strict</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Cannot invert slot derivation: </span><span class="si">{</span><span class="n">sd</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">raise</span> <span class="n">NonInvertibleSpecificationError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">inverted_cd</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">invert_enum_derivation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ed</span><span class="p">:</span> <span class="n">EnumDerivation</span><span class="p">,</span> <span class="n">spec</span><span class="p">:</span> <span class="n">TransformationSpecification</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EnumDerivation</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Invert an enum derivation.</span>
+
+<span class="sd">        :param ed:</span>
+<span class="sd">        :param spec:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">inverted_ed</span> <span class="o">=</span> <span class="n">EnumDerivation</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">ed</span><span class="o">.</span><span class="n">populated_from</span> <span class="k">if</span> <span class="n">ed</span><span class="o">.</span><span class="n">populated_from</span> <span class="k">else</span> <span class="n">ed</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">populated_from</span><span class="o">=</span><span class="n">ed</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">inverted_ed</span><span class="o">.</span><span class="n">expr</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;TODO: invert enum derivation with expression&quot;</span>
+            <span class="k">raise</span> <span class="n">NonInvertibleSpecificationError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">pv_deriv</span> <span class="ow">in</span> <span class="n">ed</span><span class="o">.</span><span class="n">permissible_value_derivations</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">inverted_pv_deriv</span> <span class="o">=</span> <span class="n">PermissibleValueDerivation</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">pv_deriv</span><span class="o">.</span><span class="n">populated_from</span> <span class="k">if</span> <span class="n">pv_deriv</span><span class="o">.</span><span class="n">populated_from</span> <span class="k">else</span> <span class="n">pv_deriv</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">populated_from</span><span class="o">=</span><span class="n">pv_deriv</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">inverted_ed</span><span class="o">.</span><span class="n">permissible_value_derivations</span><span class="p">[</span><span class="n">inverted_pv_deriv</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">inverted_pv_deriv</span>
+        <span class="k">return</span> <span class="n">inverted_ed</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">invert_slot_derivation</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">sd</span><span class="p">:</span> <span class="n">SlotDerivation</span><span class="p">,</span> <span class="n">cd</span><span class="p">:</span> <span class="n">ClassDerivation</span><span class="p">,</span> <span class="n">spec</span><span class="p">:</span> <span class="n">TransformationSpecification</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SlotDerivation</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Invert a slot derivation.</span>
+
+<span class="sd">        :param sd:</span>
+<span class="sd">        :param cd:</span>
+<span class="sd">        :param spec:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">populated_from</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">populated_from</span>
+        <span class="k">if</span> <span class="n">sd</span><span class="o">.</span><span class="n">expr</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^\w+$&quot;</span><span class="p">,</span> <span class="n">sd</span><span class="o">.</span><span class="n">expr</span><span class="p">):</span>
+                <span class="n">populated_from</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">expr</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">strict</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">None</span>
+                <span class="c1"># TODO: add logic for reversible expressions</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Cannot invert expression </span><span class="si">{</span><span class="n">sd</span><span class="o">.</span><span class="n">expr</span><span class="si">}</span><span class="s2"> in slot derivation: </span><span class="si">{</span><span class="n">sd</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">raise</span> <span class="n">NonInvertibleSpecificationError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">populated_from</span><span class="p">:</span>
+            <span class="c1"># use defaults. TODO: decide on semantics of defaults</span>
+            <span class="n">populated_from</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">inverted_sd</span> <span class="o">=</span> <span class="n">SlotDerivation</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">populated_from</span><span class="p">,</span> <span class="n">populated_from</span><span class="o">=</span><span class="n">sd</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">source_cls_name</span> <span class="o">=</span> <span class="n">cd</span><span class="o">.</span><span class="n">populated_from</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">source_cls_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">source_cls_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span><span class="o">.</span><span class="n">all_classes</span><span class="p">())</span> <span class="ow">and</span> <span class="n">sd</span><span class="o">.</span><span class="n">populated_from</span><span class="p">:</span>
+            <span class="n">source_slot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span><span class="o">.</span><span class="n">induced_slot</span><span class="p">(</span><span class="n">sd</span><span class="o">.</span><span class="n">populated_from</span><span class="p">,</span> <span class="n">source_cls_name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">source_slot</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">sd</span><span class="o">.</span><span class="n">range</span><span class="p">:</span>
+            <span class="n">inverted_sd</span><span class="o">.</span><span class="n">range</span> <span class="o">=</span> <span class="n">source_slot</span><span class="o">.</span><span class="n">range</span>
+            <span class="k">if</span> <span class="n">source_slot</span><span class="o">.</span><span class="n">range</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span><span class="o">.</span><span class="n">all_classes</span><span class="p">():</span>
+                <span class="n">id_slot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span><span class="o">.</span><span class="n">get_identifier_slot</span><span class="p">(</span><span class="n">source_slot</span><span class="o">.</span><span class="n">range</span><span class="p">,</span> <span class="n">use_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">id_slot</span><span class="p">:</span>
+                    <span class="n">inverted_sd</span><span class="o">.</span><span class="n">dictionary_key</span> <span class="o">=</span> <span class="n">id_slot</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">if</span> <span class="n">source_slot</span> <span class="ow">and</span> <span class="n">source_slot</span><span class="o">.</span><span class="n">multivalued</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">source_slot</span><span class="o">.</span><span class="n">inlined_as_list</span><span class="p">:</span>
+                <span class="n">inverted_sd</span><span class="o">.</span><span class="n">cast_collection_as</span> <span class="o">=</span> <span class="n">CollectionType</span><span class="o">.</span><span class="n">MultiValuedList</span>
+            <span class="k">elif</span> <span class="n">source_slot</span><span class="o">.</span><span class="n">inlined</span> <span class="ow">and</span> <span class="n">source_slot</span><span class="o">.</span><span class="n">range</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span><span class="o">.</span><span class="n">all_classes</span><span class="p">():</span>
+                <span class="n">id_slot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span><span class="o">.</span><span class="n">get_identifier_slot</span><span class="p">(</span><span class="n">source_slot</span><span class="o">.</span><span class="n">range</span><span class="p">,</span> <span class="n">use_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">id_slot</span><span class="p">:</span>
+                    <span class="n">inverted_sd</span><span class="o">.</span><span class="n">cast_collection_as</span> <span class="o">=</span> <span class="n">CollectionType</span><span class="o">.</span><span class="n">MultiValuedDict</span>
+                    <span class="n">inverted_sd</span><span class="o">.</span><span class="n">dictionary_key</span> <span class="o">=</span> <span class="n">id_slot</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">if</span> <span class="n">sd</span><span class="o">.</span><span class="n">unit_conversion</span><span class="p">:</span>
+            <span class="n">source_slot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span><span class="o">.</span><span class="n">induced_slot</span><span class="p">(</span><span class="n">sd</span><span class="o">.</span><span class="n">populated_from</span><span class="p">,</span> <span class="n">source_cls_name</span><span class="p">)</span>
+            <span class="n">target_unit</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">target_unit_scheme</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">source_slot</span><span class="o">.</span><span class="n">unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;ucum_code&quot;</span><span class="p">,</span> <span class="s2">&quot;symbol&quot;</span><span class="p">]:</span>
+                    <span class="n">target_unit</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">source_slot</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">target_unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">target_unit_scheme</span> <span class="o">=</span> <span class="n">p</span>
+                        <span class="k">break</span>
+            <span class="n">inverted_uc</span> <span class="o">=</span> <span class="n">UnitConversionConfiguration</span><span class="p">(</span><span class="n">target_unit</span><span class="o">=</span><span class="n">target_unit</span><span class="p">,</span> <span class="n">target_unit_scheme</span><span class="o">=</span><span class="n">target_unit_scheme</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">sd</span><span class="o">.</span><span class="n">unit_conversion</span><span class="o">.</span><span class="n">source_unit_slot</span><span class="p">:</span>
+                <span class="n">inverted_uc</span><span class="o">.</span><span class="n">target_unit_slot</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">unit_conversion</span><span class="o">.</span><span class="n">source_unit_slot</span>
+            <span class="k">if</span> <span class="n">sd</span><span class="o">.</span><span class="n">unit_conversion</span><span class="o">.</span><span class="n">source_magnitude_slot</span><span class="p">:</span>
+                <span class="n">inverted_uc</span><span class="o">.</span><span class="n">target_magnitude_slot</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">unit_conversion</span><span class="o">.</span><span class="n">source_magnitude_slot</span>
+            <span class="k">if</span> <span class="n">sd</span><span class="o">.</span><span class="n">unit_conversion</span><span class="o">.</span><span class="n">target_unit</span><span class="p">:</span>
+                <span class="n">inverted_uc</span><span class="o">.</span><span class="n">source_unit</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">unit_conversion</span><span class="o">.</span><span class="n">target_unit</span>
+            <span class="n">inverted_sd</span><span class="o">.</span><span class="n">unit_conversion</span> <span class="o">=</span> <span class="n">inverted_uc</span>
+        <span class="k">if</span> <span class="n">sd</span><span class="o">.</span><span class="n">stringification</span><span class="p">:</span>
+            <span class="n">inverted_sd</span><span class="o">.</span><span class="n">stringification</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">sd</span><span class="o">.</span><span class="n">stringification</span><span class="p">)</span>
+            <span class="n">inverted_sd</span><span class="o">.</span><span class="n">stringification</span><span class="o">.</span><span class="n">reversed</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">inverted_sd</span><span class="o">.</span><span class="n">stringification</span><span class="o">.</span><span class="n">reversed</span>
+        <span class="k">return</span> <span class="n">inverted_sd</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="linkml_map.inference.inverter.TransformationSpecificationInverter.source_schemaview" class="doc doc-heading">
+            <code class=" language-python"><span class="n">source_schemaview</span> <span class="o">=</span> <span class="kc">None</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>The source schema for the forward transformation.
+Note this becomes the target schema for the generated inverse transformation,
+because the goal of the inverted transformation is to map back to the original source.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="linkml_map.inference.inverter.TransformationSpecificationInverter.target_schemaview" class="doc doc-heading">
+            <code class=" language-python"><span class="n">target_schemaview</span> <span class="o">=</span> <span class="kc">None</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>The target schema for the forward transformation.
+Note this becomes the source schema for the generated inverse transformation.</p>
+
+    </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="linkml_map.inference.inverter.TransformationSpecificationInverter.invert" class="doc doc-heading">
+            <code class=" language-python"><span class="n">invert</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Invert a transformation specification.</p>
+<p>:param spec:
+:return:</p>
+
+
+            <details class="quote">
+              <summary>Source code in <code>src/linkml_map/inference/inverter.py</code></summary>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">invert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec</span><span class="p">:</span> <span class="n">TransformationSpecification</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TransformationSpecification</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Invert a transformation specification.</span>
+
+<span class="sd">    :param spec:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Inverting specification&quot;</span><span class="p">)</span>
+    <span class="n">inverted_spec</span> <span class="o">=</span> <span class="n">TransformationSpecification</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">class_derivations</span><span class="p">:</span>
+        <span class="n">inverted_cd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">invert_class_derivation</span><span class="p">(</span><span class="n">cd</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span>
+        <span class="n">inverted_spec</span><span class="o">.</span><span class="n">class_derivations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inverted_cd</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">ed</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">enum_derivations</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">inverted_ed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">invert_enum_derivation</span><span class="p">(</span><span class="n">ed</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span>
+        <span class="n">inverted_spec</span><span class="o">.</span><span class="n">enum_derivations</span><span class="p">[</span><span class="n">inverted_ed</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">inverted_ed</span>
+    <span class="k">return</span> <span class="n">inverted_spec</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="linkml_map.inference.inverter.TransformationSpecificationInverter.invert_class_derivation" class="doc doc-heading">
+            <code class=" language-python"><span class="n">invert_class_derivation</span><span class="p">(</span><span class="n">cd</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Invert a class derivation.</p>
+<p>:param cd:
+:param spec:
+:return:</p>
+
+
+            <details class="quote">
+              <summary>Source code in <code>src/linkml_map/inference/inverter.py</code></summary>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span>
+<span class="normal">71</span>
+<span class="normal">72</span>
+<span class="normal">73</span>
+<span class="normal">74</span>
+<span class="normal">75</span>
+<span class="normal">76</span>
+<span class="normal">77</span>
+<span class="normal">78</span>
+<span class="normal">79</span>
+<span class="normal">80</span>
+<span class="normal">81</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">invert_class_derivation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cd</span><span class="p">:</span> <span class="n">ClassDerivation</span><span class="p">,</span> <span class="n">spec</span><span class="p">:</span> <span class="n">TransformationSpecification</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ClassDerivation</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Invert a class derivation.</span>
+
+<span class="sd">    :param cd:</span>
+<span class="sd">    :param spec:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">inverted_cd</span> <span class="o">=</span> <span class="n">ClassDerivation</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">cd</span><span class="o">.</span><span class="n">populated_from</span> <span class="k">if</span> <span class="n">cd</span><span class="o">.</span><span class="n">populated_from</span> <span class="k">else</span> <span class="n">cd</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">populated_from</span><span class="o">=</span><span class="n">cd</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">sd</span> <span class="ow">in</span> <span class="n">cd</span><span class="o">.</span><span class="n">slot_derivations</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">sd</span><span class="o">.</span><span class="n">hide</span><span class="p">:</span>
+            <span class="c1"># Hidden slots have no target counterpart, so they have nothing</span>
+            <span class="c1"># to invert from.</span>
+            <span class="k">continue</span>
+        <span class="n">inverted_sd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">invert_slot_derivation</span><span class="p">(</span><span class="n">sd</span><span class="p">,</span> <span class="n">cd</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">inverted_sd</span><span class="p">:</span>
+            <span class="n">inverted_cd</span><span class="o">.</span><span class="n">slot_derivations</span><span class="p">[</span><span class="n">inverted_sd</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">inverted_sd</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">strict</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Cannot invert slot derivation: </span><span class="si">{</span><span class="n">sd</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">raise</span> <span class="n">NonInvertibleSpecificationError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">inverted_cd</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="linkml_map.inference.inverter.TransformationSpecificationInverter.invert_enum_derivation" class="doc doc-heading">
+            <code class=" language-python"><span class="n">invert_enum_derivation</span><span class="p">(</span><span class="n">ed</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Invert an enum derivation.</p>
+<p>:param ed:
+:param spec:
+:return:</p>
+
+
+            <details class="quote">
+              <summary>Source code in <code>src/linkml_map/inference/inverter.py</code></summary>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">invert_enum_derivation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ed</span><span class="p">:</span> <span class="n">EnumDerivation</span><span class="p">,</span> <span class="n">spec</span><span class="p">:</span> <span class="n">TransformationSpecification</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EnumDerivation</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Invert an enum derivation.</span>
+
+<span class="sd">    :param ed:</span>
+<span class="sd">    :param spec:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">inverted_ed</span> <span class="o">=</span> <span class="n">EnumDerivation</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">ed</span><span class="o">.</span><span class="n">populated_from</span> <span class="k">if</span> <span class="n">ed</span><span class="o">.</span><span class="n">populated_from</span> <span class="k">else</span> <span class="n">ed</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">populated_from</span><span class="o">=</span><span class="n">ed</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">inverted_ed</span><span class="o">.</span><span class="n">expr</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;TODO: invert enum derivation with expression&quot;</span>
+        <span class="k">raise</span> <span class="n">NonInvertibleSpecificationError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">pv_deriv</span> <span class="ow">in</span> <span class="n">ed</span><span class="o">.</span><span class="n">permissible_value_derivations</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">inverted_pv_deriv</span> <span class="o">=</span> <span class="n">PermissibleValueDerivation</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">pv_deriv</span><span class="o">.</span><span class="n">populated_from</span> <span class="k">if</span> <span class="n">pv_deriv</span><span class="o">.</span><span class="n">populated_from</span> <span class="k">else</span> <span class="n">pv_deriv</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">populated_from</span><span class="o">=</span><span class="n">pv_deriv</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">inverted_ed</span><span class="o">.</span><span class="n">permissible_value_derivations</span><span class="p">[</span><span class="n">inverted_pv_deriv</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">inverted_pv_deriv</span>
+    <span class="k">return</span> <span class="n">inverted_ed</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="linkml_map.inference.inverter.TransformationSpecificationInverter.invert_slot_derivation" class="doc doc-heading">
+            <code class=" language-python"><span class="n">invert_slot_derivation</span><span class="p">(</span><span class="n">sd</span><span class="p">,</span> <span class="n">cd</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Invert a slot derivation.</p>
+<p>:param sd:
+:param cd:
+:param spec:
+:return:</p>
+
+
+            <details class="quote">
+              <summary>Source code in <code>src/linkml_map/inference/inverter.py</code></summary>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">invert_slot_derivation</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span> <span class="n">sd</span><span class="p">:</span> <span class="n">SlotDerivation</span><span class="p">,</span> <span class="n">cd</span><span class="p">:</span> <span class="n">ClassDerivation</span><span class="p">,</span> <span class="n">spec</span><span class="p">:</span> <span class="n">TransformationSpecification</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SlotDerivation</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Invert a slot derivation.</span>
+
+<span class="sd">    :param sd:</span>
+<span class="sd">    :param cd:</span>
+<span class="sd">    :param spec:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">populated_from</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">populated_from</span>
+    <span class="k">if</span> <span class="n">sd</span><span class="o">.</span><span class="n">expr</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^\w+$&quot;</span><span class="p">,</span> <span class="n">sd</span><span class="o">.</span><span class="n">expr</span><span class="p">):</span>
+            <span class="n">populated_from</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">expr</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">strict</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="c1"># TODO: add logic for reversible expressions</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Cannot invert expression </span><span class="si">{</span><span class="n">sd</span><span class="o">.</span><span class="n">expr</span><span class="si">}</span><span class="s2"> in slot derivation: </span><span class="si">{</span><span class="n">sd</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">raise</span> <span class="n">NonInvertibleSpecificationError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">populated_from</span><span class="p">:</span>
+        <span class="c1"># use defaults. TODO: decide on semantics of defaults</span>
+        <span class="n">populated_from</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">name</span>
+    <span class="n">inverted_sd</span> <span class="o">=</span> <span class="n">SlotDerivation</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">populated_from</span><span class="p">,</span> <span class="n">populated_from</span><span class="o">=</span><span class="n">sd</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">source_cls_name</span> <span class="o">=</span> <span class="n">cd</span><span class="o">.</span><span class="n">populated_from</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">source_cls_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">source_cls_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span><span class="o">.</span><span class="n">all_classes</span><span class="p">())</span> <span class="ow">and</span> <span class="n">sd</span><span class="o">.</span><span class="n">populated_from</span><span class="p">:</span>
+        <span class="n">source_slot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span><span class="o">.</span><span class="n">induced_slot</span><span class="p">(</span><span class="n">sd</span><span class="o">.</span><span class="n">populated_from</span><span class="p">,</span> <span class="n">source_cls_name</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">source_slot</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">sd</span><span class="o">.</span><span class="n">range</span><span class="p">:</span>
+        <span class="n">inverted_sd</span><span class="o">.</span><span class="n">range</span> <span class="o">=</span> <span class="n">source_slot</span><span class="o">.</span><span class="n">range</span>
+        <span class="k">if</span> <span class="n">source_slot</span><span class="o">.</span><span class="n">range</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span><span class="o">.</span><span class="n">all_classes</span><span class="p">():</span>
+            <span class="n">id_slot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span><span class="o">.</span><span class="n">get_identifier_slot</span><span class="p">(</span><span class="n">source_slot</span><span class="o">.</span><span class="n">range</span><span class="p">,</span> <span class="n">use_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">id_slot</span><span class="p">:</span>
+                <span class="n">inverted_sd</span><span class="o">.</span><span class="n">dictionary_key</span> <span class="o">=</span> <span class="n">id_slot</span><span class="o">.</span><span class="n">name</span>
+    <span class="k">if</span> <span class="n">source_slot</span> <span class="ow">and</span> <span class="n">source_slot</span><span class="o">.</span><span class="n">multivalued</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">source_slot</span><span class="o">.</span><span class="n">inlined_as_list</span><span class="p">:</span>
+            <span class="n">inverted_sd</span><span class="o">.</span><span class="n">cast_collection_as</span> <span class="o">=</span> <span class="n">CollectionType</span><span class="o">.</span><span class="n">MultiValuedList</span>
+        <span class="k">elif</span> <span class="n">source_slot</span><span class="o">.</span><span class="n">inlined</span> <span class="ow">and</span> <span class="n">source_slot</span><span class="o">.</span><span class="n">range</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span><span class="o">.</span><span class="n">all_classes</span><span class="p">():</span>
+            <span class="n">id_slot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span><span class="o">.</span><span class="n">get_identifier_slot</span><span class="p">(</span><span class="n">source_slot</span><span class="o">.</span><span class="n">range</span><span class="p">,</span> <span class="n">use_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">id_slot</span><span class="p">:</span>
+                <span class="n">inverted_sd</span><span class="o">.</span><span class="n">cast_collection_as</span> <span class="o">=</span> <span class="n">CollectionType</span><span class="o">.</span><span class="n">MultiValuedDict</span>
+                <span class="n">inverted_sd</span><span class="o">.</span><span class="n">dictionary_key</span> <span class="o">=</span> <span class="n">id_slot</span><span class="o">.</span><span class="n">name</span>
+    <span class="k">if</span> <span class="n">sd</span><span class="o">.</span><span class="n">unit_conversion</span><span class="p">:</span>
+        <span class="n">source_slot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span><span class="o">.</span><span class="n">induced_slot</span><span class="p">(</span><span class="n">sd</span><span class="o">.</span><span class="n">populated_from</span><span class="p">,</span> <span class="n">source_cls_name</span><span class="p">)</span>
+        <span class="n">target_unit</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">target_unit_scheme</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">source_slot</span><span class="o">.</span><span class="n">unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;ucum_code&quot;</span><span class="p">,</span> <span class="s2">&quot;symbol&quot;</span><span class="p">]:</span>
+                <span class="n">target_unit</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">source_slot</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">target_unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">target_unit_scheme</span> <span class="o">=</span> <span class="n">p</span>
+                    <span class="k">break</span>
+        <span class="n">inverted_uc</span> <span class="o">=</span> <span class="n">UnitConversionConfiguration</span><span class="p">(</span><span class="n">target_unit</span><span class="o">=</span><span class="n">target_unit</span><span class="p">,</span> <span class="n">target_unit_scheme</span><span class="o">=</span><span class="n">target_unit_scheme</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sd</span><span class="o">.</span><span class="n">unit_conversion</span><span class="o">.</span><span class="n">source_unit_slot</span><span class="p">:</span>
+            <span class="n">inverted_uc</span><span class="o">.</span><span class="n">target_unit_slot</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">unit_conversion</span><span class="o">.</span><span class="n">source_unit_slot</span>
+        <span class="k">if</span> <span class="n">sd</span><span class="o">.</span><span class="n">unit_conversion</span><span class="o">.</span><span class="n">source_magnitude_slot</span><span class="p">:</span>
+            <span class="n">inverted_uc</span><span class="o">.</span><span class="n">target_magnitude_slot</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">unit_conversion</span><span class="o">.</span><span class="n">source_magnitude_slot</span>
+        <span class="k">if</span> <span class="n">sd</span><span class="o">.</span><span class="n">unit_conversion</span><span class="o">.</span><span class="n">target_unit</span><span class="p">:</span>
+            <span class="n">inverted_uc</span><span class="o">.</span><span class="n">source_unit</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">unit_conversion</span><span class="o">.</span><span class="n">target_unit</span>
+        <span class="n">inverted_sd</span><span class="o">.</span><span class="n">unit_conversion</span> <span class="o">=</span> <span class="n">inverted_uc</span>
+    <span class="k">if</span> <span class="n">sd</span><span class="o">.</span><span class="n">stringification</span><span class="p">:</span>
+        <span class="n">inverted_sd</span><span class="o">.</span><span class="n">stringification</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">sd</span><span class="o">.</span><span class="n">stringification</span><span class="p">)</span>
+        <span class="n">inverted_sd</span><span class="o">.</span><span class="n">stringification</span><span class="o">.</span><span class="n">reversed</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">inverted_sd</span><span class="o">.</span><span class="n">stringification</span><span class="o">.</span><span class="n">reversed</span>
+    <span class="k">return</span> <span class="n">inverted_sd</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="schema-mapper">Schema Mapper</h2>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+
+    <div class="doc doc-contents first">
+
+
+        <p>Translates a source schema and transformation specification into a target schema.</p>
+
+
+
+
+
+
+
+              <details class="quote">
+                <summary>Source code in <code>src/linkml_map/inference/schema_mapper.py</code></summary>
+                <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 38</span>
+<span class="normal"> 39</span>
+<span class="normal"> 40</span>
+<span class="normal"> 41</span>
+<span class="normal"> 42</span>
+<span class="normal"> 43</span>
+<span class="normal"> 44</span>
+<span class="normal"> 45</span>
+<span class="normal"> 46</span>
+<span class="normal"> 47</span>
+<span class="normal"> 48</span>
+<span class="normal"> 49</span>
+<span class="normal"> 50</span>
+<span class="normal"> 51</span>
+<span class="normal"> 52</span>
+<span class="normal"> 53</span>
+<span class="normal"> 54</span>
+<span class="normal"> 55</span>
+<span class="normal"> 56</span>
+<span class="normal"> 57</span>
+<span class="normal"> 58</span>
+<span class="normal"> 59</span>
+<span class="normal"> 60</span>
+<span class="normal"> 61</span>
+<span class="normal"> 62</span>
+<span class="normal"> 63</span>
+<span class="normal"> 64</span>
+<span class="normal"> 65</span>
+<span class="normal"> 66</span>
+<span class="normal"> 67</span>
+<span class="normal"> 68</span>
+<span class="normal"> 69</span>
+<span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
+<span class="normal">268</span>
+<span class="normal">269</span>
+<span class="normal">270</span>
+<span class="normal">271</span>
+<span class="normal">272</span>
+<span class="normal">273</span>
+<span class="normal">274</span>
+<span class="normal">275</span>
+<span class="normal">276</span>
+<span class="normal">277</span>
+<span class="normal">278</span>
+<span class="normal">279</span>
+<span class="normal">280</span>
+<span class="normal">281</span>
+<span class="normal">282</span>
+<span class="normal">283</span>
+<span class="normal">284</span>
+<span class="normal">285</span>
+<span class="normal">286</span>
+<span class="normal">287</span>
+<span class="normal">288</span>
+<span class="normal">289</span>
+<span class="normal">290</span>
+<span class="normal">291</span>
+<span class="normal">292</span>
+<span class="normal">293</span>
+<span class="normal">294</span>
+<span class="normal">295</span>
+<span class="normal">296</span>
+<span class="normal">297</span>
+<span class="normal">298</span>
+<span class="normal">299</span>
+<span class="normal">300</span>
+<span class="normal">301</span>
+<span class="normal">302</span>
+<span class="normal">303</span>
+<span class="normal">304</span>
+<span class="normal">305</span>
+<span class="normal">306</span>
+<span class="normal">307</span>
+<span class="normal">308</span>
+<span class="normal">309</span>
+<span class="normal">310</span>
+<span class="normal">311</span>
+<span class="normal">312</span>
+<span class="normal">313</span>
+<span class="normal">314</span>
+<span class="normal">315</span>
+<span class="normal">316</span>
+<span class="normal">317</span>
+<span class="normal">318</span>
+<span class="normal">319</span>
+<span class="normal">320</span>
+<span class="normal">321</span>
+<span class="normal">322</span>
+<span class="normal">323</span>
+<span class="normal">324</span>
+<span class="normal">325</span>
+<span class="normal">326</span>
+<span class="normal">327</span>
+<span class="normal">328</span>
+<span class="normal">329</span>
+<span class="normal">330</span>
+<span class="normal">331</span>
+<span class="normal">332</span>
+<span class="normal">333</span>
+<span class="normal">334</span>
+<span class="normal">335</span>
+<span class="normal">336</span>
+<span class="normal">337</span>
+<span class="normal">338</span>
+<span class="normal">339</span>
+<span class="normal">340</span>
+<span class="normal">341</span>
+<span class="normal">342</span>
+<span class="normal">343</span>
+<span class="normal">344</span>
+<span class="normal">345</span>
+<span class="normal">346</span>
+<span class="normal">347</span>
+<span class="normal">348</span>
+<span class="normal">349</span>
+<span class="normal">350</span>
+<span class="normal">351</span>
+<span class="normal">352</span>
+<span class="normal">353</span>
+<span class="normal">354</span>
+<span class="normal">355</span>
+<span class="normal">356</span>
+<span class="normal">357</span>
+<span class="normal">358</span>
+<span class="normal">359</span>
+<span class="normal">360</span>
+<span class="normal">361</span>
+<span class="normal">362</span>
+<span class="normal">363</span>
+<span class="normal">364</span>
+<span class="normal">365</span>
+<span class="normal">366</span>
+<span class="normal">367</span>
+<span class="normal">368</span>
+<span class="normal">369</span>
+<span class="normal">370</span>
+<span class="normal">371</span>
+<span class="normal">372</span>
+<span class="normal">373</span>
+<span class="normal">374</span>
+<span class="normal">375</span>
+<span class="normal">376</span>
+<span class="normal">377</span>
+<span class="normal">378</span>
+<span class="normal">379</span>
+<span class="normal">380</span>
+<span class="normal">381</span>
+<span class="normal">382</span>
+<span class="normal">383</span>
+<span class="normal">384</span>
+<span class="normal">385</span>
+<span class="normal">386</span>
+<span class="normal">387</span>
+<span class="normal">388</span>
+<span class="normal">389</span>
+<span class="normal">390</span>
+<span class="normal">391</span>
+<span class="normal">392</span>
+<span class="normal">393</span>
+<span class="normal">394</span>
+<span class="normal">395</span>
+<span class="normal">396</span>
+<span class="normal">397</span>
+<span class="normal">398</span>
+<span class="normal">399</span>
+<span class="normal">400</span>
+<span class="normal">401</span>
+<span class="normal">402</span>
+<span class="normal">403</span>
+<span class="normal">404</span>
+<span class="normal">405</span>
+<span class="normal">406</span>
+<span class="normal">407</span>
+<span class="normal">408</span>
+<span class="normal">409</span>
+<span class="normal">410</span>
+<span class="normal">411</span>
+<span class="normal">412</span>
+<span class="normal">413</span>
+<span class="normal">414</span>
+<span class="normal">415</span>
+<span class="normal">416</span>
+<span class="normal">417</span>
+<span class="normal">418</span>
+<span class="normal">419</span>
+<span class="normal">420</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SchemaMapper</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Translates a source schema and transformation specification into a target schema.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">source_schemaview</span><span class="p">:</span> <span class="n">SchemaView</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">transformer</span><span class="p">:</span> <span class="n">Transformer</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">source_to_target_class_mappings</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">))</span>
+
+    <span class="n">slot_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_copy_dict</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">copy_directive</span><span class="p">:</span> <span class="n">CopyDirective</span><span class="p">,</span>
+        <span class="n">src_elements</span><span class="p">,</span>
+        <span class="n">tgt_elements</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">copy_directive</span><span class="o">.</span><span class="n">copy_all</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">src_elements</span><span class="p">:</span>
+                <span class="n">tgt_elements</span><span class="p">[</span><span class="n">element</span><span class="p">]</span> <span class="o">=</span> <span class="n">src_elements</span><span class="p">[</span><span class="n">element</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">copy_directive</span><span class="o">.</span><span class="n">exclude</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">src_elements</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">copy_directive</span><span class="o">.</span><span class="n">exclude</span><span class="p">:</span>
+                    <span class="k">del</span> <span class="n">tgt_elements</span><span class="p">[</span><span class="n">element</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">copy_directive</span><span class="o">.</span><span class="n">exclude_all</span><span class="p">:</span>
+            <span class="n">elements_to_delete</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">tgt_elements</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">elements_to_delete</span><span class="p">:</span>
+                <span class="k">del</span> <span class="n">tgt_elements</span><span class="p">[</span><span class="n">element</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">copy_directive</span><span class="o">.</span><span class="n">include</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">copy_directive</span><span class="o">.</span><span class="n">include</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">src_elements</span><span class="p">:</span>
+                    <span class="n">tgt_elements</span><span class="p">[</span><span class="n">element</span><span class="p">]</span> <span class="o">=</span> <span class="n">src_elements</span><span class="p">[</span><span class="n">element</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_copy_list</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">copy_directive</span><span class="p">:</span> <span class="n">CopyDirective</span><span class="p">,</span>
+        <span class="n">src_elements</span><span class="p">,</span>
+        <span class="n">tgt_elements</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">copy_directive</span><span class="o">.</span><span class="n">copy_all</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">src_elements</span><span class="p">:</span>
+                <span class="n">tgt_elements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">copy_directive</span><span class="o">.</span><span class="n">exclude</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">src_elements</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">copy_directive</span><span class="o">.</span><span class="n">exclude</span><span class="p">:</span>
+                    <span class="n">tgt_elements</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">copy_directive</span><span class="o">.</span><span class="n">exclude_all</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">tgt_elements</span><span class="p">:</span>
+                <span class="n">tgt_elements</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">copy_directive</span><span class="o">.</span><span class="n">include</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">copy_directive</span><span class="o">.</span><span class="n">include</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">src_elements</span><span class="p">:</span>
+                    <span class="n">tgt_elements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_copy_schema</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">copy_directives</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CopyDirective</span><span class="p">],</span>
+        <span class="n">source</span><span class="p">:</span> <span class="n">SchemaDefinition</span><span class="p">,</span>
+        <span class="n">target</span><span class="p">:</span> <span class="n">SchemaDefinition</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SchemaDefinition</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">copy_directives</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">dict</span><span class="p">:</span>
+            <span class="n">copy_directives_list</span> <span class="o">=</span> <span class="n">copy_directives</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">copy_directives_list</span> <span class="o">=</span> <span class="n">copy_directives</span>
+
+        <span class="k">for</span> <span class="n">copy_directive</span> <span class="ow">in</span> <span class="n">copy_directives_list</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">element_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;classes&quot;</span><span class="p">,</span> <span class="s2">&quot;slots&quot;</span><span class="p">,</span> <span class="s2">&quot;enums&quot;</span><span class="p">,</span> <span class="s2">&quot;types&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">element_type</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="n">src_elements</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">element_type</span><span class="p">)</span>
+                <span class="n">tgt_elements</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">element_type</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_copy_dict</span><span class="p">(</span><span class="n">copy_directive</span><span class="p">,</span> <span class="n">src_elements</span><span class="p">,</span> <span class="n">tgt_elements</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">target</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_copy_class</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">copy_directives</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CopyDirective</span><span class="p">],</span>
+        <span class="n">source</span><span class="p">:</span> <span class="n">ClassDefinition</span><span class="p">,</span>
+        <span class="n">target</span><span class="p">:</span> <span class="n">ClassDefinition</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ClassDefinition</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">copy_directives</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">dict</span><span class="p">:</span>
+            <span class="n">copy_directives_list</span> <span class="o">=</span> <span class="n">copy_directives</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">copy_directives_list</span> <span class="o">=</span> <span class="n">copy_directives</span>
+
+        <span class="k">for</span> <span class="n">copy_directive</span> <span class="ow">in</span> <span class="n">copy_directives_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="s2">&quot;attributes&quot;</span><span class="p">):</span>
+                <span class="c1"># copy attributes (which is a dict)</span>
+                <span class="n">src_elements</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">attributes</span>
+                <span class="n">tgt_elements</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">attributes</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_copy_dict</span><span class="p">(</span><span class="n">copy_directive</span><span class="p">,</span> <span class="n">src_elements</span><span class="p">,</span> <span class="n">tgt_elements</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="s2">&quot;slots&quot;</span><span class="p">):</span>
+                <span class="c1"># copy slots (which is a list)</span>
+                <span class="n">src_elements</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">slots</span>
+                <span class="n">tgt_elements</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">slots</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_copy_list</span><span class="p">(</span><span class="n">copy_directive</span><span class="p">,</span> <span class="n">src_elements</span><span class="p">,</span> <span class="n">tgt_elements</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">target</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">derive_schema</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">specification</span><span class="p">:</span> <span class="n">TransformationSpecification</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">target_schema_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">target_schema_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;-derived&quot;</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SchemaDefinition</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Use a transformation specification to generate a target/profile schema from a source schema.</span>
+
+<span class="sd">        :param specification:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">specification</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">specification</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="o">.</span><span class="n">specification</span>
+        <span class="n">source_schemaview</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span>
+        <span class="n">source_schema</span> <span class="o">=</span> <span class="n">source_schemaview</span><span class="o">.</span><span class="n">schema</span>
+        <span class="k">if</span> <span class="n">target_schema_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">target_schema_id</span> <span class="o">=</span> <span class="n">source_schema</span><span class="o">.</span><span class="n">id</span> <span class="o">+</span> <span class="n">suffix</span>
+        <span class="k">if</span> <span class="n">target_schema_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">target_schema_name</span> <span class="o">=</span> <span class="n">source_schema</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="n">suffix</span>
+        <span class="n">target_schema</span> <span class="o">=</span> <span class="n">SchemaDefinition</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">target_schema_id</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">target_schema_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">specification</span><span class="p">,</span> <span class="s2">&quot;copy_directives&quot;</span><span class="p">):</span>
+            <span class="n">target_schema</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_copy_schema</span><span class="p">(</span>
+                <span class="n">specification</span><span class="o">.</span><span class="n">copy_directives</span><span class="p">,</span>
+                <span class="n">source_schema</span><span class="p">,</span>
+                <span class="n">target_schema</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">for</span> <span class="n">im</span> <span class="ow">in</span> <span class="n">source_schema</span><span class="o">.</span><span class="n">imports</span><span class="p">:</span>
+            <span class="n">target_schema</span><span class="o">.</span><span class="n">imports</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="n">source_schema</span><span class="o">.</span><span class="n">prefixes</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">target_schema</span><span class="o">.</span><span class="n">prefixes</span><span class="p">[</span><span class="n">prefix</span><span class="o">.</span><span class="n">prefix_prefix</span><span class="p">]</span> <span class="o">=</span> <span class="n">prefix</span>
+        <span class="k">for</span> <span class="n">class_derivation</span> <span class="ow">in</span> <span class="n">specification</span><span class="o">.</span><span class="n">class_derivations</span><span class="p">:</span>
+            <span class="n">class_definition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_derive_class</span><span class="p">(</span><span class="n">class_derivation</span><span class="p">)</span>
+            <span class="n">existing</span> <span class="o">=</span> <span class="n">target_schema</span><span class="o">.</span><span class="n">classes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">class_definition</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">existing</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_merge_class_definition</span><span class="p">(</span><span class="n">existing</span><span class="p">,</span> <span class="n">class_definition</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">target_schema</span><span class="o">.</span><span class="n">classes</span><span class="p">[</span><span class="n">class_definition</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">class_definition</span>
+        <span class="k">for</span> <span class="n">enum_derivation</span> <span class="ow">in</span> <span class="n">specification</span><span class="o">.</span><span class="n">enum_derivations</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">enum_definition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_derive_enum</span><span class="p">(</span><span class="n">enum_derivation</span><span class="p">)</span>
+            <span class="n">target_schema</span><span class="o">.</span><span class="n">enums</span><span class="p">[</span><span class="n">enum_definition</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">enum_definition</span>
+        <span class="n">target_schema</span><span class="o">.</span><span class="n">default_range</span> <span class="o">=</span> <span class="n">source_schema</span><span class="o">.</span><span class="n">default_range</span>
+        <span class="k">for</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">target_schema</span><span class="o">.</span><span class="n">classes</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rewire_class</span><span class="p">(</span><span class="n">cd</span><span class="p">)</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">cn</span><span class="p">,</span> <span class="n">sn</span><span class="p">),</span> <span class="n">info</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">slot_info</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">cd</span> <span class="o">=</span> <span class="n">target_schema</span><span class="o">.</span><span class="n">classes</span><span class="p">[</span><span class="n">cn</span><span class="p">]</span>
+            <span class="n">sd</span> <span class="o">=</span> <span class="n">cd</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="n">sn</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">info</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">sd</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">target_schema</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_derive_class</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_derivation</span><span class="p">:</span> <span class="n">ClassDerivation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ClassDefinition</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Derive a class from a class derivation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">populated_from</span> <span class="o">=</span> <span class="n">class_derivation</span><span class="o">.</span><span class="n">populated_from</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">populated_from</span><span class="p">:</span>
+            <span class="n">populated_from</span> <span class="o">=</span> <span class="n">class_derivation</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Populating </span><span class="si">{</span><span class="n">class_derivation</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">populated_from</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">source_class</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span><span class="o">.</span><span class="n">get_class</span><span class="p">(</span><span class="n">populated_from</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">source_class</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No such class </span><span class="si">{</span><span class="n">populated_from</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">target_class</span> <span class="o">=</span> <span class="n">ClassDefinition</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">class_derivation</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">target_class</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">source_class</span><span class="p">)</span>
+            <span class="n">target_class</span><span class="o">.</span><span class="n">from_schema</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">target_class</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">class_derivation</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">target_class</span><span class="o">.</span><span class="n">slots</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">target_class</span><span class="o">.</span><span class="n">attributes</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">target_class</span><span class="o">.</span><span class="n">slot_usage</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">class_derivation</span><span class="p">,</span> <span class="s2">&quot;copy_directives&quot;</span><span class="p">):</span>
+                <span class="n">target_class</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_copy_class</span><span class="p">(</span>
+                    <span class="n">class_derivation</span><span class="o">.</span><span class="n">copy_directives</span><span class="p">,</span>
+                    <span class="n">source_class</span><span class="p">,</span>
+                    <span class="n">target_class</span><span class="p">,</span>
+                <span class="p">)</span>
+        <span class="k">for</span> <span class="n">slot_derivation</span> <span class="ow">in</span> <span class="n">class_derivation</span><span class="o">.</span><span class="n">slot_derivations</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">slot_derivation</span><span class="o">.</span><span class="n">hide</span><span class="p">:</span>
+                <span class="c1"># Hidden slots are intermediates for slot() references at runtime</span>
+                <span class="c1"># and have no corresponding attribute in the target schema.</span>
+                <span class="k">continue</span>
+            <span class="n">slot_definition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_derive_slot</span><span class="p">(</span><span class="n">slot_derivation</span><span class="p">)</span>
+            <span class="n">target_class</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="n">slot_definition</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">slot_definition</span>
+        <span class="k">if</span> <span class="n">class_derivation</span><span class="o">.</span><span class="n">is_a</span><span class="p">:</span>
+            <span class="n">target_class</span><span class="o">.</span><span class="n">is_a</span> <span class="o">=</span> <span class="n">class_derivation</span><span class="o">.</span><span class="n">is_a</span>
+        <span class="k">if</span> <span class="n">class_derivation</span><span class="o">.</span><span class="n">mixins</span><span class="p">:</span>
+            <span class="n">target_class</span><span class="o">.</span><span class="n">mixins</span> <span class="o">=</span> <span class="n">class_derivation</span><span class="o">.</span><span class="n">mixins</span>
+        <span class="k">if</span> <span class="n">class_derivation</span><span class="o">.</span><span class="n">target_definition</span><span class="p">:</span>
+            <span class="n">spec_defn</span> <span class="o">=</span> <span class="n">ClassDefinition</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">target_class</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">class_derivation</span><span class="o">.</span><span class="n">target_definition</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="n">spec_defn</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">curr_v</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">target_class</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">curr_v</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">curr_v</span> <span class="ow">in</span> <span class="p">([],</span> <span class="p">{}):</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="n">target_class</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_to_target_class_mappings</span><span class="p">[</span><span class="n">populated_from</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">target_class</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">class_derivation</span><span class="o">.</span><span class="n">overrides</span><span class="p">:</span>
+            <span class="n">curr</span> <span class="o">=</span> <span class="n">json_dumper</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">target_class</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">class_derivation</span><span class="o">.</span><span class="n">overrides</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">curr</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+            <span class="n">target_class</span> <span class="o">=</span> <span class="n">ClassDefinition</span><span class="p">(</span><span class="o">**</span><span class="n">curr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">target_class</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_merge_class_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">existing</span><span class="p">:</span> <span class="n">ClassDefinition</span><span class="p">,</span> <span class="n">incoming</span><span class="p">:</span> <span class="n">ClassDefinition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Merge an incoming ClassDefinition into an existing one.</span>
+
+<span class="sd">        Used when multiple ClassDerivations target the same class name (e.g.</span>
+<span class="sd">        two source tables both map to ``Condition``). Attributes from the</span>
+<span class="sd">        incoming definition are added to the existing one; on conflict the</span>
+<span class="sd">        incoming value wins with a warning.</span>
+
+<span class="sd">        Merged fields: ``attributes``, ``slots``, ``mixins``, ``is_a``.</span>
+<span class="sd">        Fields like ``slot_usage`` are not merged because ``_derive_class``</span>
+<span class="sd">        resets them to empty on each derived ClassDefinition.</span>
+
+<span class="sd">        :param existing: The ClassDefinition already in the target schema.</span>
+<span class="sd">        :param incoming: The newly derived ClassDefinition to merge in.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">attr_name</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">incoming</span><span class="o">.</span><span class="n">attributes</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">attr_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">attr_name</span> <span class="ow">in</span> <span class="n">existing</span><span class="o">.</span><span class="n">attributes</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;Slot &#39;</span><span class="si">%s</span><span class="s2">&#39; in class &#39;</span><span class="si">%s</span><span class="s2">&#39; defined by multiple derivations; later derivation wins&quot;</span><span class="p">,</span>
+                    <span class="n">attr_name</span><span class="p">,</span>
+                    <span class="n">existing</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="n">existing</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="n">attr_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">incoming</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="n">attr_name</span><span class="p">]</span>
+
+        <span class="n">existing_slot_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">existing</span><span class="o">.</span><span class="n">slots</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="n">incoming</span><span class="o">.</span><span class="n">slots</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">slot</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">existing_slot_set</span><span class="p">:</span>
+                <span class="n">existing</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">slot</span><span class="p">)</span>
+                <span class="n">existing_slot_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">slot</span><span class="p">)</span>
+
+        <span class="n">existing_mixin_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">existing</span><span class="o">.</span><span class="n">mixins</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">mixin</span> <span class="ow">in</span> <span class="n">incoming</span><span class="o">.</span><span class="n">mixins</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">mixin</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">existing_mixin_set</span><span class="p">:</span>
+                <span class="n">existing</span><span class="o">.</span><span class="n">mixins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mixin</span><span class="p">)</span>
+                <span class="n">existing_mixin_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">mixin</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">incoming</span><span class="o">.</span><span class="n">is_a</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">existing</span><span class="o">.</span><span class="n">is_a</span><span class="p">:</span>
+                <span class="n">existing</span><span class="o">.</span><span class="n">is_a</span> <span class="o">=</span> <span class="n">incoming</span><span class="o">.</span><span class="n">is_a</span>
+            <span class="k">elif</span> <span class="n">incoming</span><span class="o">.</span><span class="n">is_a</span> <span class="o">!=</span> <span class="n">existing</span><span class="o">.</span><span class="n">is_a</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;Class &#39;</span><span class="si">%s</span><span class="s2">&#39; has conflicting is_a: &#39;</span><span class="si">%s</span><span class="s2">&#39; vs &#39;</span><span class="si">%s</span><span class="s2">&#39;; keeping &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span><span class="p">,</span>
+                    <span class="n">existing</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="n">existing</span><span class="o">.</span><span class="n">is_a</span><span class="p">,</span>
+                    <span class="n">incoming</span><span class="o">.</span><span class="n">is_a</span><span class="p">,</span>
+                    <span class="n">existing</span><span class="o">.</span><span class="n">is_a</span><span class="p">,</span>
+                <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_derive_enum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">enum_derivation</span><span class="p">:</span> <span class="n">EnumDerivation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EnumDefinition</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Derive an enum from an enum derivation.</span>
+
+<span class="sd">        :param enum_derivation:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">populated_from</span> <span class="o">=</span> <span class="n">enum_derivation</span><span class="o">.</span><span class="n">populated_from</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">populated_from</span><span class="p">:</span>
+            <span class="n">populated_from</span> <span class="o">=</span> <span class="n">enum_derivation</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">source_enum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span><span class="o">.</span><span class="n">get_enum</span><span class="p">(</span><span class="n">populated_from</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">source_enum</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No such enum </span><span class="si">{</span><span class="n">populated_from</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">target_enum</span> <span class="o">=</span> <span class="n">ClassDefinition</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">enum_derivation</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">target_enum</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">source_enum</span><span class="p">)</span>
+            <span class="n">target_enum</span><span class="o">.</span><span class="n">from_schema</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">target_enum</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">enum_derivation</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">target_enum</span><span class="o">.</span><span class="n">slots</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">target_enum</span><span class="o">.</span><span class="n">attributes</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">target_enum</span><span class="o">.</span><span class="n">slot_usage</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">pv_derivation</span> <span class="ow">in</span> <span class="n">enum_derivation</span><span class="o">.</span><span class="n">permissible_value_derivations</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">pv_derivation</span><span class="o">.</span><span class="n">populated_from</span><span class="p">:</span>
+                <span class="n">pv</span> <span class="o">=</span> <span class="n">PermissibleValue</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">pv_derivation</span><span class="o">.</span><span class="n">populated_from</span><span class="p">)</span>
+                <span class="n">target_enum</span><span class="o">.</span><span class="n">permissible_values</span><span class="p">[</span><span class="n">pv</span><span class="o">.</span><span class="n">text</span><span class="p">]</span> <span class="o">=</span> <span class="n">pv</span>
+            <span class="k">elif</span> <span class="n">pv_derivation</span><span class="o">.</span><span class="n">sources</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">pv_derivation</span><span class="o">.</span><span class="n">sources</span><span class="p">:</span>
+                    <span class="n">pv</span> <span class="o">=</span> <span class="n">PermissibleValue</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">source</span><span class="p">)</span>
+                    <span class="n">target_enum</span><span class="o">.</span><span class="n">permissible_values</span><span class="p">[</span><span class="n">pv</span><span class="o">.</span><span class="n">text</span><span class="p">]</span> <span class="o">=</span> <span class="n">pv</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Missing populated_from or sources for </span><span class="si">{</span><span class="n">pv_derivation</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">enum_derivation</span><span class="o">.</span><span class="n">mirror_source</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">pv</span> <span class="ow">in</span> <span class="n">source_enum</span><span class="o">.</span><span class="n">permissible_values</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">pv</span><span class="o">.</span><span class="n">text</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">target_enum</span><span class="o">.</span><span class="n">permissible_values</span><span class="p">:</span>
+                    <span class="n">target_enum</span><span class="o">.</span><span class="n">permissible_values</span><span class="p">[</span><span class="n">pv</span><span class="o">.</span><span class="n">text</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">pv</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_to_target_class_mappings</span><span class="p">[</span><span class="n">populated_from</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">target_enum</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">target_enum</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_derive_slot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">slot_derivation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SlotDefinition</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Derive a slot from a slot derivation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">populated_from</span> <span class="o">=</span> <span class="n">slot_derivation</span><span class="o">.</span><span class="n">populated_from</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">populated_from</span><span class="p">:</span>
+            <span class="n">populated_from</span> <span class="o">=</span> <span class="n">slot_derivation</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">source_slot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span><span class="o">.</span><span class="n">get_slot</span><span class="p">(</span><span class="n">populated_from</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">source_slot</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">target_slot</span> <span class="o">=</span> <span class="n">SlotDefinition</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">slot_derivation</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">target_slot</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">source_slot</span><span class="p">)</span>
+            <span class="n">target_slot</span><span class="o">.</span><span class="n">from_schema</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">target_slot</span><span class="o">.</span><span class="n">owner</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">target_slot</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">slot_derivation</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">if</span> <span class="n">slot_derivation</span><span class="o">.</span><span class="n">range</span><span class="p">:</span>
+            <span class="n">target_slot</span><span class="o">.</span><span class="n">range</span> <span class="o">=</span> <span class="n">slot_derivation</span><span class="o">.</span><span class="n">range</span>
+        <span class="k">if</span> <span class="n">slot_derivation</span><span class="o">.</span><span class="n">target_definition</span><span class="p">:</span>
+            <span class="n">spec_defn</span> <span class="o">=</span> <span class="n">SlotDefinition</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">target_slot</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">slot_derivation</span><span class="o">.</span><span class="n">target_definition</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="n">spec_defn</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">target_slot</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">slot_derivation</span><span class="o">.</span><span class="n">unit_conversion</span><span class="p">:</span>
+            <span class="n">target_slot</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">UnitOfMeasure</span><span class="p">(</span><span class="n">ucum_code</span><span class="o">=</span><span class="n">slot_derivation</span><span class="o">.</span><span class="n">unit_conversion</span><span class="o">.</span><span class="n">target_unit</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">slot_derivation</span><span class="o">.</span><span class="n">stringification</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">slot_derivation</span><span class="o">.</span><span class="n">stringification</span><span class="o">.</span><span class="n">reversed</span><span class="p">:</span>
+                <span class="n">target_slot</span><span class="o">.</span><span class="n">multivalued</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">target_slot</span><span class="o">.</span><span class="n">multivalued</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">slot_derivation</span><span class="o">.</span><span class="n">dictionary_key</span><span class="p">:</span>
+            <span class="n">target_slot</span><span class="o">.</span><span class="n">inlined</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">target_slot</span><span class="o">.</span><span class="n">inlined_as_list</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">slot_info</span><span class="p">[(</span><span class="n">target_slot</span><span class="o">.</span><span class="n">range</span><span class="p">,</span> <span class="n">slot_derivation</span><span class="o">.</span><span class="n">dictionary_key</span><span class="p">)]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;identifier&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">slot_derivation</span><span class="o">.</span><span class="n">cast_collection_as</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">slot_derivation</span><span class="o">.</span><span class="n">cast_collection_as</span> <span class="o">==</span> <span class="n">CollectionType</span><span class="o">.</span><span class="n">MultiValued</span><span class="p">:</span>
+                <span class="n">target_slot</span><span class="o">.</span><span class="n">inlined</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">elif</span> <span class="n">slot_derivation</span><span class="o">.</span><span class="n">cast_collection_as</span> <span class="o">==</span> <span class="n">CollectionType</span><span class="o">.</span><span class="n">MultiValuedList</span><span class="p">:</span>
+                <span class="n">target_slot</span><span class="o">.</span><span class="n">inlined_as_list</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">elif</span> <span class="n">slot_derivation</span><span class="o">.</span><span class="n">cast_collection_as</span> <span class="o">==</span> <span class="n">CollectionType</span><span class="o">.</span><span class="n">MultiValuedDict</span><span class="p">:</span>
+                <span class="n">target_slot</span><span class="o">.</span><span class="n">inlined</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">target_slot</span><span class="o">.</span><span class="n">inlined_as_list</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">slot_derivation</span><span class="o">.</span><span class="n">overrides</span><span class="p">:</span>
+            <span class="n">curr</span> <span class="o">=</span> <span class="n">json_dumper</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">target_slot</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">slot_derivation</span><span class="o">.</span><span class="n">overrides</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">curr</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+            <span class="n">target_slot</span> <span class="o">=</span> <span class="n">SlotDefinition</span><span class="p">(</span><span class="o">**</span><span class="n">curr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">target_slot</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_rewire_class</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_definition</span><span class="p">:</span> <span class="n">ClassDefinition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">class_definition</span><span class="o">.</span><span class="n">is_a</span><span class="p">:</span>
+            <span class="n">class_definition</span><span class="o">.</span><span class="n">is_a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rewire_parent</span><span class="p">(</span><span class="n">class_definition</span><span class="p">,</span> <span class="n">class_definition</span><span class="o">.</span><span class="n">is_a</span><span class="p">)</span>
+        <span class="n">mixins</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_rewire_parent</span><span class="p">(</span><span class="n">class_definition</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">class_definition</span><span class="o">.</span><span class="n">mixins</span><span class="p">]</span>
+        <span class="n">class_definition</span><span class="o">.</span><span class="n">mixins</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">mixins</span> <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_rewire_parent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_definition</span><span class="p">:</span> <span class="n">ClassDefinition</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">ClassDefinitionName</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">parent</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_to_target_class_mappings</span><span class="p">:</span>
+            <span class="n">new_parents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_to_target_class_mappings</span><span class="p">[</span><span class="n">parent</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_parents</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Cannot rewire to non-isomorphic mappings </span><span class="si">{</span><span class="n">parent</span><span class="si">}</span><span class="s2"> =&gt; </span><span class="si">{</span><span class="n">new_parents</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_parents</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">new_parents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">parent_cls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span><span class="o">.</span><span class="n">get_class</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">parent_cls</span><span class="o">.</span><span class="n">is_a</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rewire_parent</span><span class="p">(</span><span class="n">class_definition</span><span class="p">,</span> <span class="n">parent_cls</span><span class="o">.</span><span class="n">is_a</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">copy_attributes</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">target_element</span><span class="p">:</span> <span class="n">Element</span><span class="p">,</span>
+        <span class="n">source_element</span><span class="p">:</span> <span class="n">Element</span><span class="p">,</span>
+        <span class="n">copy_directive</span><span class="p">:</span> <span class="n">CopyDirective</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Copy attributes from source to target according to a directive.</span>
+
+<span class="sd">        :param target_element:</span>
+<span class="sd">        :param source_element:</span>
+<span class="sd">        :param copy_directive:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="n">source_element</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">included</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="n">copy_directive</span><span class="o">.</span><span class="n">include_all</span><span class="p">:</span>
+                <span class="n">included</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">copy_directive</span><span class="o">.</span><span class="n">include</span><span class="p">:</span>
+                <span class="n">included</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">copy_directive</span><span class="o">.</span><span class="n">exclude</span><span class="p">:</span>
+                <span class="n">included</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="n">included</span><span class="p">:</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">target_element</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="linkml_map.inference.schema_mapper.SchemaMapper.copy_attributes" class="doc doc-heading">
+            <code class=" language-python"><span class="n">copy_attributes</span><span class="p">(</span><span class="n">target_element</span><span class="p">,</span> <span class="n">source_element</span><span class="p">,</span> <span class="n">copy_directive</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Copy attributes from source to target according to a directive.</p>
+<p>:param target_element:
+:param source_element:
+:param copy_directive:
+:return:</p>
+
+
+            <details class="quote">
+              <summary>Source code in <code>src/linkml_map/inference/schema_mapper.py</code></summary>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">397</span>
+<span class="normal">398</span>
+<span class="normal">399</span>
+<span class="normal">400</span>
+<span class="normal">401</span>
+<span class="normal">402</span>
+<span class="normal">403</span>
+<span class="normal">404</span>
+<span class="normal">405</span>
+<span class="normal">406</span>
+<span class="normal">407</span>
+<span class="normal">408</span>
+<span class="normal">409</span>
+<span class="normal">410</span>
+<span class="normal">411</span>
+<span class="normal">412</span>
+<span class="normal">413</span>
+<span class="normal">414</span>
+<span class="normal">415</span>
+<span class="normal">416</span>
+<span class="normal">417</span>
+<span class="normal">418</span>
+<span class="normal">419</span>
+<span class="normal">420</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">copy_attributes</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">target_element</span><span class="p">:</span> <span class="n">Element</span><span class="p">,</span>
+    <span class="n">source_element</span><span class="p">:</span> <span class="n">Element</span><span class="p">,</span>
+    <span class="n">copy_directive</span><span class="p">:</span> <span class="n">CopyDirective</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Copy attributes from source to target according to a directive.</span>
+
+<span class="sd">    :param target_element:</span>
+<span class="sd">    :param source_element:</span>
+<span class="sd">    :param copy_directive:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="n">source_element</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">included</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">copy_directive</span><span class="o">.</span><span class="n">include_all</span><span class="p">:</span>
+            <span class="n">included</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">copy_directive</span><span class="o">.</span><span class="n">include</span><span class="p">:</span>
+            <span class="n">included</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">copy_directive</span><span class="o">.</span><span class="n">exclude</span><span class="p">:</span>
+            <span class="n">included</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">included</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">target_element</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="linkml_map.inference.schema_mapper.SchemaMapper.derive_schema" class="doc doc-heading">
+            <code class=" language-python"><span class="n">derive_schema</span><span class="p">(</span><span class="n">specification</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_schema_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_schema_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;-derived&#39;</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Use a transformation specification to generate a target/profile schema from a source schema.</p>
+<p>:param specification:
+:return:</p>
+
+
+            <details class="quote">
+              <summary>Source code in <code>src/linkml_map/inference/schema_mapper.py</code></summary>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">derive_schema</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">specification</span><span class="p">:</span> <span class="n">TransformationSpecification</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">target_schema_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">target_schema_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;-derived&quot;</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SchemaDefinition</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Use a transformation specification to generate a target/profile schema from a source schema.</span>
+
+<span class="sd">    :param specification:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">specification</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">specification</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="o">.</span><span class="n">specification</span>
+    <span class="n">source_schemaview</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span>
+    <span class="n">source_schema</span> <span class="o">=</span> <span class="n">source_schemaview</span><span class="o">.</span><span class="n">schema</span>
+    <span class="k">if</span> <span class="n">target_schema_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">target_schema_id</span> <span class="o">=</span> <span class="n">source_schema</span><span class="o">.</span><span class="n">id</span> <span class="o">+</span> <span class="n">suffix</span>
+    <span class="k">if</span> <span class="n">target_schema_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">target_schema_name</span> <span class="o">=</span> <span class="n">source_schema</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="n">suffix</span>
+    <span class="n">target_schema</span> <span class="o">=</span> <span class="n">SchemaDefinition</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">target_schema_id</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">target_schema_name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">specification</span><span class="p">,</span> <span class="s2">&quot;copy_directives&quot;</span><span class="p">):</span>
+        <span class="n">target_schema</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_copy_schema</span><span class="p">(</span>
+            <span class="n">specification</span><span class="o">.</span><span class="n">copy_directives</span><span class="p">,</span>
+            <span class="n">source_schema</span><span class="p">,</span>
+            <span class="n">target_schema</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">for</span> <span class="n">im</span> <span class="ow">in</span> <span class="n">source_schema</span><span class="o">.</span><span class="n">imports</span><span class="p">:</span>
+        <span class="n">target_schema</span><span class="o">.</span><span class="n">imports</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="n">source_schema</span><span class="o">.</span><span class="n">prefixes</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">target_schema</span><span class="o">.</span><span class="n">prefixes</span><span class="p">[</span><span class="n">prefix</span><span class="o">.</span><span class="n">prefix_prefix</span><span class="p">]</span> <span class="o">=</span> <span class="n">prefix</span>
+    <span class="k">for</span> <span class="n">class_derivation</span> <span class="ow">in</span> <span class="n">specification</span><span class="o">.</span><span class="n">class_derivations</span><span class="p">:</span>
+        <span class="n">class_definition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_derive_class</span><span class="p">(</span><span class="n">class_derivation</span><span class="p">)</span>
+        <span class="n">existing</span> <span class="o">=</span> <span class="n">target_schema</span><span class="o">.</span><span class="n">classes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">class_definition</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">existing</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_merge_class_definition</span><span class="p">(</span><span class="n">existing</span><span class="p">,</span> <span class="n">class_definition</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">target_schema</span><span class="o">.</span><span class="n">classes</span><span class="p">[</span><span class="n">class_definition</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">class_definition</span>
+    <span class="k">for</span> <span class="n">enum_derivation</span> <span class="ow">in</span> <span class="n">specification</span><span class="o">.</span><span class="n">enum_derivations</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">enum_definition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_derive_enum</span><span class="p">(</span><span class="n">enum_derivation</span><span class="p">)</span>
+        <span class="n">target_schema</span><span class="o">.</span><span class="n">enums</span><span class="p">[</span><span class="n">enum_definition</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">enum_definition</span>
+    <span class="n">target_schema</span><span class="o">.</span><span class="n">default_range</span> <span class="o">=</span> <span class="n">source_schema</span><span class="o">.</span><span class="n">default_range</span>
+    <span class="k">for</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">target_schema</span><span class="o">.</span><span class="n">classes</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rewire_class</span><span class="p">(</span><span class="n">cd</span><span class="p">)</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">cn</span><span class="p">,</span> <span class="n">sn</span><span class="p">),</span> <span class="n">info</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">slot_info</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">cd</span> <span class="o">=</span> <span class="n">target_schema</span><span class="o">.</span><span class="n">classes</span><span class="p">[</span><span class="n">cn</span><span class="p">]</span>
+        <span class="n">sd</span> <span class="o">=</span> <span class="n">cd</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="n">sn</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">info</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">sd</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">target_schema</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+  <br>
+    
+
+    
+    
+      
+    
+
+  <div class="row wm-article-nav-buttons" role="navigation" aria-label="navigation">
+    
+    <div class="wm-article-nav pull-right">
+      <a href="../expressions/" class="btn btn-xs btn-default pull-right">
+        Next
+        <i class="fa fa-chevron-right" aria-hidden="true"></i>
+      </a>
+      <a href="../expressions/" class="btn btn-xs btn-link">
+        Expressions
+      </a>
+    </div>
+    
+    <div class="wm-article-nav">
+      <a href="../compiler/" class="btn btn-xs btn-default pull-left">
+        <i class="fa fa-chevron-left" aria-hidden="true"></i>
+        Previous</a><a href="../compiler/" class="btn btn-xs btn-link">
+        Compiler
+      </a>
+    </div>
+    
+  </div>
+
+    <br>
+</div>
+
+<footer class="container-fluid wm-page-content">
+      <p>
+        <a href="https://github.com/linkml/linkml-map/edit/master/docs/api/inference.md"><i class="fa fa-github"></i>
+Edit on GitHub</a>
+      </p>
+  <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a> using <a href="https://github.com/gristlabs/mkdocs-windmill">Windmill</a> theme by Grist Labs.</p>
+</footer>
+
+</body>
+</html>

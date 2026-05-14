@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    
+    <link rel="canonical" href="https://linkml.github.io/linkml-map/schema/KeyVal/">
+    <link rel="shortcut icon" href="../../img/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <title>Class: KeyVal - LinkML-Map</title>
+    <link href="../../css/bootstrap-3.3.7.min.css" rel="stylesheet">
+    <link href="../../css/font-awesome-4.7.0.css" rel="stylesheet">
+    <link href="../../css/base.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/highlight.css">
+    <link href="../../assets/_mkdocstrings.css" rel="stylesheet">
+    <link href="../../css/ansi-colours.css" rel="stylesheet">
+    <link href="../../css/jupyter-cells.css" rel="stylesheet">
+    <link href="../../css/pandas-dataframe.css" rel="stylesheet">
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+
+    <script src="../../js/jquery-3.2.1.min.js"></script>
+    <script src="../../js/bootstrap-3.3.7.min.js"></script>
+    <script src="../../js/highlight.pack.js"></script>
+    
+    <base target="_top">
+    <script>
+      var base_url = '../..';
+      var is_top_frame = false;
+        
+        var pageToc = [
+          {title: "Class: KeyVal", url: "#_top", children: [
+          ]},
+        ];
+
+    </script>
+    <script src="../../js/base.js"></script> 
+</head>
+
+<body>
+<script>
+if (is_top_frame) { $('body').addClass('wm-top-page'); }
+</script>
+
+
+
+<div class="container-fluid wm-page-content">
+  <a name="_top"></a>
+    
+
+    
+
+    <h1 id="class-keyval">Class: KeyVal</h1>
+<div data-search-exclude markdown="1">
+
+
+
+URI: [linkmlmap:KeyVal](https://w3id.org/linkml/transformer/KeyVal)
+
+
+
+
+
+<div class="highlight"><pre><span></span><code> classDiagram
+    class KeyVal
+    click KeyVal href &quot;../KeyVal/&quot;
+      KeyVal : key
+
+      KeyVal : value
+
+
+
+
+
+        KeyVal --&gt; &quot;0..1&quot; Any : value
+        click Any href &quot;../Any/&quot;
+</code></pre></div>
+
+
+
+
+<!-- no inheritance hierarchy -->
+
+## Slots
+
+| Name | Cardinality and Range | Description | Inheritance |
+| ---  | --- | --- | --- |
+| [key](key.md) | 1 <br/> [String](String.md) |  | direct |
+| [value](value.md) | 0..1 <br/> [Any](Any.md) |  | direct |
+
+
+
+
+
+## Usages
+
+| used by | used in | type | used |
+| ---  | --- | --- | --- |
+| [TransformationSpecification](TransformationSpecification.md) | [prefixes](prefixes.md) | range | [KeyVal](KeyVal.md) |
+| [ElementDerivation](ElementDerivation.md) | [value_mappings](value_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [ElementDerivation](ElementDerivation.md) | [expression_mappings](expression_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [ElementDerivation](ElementDerivation.md) | [expression_to_value_mappings](expression_to_value_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [ElementDerivation](ElementDerivation.md) | [expression_to_expression_mappings](expression_to_expression_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [ClassDerivation](ClassDerivation.md) | [value_mappings](value_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [ClassDerivation](ClassDerivation.md) | [expression_mappings](expression_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [ClassDerivation](ClassDerivation.md) | [expression_to_value_mappings](expression_to_value_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [ClassDerivation](ClassDerivation.md) | [expression_to_expression_mappings](expression_to_expression_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [ObjectDerivation](ObjectDerivation.md) | [value_mappings](value_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [ObjectDerivation](ObjectDerivation.md) | [expression_mappings](expression_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [ObjectDerivation](ObjectDerivation.md) | [expression_to_value_mappings](expression_to_value_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [ObjectDerivation](ObjectDerivation.md) | [expression_to_expression_mappings](expression_to_expression_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [SlotDerivation](SlotDerivation.md) | [value_mappings](value_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [SlotDerivation](SlotDerivation.md) | [expression_mappings](expression_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [SlotDerivation](SlotDerivation.md) | [expression_to_value_mappings](expression_to_value_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [SlotDerivation](SlotDerivation.md) | [expression_to_expression_mappings](expression_to_expression_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [EnumDerivation](EnumDerivation.md) | [value_mappings](value_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [EnumDerivation](EnumDerivation.md) | [expression_mappings](expression_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [EnumDerivation](EnumDerivation.md) | [expression_to_value_mappings](expression_to_value_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [EnumDerivation](EnumDerivation.md) | [expression_to_expression_mappings](expression_to_expression_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [PermissibleValueDerivation](PermissibleValueDerivation.md) | [value_mappings](value_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [PermissibleValueDerivation](PermissibleValueDerivation.md) | [expression_mappings](expression_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [PermissibleValueDerivation](PermissibleValueDerivation.md) | [expression_to_value_mappings](expression_to_value_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [PermissibleValueDerivation](PermissibleValueDerivation.md) | [expression_to_expression_mappings](expression_to_expression_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [PrefixDerivation](PrefixDerivation.md) | [value_mappings](value_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [PrefixDerivation](PrefixDerivation.md) | [expression_mappings](expression_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [PrefixDerivation](PrefixDerivation.md) | [expression_to_value_mappings](expression_to_value_mappings.md) | range | [KeyVal](KeyVal.md) |
+| [PrefixDerivation](PrefixDerivation.md) | [expression_to_expression_mappings](expression_to_expression_mappings.md) | range | [KeyVal](KeyVal.md) |
+
+
+
+
+
+
+
+
+
+
+
+
+## Identifier and Mapping Information
+
+
+
+
+
+### Schema Source
+
+
+* from schema: https://w3id.org/linkml/transformer
+
+
+
+
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:KeyVal |
+| native | linkmlmap:KeyVal |
+
+
+
+
+
+
+## LinkML Source
+
+<!-- TODO: investigate https://stackoverflow.com/questions/37606292/how-to-create-tabbed-code-blocks-in-mkdocs-or-sphinx -->
+
+### Direct
+
+<details>
+<div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">KeyVal</span>
+<span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="nt">attributes</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">key</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">key</span>
+<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="w">    </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">KeyVal</span>
+<span class="w">  </span><span class="nt">value</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value</span>
+<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SlotDerivation</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">KeyVal</span>
+<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Any</span>
+</code></pre></div>
+</details>
+
+### Induced
+
+<details>
+<div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">KeyVal</span>
+<span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="nt">attributes</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">key</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">key</span>
+<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="w">    </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">KeyVal</span>
+<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">KeyVal</span>
+<span class="w">    </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">value</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value</span>
+<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">KeyVal</span>
+<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SlotDerivation</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">KeyVal</span>
+<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Any</span>
+</code></pre></div>
+</details></div>
+
+  <br>
+    
+
+    <br>
+</div>
+
+<footer class="container-fluid wm-page-content">
+      <p>
+        <a href="https://github.com/linkml/linkml-map/edit/master/docs/schema/KeyVal.md"><i class="fa fa-github"></i>
+Edit on GitHub</a>
+      </p>
+  <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a> using <a href="https://github.com/gristlabs/mkdocs-windmill">Windmill</a> theme by Grist Labs.</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    
+    <link rel="canonical" href="https://linkml.github.io/linkml-map/api/compiler/">
+    <link rel="shortcut icon" href="../../img/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <title>Compiler - LinkML-Map</title>
+    <link href="../../css/bootstrap-3.3.7.min.css" rel="stylesheet">
+    <link href="../../css/font-awesome-4.7.0.css" rel="stylesheet">
+    <link href="../../css/base.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/highlight.css">
+    <link href="../../assets/_mkdocstrings.css" rel="stylesheet">
+    <link href="../../css/ansi-colours.css" rel="stylesheet">
+    <link href="../../css/jupyter-cells.css" rel="stylesheet">
+    <link href="../../css/pandas-dataframe.css" rel="stylesheet">
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+
+    <script src="../../js/jquery-3.2.1.min.js"></script>
+    <script src="../../js/bootstrap-3.3.7.min.js"></script>
+    <script src="../../js/highlight.pack.js"></script>
+    
+    <base target="_top">
+    <script>
+      var base_url = '../..';
+      var is_top_frame = false;
+        
+        var pageToc = [
+          {title: "Compiler Package", url: "#_top", children: [
+              {title: "Compiler (Base Class)", url: "#compiler-base-class" },
+              {title: "source_python_module", url: "#linkml_map.compiler.compiler.Compiler.source_python_module" },
+              {title: "source_schemaview", url: "#linkml_map.compiler.compiler.Compiler.source_schemaview" },
+              {title: "target_python_module", url: "#linkml_map.compiler.compiler.Compiler.target_python_module" },
+              {title: "compile", url: "#linkml_map.compiler.compiler.Compiler.compile" },
+              {title: "derived_target_schemaview", url: "#linkml_map.compiler.compiler.Compiler.derived_target_schemaview" },
+              {title: "Python Compiler", url: "#python-compiler" },
+              {title: "Markdown Compiler", url: "#markdown-compiler" },
+          ]},
+        ];
+
+    </script>
+    <script src="../../js/base.js"></script> 
+</head>
+
+<body>
+<script>
+if (is_top_frame) { $('body').addClass('wm-top-page'); }
+</script>
+
+
+
+<div class="container-fluid wm-page-content">
+  <a name="_top"></a>
+    
+
+    
+    
+      
+    
+
+  <div class="row wm-article-nav-buttons" role="navigation" aria-label="navigation">
+    
+    <div class="wm-article-nav pull-right">
+      <a href="../inference/" class="btn btn-xs btn-default pull-right">
+        Next
+        <i class="fa fa-chevron-right" aria-hidden="true"></i>
+      </a>
+      <a href="../inference/" class="btn btn-xs btn-link">
+        Inference
+      </a>
+    </div>
+    
+    <div class="wm-article-nav">
+      <a href="../transformer/" class="btn btn-xs btn-default pull-left">
+        <i class="fa fa-chevron-left" aria-hidden="true"></i>
+        Previous</a><a href="../transformer/" class="btn btn-xs btn-link">
+        Transformer
+      </a>
+    </div>
+    
+  </div>
+
+    
+
+    <h1 id="compiler-package">Compiler Package</h1>
+<p>A compiler will compile a Map specification into an alternative representation</p>
+<h2 id="compiler-base-class">Compiler (Base Class)</h2>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="abc.ABC">ABC</span></code></p>
+
+
+        <p>Base class for all compilers.</p>
+<p>A compiler will compile a transformation specification into
+an alternative representation.</p>
+<p>An example compiler would be a R2RML compiler.</p>
+<p>Note: Compilers and Importers will in general be implemented by providing
+mapping specifications</p>
+
+
+
+
+
+
+
+              <details class="quote">
+                <summary>Source code in <code>src/linkml_map/compiler/compiler.py</code></summary>
+                <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span>
+<span class="normal">71</span>
+<span class="normal">72</span>
+<span class="normal">73</span>
+<span class="normal">74</span>
+<span class="normal">75</span>
+<span class="normal">76</span>
+<span class="normal">77</span>
+<span class="normal">78</span>
+<span class="normal">79</span>
+<span class="normal">80</span>
+<span class="normal">81</span>
+<span class="normal">82</span>
+<span class="normal">83</span>
+<span class="normal">84</span>
+<span class="normal">85</span>
+<span class="normal">86</span>
+<span class="normal">87</span>
+<span class="normal">88</span>
+<span class="normal">89</span>
+<span class="normal">90</span>
+<span class="normal">91</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Compiler</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class for all compilers.</span>
+
+<span class="sd">    A compiler will compile a transformation specification into</span>
+<span class="sd">    an alternative representation.</span>
+
+<span class="sd">    An example compiler would be a R2RML compiler.</span>
+
+<span class="sd">    Note: Compilers and Importers will in general be implemented by providing</span>
+<span class="sd">    mapping specifications</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">source_schemaview</span><span class="p">:</span> <span class="n">SchemaView</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A view over the schema describing the source.&quot;&quot;&quot;</span>
+
+    <span class="n">source_python_module</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The python module containing the source classes.&quot;&quot;&quot;</span>
+
+    <span class="n">target_python_module</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The python module containing the target classes.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specification</span><span class="p">:</span> <span class="n">TransformationSpecification</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CompiledSpecification</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compile a resolved transformation specification into an alternative representation.</span>
+
+<span class="sd">        :param specification: A fully resolved specification (e.g. from</span>
+<span class="sd">            ``Transformer.derived_specification``).  Must not be ``None``.</span>
+<span class="sd">        :return: The compiled specification.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">specification</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;compile() requires a resolved specification&quot;</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compile_header</span><span class="p">(</span><span class="n">specification</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compile_iterator</span><span class="p">(</span><span class="n">specification</span><span class="p">):</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="n">chunk</span>
+        <span class="k">return</span> <span class="n">CompiledSpecification</span><span class="p">(</span><span class="n">serialization</span><span class="o">=</span><span class="n">s</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compile_header</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specification</span><span class="p">:</span> <span class="n">TransformationSpecification</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compile_iterator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specification</span><span class="p">:</span> <span class="n">TransformationSpecification</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">derived_target_schemaview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specification</span><span class="p">:</span> <span class="n">TransformationSpecification</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SchemaView</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a view over the target schema, including any derived classes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mapper</span> <span class="o">=</span> <span class="n">SchemaMapper</span><span class="p">(</span><span class="n">source_schemaview</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">SchemaView</span><span class="p">(</span><span class="n">yaml_dumper</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">mapper</span><span class="o">.</span><span class="n">derive_schema</span><span class="p">(</span><span class="n">specification</span><span class="p">)))</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="linkml_map.compiler.compiler.Compiler.source_python_module" class="doc doc-heading">
+            <code class=" language-python"><span class="n">source_python_module</span> <span class="o">=</span> <span class="kc">None</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>The python module containing the source classes.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="linkml_map.compiler.compiler.Compiler.source_schemaview" class="doc doc-heading">
+            <code class=" language-python"><span class="n">source_schemaview</span> <span class="o">=</span> <span class="kc">None</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>A view over the schema describing the source.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="linkml_map.compiler.compiler.Compiler.target_python_module" class="doc doc-heading">
+            <code class=" language-python"><span class="n">target_python_module</span> <span class="o">=</span> <span class="kc">None</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>The python module containing the target classes.</p>
+
+    </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="linkml_map.compiler.compiler.Compiler.compile" class="doc doc-heading">
+            <code class=" language-python"><span class="nb">compile</span><span class="p">(</span><span class="n">specification</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Compile a resolved transformation specification into an alternative representation.</p>
+<p>:param specification: A fully resolved specification (e.g. from
+    <code>Transformer.derived_specification</code>).  Must not be <code>None</code>.
+:return: The compiled specification.</p>
+
+
+            <details class="quote">
+              <summary>Source code in <code>src/linkml_map/compiler/compiler.py</code></summary>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span>
+<span class="normal">71</span>
+<span class="normal">72</span>
+<span class="normal">73</span>
+<span class="normal">74</span>
+<span class="normal">75</span>
+<span class="normal">76</span>
+<span class="normal">77</span>
+<span class="normal">78</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specification</span><span class="p">:</span> <span class="n">TransformationSpecification</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CompiledSpecification</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compile a resolved transformation specification into an alternative representation.</span>
+
+<span class="sd">    :param specification: A fully resolved specification (e.g. from</span>
+<span class="sd">        ``Transformer.derived_specification``).  Must not be ``None``.</span>
+<span class="sd">    :return: The compiled specification.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">specification</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;compile() requires a resolved specification&quot;</span><span class="p">)</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compile_header</span><span class="p">(</span><span class="n">specification</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compile_iterator</span><span class="p">(</span><span class="n">specification</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">+=</span> <span class="n">chunk</span>
+    <span class="k">return</span> <span class="n">CompiledSpecification</span><span class="p">(</span><span class="n">serialization</span><span class="o">=</span><span class="n">s</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="linkml_map.compiler.compiler.Compiler.derived_target_schemaview" class="doc doc-heading">
+            <code class=" language-python"><span class="n">derived_target_schemaview</span><span class="p">(</span><span class="n">specification</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return a view over the target schema, including any derived classes.</p>
+
+
+            <details class="quote">
+              <summary>Source code in <code>src/linkml_map/compiler/compiler.py</code></summary>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">86</span>
+<span class="normal">87</span>
+<span class="normal">88</span>
+<span class="normal">89</span>
+<span class="normal">90</span>
+<span class="normal">91</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">derived_target_schemaview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specification</span><span class="p">:</span> <span class="n">TransformationSpecification</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SchemaView</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return a view over the target schema, including any derived classes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mapper</span> <span class="o">=</span> <span class="n">SchemaMapper</span><span class="p">(</span><span class="n">source_schemaview</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">SchemaView</span><span class="p">(</span><span class="n">yaml_dumper</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">mapper</span><span class="o">.</span><span class="n">derive_schema</span><span class="p">(</span><span class="n">specification</span><span class="p">)))</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="python-compiler">Python Compiler</h2>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="linkml_map.compiler.compiler.Compiler">Compiler</span></code></p>
+
+
+        <p>Compiles a Transformation Specification to Python code.</p>
+
+
+
+
+
+
+
+              <details class="quote">
+                <summary>Source code in <code>src/linkml_map/compiler/python_compiler.py</code></summary>
+                <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PythonCompiler</span><span class="p">(</span><span class="n">Compiler</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compiles a Transformation Specification to Python code.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compile_header</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specification</span><span class="p">:</span> <span class="n">TransformationSpecification</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_python_module</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;import </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">source_python_module</span><span class="si">}</span><span class="s2"> as src</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_python_module</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;import </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">target_python_module</span><span class="si">}</span><span class="s2"> as tgt</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">NULL = None</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="n">s</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compile_iterator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specification</span><span class="p">:</span> <span class="n">TransformationSpecification</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">specification</span><span class="o">.</span><span class="n">class_derivations</span><span class="p">:</span>
+            <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compiled_class_derivations_iter</span><span class="p">(</span><span class="n">cd</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compiled_class_derivations_iter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cd</span><span class="p">:</span> <span class="n">ClassDerivation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="n">sv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span>
+        <span class="n">populated_from</span> <span class="o">=</span> <span class="n">cd</span><span class="o">.</span><span class="n">populated_from</span> <span class="k">if</span> <span class="n">cd</span><span class="o">.</span><span class="n">populated_from</span> <span class="k">else</span> <span class="n">cd</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">if</span> <span class="n">populated_from</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sv</span><span class="o">.</span><span class="n">all_classes</span><span class="p">():</span>
+            <span class="k">return</span>
+        <span class="n">induced_slots</span> <span class="o">=</span> <span class="p">{</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sv</span><span class="o">.</span><span class="n">class_induced_slots</span><span class="p">(</span><span class="n">populated_from</span><span class="p">)}</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="n">CD_TEMPLATE</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span>
+            <span class="n">cd</span><span class="o">=</span><span class="n">cd</span><span class="p">,</span>
+            <span class="n">source_module</span><span class="o">=</span><span class="s2">&quot;src&quot;</span><span class="p">,</span>
+            <span class="n">target_module</span><span class="o">=</span><span class="s2">&quot;tgt&quot;</span><span class="p">,</span>
+            <span class="n">induced_slots</span><span class="o">=</span><span class="n">induced_slots</span><span class="p">,</span>
+            <span class="n">schemaview</span><span class="o">=</span><span class="n">sv</span><span class="p">,</span>
+            <span class="n">source_slots</span><span class="o">=</span><span class="n">sv</span><span class="o">.</span><span class="n">class_induced_slots</span><span class="p">(</span><span class="n">populated_from</span><span class="p">),</span>
+        <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="markdown-compiler">Markdown Compiler</h2>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="linkml_map.compiler.j2_based_compiler.J2BasedCompiler">J2BasedCompiler</span></code></p>
+
+
+        <p>Compiles a Transformation Specification to Markdown.</p>
+
+
+
+
+
+
+
+              <details class="quote">
+                <summary>Source code in <code>src/linkml_map/compiler/markdown_compiler.py</code></summary>
+                <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MarkdownCompiler</span><span class="p">(</span><span class="n">J2BasedCompiler</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compiles a Transformation Specification to Markdown.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">template_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;markdown.j2&quot;</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div><h3 id="graphviz-compiler">Graphviz Compiler</h3>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="linkml_map.compiler.compiler.Compiler">Compiler</span></code></p>
+
+
+        <p>Compile a Transformation Specification to GraphViz.</p>
+
+
+
+
+
+
+
+              <details class="quote">
+                <summary>Source code in <code>src/linkml_map/compiler/graphviz_compiler.py</code></summary>
+                <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 51</span>
+<span class="normal"> 52</span>
+<span class="normal"> 53</span>
+<span class="normal"> 54</span>
+<span class="normal"> 55</span>
+<span class="normal"> 56</span>
+<span class="normal"> 57</span>
+<span class="normal"> 58</span>
+<span class="normal"> 59</span>
+<span class="normal"> 60</span>
+<span class="normal"> 61</span>
+<span class="normal"> 62</span>
+<span class="normal"> 63</span>
+<span class="normal"> 64</span>
+<span class="normal"> 65</span>
+<span class="normal"> 66</span>
+<span class="normal"> 67</span>
+<span class="normal"> 68</span>
+<span class="normal"> 69</span>
+<span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">GraphvizCompiler</span><span class="p">(</span><span class="n">Compiler</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compile a Transformation Specification to GraphViz.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specification</span><span class="p">:</span> <span class="n">TransformationSpecification</span><span class="p">,</span> <span class="n">elements</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GraphvizObject</span><span class="p">:</span>
+        <span class="n">dg</span> <span class="o">=</span> <span class="n">Digraph</span><span class="p">(</span><span class="n">comment</span><span class="o">=</span><span class="s2">&quot;UML Class Diagram&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;png&quot;</span><span class="p">)</span>
+        <span class="n">dg</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="n">rankdir</span><span class="o">=</span><span class="s2">&quot;LR&quot;</span><span class="p">)</span>  <span class="c1"># Set graph direction from left to right</span>
+        <span class="n">target_schemaview</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">derived_target_schemaview</span><span class="p">(</span><span class="n">specification</span><span class="p">)</span>
+        <span class="n">source_schemaview</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span>
+
+        <span class="n">records</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">records</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_records</span><span class="p">(</span><span class="n">source_schemaview</span><span class="p">,</span> <span class="s2">&quot;source&quot;</span><span class="p">)</span>
+        <span class="n">records</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_records</span><span class="p">(</span><span class="n">target_schemaview</span><span class="p">,</span> <span class="s2">&quot;target&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">records</span><span class="p">:</span>
+            <span class="n">dg</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">record</span><span class="p">),</span> <span class="n">shape</span><span class="o">=</span><span class="s2">&quot;plaintext&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Define the class nodes with fields in UML format using HTML-like labels</span>
+        <span class="c1"># for precise control over the stacking of the fields</span>
+        <span class="k">for</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">specification</span><span class="o">.</span><span class="n">class_derivations</span><span class="p">:</span>
+            <span class="n">target_cn</span> <span class="o">=</span> <span class="n">cd</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">source_cn</span> <span class="o">=</span> <span class="n">cd</span><span class="o">.</span><span class="n">populated_from</span>
+            <span class="k">if</span> <span class="n">source_cn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">source_cn</span> <span class="o">=</span> <span class="n">cd</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">if</span> <span class="n">elements</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">target_cn</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">source_record</span> <span class="o">=</span> <span class="n">Record</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">source_cn</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;source&quot;</span><span class="p">)</span>
+            <span class="n">target_record</span> <span class="o">=</span> <span class="n">Record</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">target_cn</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;target&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">sd</span> <span class="ow">in</span> <span class="n">cd</span><span class="o">.</span><span class="n">slot_derivations</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">sd</span><span class="o">.</span><span class="n">hide</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">target_slot</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">name</span>
+                <span class="n">target_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">target_record</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">target_slot</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">source_slot</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">populated_from</span>
+                <span class="k">if</span> <span class="n">source_slot</span><span class="p">:</span>
+                    <span class="n">source_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">source_record</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">source_slot</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="n">dg</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">source_id</span><span class="p">,</span> <span class="n">target_id</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">sd</span><span class="o">.</span><span class="n">expr</span><span class="p">:</span>
+                    <span class="c1"># TODO: do this in a less hacky way</span>
+                    <span class="n">tokens</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\w+&quot;</span><span class="p">,</span> <span class="n">sd</span><span class="o">.</span><span class="n">expr</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">token</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">source_schemaview</span><span class="o">.</span><span class="n">all_slots</span><span class="p">():</span>
+                            <span class="k">continue</span>
+                        <span class="n">dg</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">source_record</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">token</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">target_id</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;dashed&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">GraphvizObject</span><span class="p">(</span><span class="n">digraph</span><span class="o">=</span><span class="n">dg</span><span class="p">,</span> <span class="n">serialization</span><span class="o">=</span><span class="n">dg</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_records</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">schemaview</span><span class="p">:</span> <span class="n">SchemaView</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Record</span><span class="p">]:</span>
+        <span class="n">records</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">cn</span> <span class="ow">in</span> <span class="n">schemaview</span><span class="o">.</span><span class="n">all_classes</span><span class="p">():</span>
+            <span class="n">record</span> <span class="o">=</span> <span class="n">Record</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">cn</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">induced_slot</span> <span class="ow">in</span> <span class="n">schemaview</span><span class="o">.</span><span class="n">class_induced_slots</span><span class="p">(</span><span class="n">cn</span><span class="p">):</span>
+                <span class="n">record</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">induced_slot</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">induced_slot</span><span class="o">.</span><span class="n">range</span><span class="p">))</span>
+            <span class="n">records</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">records</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+  <br>
+    
+
+    
+    
+      
+    
+
+  <div class="row wm-article-nav-buttons" role="navigation" aria-label="navigation">
+    
+    <div class="wm-article-nav pull-right">
+      <a href="../inference/" class="btn btn-xs btn-default pull-right">
+        Next
+        <i class="fa fa-chevron-right" aria-hidden="true"></i>
+      </a>
+      <a href="../inference/" class="btn btn-xs btn-link">
+        Inference
+      </a>
+    </div>
+    
+    <div class="wm-article-nav">
+      <a href="../transformer/" class="btn btn-xs btn-default pull-left">
+        <i class="fa fa-chevron-left" aria-hidden="true"></i>
+        Previous</a><a href="../transformer/" class="btn btn-xs btn-link">
+        Transformer
+      </a>
+    </div>
+    
+  </div>
+
+    <br>
+</div>
+
+<footer class="container-fluid wm-page-content">
+      <p>
+        <a href="https://github.com/linkml/linkml-map/edit/master/docs/api/compiler.md"><i class="fa fa-github"></i>
+Edit on GitHub</a>
+      </p>
+  <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a> using <a href="https://github.com/gristlabs/mkdocs-windmill">Windmill</a> theme by Grist Labs.</p>
+</footer>
+
+</body>
+</html>

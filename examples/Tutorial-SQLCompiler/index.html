@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    
+    <link rel="canonical" href="https://linkml.github.io/linkml-map/examples/Tutorial-SQLCompiler/">
+    <link rel="shortcut icon" href="../../img/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <title>Compilation to SQL - LinkML-Map</title>
+    <link href="../../css/bootstrap-3.3.7.min.css" rel="stylesheet">
+    <link href="../../css/font-awesome-4.7.0.css" rel="stylesheet">
+    <link href="../../css/base.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/highlight.css">
+    <link href="../../assets/_mkdocstrings.css" rel="stylesheet">
+    <link href="../../css/ansi-colours.css" rel="stylesheet">
+    <link href="../../css/jupyter-cells.css" rel="stylesheet">
+    <link href="../../css/pandas-dataframe.css" rel="stylesheet">
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+
+    <script src="../../js/jquery-3.2.1.min.js"></script>
+    <script src="../../js/bootstrap-3.3.7.min.js"></script>
+    <script src="../../js/highlight.pack.js"></script>
+    
+    <base target="_top">
+    <script>
+      var base_url = '../..';
+      var is_top_frame = false;
+        
+        var pageToc = [
+          {title: "LinkML-Map tutorial: Compiling to SQL", url: "#_top", children: [
+              {title: "Creating an example schema", url: "#creating-an-example-schema" },
+              {title: "Creating a Transformer Session object", url: "#creating-a-transformer-session-object" },
+              {title: "Compiling target schema to SQL INSERTs", url: "#compiling-target-schema-to-sql-inserts" },
+          ]},
+        ];
+
+    </script>
+    <script src="../../js/base.js"></script> 
+</head>
+
+<body>
+<script>
+if (is_top_frame) { $('body').addClass('wm-top-page'); }
+</script>
+
+
+
+<div class="container-fluid wm-page-content">
+  <a name="_top"></a>
+    
+
+    
+    
+      
+    
+
+  <div class="row wm-article-nav-buttons" role="navigation" aria-label="navigation">
+    
+    <div class="wm-article-nav pull-right">
+      <a href="../MetamodelMapping/" class="btn btn-xs btn-default pull-right">
+        Next
+        <i class="fa fa-chevron-right" aria-hidden="true"></i>
+      </a>
+      <a href="../MetamodelMapping/" class="btn btn-xs btn-link">
+        Metamodel Mapping
+      </a>
+    </div>
+    
+    <div class="wm-article-nav">
+      <a href="../Tutorial/" class="btn btn-xs btn-default pull-left">
+        <i class="fa fa-chevron-left" aria-hidden="true"></i>
+        Previous</a><a href="../Tutorial/" class="btn btn-xs btn-link">
+        Tutorial
+      </a>
+    </div>
+    
+  </div>
+
+    
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script>
+(function() {
+  function addWidgetsRenderer() {
+    var requireJsScript = document.createElement('script');
+    requireJsScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js';
+
+    var mimeElement = document.querySelector('script[type="application/vnd.jupyter.widget-view+json"]');
+    var jupyterWidgetsScript = document.createElement('script');
+    var widgetRendererSrc = 'https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js';
+    var widgetState;
+
+    // Fallback for older version:
+    try {
+      widgetState = mimeElement && JSON.parse(mimeElement.innerHTML);
+
+      if (widgetState && (widgetState.version_major < 2 || !widgetState.version_major)) {
+        widgetRendererSrc = 'jupyter-js-widgets@*/dist/embed.js';
+      }
+    } catch(e) {}
+
+    jupyterWidgetsScript.src = widgetRendererSrc;
+
+    document.body.appendChild(requireJsScript);
+    document.body.appendChild(jupyterWidgetsScript);
+  }
+
+  document.addEventListener('DOMContentLoaded', addWidgetsRenderer);
+}());
+</script>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="linkml-map-tutorial-compiling-to-sql">LinkML-Map tutorial: Compiling to SQL</h1>
+<p>This tutorial walks through use of the SQL compiler</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+</code></pre></div>
+
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="creating-an-example-schema">Creating an example schema</h2>
+<p>We will use a LinkML SchemaBuilder object to progressively build up a schema, adding
+additional features as we go.</p>
+<p>We'll start with a simple <code>Person</code> schema, with a few single valued scalar slots:</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">linkml.utils.schema_builder</span><span class="w"> </span><span class="kn">import</span> <span class="n">SchemaBuilder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">linkml_runtime.linkml_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">SlotDefinition</span>
+
+<span class="n">sb</span> <span class="o">=</span> <span class="n">SchemaBuilder</span><span class="p">()</span>
+<span class="n">sb</span><span class="o">.</span><span class="n">add_class</span><span class="p">(</span><span class="s2">&quot;Person&quot;</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="p">[</span><span class="n">SlotDefinition</span><span class="p">(</span><span class="s2">&quot;family_name&quot;</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">),</span> 
+                              <span class="n">SlotDefinition</span><span class="p">(</span><span class="s2">&quot;given_name&quot;</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">),</span>
+                              <span class="n">SlotDefinition</span><span class="p">(</span><span class="s2">&quot;age_in_years&quot;</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="s2">&quot;integer&quot;</span><span class="p">),</span>
+                              <span class="n">SlotDefinition</span><span class="p">(</span><span class="s2">&quot;height_in_cm&quot;</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">),</span>
+                              <span class="p">])</span>
+<span class="n">sb</span><span class="o">.</span><span class="n">add_defaults</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">sb</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+</code></pre></div>
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+<code>name: test-schema
+id: http://example.org/test-schema
+imports:
+- linkml:types
+prefixes:
+  linkml: https://w3id.org/linkml/
+  test_schema: http://example.org/test-schema/
+default_prefix: test_schema
+default_range: string
+slots:
+  family_name:
+    range: string
+  given_name:
+    range: string
+  age_in_years:
+    range: integer
+  height_in_cm:
+    range: float
+classes:
+  Person:
+    slots:
+    - family_name
+    - given_name
+    - age_in_years
+    - height_in_cm
+</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="creating-a-transformer-session-object">Creating a Transformer Session object</h2>
+<p>We will use a <code>Session</code> object which conveniently wraps a number of different capabilities;
+the first of these capabilities is to map (transform) data objects from one schema to another
+(implicit) schema using a <em>transformer specification</em>).</p>
+<p>Our initial transformer specification will be a trivial isomorphic one that:</p>
+<ul>
+<li>maps the <code>Person</code> class to an <code>Individual</code> class</li>
+<li>passes through <code>name</code> fields as-is</li>
+<li>renames measurement fields (<code>age_in_years</code> and <code>height_in_cm</code> to <code>age</code> and <code>height</code>)</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.session</span><span class="w"> </span><span class="kn">import</span> <span class="n">Session</span>
+
+<span class="n">session</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span>
+<span class="n">session</span><span class="o">.</span><span class="n">set_source_schema</span><span class="p">(</span><span class="n">sb</span><span class="o">.</span><span class="n">as_dict</span><span class="p">())</span>
+</code></pre></div>
+
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="c1"># Transformer specification (in YAML)</span>
+<span class="n">session</span><span class="o">.</span><span class="n">set_object_transformer</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">class_derivations:</span>
+<span class="s2">  Individual:</span>
+<span class="s2">    populated_from: Person</span>
+<span class="s2">    slot_derivations:</span>
+<span class="s2">      family_name:</span>
+<span class="s2">        populated_from: family_name</span>
+<span class="s2">      given_name:</span>
+<span class="s2">        populated_from: given_name</span>
+<span class="s2">      age:</span>
+<span class="s2">        populated_from: age_in_years</span>
+<span class="s2">      height:</span>
+<span class="s2">        populated_from: height_in_cm</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="compiling-target-schema-to-sql-inserts">Compiling target schema to SQL INSERTs</h2>
+<p>The LinkML-Map framework can infer the target schema from the mapping.
+We will take the inferred schema and write SQL INSERT statements for it.</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.compiler.sql_compiler</span><span class="w"> </span><span class="kn">import</span> <span class="n">SQLCompiler</span>
+
+<span class="n">compiler</span> <span class="o">=</span> <span class="n">SQLCompiler</span><span class="p">(</span><span class="n">source_schemaview</span><span class="o">=</span><span class="n">session</span><span class="o">.</span><span class="n">source_schemaview</span><span class="p">)</span>
+</code></pre></div>
+
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="n">compiler</span><span class="o">.</span><span class="n">create_target_ddl</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">transformer_specification</span><span class="p">))</span>
+</code></pre></div>
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+<code>CREATE TABLE IF NOT EXISTS Individual (
+  family_name TEXT,
+  given_name TEXT,
+  age INTEGER,
+  height REAL
+);
+</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="n">compiler</span><span class="o">.</span><span class="n">create_ddl</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">source_schemaview</span><span class="p">))</span>
+</code></pre></div>
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+<code>CREATE TABLE IF NOT EXISTS Person (
+  family_name TEXT,
+  given_name TEXT,
+  age_in_years INTEGER,
+  height_in_cm REAL
+);
+</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="n">compiled</span> <span class="o">=</span> <span class="n">compiler</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">transformer_specification</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">compiled</span><span class="o">.</span><span class="n">serialization</span><span class="p">)</span>
+</code></pre></div>
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+<code>INSERT INTO Individual SELECT 
+  family_name AS family_name, 
+  given_name AS given_name, 
+  age AS age_in_years, 
+  height AS height_in_cm FROM Individual;
+</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="n">compiler</span><span class="o">.</span><span class="n">new_table_when_transforming</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">compiled</span> <span class="o">=</span> <span class="n">compiler</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">transformer_specification</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">compiled</span><span class="o">.</span><span class="n">serialization</span><span class="p">)</span>
+</code></pre></div>
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+<code>CREATE TABLE IF NOT EXISTS Individual 
+  family_name AS family_name, 
+  given_name AS given_name, 
+  age AS age_in_years, 
+  height AS height_in_cm); FROM Individual;
+</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"></div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">duckdb</span>
+</code></pre></div>
+
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="n">con</span> <span class="o">=</span> <span class="n">duckdb</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">database</span><span class="o">=</span><span class="s1">&#39;:memory:&#39;</span><span class="p">)</span>
+</code></pre></div>
+
+</div>
+</div>
+
+  <br>
+    
+
+    
+    
+      
+    
+
+  <div class="row wm-article-nav-buttons" role="navigation" aria-label="navigation">
+    
+    <div class="wm-article-nav pull-right">
+      <a href="../MetamodelMapping/" class="btn btn-xs btn-default pull-right">
+        Next
+        <i class="fa fa-chevron-right" aria-hidden="true"></i>
+      </a>
+      <a href="../MetamodelMapping/" class="btn btn-xs btn-link">
+        Metamodel Mapping
+      </a>
+    </div>
+    
+    <div class="wm-article-nav">
+      <a href="../Tutorial/" class="btn btn-xs btn-default pull-left">
+        <i class="fa fa-chevron-left" aria-hidden="true"></i>
+        Previous</a><a href="../Tutorial/" class="btn btn-xs btn-link">
+        Tutorial
+      </a>
+    </div>
+    
+  </div>
+
+    <br>
+</div>
+
+<footer class="container-fluid wm-page-content">
+      <p>
+        <a href="https://github.com/linkml/linkml-map/edit/master/docs/examples/Tutorial-SQLCompiler.ipynb"><i class="fa fa-github"></i>
+Edit on GitHub</a>
+      </p>
+  <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a> using <a href="https://github.com/gristlabs/mkdocs-windmill">Windmill</a> theme by Grist Labs.</p>
+</footer>
+
+</body>
+</html>

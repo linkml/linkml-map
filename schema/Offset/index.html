@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    
+    <link rel="canonical" href="https://linkml.github.io/linkml-map/schema/Offset/">
+    <link rel="shortcut icon" href="../../img/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <title>Class: Offset - LinkML-Map</title>
+    <link href="../../css/bootstrap-3.3.7.min.css" rel="stylesheet">
+    <link href="../../css/font-awesome-4.7.0.css" rel="stylesheet">
+    <link href="../../css/base.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/highlight.css">
+    <link href="../../assets/_mkdocstrings.css" rel="stylesheet">
+    <link href="../../css/ansi-colours.css" rel="stylesheet">
+    <link href="../../css/jupyter-cells.css" rel="stylesheet">
+    <link href="../../css/pandas-dataframe.css" rel="stylesheet">
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+
+    <script src="../../js/jquery-3.2.1.min.js"></script>
+    <script src="../../js/bootstrap-3.3.7.min.js"></script>
+    <script src="../../js/highlight.pack.js"></script>
+    
+    <base target="_top">
+    <script>
+      var base_url = '../..';
+      var is_top_frame = false;
+        
+        var pageToc = [
+          {title: "Class: Offset", url: "#_top", children: [
+          ]},
+        ];
+
+    </script>
+    <script src="../../js/base.js"></script> 
+</head>
+
+<body>
+<script>
+if (is_top_frame) { $('body').addClass('wm-top-page'); }
+</script>
+
+
+
+<div class="container-fluid wm-page-content">
+  <a name="_top"></a>
+    
+
+    
+
+    <h1 id="class-offset">Class: Offset</h1>
+<p><em>Configuration for calculating a value by applying an offset to a baseline value. The baseline value comes from the slot's populated_from field. This is commonly used for longitudinal data where measurements are recorded relative to a baseline. For example, calculating age_at_visit from age + (days * 1/365).</em></p>
+<p><em>The calculation is: result = baseline ± (offset_value * offset_field_value) where baseline comes from populated_from.</em></p>
+<div data-search-exclude markdown="1">
+
+
+
+URI: [linkmlmap:Offset](https://w3id.org/linkml/transformer/Offset)
+
+
+
+
+
+<div class="highlight"><pre><span></span><code> classDiagram
+    class Offset
+    click Offset href &quot;../Offset/&quot;
+      Offset : offset_field
+
+      Offset : offset_reverse
+
+      Offset : offset_value
+</code></pre></div>
+
+
+
+
+<!-- no inheritance hierarchy -->
+
+## Slots
+
+| Name | Cardinality and Range | Description | Inheritance |
+| ---  | --- | --- | --- |
+| [offset_value](offset_value.md) | 1 <br/> [Float](Float.md) | Multiplier applied to the offset field value | direct |
+| [offset_field](offset_field.md) | 1 <br/> [String](String.md) | Name of the field in the source object that contains the offset amount | direct |
+| [offset_reverse](offset_reverse.md) | 0..1 <br/> [Boolean](Boolean.md) | If true, subtract the offset from the baseline (baseline - offset) | direct |
+
+
+
+
+
+## Usages
+
+| used by | used in | type | used |
+| ---  | --- | --- | --- |
+| [SlotDerivation](SlotDerivation.md) | [offset](offset.md) | range | [Offset](Offset.md) |
+
+
+
+
+
+
+
+
+
+
+
+
+## Identifier and Mapping Information
+
+
+
+
+
+### Schema Source
+
+
+* from schema: https://w3id.org/linkml/transformer
+
+
+
+
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:Offset |
+| native | linkmlmap:Offset |
+
+
+
+
+
+
+## LinkML Source
+
+<!-- TODO: investigate https://stackoverflow.com/questions/37606292/how-to-create-tabbed-code-blocks-in-mkdocs-or-sphinx -->
+
+### Direct
+
+<details>
+<div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Offset</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Configuration</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">calculating</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">value</span><span class="nv"> </span><span class="s">by</span><span class="nv"> </span><span class="s">applying</span><span class="nv"> </span><span class="s">an</span><span class="nv"> </span><span class="s">offset</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">baseline</span>
+<span class="w">  </span><span class="s">value.</span><span class="nv"> </span><span class="s">The</span><span class="nv"> </span><span class="s">baseline</span><span class="nv"> </span><span class="s">value</span><span class="nv"> </span><span class="s">comes</span><span class="nv"> </span><span class="s">from</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">slot</span><span class="se">&#39;&#39;</span><span class="s">s</span><span class="nv"> </span><span class="s">populated_from</span><span class="nv"> </span><span class="s">field.</span><span class="nv"> </span><span class="s">This</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">commonly</span>
+<span class="w">  </span><span class="s">used</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">longitudinal</span><span class="nv"> </span><span class="s">data</span><span class="nv"> </span><span class="s">where</span><span class="nv"> </span><span class="s">measurements</span><span class="nv"> </span><span class="s">are</span><span class="nv"> </span><span class="s">recorded</span><span class="nv"> </span><span class="s">relative</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">baseline.</span>
+<span class="w">  </span><span class="s">For</span><span class="nv"> </span><span class="s">example,</span><span class="nv"> </span><span class="s">calculating</span><span class="nv"> </span><span class="s">age_at_visit</span><span class="nv"> </span><span class="s">from</span><span class="nv"> </span><span class="s">age</span><span class="nv"> </span><span class="s">+</span><span class="nv"> </span><span class="s">(days</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">1/365).</span>
+
+<span class="w">  </span><span class="s">The</span><span class="nv"> </span><span class="s">calculation</span><span class="nv"> </span><span class="s">is:</span><span class="nv"> </span><span class="s">result</span><span class="nv"> </span><span class="s">=</span><span class="nv"> </span><span class="s">baseline</span><span class="nv"> </span><span class="s">±</span><span class="nv"> </span><span class="s">(offset_value</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">offset_field_value)</span><span class="nv"> </span><span class="s">where</span>
+<span class="w">  </span><span class="s">baseline</span><span class="nv"> </span><span class="s">comes</span><span class="nv"> </span><span class="s">from</span><span class="nv"> </span><span class="s">populated_from.&#39;</span>
+<span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="nt">attributes</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">offset_value</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">offset_value</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Multiplier applied to the offset field value. For example, use 1/365</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">(or 0.00273973) to convert days to years, or 1/12 (or 0.0833333) to convert</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">months to years.</span>
+<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Offset</span>
+<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">float</span>
+<span class="w">    </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">offset_field</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">offset_field</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Name of the field in the source object that contains the offset amount.</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">This value will be multiplied by offset_value.</span>
+<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Offset</span>
+<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<span class="w">    </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">offset_reverse</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">offset_reverse</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">If true, subtract the offset from the baseline (baseline - offset).</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">If false, add the offset to the baseline (baseline + offset). Defaults to false</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">(addition).</span>
+<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Offset</span>
+<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">boolean</span>
+</code></pre></div>
+</details>
+
+### Induced
+
+<details>
+<div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Offset</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Configuration</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">calculating</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">value</span><span class="nv"> </span><span class="s">by</span><span class="nv"> </span><span class="s">applying</span><span class="nv"> </span><span class="s">an</span><span class="nv"> </span><span class="s">offset</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">baseline</span>
+<span class="w">  </span><span class="s">value.</span><span class="nv"> </span><span class="s">The</span><span class="nv"> </span><span class="s">baseline</span><span class="nv"> </span><span class="s">value</span><span class="nv"> </span><span class="s">comes</span><span class="nv"> </span><span class="s">from</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">slot</span><span class="se">&#39;&#39;</span><span class="s">s</span><span class="nv"> </span><span class="s">populated_from</span><span class="nv"> </span><span class="s">field.</span><span class="nv"> </span><span class="s">This</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">commonly</span>
+<span class="w">  </span><span class="s">used</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">longitudinal</span><span class="nv"> </span><span class="s">data</span><span class="nv"> </span><span class="s">where</span><span class="nv"> </span><span class="s">measurements</span><span class="nv"> </span><span class="s">are</span><span class="nv"> </span><span class="s">recorded</span><span class="nv"> </span><span class="s">relative</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">baseline.</span>
+<span class="w">  </span><span class="s">For</span><span class="nv"> </span><span class="s">example,</span><span class="nv"> </span><span class="s">calculating</span><span class="nv"> </span><span class="s">age_at_visit</span><span class="nv"> </span><span class="s">from</span><span class="nv"> </span><span class="s">age</span><span class="nv"> </span><span class="s">+</span><span class="nv"> </span><span class="s">(days</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">1/365).</span>
+
+<span class="w">  </span><span class="s">The</span><span class="nv"> </span><span class="s">calculation</span><span class="nv"> </span><span class="s">is:</span><span class="nv"> </span><span class="s">result</span><span class="nv"> </span><span class="s">=</span><span class="nv"> </span><span class="s">baseline</span><span class="nv"> </span><span class="s">±</span><span class="nv"> </span><span class="s">(offset_value</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">offset_field_value)</span><span class="nv"> </span><span class="s">where</span>
+<span class="w">  </span><span class="s">baseline</span><span class="nv"> </span><span class="s">comes</span><span class="nv"> </span><span class="s">from</span><span class="nv"> </span><span class="s">populated_from.&#39;</span>
+<span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="nt">attributes</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">offset_value</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">offset_value</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Multiplier applied to the offset field value. For example, use 1/365</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">(or 0.00273973) to convert days to years, or 1/12 (or 0.0833333) to convert</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">months to years.</span>
+<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Offset</span>
+<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Offset</span>
+<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">float</span>
+<span class="w">    </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">offset_field</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">offset_field</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Name of the field in the source object that contains the offset amount.</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">This value will be multiplied by offset_value.</span>
+<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Offset</span>
+<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Offset</span>
+<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<span class="w">    </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">offset_reverse</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">offset_reverse</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">If true, subtract the offset from the baseline (baseline - offset).</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">If false, add the offset to the baseline (baseline + offset). Defaults to false</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">(addition).</span>
+<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Offset</span>
+<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Offset</span>
+<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">boolean</span>
+</code></pre></div>
+</details></div>
+
+  <br>
+    
+
+    <br>
+</div>
+
+<footer class="container-fluid wm-page-content">
+      <p>
+        <a href="https://github.com/linkml/linkml-map/edit/master/docs/schema/Offset.md"><i class="fa fa-github"></i>
+Edit on GitHub</a>
+      </p>
+  <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a> using <a href="https://github.com/gristlabs/mkdocs-windmill">Windmill</a> theme by Grist Labs.</p>
+</footer>
+
+</body>
+</html>

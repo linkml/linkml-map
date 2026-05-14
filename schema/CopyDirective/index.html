@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    
+    <link rel="canonical" href="https://linkml.github.io/linkml-map/schema/CopyDirective/">
+    <link rel="shortcut icon" href="../../img/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <title>Class: CopyDirective - LinkML-Map</title>
+    <link href="../../css/bootstrap-3.3.7.min.css" rel="stylesheet">
+    <link href="../../css/font-awesome-4.7.0.css" rel="stylesheet">
+    <link href="../../css/base.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/highlight.css">
+    <link href="../../assets/_mkdocstrings.css" rel="stylesheet">
+    <link href="../../css/ansi-colours.css" rel="stylesheet">
+    <link href="../../css/jupyter-cells.css" rel="stylesheet">
+    <link href="../../css/pandas-dataframe.css" rel="stylesheet">
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+
+    <script src="../../js/jquery-3.2.1.min.js"></script>
+    <script src="../../js/bootstrap-3.3.7.min.js"></script>
+    <script src="../../js/highlight.pack.js"></script>
+    
+    <base target="_top">
+    <script>
+      var base_url = '../..';
+      var is_top_frame = false;
+        
+        var pageToc = [
+          {title: "Class: CopyDirective", url: "#_top", children: [
+          ]},
+        ];
+
+    </script>
+    <script src="../../js/base.js"></script> 
+</head>
+
+<body>
+<script>
+if (is_top_frame) { $('body').addClass('wm-top-page'); }
+</script>
+
+
+
+<div class="container-fluid wm-page-content">
+  <a name="_top"></a>
+    
+
+    
+
+    <h1 id="class-copydirective">Class: CopyDirective</h1>
+<p><em>Instructs a Schema Mapper in how to map to a target schema. Not used for data transformation.</em></p>
+<p><em>This is the process to process a directive: 1. If <code>copy_all</code>, add all sub-elements to the list of sub-elements to be copied. 2. If <code>exclude</code>, remove the specified sub-elements from the above list. 3. If <code>exclude_all</code>, clean-up the above list. Effectively making previous steps useless. 4. If <code>include</code>, add the specified sub-elements from the list result of previous steps.</em></p>
+<p><em>Implementations might decide to somehow report (error, warning,...) meaningless combinations (like specifying <code>copy_all</code> and <code>exclude_all</code>).</em></p>
+<p><em>Validation on the correctness of the resulting derived schema might be done optionally by the implementation. For example, removing a slot but keeping a class that requires it would invalidate the derived-schema. It is always possible to validate the schema with the LinkML linter after derivation.</em></p>
+<p><em>What are the considered sub-elements depends on the calls of Element to be transformed. For example, for a class they are <code>slots</code> and <code>attributes</code>.</em></p>
+<div data-search-exclude markdown="1">
+
+
+
+URI: [linkmlmap:CopyDirective](https://w3id.org/linkml/transformer/CopyDirective)
+
+
+
+
+
+<div class="highlight"><pre><span></span><code> classDiagram
+    class CopyDirective
+    click CopyDirective href &quot;../CopyDirective/&quot;
+      CopyDirective : add
+
+
+
+
+
+        CopyDirective --&gt; &quot;0..1&quot; Any : add
+        click Any href &quot;../Any/&quot;
+
+
+
+      CopyDirective : copy_all
+
+      CopyDirective : element_name
+
+      CopyDirective : exclude
+
+
+
+
+
+        CopyDirective --&gt; &quot;0..1&quot; Any : exclude
+        click Any href &quot;../Any/&quot;
+
+
+
+      CopyDirective : exclude_all
+
+      CopyDirective : include
+
+
+
+
+
+        CopyDirective --&gt; &quot;0..1&quot; Any : include
+        click Any href &quot;../Any/&quot;
+</code></pre></div>
+
+
+
+
+<!-- no inheritance hierarchy -->
+
+## Slots
+
+| Name | Cardinality and Range | Description | Inheritance |
+| ---  | --- | --- | --- |
+| [element_name](element_name.md) | 1 <br/> [String](String.md) |  | direct |
+| [copy_all](copy_all.md) | 0..1 <br/> [Boolean](Boolean.md) | Copy all sub-elements of the Element being derived | direct |
+| [exclude_all](exclude_all.md) | 0..1 <br/> [Boolean](Boolean.md) | Do not copy any of the sub-elements of the Element being derived | direct |
+| [exclude](exclude.md) | 0..1 <br/> [Any](Any.md) | Remove certain sub-elements from the list of sub-elements to be copied | direct |
+| [include](include.md) | 0..1 <br/> [Any](Any.md) | Add certain sub-elements to the list of sub-elements to be copied | direct |
+| [add](add.md) | 0..1 <br/> [Any](Any.md) |  | direct |
+
+
+
+
+
+## Usages
+
+| used by | used in | type | used |
+| ---  | --- | --- | --- |
+| [TransformationSpecification](TransformationSpecification.md) | [copy_directives](copy_directives.md) | range | [CopyDirective](CopyDirective.md) |
+| [ElementDerivation](ElementDerivation.md) | [copy_directives](copy_directives.md) | range | [CopyDirective](CopyDirective.md) |
+| [ClassDerivation](ClassDerivation.md) | [copy_directives](copy_directives.md) | range | [CopyDirective](CopyDirective.md) |
+| [ObjectDerivation](ObjectDerivation.md) | [copy_directives](copy_directives.md) | range | [CopyDirective](CopyDirective.md) |
+| [SlotDerivation](SlotDerivation.md) | [copy_directives](copy_directives.md) | range | [CopyDirective](CopyDirective.md) |
+| [EnumDerivation](EnumDerivation.md) | [copy_directives](copy_directives.md) | range | [CopyDirective](CopyDirective.md) |
+| [PermissibleValueDerivation](PermissibleValueDerivation.md) | [copy_directives](copy_directives.md) | range | [CopyDirective](CopyDirective.md) |
+| [PrefixDerivation](PrefixDerivation.md) | [copy_directives](copy_directives.md) | range | [CopyDirective](CopyDirective.md) |
+
+
+
+
+
+
+
+
+
+
+
+
+## Identifier and Mapping Information
+### Administrative Metadata
+
+**Status:** testing
+
+
+
+
+
+
+### Schema Source
+
+
+* from schema: https://w3id.org/linkml/transformer
+
+
+
+
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:CopyDirective |
+| native | linkmlmap:CopyDirective |
+
+
+
+
+
+
+## LinkML Source
+
+<!-- TODO: investigate https://stackoverflow.com/questions/37606292/how-to-create-tabbed-code-blocks-in-mkdocs-or-sphinx -->
+
+### Direct
+
+<details>
+<div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CopyDirective</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Instructs</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">Schema</span><span class="nv"> </span><span class="s">Mapper</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">how</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">map</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">target</span><span class="nv"> </span><span class="s">schema.</span><span class="nv"> </span><span class="s">Not</span><span class="nv"> </span><span class="s">used</span>
+<span class="w">  </span><span class="s">for</span><span class="nv"> </span><span class="s">data</span><span class="nv"> </span><span class="s">transformation.</span>
+
+<span class="w">  </span><span class="s">This</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">process</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">process</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">directive:</span><span class="nv"> </span><span class="s">1.</span><span class="nv"> </span><span class="s">If</span><span class="nv"> </span><span class="s">`copy_all`,</span><span class="nv"> </span><span class="s">add</span><span class="nv"> </span><span class="s">all</span><span class="nv"> </span><span class="s">sub-elements</span>
+<span class="w">  </span><span class="s">to</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">list</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">sub-elements</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">copied.</span><span class="nv"> </span><span class="s">2.</span><span class="nv"> </span><span class="s">If</span><span class="nv"> </span><span class="s">`exclude`,</span><span class="nv"> </span><span class="s">remove</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">specified</span>
+<span class="w">  </span><span class="s">sub-elements</span><span class="nv"> </span><span class="s">from</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">above</span><span class="nv"> </span><span class="s">list.</span><span class="nv"> </span><span class="s">3.</span><span class="nv"> </span><span class="s">If</span><span class="nv"> </span><span class="s">`exclude_all`,</span><span class="nv"> </span><span class="s">clean-up</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">above</span><span class="nv"> </span><span class="s">list.</span>
+<span class="w">  </span><span class="s">Effectively</span><span class="nv"> </span><span class="s">making</span><span class="nv"> </span><span class="s">previous</span><span class="nv"> </span><span class="s">steps</span><span class="nv"> </span><span class="s">useless.</span><span class="nv"> </span><span class="s">4.</span><span class="nv"> </span><span class="s">If</span><span class="nv"> </span><span class="s">`include`,</span><span class="nv"> </span><span class="s">add</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">specified</span><span class="nv"> </span><span class="s">sub-elements</span>
+<span class="w">  </span><span class="s">from</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">list</span><span class="nv"> </span><span class="s">result</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">previous</span><span class="nv"> </span><span class="s">steps.</span>
+
+<span class="w">  </span><span class="s">Implementations</span><span class="nv"> </span><span class="s">might</span><span class="nv"> </span><span class="s">decide</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">somehow</span><span class="nv"> </span><span class="s">report</span><span class="nv"> </span><span class="s">(error,</span><span class="nv"> </span><span class="s">warning,...)</span><span class="nv"> </span><span class="s">meaningless</span>
+<span class="w">  </span><span class="s">combinations</span><span class="nv"> </span><span class="s">(like</span><span class="nv"> </span><span class="s">specifying</span><span class="nv"> </span><span class="s">`copy_all`</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">`exclude_all`).</span>
+
+<span class="w">  </span><span class="s">Validation</span><span class="nv"> </span><span class="s">on</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">correctness</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">resulting</span><span class="nv"> </span><span class="s">derived</span><span class="nv"> </span><span class="s">schema</span><span class="nv"> </span><span class="s">might</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">done</span><span class="nv"> </span><span class="s">optionally</span>
+<span class="w">  </span><span class="s">by</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">implementation.</span><span class="nv"> </span><span class="s">For</span><span class="nv"> </span><span class="s">example,</span><span class="nv"> </span><span class="s">removing</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">slot</span><span class="nv"> </span><span class="s">but</span><span class="nv"> </span><span class="s">keeping</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">class</span><span class="nv"> </span><span class="s">that</span><span class="nv"> </span><span class="s">requires</span>
+<span class="w">  </span><span class="s">it</span><span class="nv"> </span><span class="s">would</span><span class="nv"> </span><span class="s">invalidate</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">derived-schema.</span><span class="nv"> </span><span class="s">It</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">always</span><span class="nv"> </span><span class="s">possible</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">validate</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">schema</span>
+<span class="w">  </span><span class="s">with</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">LinkML</span><span class="nv"> </span><span class="s">linter</span><span class="nv"> </span><span class="s">after</span><span class="nv"> </span><span class="s">derivation.</span>
+
+<span class="w">  </span><span class="s">What</span><span class="nv"> </span><span class="s">are</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">considered</span><span class="nv"> </span><span class="s">sub-elements</span><span class="nv"> </span><span class="s">depends</span><span class="nv"> </span><span class="s">on</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">calls</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">Element</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">transformed.</span>
+<span class="w">  </span><span class="s">For</span><span class="nv"> </span><span class="s">example,</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">class</span><span class="nv"> </span><span class="s">they</span><span class="nv"> </span><span class="s">are</span><span class="nv"> </span><span class="s">`slots`</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">`attributes`.&#39;</span>
+<span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="nt">status</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">testing</span>
+<span class="nt">attributes</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">element_name</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">element_name</span>
+<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="w">    </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CopyDirective</span>
+<span class="w">  </span><span class="nt">copy_all</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">copy_all</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Copy all sub-elements of the Element being derived.</span>
+<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CopyDirective</span>
+<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">boolean</span>
+<span class="w">  </span><span class="nt">exclude_all</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">exclude_all</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Do not copy any of the sub-elements of the Element being derived.</span>
+<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CopyDirective</span>
+<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">boolean</span>
+<span class="w">  </span><span class="nt">exclude</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">exclude</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Remove</span><span class="nv"> </span><span class="s">certain</span><span class="nv"> </span><span class="s">sub-elements</span><span class="nv"> </span><span class="s">from</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">list</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">sub-elements</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">be</span>
+<span class="w">      </span><span class="s">copied.</span>
+
+<span class="w">      </span><span class="s">As</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">now</span><span class="nv"> </span><span class="s">there</span><span class="nv"> </span><span class="s">it</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">under-specified,</span><span class="nv"> </span><span class="s">how</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">specify</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">sub-elements</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">exclude.</span>
+<span class="w">      </span><span class="s">One</span><span class="nv"> </span><span class="s">possible</span><span class="nv"> </span><span class="s">implementation</span><span class="nv"> </span><span class="s">would</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">list</span><span class="nv"> </span><span class="s">where</span><span class="nv"> </span><span class="s">all</span><span class="nv"> </span><span class="s">element</span><span class="nv"> </span><span class="s">types</span><span class="nv"> </span><span class="s">can</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">mixed,</span>
+<span class="w">      </span><span class="s">since</span><span class="nv"> </span><span class="s">there</span><span class="nv"> </span><span class="s">might</span><span class="nv"> </span><span class="s">not</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">name</span><span class="nv"> </span><span class="s">conflicts</span><span class="nv"> </span><span class="s">across</span><span class="nv"> </span><span class="s">element</span><span class="nv"> </span><span class="s">types.&#39;</span>
+<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CopyDirective</span>
+<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Any</span>
+<span class="w">  </span><span class="nt">include</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">include</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Add</span><span class="nv"> </span><span class="s">certain</span><span class="nv"> </span><span class="s">sub-elements</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">list</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">sub-elements</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">copied.</span>
+
+<span class="w">      </span><span class="s">As</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">now</span><span class="nv"> </span><span class="s">there</span><span class="nv"> </span><span class="s">it</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">under-specified,</span><span class="nv"> </span><span class="s">how</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">specify</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">sub-elements</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">include.</span>
+<span class="w">      </span><span class="s">One</span><span class="nv"> </span><span class="s">possible</span><span class="nv"> </span><span class="s">implementation</span><span class="nv"> </span><span class="s">would</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">list</span><span class="nv"> </span><span class="s">where</span><span class="nv"> </span><span class="s">all</span><span class="nv"> </span><span class="s">element</span><span class="nv"> </span><span class="s">types</span><span class="nv"> </span><span class="s">can</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">mixed,</span>
+<span class="w">      </span><span class="s">since</span><span class="nv"> </span><span class="s">there</span><span class="nv"> </span><span class="s">might</span><span class="nv"> </span><span class="s">not</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">name</span><span class="nv"> </span><span class="s">conflicts</span><span class="nv"> </span><span class="s">across</span><span class="nv"> </span><span class="s">element</span><span class="nv"> </span><span class="s">types.&#39;</span>
+<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CopyDirective</span>
+<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Any</span>
+<span class="w">  </span><span class="nt">add</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">add</span>
+<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CopyDirective</span>
+<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Any</span>
+</code></pre></div>
+</details>
+
+### Induced
+
+<details>
+<div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CopyDirective</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Instructs</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">Schema</span><span class="nv"> </span><span class="s">Mapper</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">how</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">map</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">target</span><span class="nv"> </span><span class="s">schema.</span><span class="nv"> </span><span class="s">Not</span><span class="nv"> </span><span class="s">used</span>
+<span class="w">  </span><span class="s">for</span><span class="nv"> </span><span class="s">data</span><span class="nv"> </span><span class="s">transformation.</span>
+
+<span class="w">  </span><span class="s">This</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">process</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">process</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">directive:</span><span class="nv"> </span><span class="s">1.</span><span class="nv"> </span><span class="s">If</span><span class="nv"> </span><span class="s">`copy_all`,</span><span class="nv"> </span><span class="s">add</span><span class="nv"> </span><span class="s">all</span><span class="nv"> </span><span class="s">sub-elements</span>
+<span class="w">  </span><span class="s">to</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">list</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">sub-elements</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">copied.</span><span class="nv"> </span><span class="s">2.</span><span class="nv"> </span><span class="s">If</span><span class="nv"> </span><span class="s">`exclude`,</span><span class="nv"> </span><span class="s">remove</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">specified</span>
+<span class="w">  </span><span class="s">sub-elements</span><span class="nv"> </span><span class="s">from</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">above</span><span class="nv"> </span><span class="s">list.</span><span class="nv"> </span><span class="s">3.</span><span class="nv"> </span><span class="s">If</span><span class="nv"> </span><span class="s">`exclude_all`,</span><span class="nv"> </span><span class="s">clean-up</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">above</span><span class="nv"> </span><span class="s">list.</span>
+<span class="w">  </span><span class="s">Effectively</span><span class="nv"> </span><span class="s">making</span><span class="nv"> </span><span class="s">previous</span><span class="nv"> </span><span class="s">steps</span><span class="nv"> </span><span class="s">useless.</span><span class="nv"> </span><span class="s">4.</span><span class="nv"> </span><span class="s">If</span><span class="nv"> </span><span class="s">`include`,</span><span class="nv"> </span><span class="s">add</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">specified</span><span class="nv"> </span><span class="s">sub-elements</span>
+<span class="w">  </span><span class="s">from</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">list</span><span class="nv"> </span><span class="s">result</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">previous</span><span class="nv"> </span><span class="s">steps.</span>
+
+<span class="w">  </span><span class="s">Implementations</span><span class="nv"> </span><span class="s">might</span><span class="nv"> </span><span class="s">decide</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">somehow</span><span class="nv"> </span><span class="s">report</span><span class="nv"> </span><span class="s">(error,</span><span class="nv"> </span><span class="s">warning,...)</span><span class="nv"> </span><span class="s">meaningless</span>
+<span class="w">  </span><span class="s">combinations</span><span class="nv"> </span><span class="s">(like</span><span class="nv"> </span><span class="s">specifying</span><span class="nv"> </span><span class="s">`copy_all`</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">`exclude_all`).</span>
+
+<span class="w">  </span><span class="s">Validation</span><span class="nv"> </span><span class="s">on</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">correctness</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">resulting</span><span class="nv"> </span><span class="s">derived</span><span class="nv"> </span><span class="s">schema</span><span class="nv"> </span><span class="s">might</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">done</span><span class="nv"> </span><span class="s">optionally</span>
+<span class="w">  </span><span class="s">by</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">implementation.</span><span class="nv"> </span><span class="s">For</span><span class="nv"> </span><span class="s">example,</span><span class="nv"> </span><span class="s">removing</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">slot</span><span class="nv"> </span><span class="s">but</span><span class="nv"> </span><span class="s">keeping</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">class</span><span class="nv"> </span><span class="s">that</span><span class="nv"> </span><span class="s">requires</span>
+<span class="w">  </span><span class="s">it</span><span class="nv"> </span><span class="s">would</span><span class="nv"> </span><span class="s">invalidate</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">derived-schema.</span><span class="nv"> </span><span class="s">It</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">always</span><span class="nv"> </span><span class="s">possible</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">validate</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">schema</span>
+<span class="w">  </span><span class="s">with</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">LinkML</span><span class="nv"> </span><span class="s">linter</span><span class="nv"> </span><span class="s">after</span><span class="nv"> </span><span class="s">derivation.</span>
+
+<span class="w">  </span><span class="s">What</span><span class="nv"> </span><span class="s">are</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">considered</span><span class="nv"> </span><span class="s">sub-elements</span><span class="nv"> </span><span class="s">depends</span><span class="nv"> </span><span class="s">on</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">calls</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">Element</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">transformed.</span>
+<span class="w">  </span><span class="s">For</span><span class="nv"> </span><span class="s">example,</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">class</span><span class="nv"> </span><span class="s">they</span><span class="nv"> </span><span class="s">are</span><span class="nv"> </span><span class="s">`slots`</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">`attributes`.&#39;</span>
+<span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="nt">status</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">testing</span>
+<span class="nt">attributes</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">element_name</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">element_name</span>
+<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="w">    </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CopyDirective</span>
+<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CopyDirective</span>
+<span class="w">    </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">copy_all</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">copy_all</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Copy all sub-elements of the Element being derived.</span>
+<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CopyDirective</span>
+<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CopyDirective</span>
+<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">boolean</span>
+<span class="w">  </span><span class="nt">exclude_all</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">exclude_all</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Do not copy any of the sub-elements of the Element being derived.</span>
+<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CopyDirective</span>
+<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CopyDirective</span>
+<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">boolean</span>
+<span class="w">  </span><span class="nt">exclude</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">exclude</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Remove</span><span class="nv"> </span><span class="s">certain</span><span class="nv"> </span><span class="s">sub-elements</span><span class="nv"> </span><span class="s">from</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">list</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">sub-elements</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">be</span>
+<span class="w">      </span><span class="s">copied.</span>
+
+<span class="w">      </span><span class="s">As</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">now</span><span class="nv"> </span><span class="s">there</span><span class="nv"> </span><span class="s">it</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">under-specified,</span><span class="nv"> </span><span class="s">how</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">specify</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">sub-elements</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">exclude.</span>
+<span class="w">      </span><span class="s">One</span><span class="nv"> </span><span class="s">possible</span><span class="nv"> </span><span class="s">implementation</span><span class="nv"> </span><span class="s">would</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">list</span><span class="nv"> </span><span class="s">where</span><span class="nv"> </span><span class="s">all</span><span class="nv"> </span><span class="s">element</span><span class="nv"> </span><span class="s">types</span><span class="nv"> </span><span class="s">can</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">mixed,</span>
+<span class="w">      </span><span class="s">since</span><span class="nv"> </span><span class="s">there</span><span class="nv"> </span><span class="s">might</span><span class="nv"> </span><span class="s">not</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">name</span><span class="nv"> </span><span class="s">conflicts</span><span class="nv"> </span><span class="s">across</span><span class="nv"> </span><span class="s">element</span><span class="nv"> </span><span class="s">types.&#39;</span>
+<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CopyDirective</span>
+<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CopyDirective</span>
+<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Any</span>
+<span class="w">  </span><span class="nt">include</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">include</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Add</span><span class="nv"> </span><span class="s">certain</span><span class="nv"> </span><span class="s">sub-elements</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">list</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">sub-elements</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">copied.</span>
+
+<span class="w">      </span><span class="s">As</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">now</span><span class="nv"> </span><span class="s">there</span><span class="nv"> </span><span class="s">it</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">under-specified,</span><span class="nv"> </span><span class="s">how</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">specify</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">sub-elements</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">include.</span>
+<span class="w">      </span><span class="s">One</span><span class="nv"> </span><span class="s">possible</span><span class="nv"> </span><span class="s">implementation</span><span class="nv"> </span><span class="s">would</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">list</span><span class="nv"> </span><span class="s">where</span><span class="nv"> </span><span class="s">all</span><span class="nv"> </span><span class="s">element</span><span class="nv"> </span><span class="s">types</span><span class="nv"> </span><span class="s">can</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">mixed,</span>
+<span class="w">      </span><span class="s">since</span><span class="nv"> </span><span class="s">there</span><span class="nv"> </span><span class="s">might</span><span class="nv"> </span><span class="s">not</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">name</span><span class="nv"> </span><span class="s">conflicts</span><span class="nv"> </span><span class="s">across</span><span class="nv"> </span><span class="s">element</span><span class="nv"> </span><span class="s">types.&#39;</span>
+<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CopyDirective</span>
+<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CopyDirective</span>
+<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Any</span>
+<span class="w">  </span><span class="nt">add</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">add</span>
+<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CopyDirective</span>
+<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CopyDirective</span>
+<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Any</span>
+</code></pre></div>
+</details></div>
+
+  <br>
+    
+
+    <br>
+</div>
+
+<footer class="container-fluid wm-page-content">
+      <p>
+        <a href="https://github.com/linkml/linkml-map/edit/master/docs/schema/CopyDirective.md"><i class="fa fa-github"></i>
+Edit on GitHub</a>
+      </p>
+  <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a> using <a href="https://github.com/gristlabs/mkdocs-windmill">Windmill</a> theme by Grist Labs.</p>
+</footer>
+
+</body>
+</html>

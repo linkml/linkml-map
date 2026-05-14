@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    
+    <link rel="canonical" href="https://linkml.github.io/linkml-map/examples/denormalizing/">
+    <link rel="shortcut icon" href="../../img/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <title>Denormalizing - LinkML-Map</title>
+    <link href="../../css/bootstrap-3.3.7.min.css" rel="stylesheet">
+    <link href="../../css/font-awesome-4.7.0.css" rel="stylesheet">
+    <link href="../../css/base.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/highlight.css">
+    <link href="../../assets/_mkdocstrings.css" rel="stylesheet">
+    <link href="../../css/ansi-colours.css" rel="stylesheet">
+    <link href="../../css/jupyter-cells.css" rel="stylesheet">
+    <link href="../../css/pandas-dataframe.css" rel="stylesheet">
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+
+    <script src="../../js/jquery-3.2.1.min.js"></script>
+    <script src="../../js/bootstrap-3.3.7.min.js"></script>
+    <script src="../../js/highlight.pack.js"></script>
+    
+    <base target="_top">
+    <script>
+      var base_url = '../..';
+      var is_top_frame = false;
+        
+        var pageToc = [
+        ];
+
+    </script>
+    <script src="../../js/base.js"></script> 
+</head>
+
+<body>
+<script>
+if (is_top_frame) { $('body').addClass('wm-top-page'); }
+</script>
+
+
+
+<div class="container-fluid wm-page-content">
+  <a name="_top"></a>
+    
+
+    
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script>
+(function() {
+  function addWidgetsRenderer() {
+    var requireJsScript = document.createElement('script');
+    requireJsScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js';
+
+    var mimeElement = document.querySelector('script[type="application/vnd.jupyter.widget-view+json"]');
+    var jupyterWidgetsScript = document.createElement('script');
+    var widgetRendererSrc = 'https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js';
+    var widgetState;
+
+    // Fallback for older version:
+    try {
+      widgetState = mimeElement && JSON.parse(mimeElement.innerHTML);
+
+      if (widgetState && (widgetState.version_major < 2 || !widgetState.version_major)) {
+        widgetRendererSrc = 'jupyter-js-widgets@*/dist/embed.js';
+      }
+    } catch(e) {}
+
+    jupyterWidgetsScript.src = widgetRendererSrc;
+
+    document.body.appendChild(requireJsScript);
+    document.body.appendChild(jupyterWidgetsScript);
+  }
+
+  document.addEventListener('DOMContentLoaded', addWidgetsRenderer);
+}());
+</script>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">linkml_runtime.dumpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">yaml_dumper</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">linkml_runtime.utils.schemaview</span><span class="w"> </span><span class="kn">import</span> <span class="n">SchemaView</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.inference.schema_mapper</span><span class="w"> </span><span class="kn">import</span> <span class="n">SchemaMapper</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.session</span><span class="w"> </span><span class="kn">import</span> <span class="n">Session</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.utils.loaders</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_specification</span>
+
+<span class="n">REPO_ROOT</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span>
+</code></pre></div>
+
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="n">input_schema</span> <span class="o">=</span> <span class="n">REPO_ROOT</span> <span class="o">/</span> <span class="s2">&quot;tests/input/examples/flattening/source/normalized.yaml&quot;</span>
+<span class="n">output_schema</span> <span class="o">=</span> <span class="n">REPO_ROOT</span> <span class="o">/</span> <span class="s2">&quot;tests/input/examples/flattening/target/denormalized.yaml&quot;</span>
+<span class="n">transformation_specification_file</span> <span class="o">=</span> <span class="n">REPO_ROOT</span> <span class="o">/</span> <span class="s2">&quot;tests/input/examples/flattening/transform/denormalize.transform.yaml&quot;</span>
+<span class="c1"># Initialize Session and SchemaBuilder</span>
+<span class="n">session</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span>
+
+<span class="n">source_schema_view</span> <span class="o">=</span> <span class="n">SchemaView</span><span class="p">(</span><span class="n">input_schema</span><span class="p">)</span>
+<span class="n">target_schema_view</span> <span class="o">=</span> <span class="n">SchemaView</span><span class="p">(</span><span class="n">output_schema</span><span class="p">)</span>
+<span class="c1"># Set the source schema in the session</span>
+<span class="n">session</span><span class="o">.</span><span class="n">set_source_schema</span><span class="p">(</span><span class="n">source_schema_view</span><span class="p">)</span>
+
+<span class="n">tr_spec</span> <span class="o">=</span> <span class="n">load_specification</span><span class="p">(</span><span class="n">transformation_specification_file</span><span class="p">)</span>
+<span class="n">mapper</span> <span class="o">=</span> <span class="n">SchemaMapper</span><span class="p">()</span>
+<span class="n">mapper</span><span class="o">.</span><span class="n">source_schemaview</span> <span class="o">=</span> <span class="n">source_schema_view</span>
+
+<span class="n">target_schema_obj</span> <span class="o">=</span> <span class="n">mapper</span><span class="o">.</span><span class="n">derive_schema</span><span class="p">(</span>
+    <span class="n">specification</span><span class="o">=</span><span class="n">tr_spec</span><span class="p">,</span>
+    <span class="n">target_schema_id</span><span class="o">=</span><span class="s2">&quot;denormalized-view&quot;</span><span class="p">,</span>
+    <span class="n">target_schema_name</span><span class="o">=</span><span class="s2">&quot;DenormalizedView&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">yaml_dumper</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">target_schema_obj</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="s2">&quot;denormalized_view.yaml&quot;</span><span class="p">))</span>
+
+<span class="n">transformed_sv</span> <span class="o">=</span> <span class="n">SchemaView</span><span class="p">(</span><span class="s2">&quot;denormalized_view.yaml&quot;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">class_name</span> <span class="ow">in</span> <span class="n">transformed_sv</span><span class="o">.</span><span class="n">all_classes</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">class_name</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">slot_name</span> <span class="ow">in</span> <span class="n">transformed_sv</span><span class="o">.</span><span class="n">all_slots</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">slot_name</span><span class="p">)</span>
+</code></pre></div>
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+<code>MappingSet
+Mapping
+
+mappings
+subject_id
+subject_name
+object_id
+object_name
+predicate_id
+</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code>
+</code></pre></div>
+
+</div>
+</div>
+
+  <br>
+    
+
+    <br>
+</div>
+
+<footer class="container-fluid wm-page-content">
+      <p>
+        <a href="https://github.com/linkml/linkml-map/edit/master/docs/examples/denormalizing.ipynb"><i class="fa fa-github"></i>
+Edit on GitHub</a>
+      </p>
+  <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a> using <a href="https://github.com/gristlabs/mkdocs-windmill">Windmill</a> theme by Grist Labs.</p>
+</footer>
+
+</body>
+</html>

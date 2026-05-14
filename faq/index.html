@@ -16,6 +16,7 @@
     <link href="../css/font-awesome-4.7.0.css" rel="stylesheet">
     <link href="../css/base.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/highlight.css">
+    <link href="../assets/_mkdocstrings.css" rel="stylesheet">
     <link href="../css/ansi-colours.css" rel="stylesheet">
     <link href="../css/jupyter-cells.css" rel="stylesheet">
     <link href="../css/pandas-dataframe.css" rel="stylesheet">
@@ -63,10 +64,10 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
   <div class="row wm-article-nav-buttons" role="navigation" aria-label="navigation">
     
     <div class="wm-article-nav">
-      <a href="../specification/compliance/" class="btn btn-xs btn-default pull-left">
+      <a href="../api/functions/" class="btn btn-xs btn-default pull-left">
         <i class="fa fa-chevron-left" aria-hidden="true"></i>
-        Previous</a><a href="../specification/compliance/" class="btn btn-xs btn-link">
-        Compliance Suite
+        Previous</a><a href="../api/functions/" class="btn btn-xs btn-link">
+        Functions
       </a>
     </div>
     
@@ -90,6 +91,10 @@ The LinkML Transformer framework was born out of a need for a framework that:</p
 <li>was declarative and easy to perform machine reasoning over</li>
 <li>is simple for simple use cases</li>
 </ul>
+<p>The core idea is that the <strong>TransformationSpecification</strong> is a declarative intermediate representation
+that can be executed by different backends. Today the primary backend is the Python ObjectTransformer
+(which supports the full feature set). An experimental SQL compilation backend (DuckDB) supports a
+limited subset for set-based database transformations.</p>
 <p>In its current state, this framework is less powerful and expressive than many other frameworks
 or methodologies for performing transformations. If you need to perform complex data transformations,
 you might be better off using an expressive query language like SPARQL or SQL, or even just coding
@@ -123,10 +128,10 @@ help a workshop at the Biocuration conference in Padua, Italy in 2022.</p>
   <div class="row wm-article-nav-buttons" role="navigation" aria-label="navigation">
     
     <div class="wm-article-nav">
-      <a href="../specification/compliance/" class="btn btn-xs btn-default pull-left">
+      <a href="../api/functions/" class="btn btn-xs btn-default pull-left">
         <i class="fa fa-chevron-left" aria-hidden="true"></i>
-        Previous</a><a href="../specification/compliance/" class="btn btn-xs btn-link">
-        Compliance Suite
+        Previous</a><a href="../api/functions/" class="btn btn-xs btn-link">
+        Functions
       </a>
     </div>
     

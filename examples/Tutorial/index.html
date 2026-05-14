@@ -16,6 +16,7 @@
     <link href="../../css/font-awesome-4.7.0.css" rel="stylesheet">
     <link href="../../css/base.css" rel="stylesheet">
     <link rel="stylesheet" href="../../css/highlight.css">
+    <link href="../../assets/_mkdocstrings.css" rel="stylesheet">
     <link href="../../css/ansi-colours.css" rel="stylesheet">
     <link href="../../css/jupyter-cells.css" rel="stylesheet">
     <link href="../../css/pandas-dataframe.css" rel="stylesheet">
@@ -73,12 +74,12 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
   <div class="row wm-article-nav-buttons" role="navigation" aria-label="navigation">
     
     <div class="wm-article-nav pull-right">
-      <a href="../../datamodel/" class="btn btn-xs btn-default pull-right">
+      <a href="../Tutorial-SQLCompiler/" class="btn btn-xs btn-default pull-right">
         Next
         <i class="fa fa-chevron-right" aria-hidden="true"></i>
       </a>
-      <a href="../../datamodel/" class="btn btn-xs btn-link">
-        Data Model
+      <a href="../Tutorial-SQLCompiler/" class="btn btn-xs btn-link">
+        Compilation to SQL
       </a>
     </div>
     
@@ -137,10 +138,8 @@ at the command line.</p>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
-
-<pre><code class="language-python">import yaml
-</code></pre>
-
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+</code></pre></div>
 
 </div>
 </div>
@@ -157,20 +156,18 @@ additional features as we go.</p>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">linkml.utils.schema_builder</span><span class="w"> </span><span class="kn">import</span> <span class="n">SchemaBuilder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">linkml_runtime.linkml_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">SlotDefinition</span>
 
-<pre><code class="language-python">from linkml.utils.schema_builder import SchemaBuilder
-from linkml_runtime.linkml_model import SlotDefinition
-
-sb = SchemaBuilder()
-sb.add_class(&quot;Person&quot;, slots=[SlotDefinition(&quot;family_name&quot;, range=&quot;string&quot;), 
-                              SlotDefinition(&quot;given_name&quot;, range=&quot;string&quot;),
-                              SlotDefinition(&quot;age_in_years&quot;, range=&quot;integer&quot;),
-                              SlotDefinition(&quot;height_in_cm&quot;, range=&quot;float&quot;),
-                              ])
-sb.add_defaults()
-print(yaml.dump(sb.as_dict(), sort_keys=False))
-</code></pre>
-
+<span class="n">sb</span> <span class="o">=</span> <span class="n">SchemaBuilder</span><span class="p">()</span>
+<span class="n">sb</span><span class="o">.</span><span class="n">add_class</span><span class="p">(</span><span class="s2">&quot;Person&quot;</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="p">[</span><span class="n">SlotDefinition</span><span class="p">(</span><span class="s2">&quot;family_name&quot;</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">),</span> 
+                              <span class="n">SlotDefinition</span><span class="p">(</span><span class="s2">&quot;given_name&quot;</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">),</span>
+                              <span class="n">SlotDefinition</span><span class="p">(</span><span class="s2">&quot;age_in_years&quot;</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="s2">&quot;integer&quot;</span><span class="p">),</span>
+                              <span class="n">SlotDefinition</span><span class="p">(</span><span class="s2">&quot;height_in_cm&quot;</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">),</span>
+                              <span class="p">])</span>
+<span class="n">sb</span><span class="o">.</span><span class="n">add_defaults</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">sb</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+</code></pre></div>
 
 </div>
 <div class="output_wrapper">
@@ -229,37 +226,33 @@ the first of these capabilities is to map (transform) data objects from one sche
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.session</span><span class="w"> </span><span class="kn">import</span> <span class="n">Session</span>
 
-<pre><code class="language-python">from linkml_map.session import Session
-
-session = Session()
-session.set_source_schema(sb.as_dict())
-</code></pre>
-
+<span class="n">session</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span>
+<span class="n">session</span><span class="o">.</span><span class="n">set_source_schema</span><span class="p">(</span><span class="n">sb</span><span class="o">.</span><span class="n">as_dict</span><span class="p">())</span>
+</code></pre></div>
 
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
-
-<pre><code class="language-python"># Transformer specification (in YAML)
-session.set_object_transformer(&quot;&quot;&quot;
-class_derivations:
-  Individual:
-    populated_from: Person
-    slot_derivations:
-      family_name:
-        populated_from: family_name
-      given_name:
-        populated_from: given_name
-      age:
-        populated_from: age_in_years
-      height:
-        populated_from: height_in_cm
-&quot;&quot;&quot;)
-</code></pre>
-
+<div class="highlight"><pre><span></span><code><span class="c1"># Transformer specification (in YAML)</span>
+<span class="n">session</span><span class="o">.</span><span class="n">set_object_transformer</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">class_derivations:</span>
+<span class="s2">  Individual:</span>
+<span class="s2">    populated_from: Person</span>
+<span class="s2">    slot_derivations:</span>
+<span class="s2">      family_name:</span>
+<span class="s2">        populated_from: family_name</span>
+<span class="s2">      given_name:</span>
+<span class="s2">        populated_from: given_name</span>
+<span class="s2">      age:</span>
+<span class="s2">        populated_from: age_in_years</span>
+<span class="s2">      height:</span>
+<span class="s2">        populated_from: height_in_cm</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+</code></pre></div>
 
 </div>
 </div>
@@ -274,10 +267,8 @@ class_derivations:
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
-
-<pre><code class="language-python">session.graphviz()
-</code></pre>
-
+<div class="highlight"><pre><span></span><code><span class="n">session</span><span class="o">.</span><span class="n">graphviz</span><span class="p">()</span>
+</code></pre></div>
 
 </div>
 <div class="output_wrapper">
@@ -396,16 +387,14 @@ Pydantic or Dataclasses classes (use the <code>transform_object</code> method in
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
-
-<pre><code class="language-python">obj = {
-        &quot;given_name&quot;: &quot;Jane&quot;,
-        &quot;family_name&quot;: &quot;Doe&quot;,
-        &quot;age_in_years&quot;: 42,
-        &quot;height_in_cm&quot;: 180.0,
-    }
-session.transform(obj)
-</code></pre>
-
+<div class="highlight"><pre><span></span><code><span class="n">obj</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;given_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Jane&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;family_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Doe&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;age_in_years&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span>
+        <span class="s2">&quot;height_in_cm&quot;</span><span class="p">:</span> <span class="mf">180.0</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="n">session</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+</code></pre></div>
 
 </div>
 <div class="output_wrapper">
@@ -445,12 +434,10 @@ An example of this is <em>deriving the (implicit) target schema</em></p>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">linkml_runtime.dumpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">yaml_dumper</span>
 
-<pre><code class="language-python">from linkml_runtime.dumpers import yaml_dumper
-
-print(yaml_dumper.dumps(session.target_schema))
-</code></pre>
-
+<span class="nb">print</span><span class="p">(</span><span class="n">yaml_dumper</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">target_schema</span><span class="p">))</span>
+</code></pre></div>
 
 </div>
 <div class="output_wrapper">
@@ -526,26 +513,22 @@ perform unit conversions (later on we will see more flexible and declarative way
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
-
-<pre><code class="language-python">
-session.set_object_transformer(&quot;&quot;&quot;
-class_derivations:
-  Individual:
-    populated_from: Person
-    slot_derivations:
-      name:
-        expr: &quot;{given_name} + ' ' + {family_name}&quot;
-        description: Concatenating given and family names
-          note this is a bad assumption for names in general,
-          this is just for demonstration
-      age_in_months:
-        expr: age_in_years * 12
-      height_in_meters:
-        expr: height_in_cm / 100
-&quot;&quot;&quot;)
-
-</code></pre>
-
+<div class="highlight"><pre><span></span><code><span class="n">session</span><span class="o">.</span><span class="n">set_object_transformer</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">class_derivations:</span>
+<span class="s2">  Individual:</span>
+<span class="s2">    populated_from: Person</span>
+<span class="s2">    slot_derivations:</span>
+<span class="s2">      name:</span>
+<span class="s2">        expr: &quot;</span><span class="si">{given_name}</span><span class="s2"> + &#39; &#39; + </span><span class="si">{family_name}</span><span class="s2">&quot;</span>
+<span class="s2">        description: Concatenating given and family names</span>
+<span class="s2">          note this is a bad assumption for names in general,</span>
+<span class="s2">          this is just for demonstration</span>
+<span class="s2">      age_in_months:</span>
+<span class="s2">        expr: age_in_years * 12</span>
+<span class="s2">      height_in_meters:</span>
+<span class="s2">        expr: height_in_cm / 100</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+</code></pre></div>
 
 </div>
 </div>
@@ -560,10 +543,8 @@ between source and target that is different from direct copy:</p>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
-
-<pre><code class="language-python">session.graphviz()
-</code></pre>
-
+<div class="highlight"><pre><span></span><code><span class="n">session</span><span class="o">.</span><span class="n">graphviz</span><span class="p">()</span>
+</code></pre></div>
 
 </div>
 <div class="output_wrapper">
@@ -677,10 +658,8 @@ between source and target that is different from direct copy:</p>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
-
-<pre><code class="language-python">session.transform(obj)
-</code></pre>
-
+<div class="highlight"><pre><span></span><code><span class="n">session</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+</code></pre></div>
 
 </div>
 <div class="output_wrapper">
@@ -706,10 +685,8 @@ between source and target that is different from direct copy:</p>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
-
-<pre><code class="language-python">print(yaml_dumper.dumps(session.target_schema))
-</code></pre>
-
+<div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="n">yaml_dumper</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">target_schema</span><span class="p">))</span>
+</code></pre></div>
 
 </div>
 <div class="output_wrapper">
@@ -770,13 +747,11 @@ a UCUM code for our <code>height_in_cm</code> slot:</p>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
-
-<pre><code class="language-python">from linkml_runtime.linkml_model.units import UnitOfMeasure
-sb.schema.slots['height_in_cm'].unit = UnitOfMeasure(ucum_code='cm')
-session.set_source_schema(sb.as_dict())
-print(yaml.dump(sb.as_dict(), sort_keys=False))
-</code></pre>
-
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">linkml_runtime.linkml_model.units</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnitOfMeasure</span>
+<span class="n">sb</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">slots</span><span class="p">[</span><span class="s1">&#39;height_in_cm&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">UnitOfMeasure</span><span class="p">(</span><span class="n">ucum_code</span><span class="o">=</span><span class="s1">&#39;cm&#39;</span><span class="p">)</span>
+<span class="n">session</span><span class="o">.</span><span class="n">set_source_schema</span><span class="p">(</span><span class="n">sb</span><span class="o">.</span><span class="n">as_dict</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">sb</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+</code></pre></div>
 
 </div>
 <div class="output_wrapper">
@@ -831,31 +806,27 @@ the target unit.</p>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
-
-<pre><code class="language-python">session.set_object_transformer(&quot;&quot;&quot;
-class_derivations:
-  Individual:
-    populated_from: Person
-    slot_derivations:
-      name:
-        expr: &quot;{given_name} + ' ' + {family_name}&quot;
-      height_in_meters:
-        populated_from: height_in_cm
-        unit_conversion:
-          target_unit: m
-&quot;&quot;&quot;)
-</code></pre>
-
+<div class="highlight"><pre><span></span><code><span class="n">session</span><span class="o">.</span><span class="n">set_object_transformer</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">class_derivations:</span>
+<span class="s2">  Individual:</span>
+<span class="s2">    populated_from: Person</span>
+<span class="s2">    slot_derivations:</span>
+<span class="s2">      name:</span>
+<span class="s2">        expr: &quot;</span><span class="si">{given_name}</span><span class="s2"> + &#39; &#39; + </span><span class="si">{family_name}</span><span class="s2">&quot;</span>
+<span class="s2">      height_in_meters:</span>
+<span class="s2">        populated_from: height_in_cm</span>
+<span class="s2">        unit_conversion:</span>
+<span class="s2">          target_unit: m</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+</code></pre></div>
 
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
-
-<pre><code class="language-python">session.transform(obj)
-</code></pre>
-
+<div class="highlight"><pre><span></span><code><span class="n">session</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+</code></pre></div>
 
 </div>
 <div class="output_wrapper">
@@ -882,11 +853,8 @@ the target unit for the <code>height_in_meters</code> field:</p>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
-
-<pre><code class="language-python">print(yaml_dumper.dumps(session.target_schema))
-
-</code></pre>
-
+<div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="n">yaml_dumper</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">target_schema</span><span class="p">))</span>
+</code></pre></div>
 
 </div>
 <div class="output_wrapper">
@@ -937,75 +905,65 @@ classes:
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
-
-<pre><code class="language-python">slot = sb.add_slot(&quot;aliases&quot;, multivalued=True, range=&quot;string&quot;, replace_if_present=True)
-</code></pre>
-
+<div class="highlight"><pre><span></span><code><span class="n">slot</span> <span class="o">=</span> <span class="n">sb</span><span class="o">.</span><span class="n">add_slot</span><span class="p">(</span><span class="s2">&quot;aliases&quot;</span><span class="p">,</span> <span class="n">multivalued</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="n">replace_if_present</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
 
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
-
-<pre><code class="language-python">sb.schema.classes['Person'].slots.append(slot.name)
-</code></pre>
-
+<div class="highlight"><pre><span></span><code><span class="n">sb</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">classes</span><span class="p">[</span><span class="s1">&#39;Person&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">slot</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+</code></pre></div>
 
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
-
-<pre><code class="language-python">session.set_source_schema(sb.as_dict())
-</code></pre>
-
+<div class="highlight"><pre><span></span><code><span class="n">session</span><span class="o">.</span><span class="n">set_source_schema</span><span class="p">(</span><span class="n">sb</span><span class="o">.</span><span class="n">as_dict</span><span class="p">())</span>
+</code></pre></div>
 
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
-
-<pre><code class="language-python">session.set_object_transformer(&quot;&quot;&quot;
-class_derivations:
-  Individual:
-    populated_from: Person
-    slot_derivations:
-      family_name:
-        populated_from: family_name
-      given_name:
-        populated_from: given_name
-      age:
-        populated_from: age_in_years
-      height:
-        populated_from: height_in_cm
-      aliases:
-        populated_from: aliases
-        stringification:
-          delimiter: '|'
-&quot;&quot;&quot;)    
-</code></pre>
-
+<div class="highlight"><pre><span></span><code><span class="n">session</span><span class="o">.</span><span class="n">set_object_transformer</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">class_derivations:</span>
+<span class="s2">  Individual:</span>
+<span class="s2">    populated_from: Person</span>
+<span class="s2">    slot_derivations:</span>
+<span class="s2">      family_name:</span>
+<span class="s2">        populated_from: family_name</span>
+<span class="s2">      given_name:</span>
+<span class="s2">        populated_from: given_name</span>
+<span class="s2">      age:</span>
+<span class="s2">        populated_from: age_in_years</span>
+<span class="s2">      height:</span>
+<span class="s2">        populated_from: height_in_cm</span>
+<span class="s2">      aliases:</span>
+<span class="s2">        populated_from: aliases</span>
+<span class="s2">        stringification:</span>
+<span class="s2">          delimiter: &#39;|&#39;</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>    
+</code></pre></div>
 
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
-
-<pre><code class="language-python">obj = {
-        &quot;given_name&quot;: &quot;Jane&quot;,
-        &quot;family_name&quot;: &quot;Doe&quot;,
-        &quot;age_in_years&quot;: 42,
-        &quot;height_in_cm&quot;: 180.0,
-        &quot;aliases&quot;: [&quot;Jane&quot;, &quot;Janie&quot;, &quot;Janey&quot;]
-    }
-flattened = session.transform(obj)
-flattened
-</code></pre>
-
+<div class="highlight"><pre><span></span><code><span class="n">obj</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;given_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Jane&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;family_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Doe&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;age_in_years&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span>
+        <span class="s2">&quot;height_in_cm&quot;</span><span class="p">:</span> <span class="mf">180.0</span><span class="p">,</span>
+        <span class="s2">&quot;aliases&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Jane&quot;</span><span class="p">,</span> <span class="s2">&quot;Janie&quot;</span><span class="p">,</span> <span class="s2">&quot;Janey&quot;</span><span class="p">]</span>
+    <span class="p">}</span>
+<span class="n">flattened</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+<span class="n">flattened</span>
+</code></pre></div>
 
 </div>
 <div class="output_wrapper">
@@ -1045,10 +1003,8 @@ from the tabular form back to the richer original representation.</p>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
-
-<pre><code class="language-python">session.reverse_transform(flattened)
-</code></pre>
-
+<div class="highlight"><pre><span></span><code><span class="n">session</span><span class="o">.</span><span class="n">reverse_transform</span><span class="p">(</span><span class="n">flattened</span><span class="p">)</span>
+</code></pre></div>
 
 </div>
 <div class="output_wrapper">
@@ -1070,10 +1026,8 @@ from the tabular form back to the richer original representation.</p>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
-
-<pre><code class="language-python">
-</code></pre>
-
+<div class="highlight"><pre><span></span><code>
+</code></pre></div>
 
 </div>
 </div>
@@ -1089,12 +1043,12 @@ from the tabular form back to the richer original representation.</p>
   <div class="row wm-article-nav-buttons" role="navigation" aria-label="navigation">
     
     <div class="wm-article-nav pull-right">
-      <a href="../../datamodel/" class="btn btn-xs btn-default pull-right">
+      <a href="../Tutorial-SQLCompiler/" class="btn btn-xs btn-default pull-right">
         Next
         <i class="fa fa-chevron-right" aria-hidden="true"></i>
       </a>
-      <a href="../../datamodel/" class="btn btn-xs btn-link">
-        Data Model
+      <a href="../Tutorial-SQLCompiler/" class="btn btn-xs btn-link">
+        Compilation to SQL
       </a>
     </div>
     

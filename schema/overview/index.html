@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    
+    <link rel="canonical" href="https://linkml.github.io/linkml-map/schema/overview/">
+    <link rel="shortcut icon" href="../../img/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <title>Mapping Between LinkML Schemas - LinkML-Map</title>
+    <link href="../../css/bootstrap-3.3.7.min.css" rel="stylesheet">
+    <link href="../../css/font-awesome-4.7.0.css" rel="stylesheet">
+    <link href="../../css/base.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/highlight.css">
+    <link href="../../assets/_mkdocstrings.css" rel="stylesheet">
+    <link href="../../css/ansi-colours.css" rel="stylesheet">
+    <link href="../../css/jupyter-cells.css" rel="stylesheet">
+    <link href="../../css/pandas-dataframe.css" rel="stylesheet">
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+
+    <script src="../../js/jquery-3.2.1.min.js"></script>
+    <script src="../../js/bootstrap-3.3.7.min.js"></script>
+    <script src="../../js/highlight.pack.js"></script>
+    
+    <base target="_top">
+    <script>
+      var base_url = '../..';
+      var is_top_frame = false;
+        
+        var pageToc = [
+          {title: "Mapping Between LinkML Schemas", url: "#_top", children: [
+          ]},
+          {title: "Draft", url: "#draft", children: [
+          ]},
+          {title: "Problem: map data from one schema to another", url: "#problem-map-data-from-one-schema-to-another", children: [
+          ]},
+          {title: "There are many existing approaches", url: "#there-are-many-existing-approaches", children: [
+          ]},
+          {title: "Traps with declarative mapping", url: "#traps-with-declarative-mapping", children: [
+          ]},
+          {title: "YARRRML", url: "#yarrrml", children: [
+          ]},
+          {title: "YARRRML notes", url: "#yarrrml-notes", children: [
+          ]},
+          {title: "jsonpath-lifter", url: "#jsonpath-lifter", children: [
+          ]},
+          {title: "Koza (previously: bioweave)", url: "#koza-previously-bioweave", children: [
+          ]},
+          {title: "ETL frameworks", url: "#etl-frameworks", children: [
+          ]},
+          {title: "Do we need Yet Another Mapping Framework?", url: "#do-we-need-yet-another-mapping-framework", children: [
+          ]},
+          {title: "Level 0 Mapping: Isomorphic, same URIs", url: "#level-0-mapping-isomorphic-same-uris", children: [
+          ]},
+          {title: "Level 0: handled by standard linkml convert to/from RDF", url: "#level-0-handled-by-standard-linkml-convert-tofrom-rdf", children: [
+          ]},
+          {title: "Level 0: Enums TODO: add example here. Basically this works the same way", url: "#level-0-enums-todo-add-example-here-basically-this-works-the-same-way", children: [
+          ]},
+          {title: "Level 0: HOWTO", url: "#level-0-howto", children: [
+          ]},
+          {title: "Level 0: other considerations", url: "#level-0-other-considerations", children: [
+          ]},
+          {title: "Lessons learned so far: annotate your schema with URIs!", url: "#lessons-learned-so-far-annotate-your-schema-with-uris", children: [
+          ]},
+          {title: "Level 1 Mapping: Isomorphic, different URIs", url: "#level-1-mapping-isomorphic-different-uris", children: [
+          ]},
+          {title: "Level 1 Mapping: mediated by URI mapping", url: "#level-1-mapping-mediated-by-uri-mapping", children: [
+          ]},
+          {title: "Level 1: HOWTO", url: "#level-1-howto", children: [
+          ]},
+          {title: "Level 1 variant: mappings in schema", url: "#level-1-variant-mappings-in-schema", children: [
+          ]},
+          {title: "Advantages of RDF as an intermediate", url: "#advantages-of-rdf-as-an-intermediate", children: [
+          ]},
+          {title: "Lessons learned so far: think about mappings", url: "#lessons-learned-so-far-think-about-mappings", children: [
+          ]},
+          {title: "More complex mappings: level 2 and above", url: "#more-complex-mappings-level-2-and-above", children: [
+          ]},
+          {title: "LinkML Rule and Inference Framework", url: "#linkml-rule-and-inference-framework", children: [
+          ]},
+          {title: "Datalog", url: "#datalog", children: [
+          ]},
+          {title: "Approach for level 2+", url: "#approach-for-level-2", children: [
+          ]},
+          {title: "General approach for level 2+; same to same", url: "#general-approach-for-level-2-same-to-same", children: [
+          ]},
+          {title: "Example of same-to-same: jsonpath-lifter", url: "#example-of-same-to-same-jsonpath-lifter", children: [
+          ]},
+          {title: "Example of same-to-same: awk", url: "#example-of-same-to-same-awk", children: [
+          ]},
+          {title: "Example of same-to-same: SQL", url: "#example-of-same-to-same-sql", children: [
+          ]},
+          {title: "Example of same-to-same: Python (LinkML objects)", url: "#example-of-same-to-same-python-linkml-objects", children: [
+          ]},
+          {title: "General approach for level 2+; heteromorphic", url: "#general-approach-for-level-2-heteromorphic", children: [
+          ]},
+          {title: "Example: YARRRML", url: "#example-yarrrml", children: [
+          ]},
+          {title: "Example: YARRRML, native mappings", url: "#example-yarrrml-native-mappings", children: [
+          ]},
+          {title: "Example: YARRRML, compiled mappings", url: "#example-yarrrml-compiled-mappings", children: [
+          ]},
+          {title: "Hyperparasitism is good", url: "#hyperparasitism-is-good", children: [
+          ]},
+          {title: "Alternative: Direct translation language", url: "#alternative-direct-translation-language", children: [
+          ]},
+          {title: "Normalized to Denormalized (modeling SSSOM)", url: "#normalized-to-denormalized-modeling-sssom", children: [
+          ]},
+          {title: "Relationship to profiles TODO", url: "#relationship-to-profiles-todo", children: [
+          ]},
+          {title: "Current progress", url: "#current-progress", children: [
+          ]},
+          {title: "Relationship to Koza", url: "#relationship-to-koza", children: [
+          ]},
+          {title: "Koza ingests often require multiple files", url: "#koza-ingests-often-require-multiple-files", children: [
+          ]},
+          {title: "See Also", url: "#see-also", children: [
+          ]},
+          {title: "Automating mapping", url: "#automating-mapping", children: [
+          ]},
+          {title: "Summary: just tell me what to do today", url: "#summary-just-tell-me-what-to-do-today", children: [
+          ]},
+          {title: "Roadmap", url: "#roadmap", children: [
+          ]},
+        ];
+
+    </script>
+    <script src="../../js/base.js"></script> 
+</head>
+
+<body>
+<script>
+if (is_top_frame) { $('body').addClass('wm-top-page'); }
+</script>
+
+
+
+<div class="container-fluid wm-page-content">
+  <a name="_top"></a>
+    
+
+    
+
+    <h1 id="mapping-between-linkml-schemas">Mapping Between LinkML Schemas</h1>
+<h1 id="draft">Draft</h1>
+<p>2022-06-24</p>
+<h1 id="problem-map-data-from-one-schema-to-another">Problem: map data from one schema to another</h1>
+<ul>
+<li>Problem: Map d1 → d2</li>
+<li>Assumption d1 and d2 conform to two separate schemas\, s1→ s2</li>
+<li>Sub-problems:</li>
+<li>Ingest/Import: my data warehouse conforms to s2 (e.g. Monarch ingest)</li>
+<li>Export: make my data ingest friendly</li>
+<li>Migrations: s1 and s2 are different versions of the same schema</li>
+<li>Not in scope: in-schema syntactic or structural transforms</li>
+<li>JSON to YAML\, JSON to TSV\, JSON to SQL\, JSON to RDF\, ORM\, …</li>
+<li>In LinkML this is already largely solved</li>
+<li>The actual problem space is highly varied</li>
+<li>S1 and S2 may be trivially isomorphic</li>
+<li>S1 and S2 may differ in complex or nuanced ways</li>
+</ul>
+<h1 id="there-are-many-existing-approaches">There are many existing approaches</h1>
+<ul>
+<li>Generic frameworks\, driven by declarative specification in Domain Specific Language (DSL)</li>
+<li>JSON-based</li>
+<li>Google whistle</li>
+<li><em><a href="https://www.npmjs.com/package/jsonpath-lifter">jsonpath-lift</a></em></li>
+<li>XSLT</li>
+<li>Semweb</li>
+<li>YARRML\, R2RML</li>
+<li>Many many more…</li>
+<li>Bespoke transforms: non-declarative</li>
+<li>Implement in python/awk/etc.</li>
+<li>Hybrid: bespoke with some declarative mappings in ad-hoc format</li>
+<li>E.g. NMDC ingest framework</li>
+</ul>
+<h1 id="traps-with-declarative-mapping">Traps with declarative mapping</h1>
+<ul>
+<li>Declarative is great\, until it’s not</li>
+<li>Anti-patterns:</li>
+<li>Insufficient expressivity to carry out real world tasks</li>
+<li>Bolting on features to mapping DSL until it’s a fully-featured Turing-complete language</li>
+<li>Optimization/scalability at mercy of framework</li>
+<li>Messy layering between DSL and host language<ul>
+<li>It can be useful to leverage host language features (e.g arbitrary python function)</li>
+<li>But this can get confusing:</li>
+<li>NFNF: Neither fish nor fowl</li>
+<li>Limits optimizations (forces iterative host language calls)</li>
+</ul>
+</li>
+</ul>
+<h1 id="yarrrml">YARRRML</h1>
+<p><img alt="" src="img/Mapping%20Between%20LinkML%20Schemas0.png" /></p>
+<p><span style="color:#1A73E8"> <em><a href="https://rml.io/yarrrml/">https://rml.io/yarrrml/</a></em> </span></p>
+<h1 id="yarrrml-notes">YARRRML notes</h1>
+<ul>
+<li>Has a playground\, which is great</li>
+<li>Mixes two concerns:</li>
+<li>1. Isomorphic structural mapping between JSON/TSVs and RDF (already covered by JSON-LD)</li>
+<li>2. Mapping</li>
+<li>This isn’t necessarily bad - it’s quite practical\, but a little unsatisfying IMO</li>
+</ul>
+<h1 id="jsonpath-lifter">jsonpath-lifter</h1>
+<p><img alt="" src="img/Mapping%20Between%20LinkML%20Schemas1.png" /></p>
+<p><img alt="" src="img/Mapping%20Between%20LinkML%20Schemas2.png" /></p>
+<p><img alt="" src="img/Mapping%20Between%20LinkML%20Schemas3.png" /></p>
+<p><img alt="" src="img/Mapping%20Between%20LinkML%20Schemas4.png" /></p>
+<p><img alt="" src="img/Mapping%20Between%20LinkML%20Schemas5.png" /></p>
+<p><img alt="" src="img/Mapping%20Between%20LinkML%20Schemas6.png" /></p>
+<p><img alt="" src="img/Mapping%20Between%20LinkML%20Schemas7.png" /></p>
+<p>Was proposed for CCDH CRDC-node mappings</p>
+<p>Doesn’t seem widely used</p>
+<p>Is there a big advantage over simply writing javascript functions?</p>
+<h1 id="koza-previously-bioweave">Koza (previously: bioweave)</h1>
+<p><img alt="" src="img/Mapping%20Between%20LinkML%20Schemas8.png" /></p>
+<p><img alt="" src="img/Mapping%20Between%20LinkML%20Schemas9.png" /></p>
+<h1 id="etl-frameworks">ETL frameworks</h1>
+<ul>
+<li>There are many many ETL frameworks</li>
+<li>E.g. WebKarma</li>
+<li>Inherently mixing of concerns</li>
+<li>Here we are concerned with the “T” part</li>
+<li>Do existing frameworks separate out the T as a modular composable component?</li>
+<li>I’m not sure</li>
+</ul>
+<h1 id="do-we-need-yet-another-mapping-framework">Do we need Yet Another Mapping Framework?</h1>
+<ul>
+<li>LinkML philosophy:</li>
+<li>Embrace\, extend\,  <em>parasitize</em></li>
+<li>Develop lightweight ways to map</li>
+<li>Map mappings to existing mapping frameworks<ul>
+<li>This actually makes sense even if it sounds kind of meta…</li>
+</ul>
+</li>
+</ul>
+<h1 id="level-0-mapping-isomorphic-same-uris">Level 0 Mapping: Isomorphic, same URIs</h1>
+<p>classes:</p>
+<p>Person:</p>
+<p>class_uri:  <strong>sdo:Person</strong></p>
+<p>attributes:</p>
+<p>family_name:</p>
+<p>slot_uri:  <strong>sdo:familyName</strong></p>
+<p>address:</p>
+<p>slot_uri:  <strong>sdo:address</strong></p>
+<p>classes:</p>
+<p>Agent:</p>
+<p>class_uri:  <strong>sdo:Person</strong></p>
+<p>attributes:</p>
+<p>surname:</p>
+<p>slot_uri:  <strong>sdo:familyName</strong></p>
+<p>home_address:</p>
+<p>slot_uri:  <strong>sdo:address</strong></p>
+<p>family_name: Wu</p>
+<p>address: 1 my street\, Oakville</p>
+<p>surname: Wu</p>
+<p>home_address: 1 my street\, Oakville</p>
+<h1 id="level-0-handled-by-standard-linkml-convert-tofrom-rdf">Level 0: handled by standard linkml convert to/from RDF</h1>
+<p>classes:</p>
+<p>Person:</p>
+<p>class_uri:  <strong>sdo:Person</strong></p>
+<p>attributes:</p>
+<p>family_name:</p>
+<p>slot_uri:  <strong>sdo:familyName</strong></p>
+<p>address:</p>
+<p>slot_uri:  <strong>sdo:address</strong></p>
+<p>classes:</p>
+<p>Agent:</p>
+<p>class_uri:  <strong>sdo:Person</strong></p>
+<p>attributes:</p>
+<p>surname:</p>
+<p>slot_uri:  <strong>sdo:familyName</strong></p>
+<p>home_address:</p>
+<p>slot_uri:  <strong>sdo:address</strong></p>
+<p><em>data2 (yaml/json)</em></p>
+<p><em>d</em>  <em>ata1 (yaml/json)</em></p>
+<p>family_name: Wu</p>
+<p>address: 1 my street\, Oakville</p>
+<p>surname: Wu</p>
+<p>home_address: 1 my street\, Oakville</p>
+<p><em>d</em>  <em>ata1.ttl == data2.ttl</em></p>
+<p>[sdo:familyName “Wu” ;</p>
+<p>sdo:address “1 my street\, Oakville”</p>
+<p>]</p>
+<h1 id="level-0-enums-todo-add-example-here-basically-this-works-the-same-way">Level 0: Enums TODO: add example here. Basically this works the same way</h1>
+<h1 id="level-0-howto">Level 0: HOWTO</h1>
+<p>Compose two commands:</p>
+<p>linkml-convert -s schema1.yaml data1.yaml -o data1.ttl</p>
+<p>linkml-convert -s schema2.yaml data1.ttl -o data2.yaml</p>
+<p>That’s it!</p>
+<p>TODO:</p>
+<p>Write a wrapper (linkml-map-data?) that does this in one command</p>
+<h1 id="level-0-other-considerations">Level 0: other considerations</h1>
+<ul>
+<li>Going via RDF in theory eliminates inlining differences</li>
+<li>E.g. s1 inlines address objects\, s2 uses references (inlined: false) and includes a separate index slot for addresses</li>
+<li>Current status:</li>
+<li>Currently when going from s1 to s2\, no index slots are generated</li>
+<li>This could be done as part of the general rdflib framework</li>
+</ul>
+<h1 id="lessons-learned-so-far-annotate-your-schema-with-uris">Lessons learned so far: annotate your schema with URIs!</h1>
+<ul>
+<li>Annotating schemas with URIs is  <em>optional</em>  with LinkML</li>
+<li>But your future self and data users will thank you for careful schema annotation!</li>
+<li>Hints:</li>
+<li>Schema-automator can provide suggestions for your element and enum URIs</li>
+<li>Sometimes plain semweb URIs (e.g. schema.org) can be easier for interoperation than overly granular OBO ones<ul>
+<li>E.g modeling Personhood as a  <em>role</em>  vs straightforward schema:Person</li>
+</ul>
+</li>
+</ul>
+<h1 id="level-1-mapping-isomorphic-different-uris">Level 1 Mapping: Isomorphic, different URIs</h1>
+<p>name: example-semweb-schema</p>
+<p>classes:</p>
+<p>Person:</p>
+<p>class_uri:  <strong>sdo:Person</strong></p>
+<p>attributes:</p>
+<p>family_name:</p>
+<p>slot_uri:  <strong>sdo:familyName</strong></p>
+<p>address:</p>
+<p>slot_uri:  <strong>sdo:address</strong></p>
+<p>name: example-OBO-schema</p>
+<p>classes:</p>
+<p>Person:</p>
+<p>class_uri:  <strong>NCBITaxon:9606</strong>   <span style="color:#999999">## Homo sapiens</span></p>
+<p>attributes:</p>
+<p>surname:</p>
+<p>slot_uri:  <strong>IAO:0000590</strong>   <span style="color:#999999">## written name</span></p>
+<p>home_address:</p>
+<p>slot_uri:  <strong>IAO:0000422</strong>   <span style="color:#999999">## postal address</span></p>
+<p>family_name: Wu</p>
+<p>address: 1 my street\, Oakville</p>
+<p>surname: Wu</p>
+<p>home_address: 1 my street\, Oakville</p>
+<h1 id="level-1-mapping-mediated-by-uri-mapping">Level 1 Mapping: mediated by URI mapping</h1>
+<p>name: example-semweb-schema</p>
+<p>classes:</p>
+<p>Person:</p>
+<p>class_uri:  <strong>sdo:Person</strong></p>
+<p>attributes:</p>
+<p>family_name:</p>
+<p>slot_uri:  <strong>sdo:familyName</strong></p>
+<p>address:</p>
+<p>slot_uri:  <strong>sdo:address</strong></p>
+<p>name: example-OBO-schema</p>
+<p>classes:</p>
+<p>Person:</p>
+<p>class_uri:  <strong>NCBITaxon:9606</strong>   <span style="color:#999999">## Homo sapiens</span></p>
+<p>attributes:</p>
+<p>surname:</p>
+<p>slot_uri:  <strong>IAO:0000590</strong>   <span style="color:#999999">## written name</span></p>
+<p>home_address:</p>
+<p>slot_uri:  <strong>IAO:0000422</strong>   <span style="color:#999999">## postal address</span></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">subject_id</th>
+<th style="text-align: center;">object_id</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">sdo:Person</td>
+<td style="text-align: center;">NCBITaxon:9606</td>
+</tr>
+<tr>
+<td style="text-align: center;">sdo:familyName</td>
+<td style="text-align: center;">IAO:nnnn</td>
+</tr>
+<tr>
+<td style="text-align: center;">sdo:address</td>
+<td style="text-align: center;">IAO:0000422</td>
+</tr>
+</tbody>
+</table>
+<p>family_name: Wu</p>
+<p>address: 1 my street\, Oakville</p>
+<p>surname: Wu</p>
+<p>home_address: 1 my street\, Oakville</p>
+<p>[sdo:familyName “Wu”</p>
+<p>sdo:address “1 my street\, Oakville”</p>
+<p>]</p>
+<p>[sdo:familyName “Wu”</p>
+<p>sdo:address “1 my street\, Oakville”</p>
+<p>]</p>
+<h1 id="level-1-howto">Level 1: HOWTO</h1>
+<ul>
+<li>Compose three commands:</li>
+<li>linkml-convert -s schema1.yaml data1.yaml -o data1.ttl</li>
+<li>sssom-map-iris -i data1.ttl -m schema1-to-schema2.sssom.tsv -o data2.ttl</li>
+<li>linkml-convert -s schema2.yaml data2.ttl -o data2.yaml</li>
+<li>That’s it!</li>
+<li>TODO:</li>
+<li>sssom-map-iris does not yet exist (?)\, but should be trivial</li>
+<li>Fold into wrapper CLI tool</li>
+<li>Nuances:</li>
+<li>Schemas have nuanced differences: not everything with be skos:exact</li>
+<li>We can distinguish 3 flavors of level 1 mapping:</li>
+<li>Precise\, bidirectional: follow exact only</li>
+<li>Valid\, unidirectional: follow exact + broad</li>
+<li>Loose: any mapping</li>
+</ul>
+<h1 id="level-1-variant-mappings-in-schema">Level 1 variant: mappings in schema</h1>
+<p>name: example-semweb-schema</p>
+<p>classes:</p>
+<p>Person:</p>
+<p>class_uri:  <strong>sdo:Person</strong></p>
+<p>__    __ exact_mappings: [“NCBITaxon:9606”]</p>
+<p>attributes:</p>
+<p>family_name:</p>
+<p>slot_uri:  <strong>sdo:familyName</strong></p>
+<p>__        exact_mappings: [“IAO:nnnn”]__</p>
+<p>address:</p>
+<p>slot_uri:  <strong>sdo:address</strong></p>
+<p>__        exact_mappings: [“IAO:0000422”]__</p>
+<p>name: example-OBO-schema</p>
+<p>classes:</p>
+<p>Person:</p>
+<p>class_uri:  <strong>NCBITaxon:9606</strong>   <span style="color:#999999">## Homo sapiens</span></p>
+<p>attributes:</p>
+<p>surname:</p>
+<p>slot_uri:  <strong>IAO:0000590</strong>   <span style="color:#999999">## written name</span></p>
+<p>home_address:</p>
+<p>slot_uri:  <strong>IAO:0000422</strong>   <span style="color:#999999">## postal address</span></p>
+<p>family_name: Wu</p>
+<p>address: 1 my street\, Oakville</p>
+<p>surname: Wu</p>
+<p>home_address: 1 my street\, Oakville</p>
+<p>[sdo:familyName “Wu”</p>
+<p>sdo:address “1 my street\, Oakville”</p>
+<p>]</p>
+<p>[sdo:familyName “Wu”</p>
+<p>sdo:address “1 my street\, Oakville”</p>
+<p>]</p>
+<h1 id="advantages-of-rdf-as-an-intermediate">Advantages of RDF as an intermediate</h1>
+<ul>
+<li>Use of IRIs</li>
+<li>Separation of concerns</li>
+<li>Structural differences (e.g. inlining) are already handled by linkml convert</li>
+<li>Allows us to focus on semantic mappings</li>
+</ul>
+<h1 id="lessons-learned-so-far-think-about-mappings">Lessons learned so far: think about mappings</h1>
+<p><img alt="" src="img/Mapping%20Between%20LinkML%20Schemas10.png" /></p>
+<p><img alt="" src="img/Mapping%20Between%20LinkML%20Schemas11.png" /></p>
+<p><em><a href="https://linkml.io/linkml/faq/modeling.html#when-is-it-important-to-have-mappings">https://linkml.io/linkml/faq/modeling.html#when-is-it-important-to-have-mappings</a></em></p>
+<p><em><a href="https://github.com/alliance-genome/agr_curation_schema/blob/main/model/schema/agent.yaml">https://github.com/alliance-genome/agr_curation_schema/blob/main/model/schema/agent.yaml</a></em></p>
+<h1 id="more-complex-mappings-level-2-and-above">More complex mappings: level 2 and above</h1>
+<ul>
+<li>TODO: define levels 2 and above</li>
+<li>Examples of kinds of features:</li>
+<li>merging/splitting fields; e.g. full_name = first + “ “ + last</li>
+<li>Unit conversion or baked-in units to explicit units</li>
+<li>Normalization/denormalization (aka flattening)</li>
+<li>Complex logic<ul>
+<li>If conditions A\, B\, C and not D are met then copy field F from X to Y</li>
+</ul>
+</li>
+</ul>
+<h1 id="linkml-rule-and-inference-framework">LinkML Rule and Inference Framework</h1>
+<ul>
+<li>Current use case is  <strong>intra-schema</strong>  inference</li>
+<li>Easy to invoke on command line</li>
+<li>Needs more docs!</li>
+<li>Could form basis of  <strong>inter-schema</strong>  DSL</li>
+<li>Examples</li>
+<li>Schemas differ in units</li>
+<li>Schemas differ in categorical vs quantitative</li>
+</ul>
+<p><img alt="" src="img/Mapping%20Between%20LinkML%20Schemas12.png" /></p>
+<p>Current use case is  <strong>intra-schema</strong>  inference</p>
+<p>Could form basis of  <strong>inter-schema</strong>  DSL</p>
+<p><img alt="" src="img/Mapping%20Between%20LinkML%20Schemas13.png" /></p>
+<h1 id="datalog">Datalog</h1>
+<p>Datalog could serve as the powerful basis of an expressive declarative transformation language</p>
+<p><img alt="" src="img/Mapping%20Between%20LinkML%20Schemas14.png" /></p>
+<p><em><a href="https://linkml.io/linkml-datalog">https://linkml.io/linkml-datalog</a></em></p>
+<h1 id="approach-for-level-2">Approach for level 2+</h1>
+<ul>
+<li>Do we even want a generic mapping framework in LinkML here?</li>
+<li>This is a good “ <strong>parasitization</strong>  hook”</li>
+<li>Do complex stuff using an existing framework</li>
+<li>TBD: derive or semi-derive mapping specification?</li>
+<li>This is also a code bespoke procedural code hook</li>
+<li>Do the generic stuff with linkml-convert and isomorphic IRI mapping</li>
+<li>Do more complex stuff in code</li>
+</ul>
+<h1 id="general-approach-for-level-2-same-to-same">General approach for level 2+; same to same</h1>
+<p>name: example-semweb-schema</p>
+<p>classes:</p>
+<p>Person:</p>
+<p>class_uri:  <strong>sdo:Person</strong></p>
+<p>attributes:</p>
+<p>family_name:</p>
+<p>slot_uri:  <strong>sdo:familyName</strong></p>
+<p>address:</p>
+<p>slot_uri:  <strong>sdo:address</strong></p>
+<p>name: example-OBO-schema</p>
+<p>classes:</p>
+<p>Person:</p>
+<p>class_uri:  <strong>NCBITaxon:9606</strong>   <span style="color:#999999">## Homo sapiens</span></p>
+<p>attributes:</p>
+<p>surname:</p>
+<p>slot_uri:  <strong>IAO:0000590</strong>   <span style="color:#999999">## written name</span></p>
+<p>home_address:</p>
+<p>slot_uri:  <strong>IAO:0000422</strong>   <span style="color:#999999">## postal address</span></p>
+<p>family_name: Wu</p>
+<p>address: 1 my street\, Oakville</p>
+<p>surname: Wu</p>
+<p>home_address: 1 my street\, Oakville</p>
+<p>JSON  <em>OR</em>  XML  <em>OR</em>  YAML  <em>OR</em>  RDF  <em>OR</em>  SQL</p>
+<p><strong>JSON __  <em>OR</em>  __ XML __  <em>OR</em>  __ YAML __  <em>OR</em>  __ RDF __  <em>OR</em>  __ SQL</strong></p>
+<p><strong>(matches the one on the left)</strong></p>
+<p><strong>Existing __  __mapping</strong>  __ framework (X to X)__</p>
+<h1 id="example-of-same-to-same-jsonpath-lifter">Example of same-to-same: jsonpath-lifter</h1>
+<p>name: example-semweb-schema</p>
+<p>classes:</p>
+<p>Person:</p>
+<p>class_uri:  <strong>sdo:Person</strong></p>
+<p>attributes:</p>
+<p>family_name:</p>
+<p>slot_uri:  <strong>sdo:familyName</strong></p>
+<p>address:</p>
+<p>slot_uri:  <strong>sdo:address</strong></p>
+<p>name: example-OBO-schema</p>
+<p>classes:</p>
+<p>Person:</p>
+<p>class_uri:  <strong>NCBITaxon:9606</strong>   <span style="color:#999999">## Homo sapiens</span></p>
+<p>attributes:</p>
+<p>surname:</p>
+<p>slot_uri:  <strong>IAO:0000590</strong>   <span style="color:#999999">## written name</span></p>
+<p>home_address:</p>
+<p>slot_uri:  <strong>IAO:0000422</strong>   <span style="color:#999999">## postal address</span></p>
+<p>family_name: Wu</p>
+<p>address: 1 my street\, Oakville</p>
+<p>surname: Wu</p>
+<p>home_address: 1 my street\, Oakville</p>
+<p><strong>Jsonpath-lifter (JSON to JSON)</strong></p>
+<h1 id="example-of-same-to-same-awk">Example of same-to-same: awk</h1>
+<h1 id="example-of-same-to-same-sql">Example of same-to-same: SQL</h1>
+<p>INSERT INTO Agent AS SELECT</p>
+<p>Person.last_name AS Agent.surname\,</p>
+<p>CONCAT(Person.full_name\, “ “\, Person.first) AS Agent.full_name\,</p>
+<p>…</p>
+<p>CONSTRUCT {</p>
+<p>[</p>
+<p>a schema:Person ;</p>
+<p>my:fullName STRCAT(...)</p>
+<p>]</p>
+<p>}</p>
+<p>WHERE {</p>
+<p>?person a schema:Person ;</p>
+<p>schema:firstName ;</p>
+<p>schema:lastName ;</p>
+<p>…</p>
+<p>}</p>
+<p><strong>SPARQL CONSTRUCT</strong></p>
+<p><strong>RDF</strong>  __ Engine or Triplestore__</p>
+<h1 id="example-of-same-to-same-python-linkml-objects">Example of same-to-same: Python (LinkML objects)</h1>
+<p>def convert(p: Person) -&gt; Agent:</p>
+<p>return Agent(p.id\,</p>
+<p>full_name=f”{..} {..}”\,</p>
+<p>…</p>
+<p><strong>Conversion script</strong></p>
+<h1 id="general-approach-for-level-2-heteromorphic">General approach for level 2+; heteromorphic</h1>
+<p>name: example-semweb-schema</p>
+<p>classes:</p>
+<p>Person:</p>
+<p>class_uri:  <strong>sdo:Person</strong></p>
+<p>attributes:</p>
+<p>family_name:</p>
+<p>slot_uri:  <strong>sdo:familyName</strong></p>
+<p>address:</p>
+<p>slot_uri:  <strong>sdo:address</strong></p>
+<p>name: example-OBO-schema</p>
+<p>classes:</p>
+<p>Person:</p>
+<p>class_uri:  <strong>NCBITaxon:9606</strong>   <span style="color:#999999">## Homo sapiens</span></p>
+<p>attributes:</p>
+<p>surname:</p>
+<p>slot_uri:  <strong>IAO:0000590</strong>   <span style="color:#999999">## written name</span></p>
+<p>home_address:</p>
+<p>slot_uri:  <strong>IAO:0000422</strong>   <span style="color:#999999">## postal address</span></p>
+<p>family_name: Wu</p>
+<p>address: 1 my street\, Oakville</p>
+<p>surname: Wu</p>
+<p>home_address: 1 my street\, Oakville</p>
+<p><em>L</em>  <em>inkml-convert</em></p>
+<p><em>OPTIONAL</em></p>
+<p><em>L</em>  <em>inkml-convert</em></p>
+<p><em>OPTIONAL</em></p>
+<p>JSON  <em>OR</em>  XML  <em>OR</em>  YAML  <em>OR</em>  RDF  <em>OR</em>  SQL</p>
+<p><strong>JSON __  <em>OR</em>  __ XML __  <em>OR</em>  __ YAML __  <em>OR</em>  __ RDF __  <em>OR</em>  __ SQL</strong></p>
+<p><strong>(</strong>  <em>different</em>  __ from the one on the left)__</p>
+<p><strong>Existing mapping framework (X to Y)</strong></p>
+<h1 id="example-yarrrml">Example: YARRRML</h1>
+<p>name: example-semweb-schema</p>
+<p>classes:</p>
+<p>Person:</p>
+<p>class_uri:  <strong>sdo:Person</strong></p>
+<p>attributes:</p>
+<p>family_name:</p>
+<p>slot_uri:  <strong>sdo:familyName</strong></p>
+<p>address:</p>
+<p>slot_uri:  <strong>sdo:address</strong></p>
+<p>name: example-OBO-schema</p>
+<p>classes:</p>
+<p>Person:</p>
+<p>class_uri:  <strong>NCBITaxon:9606</strong>   <span style="color:#999999">## Homo sapiens</span></p>
+<p>attributes:</p>
+<p>surname:</p>
+<p>slot_uri:  <strong>IAO:0000590</strong>   <span style="color:#999999">## written name</span></p>
+<p>home_address:</p>
+<p>slot_uri:  <strong>IAO:0000422</strong>   <span style="color:#999999">## postal address</span></p>
+<p><img alt="" src="img/Mapping%20Between%20LinkML%20Schemas15.png" /></p>
+<p>family_name: Wu</p>
+<p>address: 1 my street\, Oakville</p>
+<p>surname: Wu</p>
+<p>home_address: 1 my street\, Oakville</p>
+<p><strong>YARRRML (JSON/YAML to RDF)</strong></p>
+<h1 id="example-yarrrml-native-mappings">Example: YARRRML, native mappings</h1>
+<p>name: example-semweb-schema</p>
+<p>classes:</p>
+<p>Person:</p>
+<p>class_uri:  <strong>sdo:Person</strong></p>
+<p>attributes:</p>
+<p>family_name:</p>
+<p>slot_uri:  <strong>sdo:familyName</strong></p>
+<p>address:</p>
+<p>slot_uri:  <strong>sdo:address</strong></p>
+<p>name: example-OBO-schema</p>
+<p>classes:</p>
+<p>Person:</p>
+<p>class_uri:  <strong>NCBITaxon:9606</strong>   <span style="color:#999999">## Homo sapiens</span></p>
+<p>attributes:</p>
+<p>surname:</p>
+<p>slot_uri:  <strong>IAO:0000590</strong>   <span style="color:#999999">## written name</span></p>
+<p>home_address:</p>
+<p>slot_uri:  <strong>IAO:0000422</strong>   <span style="color:#999999">## postal address</span></p>
+<p>family_name: Wu</p>
+<p>address: 1 my street\, Oakville</p>
+<p>surname: Wu</p>
+<p>home_address: 1 my street\, Oakville</p>
+<p><strong>mapping.yarrrml.yml</strong></p>
+<h1 id="example-yarrrml-compiled-mappings">Example: YARRRML, compiled mappings</h1>
+<p>name: example-semweb-schema</p>
+<p>classes:</p>
+<p>Person:</p>
+<p>class_uri:  <strong>sdo:Person</strong></p>
+<p>attributes:</p>
+<p>family_name:</p>
+<p>slot_uri:  <strong>sdo:familyName</strong></p>
+<p>address:</p>
+<p>slot_uri:  <strong>sdo:address</strong></p>
+<p>Mappings <strong>:</strong></p>
+<p>__   … \&lt; TO BE DEFINED LINKML MAPPING SPEC &gt;__</p>
+<p>name: example-OBO-schema</p>
+<p>classes:</p>
+<p>Person:</p>
+<p>class_uri:  <strong>NCBITaxon:9606</strong>   <span style="color:#999999">## Homo sapiens</span></p>
+<p>attributes:</p>
+<p>surname:</p>
+<p>slot_uri:  <strong>IAO:0000590</strong>   <span style="color:#999999">## written name</span></p>
+<p>home_address:</p>
+<p>slot_uri:  <strong>IAO:0000422</strong>   <span style="color:#999999">## postal address</span></p>
+<p>family_name: Wu</p>
+<p>address: 1 my street\, Oakville</p>
+<p>surname: Wu</p>
+<p>home_address: 1 my street\, Oakville</p>
+<p><strong>mapping.yarrrml.yml</strong></p>
+<h1 id="hyperparasitism-is-good">Hyperparasitism is good</h1>
+<p>name: example-semweb-schema</p>
+<p>classes:</p>
+<p>Person:</p>
+<p>class_uri:  <strong>sdo:Person</strong></p>
+<p>attributes:</p>
+<p>family_name:</p>
+<p>slot_uri:  <strong>sdo:familyName</strong></p>
+<p>address:</p>
+<p>slot_uri:  <strong>sdo:address</strong></p>
+<p>Mappings <strong>:</strong></p>
+<p>__   … \&lt; TO BE DEFINED LINKML MAPPING SPEC &gt;__</p>
+<p>name: example-OBO-schema</p>
+<p>classes:</p>
+<p>Person:</p>
+<p>class_uri:  <strong>NCBITaxon:9606</strong>   <span style="color:#999999">## Homo sapiens</span></p>
+<p>attributes:</p>
+<p>surname:</p>
+<p>slot_uri:  <strong>IAO:0000590</strong>   <span style="color:#999999">## written name</span></p>
+<p>home_address:</p>
+<p>slot_uri:  <strong>IAO:0000422</strong>   <span style="color:#999999">## postal address</span></p>
+<p><strong>mapping.yarrrml.yml</strong></p>
+<p>family_name: Wu</p>
+<p>address: 1 my street\, Oakville</p>
+<p>surname: Wu</p>
+<p>home_address: 1 my street\, Oakville</p>
+<h1 id="alternative-direct-translation-language">Alternative: Direct translation language</h1>
+<ul>
+<li>Desiderata</li>
+<li>Ability to compile to scalable frameworks</li>
+<li>E.g. compile to SQL</li>
+<li>Simple for simple tasks</li>
+<li>Layer on existing expression language</li>
+<li>Provides path to safe subset of host language (Python)</li>
+<li>Can be easily implemented in other languages</li>
+</ul>
+<p><img alt="" src="img/Mapping%20Between%20LinkML%20Schemas16.png" /></p>
+<p><img alt="" src="img/Mapping%20Between%20LinkML%20Schemas17.png" /></p>
+<h1 id="normalized-to-denormalized-modeling-sssom">Normalized to Denormalized (modeling SSSOM)</h1>
+<p>SQL INSERT (or CREATE VIEW)</p>
+<p><img alt="" src="img/Mapping%20Between%20LinkML%20Schemas18.png" /></p>
+<p>SQL FROM Clause</p>
+<p>(implicit INNER JOIN/WHERE)</p>
+<p>SQL SELECT … AS clause</p>
+<h1 id="relationship-to-profiles-todo">Relationship to profiles TODO</h1>
+<p>Profiles/IGs can be seen as a sub-case of schema mapping</p>
+<h1 id="current-progress">Current progress</h1>
+<p><em><a href="https://github.com/linkml/linkml/issues/533">https://github.com/linkml/linkml/issues/533</a></em>  map to YARRRML</p>
+<p>Vincent Vemonet has started on linkml-&gt;rml</p>
+<p><em><a href="https://github.com/vemonet/linkml/blob/add-gen-rml/linkml/generators/rmlgen.py">https://github.com/vemonet/linkml/blob/add-gen-rml/linkml/generators/rmlgen.py</a></em></p>
+<h1 id="relationship-to-koza">Relationship to Koza</h1>
+<h1 id="koza-ingests-often-require-multiple-files">Koza ingests often require multiple files</h1>
+<p><img alt="" src="img/Mapping%20Between%20LinkML%20Schemas19.png" /></p>
+<p><img alt="" src="img/Mapping%20Between%20LinkML%20Schemas20.png" /></p>
+<h1 id="see-also">See Also</h1>
+<p>Revisiting BioWeave (Kent Shefchek\, 2020?)</p>
+<p><em><a href="https://docs.google.com/presentation/d/1DYiWXoz3iHM2PvMFD0hRpJ544tnHawg00PBwNuESo44/edit#slide=id.gb33d7ddd1b_0_93">https://docs.google.com/presentation/d/1DYiWXoz3iHM2PvMFD0hRpJ544tnHawg00PBwNuESo44/edit#slide=id.gb33d7ddd1b_0_93</a></em></p>
+<h1 id="automating-mapping">Automating mapping</h1>
+<ul>
+<li>Should we pursue approaches to automate mapping?</li>
+<li>Some of the functionality is already in schema-automator. E.g. auto-annotating schema elements using ontologies</li>
+<li>Isomorphic schema mapping discovery analogous to ontology mapping</li>
+<li>Can a boomer type approach help?<ul>
+<li>E.g. given multiple loose mappings with alternative interpretations\, which ones give coherent results</li>
+</ul>
+</li>
+<li>Other approaches</li>
+<li>Inductive Logic Programming: transformations as logic programs</li>
+<li>Genetic programming: transformations as lambda functions</li>
+<li>Deep Learning: e.g. Language Models for translation</li>
+<li>There is already a rich literature spanning decades here to be parasitized…</li>
+</ul>
+<h1 id="summary-just-tell-me-what-to-do-today">Summary: just tell me what to do today</h1>
+<ul>
+<li>For isomorphic mappings:</li>
+<li>Stay within LinkML/SSSOM</li>
+<li>No need for custom code\, it all works</li>
+<li>For complex mappings:</li>
+<li>It depends!</li>
+<li>Do the structural mapping with linkml-convert</li>
+<li>Implement the complex logic as you see fit\, depending on multiple factors. Any of the following may be valid<ul>
+<li>Koza</li>
+<li>Awk</li>
+<li>SPARQL CONSTRUCTS or SELECTS</li>
+<li>Custom python</li>
+<li>YARRRML</li>
+<li>SQL INSERTs</li>
+<li>XSLT</li>
+<li>Jsonpath-lifter</li>
+<li>….</li>
+</ul>
+</li>
+</ul>
+<h1 id="roadmap">Roadmap</h1>
+<ul>
+<li>2022: Continue to gather use cases\, experiment</li>
+<li>2023: If funding permits</li>
+<li>Extend metamodel to include complex mapping</li>
+<li>Implement EITHER<ul>
+<li>Parasitizing converters</li>
+<li>Direct mapping framework</li>
+</ul>
+</li>
+<li>TBD: Is this Koza2?</li>
+</ul>
+
+  <br>
+    
+
+    <br>
+</div>
+
+<footer class="container-fluid wm-page-content">
+      <p>
+        <a href="https://github.com/linkml/linkml-map/edit/master/docs/schema/overview.md"><i class="fa fa-github"></i>
+Edit on GitHub</a>
+      </p>
+  <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a> using <a href="https://github.com/gristlabs/mkdocs-windmill">Windmill</a> theme by Grist Labs.</p>
+</footer>
+
+</body>
+</html>
