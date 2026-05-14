@@ -1,11 +1,15 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: copy_directives 
+
+<div data-search-exclude markdown="1">
 
 
-# Slot: copy_directives
 
-URI: [linkmltr:copy_directives](https://w3id.org/linkml/transformer/copy_directives)
-
-
-
+URI: [linkmlmap:copy_directives](https://w3id.org/linkml/transformer/copy_directives)
 <!-- no inheritance hierarchy -->
 
 
@@ -16,13 +20,14 @@ URI: [linkmltr:copy_directives](https://w3id.org/linkml/transformer/copy_directi
 
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
-| [EnumDerivation](EnumDerivation.md) | A specification of how to derive the value of a target enum from a source enu... |  no  |
+| [TransformationSpecification](TransformationSpecification.md) | A collection of mappings between source and target classes |  no  |
+| [ElementDerivation](ElementDerivation.md) | An abstract grouping for classes that provide a specification of how to deriv... |  no  |
 | [ClassDerivation](ClassDerivation.md) | A specification of how to derive a target class from a source class |  no  |
-| [PrefixDerivation](PrefixDerivation.md) |  |  no  |
+| [ObjectDerivation](ObjectDerivation.md) | Deprecated |  no  |
 | [SlotDerivation](SlotDerivation.md) | A specification of how to derive the value of a target slot from a source slo... |  no  |
+| [EnumDerivation](EnumDerivation.md) | A specification of how to derive the value of a target enum from a source enu... |  no  |
 | [PermissibleValueDerivation](PermissibleValueDerivation.md) | A specification of how to derive the value of a PV from a source enum |  no  |
-| [ElementDerivation](ElementDerivation.md) | An abstract grouping for classes that provide a specification of how to  deri... |  no  |
-
+| [PrefixDerivation](PrefixDerivation.md) |  |  no  |
 
 
 
@@ -31,9 +36,22 @@ URI: [linkmltr:copy_directives](https://w3id.org/linkml/transformer/copy_directi
 
 ## Properties
 
-* Range: [CopyDirective](CopyDirective.md)
+### Type and Range
 
-* Multivalued: True
+| Property | Value |
+| --- | --- |
+| Range | NONE |
+| Domain Of | [TransformationSpecification](TransformationSpecification.md), [ElementDerivation](ElementDerivation.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+
+
+
+
+
 
 
 
@@ -46,11 +64,12 @@ URI: [linkmltr:copy_directives](https://w3id.org/linkml/transformer/copy_directi
 
 
 
+## Mappings
 
-### Schema Source
-
-
-* from schema: https://w3id.org/linkml/transformer
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:copy_directives |
+| native | linkmlmap:copy_directives |
 
 
 
@@ -60,15 +79,9 @@ URI: [linkmltr:copy_directives](https://w3id.org/linkml/transformer/copy_directi
 <details>
 ```yaml
 name: copy_directives
-from_schema: https://w3id.org/linkml/transformer
-rank: 1000
-multivalued: true
-alias: copy_directives
-owner: ElementDerivation
 domain_of:
+- TransformationSpecification
 - ElementDerivation
-range: CopyDirective
-inlined: true
 
 ```
-</details>
+</details></div>

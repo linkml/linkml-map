@@ -1,16 +1,20 @@
+---
+search:
+  boost: 5.0
+---
 
-
-# Slot: permissible_value_derivations
+# Slot: permissible_value_derivations 
 
 
 _Instructions on how to derive a set of PVs in the target schema_
 
 
 
-URI: [linkmltr:permissible_value_derivations](https://w3id.org/linkml/transformer/permissible_value_derivations)
+<div data-search-exclude markdown="1">
 
 
 
+URI: [linkmlmap:permissible_value_derivations](https://w3id.org/linkml/transformer/permissible_value_derivations)
 <!-- no inheritance hierarchy -->
 
 
@@ -28,20 +32,38 @@ URI: [linkmltr:permissible_value_derivations](https://w3id.org/linkml/transforme
 
 
 
-
 ## Properties
 
-* Range: [PermissibleValueDerivation](PermissibleValueDerivation.md)
+### Type and Range
 
-* Multivalued: True
+| Property | Value |
+| --- | --- |
+| Range | [PermissibleValueDerivation](PermissibleValueDerivation.md) |
+| Domain Of | [EnumDerivation](EnumDerivation.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+| Multivalued | Yes |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [EnumDerivation](EnumDerivation.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -55,6 +77,16 @@ URI: [linkmltr:permissible_value_derivations](https://w3id.org/linkml/transforme
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:permissible_value_derivations |
+| native | linkmlmap:permissible_value_derivations |
+
+
+
+
 ## LinkML Source
 
 <details>
@@ -63,13 +95,12 @@ name: permissible_value_derivations
 description: Instructions on how to derive a set of PVs in the target schema
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
-multivalued: true
-alias: permissible_value_derivations
 owner: EnumDerivation
 domain_of:
 - EnumDerivation
 range: PermissibleValueDerivation
+multivalued: true
 inlined: true
 
 ```
-</details>
+</details></div>

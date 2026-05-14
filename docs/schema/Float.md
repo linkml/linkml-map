@@ -1,4 +1,7 @@
-# Type: Float
+---
+search:
+  boost: 1.0
+---# Type: Float 
 
 
 
@@ -7,17 +10,25 @@ _A real number that conforms to the xsd:float specification_
 
 
 
+<div data-search-exclude markdown="1">
+
 URI: [xsd:float](http://www.w3.org/2001/XMLSchema#float)
 
-* [base](https://w3id.org/linkml/base): float
+## Type Properties
 
-* [uri](https://w3id.org/linkml/uri): xsd:float
+| Property | Value |
+| --- | --- |
+| Base | `float` |
+| Type URI | [xsd:float](http://www.w3.org/2001/XMLSchema#float) |
 
 
 
 
 
 
+## Notes
+
+* If you are authoring schemas in LinkML YAML, the type is referenced with the lower case "float".
 
 
 
@@ -27,9 +38,23 @@ URI: [xsd:float](http://www.w3.org/2001/XMLSchema#float)
 
 
 
-
-
 ### Schema Source
 
 
 * from schema: https://w3id.org/linkml/transformer
+
+
+
+
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | xsd:float |
+| native | linkmlmap:float |
+| exact | schema:Float |
+
+
+
+
+</div>
