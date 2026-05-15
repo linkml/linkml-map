@@ -18,13 +18,16 @@ See: https://github.com/linkml/linkml-map/issues/98
 """
 
 import ast
+import difflib
 import logging
 import math
 import uuid
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from typing import Any
 
-from simpleeval import EvalWithCompoundTypes, NameNotDefined
+import inflection
+from simpleeval import EvalWithCompoundTypes, InvalidExpression, NameNotDefined
+from slugify import slugify as _slugify_lib
 
 logger = logging.getLogger(__name__)
 
@@ -219,6 +222,71 @@ def _substr(s: str, start: int, end: int | None = None) -> str:
     return s[start:end]
 
 
+def _slugify(s: str, separator: str = "_") -> str | None:
+    """Slugify a string to an identifier-shaped form.
+
+    ASCII-folds, lowercases, and collapses non-alphanumeric runs to
+    ``separator``. Returns ``None`` if no identifier-shaped content remains —
+    matching the SQL-style null convention so ``slugify`` composes with
+    ``or``-chain fallbacks::
+
+        expr: "slugify(name) or slugify(label) or 'anonymous'"
+
+    Backed by `python-slugify <https://pypi.org/project/python-slugify/>`_.
+
+    >>> _slugify("Hello, World!")
+    'hello_world'
+    >>> _slugify("Schöne Grüße")
+    'schone_grusse'
+    >>> _slugify("café-au-lait", separator="-")
+    'cafe-au-lait'
+    >>> _slugify("!!!") is None
+    True
+    >>> _slugify("") is None
+    True
+    """
+    return _slugify_lib(s, separator=separator, lowercase=True) or None
+
+
+def _to_snake(s: str) -> str:
+    """Convert a string to ``snake_case``.
+
+    Backed by `inflection.underscore <https://inflection.readthedocs.io/>`_.
+
+    >>> _to_snake("CamelCase")
+    'camel_case'
+    >>> _to_snake("HTTPResponse")
+    'http_response'
+    """
+    return inflection.underscore(s)
+
+
+def _to_pascal(s: str) -> str:
+    """Convert a string to ``PascalCase``.
+
+    Backed by `inflection.camelize`.
+
+    >>> _to_pascal("snake_case")
+    'SnakeCase'
+    >>> _to_pascal("http_response")
+    'HttpResponse'
+    """
+    return inflection.camelize(s)
+
+
+def _to_camel(s: str) -> str:
+    """Convert a string to ``camelCase``.
+
+    Backed by `inflection.camelize` with ``uppercase_first_letter=False``.
+
+    >>> _to_camel("snake_case")
+    'snakeCase'
+    >>> _to_camel("http_response")
+    'httpResponse'
+    """
+    return inflection.camelize(s, uppercase_first_letter=False)
+
+
 #: Functions that operate on scalars and should distribute over lists.
 _SCALAR_FUNCTIONS: dict[str, Any] = {
     "str": str,
@@ -249,6 +317,11 @@ _SCALAR_FUNCTIONS: dict[str, Any] = {
     # String splitting/joining
     "split": str.split,
     "join": str.join,
+    # Identifier-shaped normalization
+    "slugify": _slugify,
+    "to_snake": _to_snake,
+    "to_camel": _to_camel,
+    "to_pascal": _to_pascal,
 }
 
 
@@ -398,6 +471,36 @@ def _coercing(op):  # noqa: ANN001, ANN202
     return wrapper
 
 
+class UnknownFunctionError(InvalidExpression):
+    """Raised when an expression calls a function not in the eval namespace.
+
+    Subclasses ``InvalidExpression`` so existing ``except (InvalidExpression, ...)``
+    blocks in the transformer continue to catch it (including the
+    ``unrestricted_eval`` fallback path). Carries a richer message than
+    simpleeval's default ``FunctionNotDefined``.
+    """
+
+    def __init__(self, func_name: str, message: str) -> None:
+        super().__init__(message)
+        self.func_name = func_name
+
+
+def suggest_for_unknown_name(name: str, *, known_names: Iterable[str]) -> str:
+    """Build a user-facing error message for an unknown function name.
+
+    Includes Levenshtein-style suggestions from the known-names pool plus a
+    parenthetical pointing at ``--functions`` so the single message covers both
+    the typo case and the missing-extension case.
+
+    :param name: The unknown name as referenced in the expression.
+    :param known_names: Names currently in the eval namespace (built-ins plus
+        any loaded extensions) — the pool for did-you-mean suggestions.
+    """
+    suggestions = difflib.get_close_matches(name, sorted(set(known_names)), n=3, cutoff=0.6)
+    suggestion = f" Did you mean: {', '.join(repr(s) for s in suggestions)}?" if suggestions else ""
+    return f"Unknown function {name!r}.{suggestion} (If this is a custom function, pass it via --functions <path>.)"
+
+
 class LinkMLEvaluator(EvalWithCompoundTypes):
     """
     Expression evaluator with LinkML-specific extensions.
@@ -444,6 +547,18 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
             self.operators[op_type] = _null_propagating(self.operators[op_type])
         for op_type in (ast.USub, ast.UAdd, ast.Invert):
             self.operators[op_type] = _null_propagating_unary(self.operators[op_type])
+
+    def _eval_call(self, node: ast.Call) -> Any:  # noqa: ANN401
+        """Pre-check function names for unknown-function errors with did-you-mean.
+
+        Replaces simpleeval's default ``FunctionNotDefined`` message ("Function
+        'X' not defined") with one that includes Levenshtein suggestions and a
+        pointer to ``--functions`` for the missing-extension case.
+        """
+        if isinstance(node.func, ast.Name) and node.func.id not in self.functions:
+            msg = suggest_for_unknown_name(node.func.id, known_names=self.functions.keys())
+            raise UnknownFunctionError(node.func.id, msg) from None
+        return super()._eval_call(node)
 
     def _eval_name(self, node: ast.Name) -> Any:  # noqa: ANN401
         """

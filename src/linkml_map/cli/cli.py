@@ -21,6 +21,7 @@ from linkml_map.loaders import DataLoader
 from linkml_map.transformer.engine import transform_spec
 from linkml_map.transformer.errors import TransformationError
 from linkml_map.transformer.object_transformer import ObjectTransformer
+from linkml_map.utils.extensions import ExtensionError, load_extensions
 from linkml_map.writers import (
     EXTENSION_FORMAT_MAP,
     MultiStreamWriter,
@@ -128,6 +129,16 @@ def main(verbose: int, quiet: bool) -> None:
     default=None,
     help="Write the resolved (merged + filtered) spec to this file path as a side-effect.",
 )
+@click.option(
+    "-F",
+    "--functions",
+    multiple=True,
+    type=click.Path(exists=True, dir_okay=False),
+    help=(
+        "Python file containing functions tagged with ``@safe_function``. "
+        "Their names are merged into the expression eval namespace. Repeatable."
+    ),
+)
 @click.argument("input_data")
 def map_data(
     input_data: str,
@@ -173,6 +184,13 @@ def map_data(
 
     """
     logger.info(f"Transforming {input_data} conforming to {schema} using {transformer_specification}")
+
+    function_paths = kwargs.pop("functions", ())
+    if function_paths:
+        try:
+            kwargs["extension_functions"] = load_extensions(function_paths)
+        except ExtensionError as err:
+            raise click.ClickException(str(err)) from err
 
     input_path = Path(input_data)
 
