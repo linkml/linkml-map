@@ -44,16 +44,22 @@ For the contract authors are declaring, see ``docs/api/extensions.md``.
 
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import logging
 import sys
 from collections.abc import Callable, Iterable
 from pathlib import Path
+from types import ModuleType
 from typing import Any
 
 from linkml_map.utils.eval_utils import FUNCTIONS, _distributing
 
 _SAFE_FUNCTION_ATTR = "_linkml_safe_function"
+
+#: Names injected per-call by the transformer (e.g. ``slot``). Extensions cannot
+#: use these — they would be silently shadowed at expression-evaluation time.
+_RESERVED_NAMES: frozenset[str] = frozenset({"slot"})
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +96,7 @@ def safe_function(
     """
 
     def _tag(fn: Callable) -> Callable:
-        fn._linkml_safe_function = {"override": override, "distributes": distributes}  # type: ignore[attr-defined]
+        setattr(fn, _SAFE_FUNCTION_ATTR, {"override": override, "distributes": distributes})
         return fn
 
     if func is not None:
@@ -99,25 +105,39 @@ def safe_function(
     return _tag
 
 
-def _load_module_from_path(path: Path) -> Any:  # noqa: ANN401
+def _load_module_from_path(path: Path) -> ModuleType:
     """Import a Python file as an anonymous module.
 
-    :raises ExtensionError: If the file does not exist.
+    The ``sys.modules`` registration key includes a short hash of the resolved
+    path so two extension files sharing a basename (e.g. ``a/helpers.py`` and
+    ``b/helpers.py``) don't clobber each other. On import-time failure, the
+    half-initialized entry is removed and the underlying exception is wrapped
+    as :class:`ExtensionError` with path context.
+
+    :raises ExtensionError: If the file does not exist, the spec cannot be
+        constructed, or the module raises during import.
     """
     if not path.exists():
         msg = f"Extension file not found: {path}"
         raise ExtensionError(msg)
-    spec = importlib.util.spec_from_file_location(f"_linkml_ext_{path.stem}", path)
+    path_hash = hashlib.sha1(str(path.resolve()).encode()).hexdigest()[:8]  # noqa: S324
+    spec_name = f"_linkml_ext_{path.stem}_{path_hash}"
+    spec = importlib.util.spec_from_file_location(spec_name, path)
     if spec is None or spec.loader is None:
         msg = f"Could not create import spec for: {path}"
         raise ExtensionError(msg)
     module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
+    sys.modules[spec_name] = module
+    try:
+        spec.loader.exec_module(module)
+    except Exception as exc:
+        sys.modules.pop(spec_name, None)
+        msg = f"Failed to import extension {path}: {type(exc).__name__}: {exc}"
+        raise ExtensionError(msg) from exc
     return module
 
 
-def _collect_tagged_functions(module: Any) -> dict[str, dict[str, Any]]:  # noqa: ANN401
+def _collect_tagged_functions(module: ModuleType) -> dict[str, dict[str, Any]]:
     """Walk module attributes and collect functions tagged with :func:`safe_function`."""
     found: dict[str, dict[str, Any]] = {}
     for name in dir(module):
@@ -152,6 +172,13 @@ def load_extensions(paths: Iterable[str | Path]) -> dict[str, Callable]:
         tagged = _collect_tagged_functions(module)
 
         for name, meta in tagged.items():
+            if name in _RESERVED_NAMES:
+                msg = (
+                    f"Extension name {name!r} from {path} is reserved — the "
+                    f"transformer injects it per-call, so it would silently "
+                    f"shadow your extension. Pick a different name."
+                )
+                raise ExtensionError(msg)
             if name in merged:
                 msg = f"Extension name collision: {name!r} defined in both {sources[name]} and {path}"
                 raise ExtensionError(msg)

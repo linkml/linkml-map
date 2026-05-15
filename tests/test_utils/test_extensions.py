@@ -3,6 +3,7 @@
 # ruff: noqa: ANN401, PLR2004
 
 import logging
+import sys
 from pathlib import Path
 
 import pytest
@@ -443,3 +444,133 @@ class_derivations:
 
     assert result.exit_code == 0, result.output
     assert yaml.safe_load(out.read_text()) == {"identifier": "o_brien_p"}
+
+
+# ---- Loader robustness: import-time errors and module-name collisions ----
+
+
+def test_import_time_error_raises_extension_error(tmp_path: Path) -> None:
+    """SyntaxError in an extension surfaces as ExtensionError, not a traceback."""
+    bad = _write_ext(tmp_path, "broken.py", "def f(:\n")
+    with pytest.raises(ExtensionError, match="broken.py"):
+        load_extensions([bad])
+    # sys.modules cleaned up on failure — no half-initialized entry left behind.
+    assert not any(k.startswith("_linkml_ext_broken_") for k in sys.modules)
+
+
+def test_two_files_with_same_basename_do_not_collide(tmp_path: Path) -> None:
+    """Two extension files named the same don't clobber each other in sys.modules."""
+    a_dir = tmp_path / "a"
+    b_dir = tmp_path / "b"
+    a_dir.mkdir()
+    b_dir.mkdir()
+    (a_dir / "helpers.py").write_text(
+        "from linkml_map.utils.extensions import safe_function\n@safe_function\ndef alpha(s):\n    return 'A:' + s\n"
+    )
+    (b_dir / "helpers.py").write_text(
+        "from linkml_map.utils.extensions import safe_function\n@safe_function\ndef beta(s):\n    return 'B:' + s\n"
+    )
+
+    loaded = load_extensions([a_dir / "helpers.py", b_dir / "helpers.py"])
+
+    # Both functions present — second load didn't clobber the first's module.
+    assert loaded["alpha"]("x") == "A:x"
+    assert loaded["beta"]("x") == "B:x"
+
+
+# ---- Reserved-name guard ----
+
+
+def test_reserved_name_slot_rejected(tmp_path: Path) -> None:
+    """Naming an extension 'slot' raises ExtensionError (reserved by the transformer)."""
+    path = _write_ext(
+        tmp_path,
+        "ext.py",
+        "from linkml_map.utils.extensions import safe_function\n@safe_function\ndef slot(name):\n    return name\n",
+    )
+    with pytest.raises(ExtensionError, match="reserved"):
+        load_extensions([path])
+
+
+# ---- Override end-to-end through the transformer ----
+
+
+def test_override_shadows_builtin_through_transformer() -> None:
+    """``override=True`` replaces the built-in inside ObjectTransformer eval,
+    not just in the loader dict.
+
+    Uses ``override_demo_ext.py`` which returns ``"EXT:<input>"`` — distinct
+    from the built-in ``slugify`` — so the assertion can only pass if the
+    extension's function actually fired during evaluation.
+    """
+    from linkml_runtime import SchemaView
+
+    from linkml_map.transformer.object_transformer import ObjectTransformer
+
+    source_schema = """
+id: https://example.org/src
+name: src
+prefixes:
+  linkml: https://w3id.org/linkml/
+default_prefix: ex
+imports: [linkml:types]
+classes:
+  Person:
+    attributes:
+      full_name: {range: string}
+"""
+    target_schema = """
+id: https://example.org/tgt
+name: tgt
+prefixes:
+  linkml: https://w3id.org/linkml/
+default_prefix: ex
+imports: [linkml:types]
+classes:
+  Agent:
+    attributes:
+      identifier: {range: string}
+"""
+    transform_spec = {
+        "id": "https://example.org/tr",
+        "class_derivations": {
+            "Agent": {
+                "populated_from": "Person",
+                "slot_derivations": {"identifier": {"expr": "slugify(full_name)"}},
+            }
+        },
+    }
+
+    extensions = load_extensions([EXTENSIONS_DIR / "override_demo_ext.py"])
+    tr = ObjectTransformer(extension_functions=extensions)
+    tr.source_schemaview = SchemaView(source_schema)
+    tr.target_schemaview = SchemaView(target_schema)
+    tr.create_transformer_specification(transform_spec)
+
+    result = tr.map_object({"full_name": "Smith"}, source_type="Person")
+
+    assert result == {"identifier": "EXT:Smith"}
+
+
+# ---- CLI negative path ----
+
+
+def test_cli_bad_extension_yields_clean_error(tmp_path: Path) -> None:
+    """A failing extension load surfaces as a ClickException, not a traceback."""
+    from click.testing import CliRunner
+
+    from linkml_map.cli.cli import main
+
+    bad = tmp_path / "broken.py"
+    bad.write_text("def f(:\n")  # SyntaxError at import time
+
+    # Other args don't matter — load_extensions fires before file processing.
+    runner = CliRunner()
+    result = runner.invoke(
+        main,
+        ["map-data", "-s", "x", "-T", "y", "--functions", str(bad), "in"],
+    )
+
+    assert result.exit_code != 0
+    assert "broken.py" in result.output
+    assert "Traceback" not in result.output

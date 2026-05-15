@@ -75,6 +75,15 @@ data manipulation, ask first whether it belongs in the trans-spec or in the
 source/target schema. The declarative spec is the documentation of what the
 transformation does; pulling logic out into Python hides it from review.
 
+## Reserved names
+
+A handful of names are injected per-call by the transformer (currently `slot`,
+used inside expressions to reference a previously derived target slot). An
+extension cannot define a function with one of these names — it would be
+silently shadowed at evaluation time. `load_extensions` raises
+`ExtensionError` on the attempt so the conflict shows up at load time
+rather than as silent wrong behavior.
+
 ## Override semantics
 
 A `@safe_function` may shadow a built-in if you explicitly say so:
