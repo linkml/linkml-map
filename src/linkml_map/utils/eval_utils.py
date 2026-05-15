@@ -496,7 +496,7 @@ def suggest_for_unknown_name(name: str, *, known_names: Iterable[str]) -> str:
     :param known_names: Names currently in the eval namespace (built-ins plus
         any loaded extensions) — the pool for did-you-mean suggestions.
     """
-    suggestions = difflib.get_close_matches(name, set(known_names), n=3, cutoff=0.6)
+    suggestions = difflib.get_close_matches(name, sorted(set(known_names)), n=3, cutoff=0.6)
     suggestion = f" Did you mean: {', '.join(repr(s) for s in suggestions)}?" if suggestions else ""
     return f"Unknown function {name!r}.{suggestion} (If this is a custom function, pass it via --functions <path>.)"
 

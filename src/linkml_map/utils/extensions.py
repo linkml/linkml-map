@@ -39,7 +39,7 @@ Semantics
 - ``override=True`` declared but no matching built-in → ``logging.warning``.
 - Missing extension file → :class:`ExtensionError`.
 
-For the contract authors are declaring, see ``docs/expressions/extensions.md``.
+For the contract authors are declaring, see ``docs/api/extensions.md``.
 """
 
 from __future__ import annotations
