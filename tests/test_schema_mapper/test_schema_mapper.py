@@ -344,6 +344,50 @@ def test_copy_whitelisting(mapper: SchemaMapper) -> None:
             assert schema_enum not in target_schema.enums, f"Enum '{schema_enum}' is missing in target"
 
 
+@pytest.mark.parametrize(
+    ("directive", "expected_slots"),
+    [
+        (CopyDirective(element_name="Person", copy_all=True), ["id", "name", "age"]),
+        (CopyDirective(element_name="Person", copy_all=True, exclude=["age"]), ["id", "name"]),
+        (
+            CopyDirective(element_name="Person", copy_all=True, exclude=["id", "age"]),
+            ["name"],
+        ),
+        (CopyDirective(element_name="Person", copy_all=True, exclude_all=True), []),
+        (
+            CopyDirective(element_name="Person", copy_all=True, exclude_all=True, include=["name"]),
+            ["name"],
+        ),
+        (CopyDirective(element_name="Person", include=["name", "age"]), ["name", "age"]),
+        (
+            CopyDirective(element_name="Person", copy_all=True, include=["name"]),
+            ["id", "name", "age"],
+        ),
+    ],
+)
+def test_copy_directive_on_slot_list(directive: CopyDirective, expected_slots: list[str]) -> None:
+    """Tests CopyDirective behavior on classes that use the slot-list form."""
+    sb = SchemaBuilder()
+    sb.add_slot("id", range="string", identifier=True)
+    sb.add_slot("name", range="string")
+    sb.add_slot("age", range="integer")
+    sb.add_class("Person", slots=["id", "name", "age"])
+    mapper = SchemaMapper()
+    mapper.source_schemaview = SchemaView(sb.schema)
+    specification = TransformationSpecification(
+        id="test",
+        class_derivations={
+            "Person": ClassDerivation(
+                name="Person",
+                populated_from="Person",
+                copy_directives={"Person": directive},
+            ),
+        },
+    )
+    target_schema = mapper.derive_schema(specification)
+    assert target_schema.classes["Person"].slots == expected_slots
+
+
 def test_derive_schema_merges_duplicate_name_derivations() -> None:
     """Two derivations targeting the same class name should merge their slots."""
     sb = SchemaBuilder()
