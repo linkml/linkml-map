@@ -291,6 +291,54 @@ def test_null_color_stays_none():
     assert result["color"] is None
 
 
+def test_pv_populated_from_list_form_maps_multiple_sources():
+    """populated_from as a list maps any listed source value to the target PV."""
+    tr = ObjectTransformer()
+    tr.source_schemaview = SchemaView(SOURCE_SCHEMA)
+    tr.target_schemaview = SchemaView(TARGET_SCHEMA)
+    spec = copy.deepcopy(TRANSFORM_SPEC)
+    # Replace SimplePrimary's deprecated sources with list-form populated_from.
+    spec["enum_derivations"]["SimplePrimary"]["permissible_value_derivations"] = {
+        "red": {"populated_from": ["light_red", "dark_red"]},
+        "green": {"populated_from": ["light_green", "dark_green"]},
+        "blue": {"populated_from": ["light_blue", "dark_blue"]},
+    }
+    tr.create_transformer_specification(spec)
+
+    for src, expected in [("light_red", "red"), ("dark_red", "red"), ("dark_blue", "blue")]:
+        result = tr.map_object({"id": "l1", "color": src}, source_type="Light")
+        assert result["color"] == expected
+
+
+def test_pv_populated_from_scalar_form_still_works():
+    """Scalar populated_from is wrapped to a one-element list at load time."""
+    tr = ObjectTransformer()
+    tr.source_schemaview = SchemaView(SOURCE_SCHEMA)
+    tr.target_schemaview = SchemaView(TARGET_SCHEMA)
+    spec = copy.deepcopy(TRANSFORM_SPEC)
+    spec["enum_derivations"]["MissingnessTarget"]["permissible_value_derivations"] = {
+        "na": {"populated_from": "not_available"},
+        "oth": {"populated_from": "other"},
+    }
+    tr.create_transformer_specification(spec)
+    # Pydantic representation is always a list after normalization.
+    pvds = tr.specification.enum_derivations["MissingnessTarget"].permissible_value_derivations
+    assert pvds["na"].populated_from == ["not_available"]
+
+    result = tr.map_object({"id": "l1", "color": "not_available"}, source_type="Light")
+    assert result["color"] == "na"
+
+
+def test_pv_sources_only_is_migrated_to_populated_from():
+    """sources-only PV derivs are migrated so the runtime uses populated_from."""
+    tr = _make_transformer()
+    # SimplePrimary in TRANSFORM_SPEC uses sources: [...] — confirm migration.
+    pvds = tr.specification.enum_derivations["SimplePrimary"].permissible_value_derivations
+    assert pvds["red"].populated_from == ["light_red", "dark_red"]
+    # sources is preserved so the validator's deprecation warning still fires.
+    assert pvds["red"].sources == ["light_red", "dark_red"]
+
+
 def test_explicit_range_any_with_any_of():
     """Slots with explicit range: Any plus any_of enum ranges are mapped correctly."""
     schema = SOURCE_SCHEMA.replace(

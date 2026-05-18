@@ -1164,9 +1164,7 @@ class ObjectTransformer(Transformer):
                 if v is not None:
                     return v
             for pv_deriv in enum_deriv.permissible_value_derivations.values():
-                if source_value == pv_deriv.populated_from:
-                    return pv_deriv.name
-                if source_value in pv_deriv.sources:
+                if pv_deriv.populated_from and source_value in pv_deriv.populated_from:
                     return pv_deriv.name
             if enum_deriv.mirror_source:
                 return str(source_value)

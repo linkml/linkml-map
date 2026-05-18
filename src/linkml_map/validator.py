@@ -340,6 +340,41 @@ def _iter_derivation_dicts(raw: Any) -> list[dict[str, Any]]:
     return []
 
 
+def check_pv_field_conflicts(data: dict[str, Any]) -> list[ValidationMessage]:
+    """Flag PermissibleValueDerivations that set both ``populated_from`` and ``sources``.
+
+    The two fields are alternative ways to express the same mapping (sources is
+    the deprecated spelling). Setting both is ambiguous: ``populated_from`` is
+    the canonical winner at runtime, but the user almost certainly didn't mean
+    to write both. Emitted as ``severity="error"`` so ``validate-spec`` gates
+    on it. Operates on the un-migrated normalized dict; runtime entry points
+    migrate ``sources`` → ``populated_from`` *after* normalization, so this
+    check correctly distinguishes "user wrote both" from "we migrated sources".
+
+    :param data: A normalized spec dict (post ``normalize_spec_dict``,
+        pre runtime migration).
+    :returns: A list of error messages (empty if no conflicts).
+    """
+    messages: list[ValidationMessage] = []
+    for ed in _iter_derivation_dicts(data.get("enum_derivations")):
+        ed_name = ed.get("name", "<unnamed>")
+        for pvd in _iter_derivation_dicts(ed.get("permissible_value_derivations")):
+            if pvd.get("populated_from") and pvd.get("sources"):
+                pvd_name = pvd.get("name", "<unnamed>")
+                messages.append(
+                    ValidationMessage(
+                        severity="error",
+                        path=f"$.enum_derivations[{ed_name}].permissible_value_derivations[{pvd_name}]",
+                        message=(
+                            f"PermissibleValueDerivation '{pvd_name}' sets both 'populated_from' "
+                            f"and 'sources'. These are alternative spellings of the same field; "
+                            f"set only 'populated_from' (which now accepts a list)."
+                        ),
+                    )
+                )
+    return messages
+
+
 def check_deprecated_fields(data: dict[str, Any]) -> list[ValidationMessage]:
     """Check a normalized spec dict for use of deprecated fields.
 
@@ -725,6 +760,7 @@ def validate_spec(
     normalized = normalize_spec_dict(data)
     messages = _validate_structural(normalized, schema_path=schema_path)
     if not messages:
+        messages.extend(check_pv_field_conflicts(normalized))
         messages.extend(check_deprecated_fields(normalized))
         messages.extend(
             validate_spec_semantics(

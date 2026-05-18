@@ -175,6 +175,82 @@ def test_validate_detects_bad_slot_derivation_type():
 
 
 # ---------------------------------------------------------------------------
+# PermissibleValueDerivation populated_from / sources interaction
+# ---------------------------------------------------------------------------
+
+
+def test_pv_populated_from_list_validates():
+    """List-form populated_from on a PV deriv is structurally valid."""
+    spec = {
+        "enum_derivations": {
+            "Target": {
+                "populated_from": "Source",
+                "permissible_value_derivations": {
+                    "red": {"populated_from": ["light_red", "dark_red"]},
+                },
+            },
+        },
+    }
+    msgs = validate_spec(spec)
+    assert _errors(msgs) == []
+
+
+def test_pv_populated_from_scalar_validates():
+    """Scalar populated_from on a PV deriv is accepted (wrapped to list)."""
+    spec = {
+        "enum_derivations": {
+            "Target": {
+                "populated_from": "Source",
+                "permissible_value_derivations": {
+                    "red": {"populated_from": "light_red"},
+                },
+            },
+        },
+    }
+    msgs = validate_spec(spec)
+    assert _errors(msgs) == []
+
+
+def test_pv_sources_only_is_deprecation_not_conflict():
+    """Sources-only is a deprecation warning, not a conflict error."""
+    spec = {
+        "enum_derivations": {
+            "Target": {
+                "populated_from": "Source",
+                "permissible_value_derivations": {
+                    "red": {"sources": ["light_red", "dark_red"]},
+                },
+            },
+        },
+    }
+    msgs = validate_spec(spec)
+    assert _errors(msgs) == []
+    warnings = _warnings(msgs)
+    assert any("sources" in m.message and "PermissibleValueDerivation" in m.path for m in warnings)
+
+
+def test_pv_sources_and_populated_from_both_set_errors():
+    """Setting both sources and populated_from on a PV deriv is an error."""
+    spec = {
+        "enum_derivations": {
+            "Target": {
+                "populated_from": "Source",
+                "permissible_value_derivations": {
+                    "red": {
+                        "populated_from": ["light_red"],
+                        "sources": ["dark_red"],
+                    },
+                },
+            },
+        },
+    }
+    msgs = validate_spec(spec)
+    errors = _errors(msgs)
+    assert any("both 'populated_from' and 'sources'" in m.message for m in errors)
+    assert any("'red'" in m.message for m in errors)
+
+
+# ---------------------------------------------------------------------------
 # File-level validation against real trans-specs (structural only)
 # ---------------------------------------------------------------------------
 

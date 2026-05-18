@@ -3,6 +3,7 @@
 import logging
 import warnings
 from abc import ABC
+from collections.abc import Iterator
 from copy import deepcopy
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -136,6 +137,7 @@ class Transformer(ABC):
         with open(path) as f:
             obj = yaml.safe_load(f)
             self._normalize_spec_dict(obj)
+            self._migrate_pv_sources_to_populated_from(obj)
             self.specification = TransformationSpecification(**obj)
 
     def load_transformer_specifications(self, paths: tuple[str | Path, ...]) -> None:
@@ -152,6 +154,7 @@ class Transformer(ABC):
 
         obj = load_and_merge_specs(paths)
         self._normalize_spec_dict(obj)
+        self._migrate_pv_sources_to_populated_from(obj)
         self.specification = TransformationSpecification(**obj)
 
     @classmethod
@@ -254,6 +257,11 @@ class Transformer(ABC):
         and nested ObjectDerivation fixup into a single entry point. Mutates
         ``obj`` by replacing its contents with the normalized result.
 
+        Structural normalization only. The runtime additionally migrates
+        deprecated PV ``sources`` into ``populated_from`` via
+        :meth:`_migrate_pv_sources_to_populated_from`; that step is kept
+        separate so the validator can still distinguish user intent.
+
         :param obj: Raw specification dict (e.g. from YAML or user code).
         """
         cls._preprocess_class_derivations(obj)
@@ -262,6 +270,59 @@ class Transformer(ABC):
         normalized = cls.normalize_transform_spec(obj, normalizer)
         obj.clear()
         obj.update(normalized)
+        cls._coerce_pv_populated_from_to_list(obj)
+
+    @staticmethod
+    def _iter_pv_derivations(obj: dict[str, Any]) -> Iterator[dict[str, Any]]:
+        """Yield each PermissibleValueDerivation dict in ``obj`` for in-place mutation."""
+        eds = obj.get("enum_derivations")
+        if isinstance(eds, dict):
+            ed_iter: Any = eds.values()
+        elif isinstance(eds, list):
+            ed_iter = eds
+        else:
+            return
+        for ed in ed_iter:
+            if not isinstance(ed, dict):
+                continue
+            pvds = ed.get("permissible_value_derivations")
+            if isinstance(pvds, dict):
+                pvd_iter: Any = pvds.values()
+            elif isinstance(pvds, list):
+                pvd_iter = pvds
+            else:
+                continue
+            for pvd in pvd_iter:
+                if isinstance(pvd, dict):
+                    yield pvd
+
+    @classmethod
+    def _coerce_pv_populated_from_to_list(cls, obj: dict[str, Any]) -> None:
+        """Wrap scalar ``populated_from`` to a one-element list on each PV deriv.
+
+        ``PermissibleValueDerivation.populated_from`` is declared multivalued;
+        scalar input is a user convenience that pydantic would otherwise reject.
+        """
+        for pvd in cls._iter_pv_derivations(obj):
+            pf = pvd.get("populated_from")
+            if isinstance(pf, str):
+                pvd["populated_from"] = [pf]
+
+    @classmethod
+    def _migrate_pv_sources_to_populated_from(cls, obj: dict[str, Any]) -> None:
+        """Copy deprecated ``sources`` into ``populated_from`` on PV derivs.
+
+        Only applied when ``populated_from`` is empty/unset; ``sources`` is
+        left in place so the validator's deprecation warning still fires.
+        Entries with **both** fields populated are not modified; the validator
+        surfaces those as ``severity="error"``. Runtime-only — the validator
+        operates on the un-migrated dict so it can distinguish user intent.
+        """
+        for pvd in cls._iter_pv_derivations(obj):
+            pf = pvd.get("populated_from")
+            srcs = pvd.get("sources")
+            if not pf and srcs:
+                pvd["populated_from"] = list(srcs)
 
     @staticmethod
     def _expand_compact_keys(items: list[dict[str, Any]]) -> None:
@@ -306,6 +367,7 @@ class Transformer(ABC):
         :return:
         """
         self._normalize_spec_dict(obj)
+        self._migrate_pv_sources_to_populated_from(obj)
         self.specification = TransformationSpecification(**obj)
 
     def _apply_source_schema_patches(self) -> None:
