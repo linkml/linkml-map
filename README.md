@@ -39,10 +39,11 @@ pip install linkml-map
 # or, in a uv-managed project: uv add linkml-map
 ```
 
-Run the included example:
+Run the included example (the example files live in this repo):
 
 ```bash
-cd tests/input/examples/personinfo_basic
+git clone https://github.com/linkml/linkml-map.git
+cd linkml-map/tests/input/examples/personinfo_basic
 linkml-map map-data --unrestricted-eval \
   -T transform/personinfo-to-agent.transform.yaml \
   -s source/personinfo.yaml \

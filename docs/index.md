@@ -69,10 +69,11 @@ When using `uv`, prefix CLI invocations with `uv run` to use the project environ
 
 ### Run the included example
 
-The repository includes a `personinfo_basic` example that transforms `Person` records into `Agent` records:
+The repository includes a `personinfo_basic` example that transforms `Person` records into `Agent` records. Clone the repo to get the example files:
 
 ```bash
-cd tests/input/examples/personinfo_basic
+git clone https://github.com/linkml/linkml-map.git
+cd linkml-map/tests/input/examples/personinfo_basic
 linkml-map map-data --unrestricted-eval \
   -T transform/personinfo-to-agent.transform.yaml \
   -s source/personinfo.yaml \
