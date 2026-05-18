@@ -1164,6 +1164,11 @@ class ObjectTransformer(Transformer):
                 if v is not None:
                     return v
             for pv_deriv in enum_deriv.permissible_value_derivations.values():
+                assert not pv_deriv.sources, (
+                    f"PermissibleValueDerivation '{pv_deriv.name}' has 'sources' set; "
+                    "this should have been migrated to 'populated_from' during spec load. "
+                    "Did the spec bypass Transformer._normalize_spec_dict?"
+                )
                 if pv_deriv.populated_from and source_value in pv_deriv.populated_from:
                     return pv_deriv.name
             if enum_deriv.mirror_source:

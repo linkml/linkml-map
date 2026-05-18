@@ -94,6 +94,17 @@ class Transformer(ABC):
 
     _curie_converter: Converter = None
 
+    spec_messages: list[Any] = field(default_factory=list)
+    """Scan messages captured at spec-load time.
+
+    Populated by the three load methods (``load_transformer_specification``,
+    ``load_transformer_specifications``, ``create_transformer_specification``)
+    with the ``ValidationMessage`` list returned by ``_normalize_spec_dict``.
+    Pre-flight validation reads these instead of re-scanning the post-migration
+    spec, so deprecations whose source fields were cleared by normalization
+    (e.g., ``object_derivations``, PV ``sources``) are still surfaced.
+    """
+
     def map_object(self, obj: OBJECT_TYPE, source_type: str | None = None, **kwargs: Any) -> OBJECT_TYPE:
         """
         Transform source object into an instance of the target class.
@@ -136,8 +147,7 @@ class Transformer(ABC):
         """
         with open(path) as f:
             obj = yaml.safe_load(f)
-            self._normalize_spec_dict(obj)
-            self._migrate_pv_sources_to_populated_from(obj)
+            self.spec_messages = self._normalize_spec_dict(obj)
             self.specification = TransformationSpecification(**obj)
 
     def load_transformer_specifications(self, paths: tuple[str | Path, ...]) -> None:
@@ -153,8 +163,7 @@ class Transformer(ABC):
         from linkml_map.utils.spec_merge import load_and_merge_specs
 
         obj = load_and_merge_specs(paths)
-        self._normalize_spec_dict(obj)
-        self._migrate_pv_sources_to_populated_from(obj)
+        self.spec_messages = self._normalize_spec_dict(obj)
         self.specification = TransformationSpecification(**obj)
 
     @classmethod
@@ -189,33 +198,20 @@ class Transformer(ABC):
         """Flatten object_derivations and normalize class_derivations on a slot.
 
         Four steps, applied recursively to nested slots:
-        1. Flatten ``object_derivations`` into ``class_derivations`` (with
-           deprecation warning; error if both are present).
+        1. Flatten ``object_derivations`` into ``class_derivations``.
         2. Expand compact-key entries (``- Condition: {...}`` → ``{name: Condition, ...}``).
         3. Inherit ``populated_from`` from the parent class derivation when absent.
         4. Run the normalizer on each class derivation entry so that nested
            dict-keyed ``slot_derivations`` get ``name`` injected.
+
+        The deprecation warning for ``object_derivations`` and the error for
+        ``object_derivations`` + ``class_derivations`` both-set are emitted
+        upstream by :func:`linkml_map.validator.check_deprecated_fields`,
+        which runs before this method as part of :meth:`_normalize_spec_dict`.
         """
-        # Step 1: flatten object_derivations → class_derivations
+        # Step 1: flatten object_derivations → class_derivations (silent — scan emitted)
         object_derivations = slot_spec.get("object_derivations", [])
         if object_derivations:
-            if slot_spec.get("class_derivations"):
-                msg = (
-                    f"SlotDerivation '{slot_name}' has both 'object_derivations' and "
-                    f"'class_derivations'. Remove 'object_derivations' and use "
-                    f"'class_derivations' only."
-                )
-                raise ValueError(msg)
-
-            warnings.warn(
-                f"SlotDerivation '{slot_name}' uses 'object_derivations', which is "
-                f"deprecated. Use list-based class_derivations instead. "
-                f"'object_derivations' will be removed in a future version. "
-                f"See https://github.com/linkml/linkml-map/issues/112",
-                DeprecationWarning,
-                stacklevel=4,
-            )
-
             flattened: list[dict[str, Any]] = []
             for od in object_derivations:
                 od_cd = od.get("class_derivations", {})
@@ -250,27 +246,66 @@ class Transformer(ABC):
                     cls._normalize_slot_class_derivations(nested_name, nested_sd, normalizer, child_source)
 
     @classmethod
-    def _normalize_spec_dict(cls, obj: dict[str, Any]) -> None:
-        """Normalize a raw specification dict in place.
+    def _normalize_spec_dict(cls, obj: dict[str, Any], *, silent: bool = False) -> list[Any]:
+        """Normalize a raw specification dict in place. Return scan messages.
 
-        Bundles _preprocess_class_derivations, ReferenceValidator normalization,
-        and nested ObjectDerivation fixup into a single entry point. Mutates
-        ``obj`` by replacing its contents with the normalized result.
+        Pipeline:
 
-        Structural normalization only. The runtime additionally migrates
-        deprecated PV ``sources`` into ``populated_from`` via
-        :meth:`_migrate_pv_sources_to_populated_from`; that step is kept
-        separate so the validator can still distinguish user intent.
+        1. **Pre-normalize shape**: ``_preprocess_class_derivations`` expands
+           top-level compact-key forms so the scan sees a consistent shape.
+        2. **Scan**: ``validator.check_deprecated_fields`` walks the dict and
+           returns ``ValidationMessage`` records for deprecated-field usage
+           and ambiguous combinations (errors).
+        3. **Emit/raise** (unless ``silent``): deprecation warnings fire as
+           Python ``DeprecationWarning``; errors raise
+           :class:`~linkml_map.transformer.errors.SpecificationError`.
+        4. **Structural normalize**: ``ReferenceValidator`` expands nested
+           compact keys, converts dict↔list as needed, flattens
+           ``object_derivations`` into ``class_derivations``.
+        5. **Field migrations**: PV ``populated_from`` scalar → list, deprecated
+           PV ``sources`` → ``populated_from`` (with ``sources`` cleared).
+
+        After this method, ``sources`` no longer appears on any
+        ``PermissibleValueDerivation`` — the runtime can rely on
+        ``populated_from`` as the single source of truth.
 
         :param obj: Raw specification dict (e.g. from YAML or user code).
+        :param silent: When ``True``, neither emit warnings nor raise on
+            errors — return them in the message list instead. Used by the
+            validator path so it can surface findings as
+            ``ValidationMessage`` records.
+        :returns: A list of :class:`ValidationMessage` records from the scan.
         """
+        from linkml_map.transformer.errors import SpecificationError
+        from linkml_map.validator import check_deprecated_fields
+
+        # Phase 1: pre-normalize shape (top-level compact keys)
         cls._preprocess_class_derivations(obj)
+
+        # Phase 2: scan for deprecations and conflicts
+        messages = check_deprecated_fields(obj)
+
+        # Phase 3: emit warnings + raise on errors (unless silent)
+        if not silent:
+            errors = [m for m in messages if m.severity == "error"]
+            if errors:
+                raise SpecificationError("; ".join(m.message for m in errors))
+            for m in messages:
+                if m.category == "deprecated":
+                    warnings.warn(m.message, DeprecationWarning, stacklevel=3)
+
+        # Phase 4: structural normalize (flattens object_derivations silently)
         normalizer = ReferenceValidator(package_schemaview("linkml_map.datamodel.transformer_model"))
         normalizer.expand_all = True
         normalized = cls.normalize_transform_spec(obj, normalizer)
         obj.clear()
         obj.update(normalized)
+
+        # Phase 5: field migrations (post-condition: no PV has `sources`)
         cls._coerce_pv_populated_from_to_list(obj)
+        cls._migrate_pv_sources_to_populated_from(obj)
+
+        return messages
 
     @staticmethod
     def _iter_pv_derivations(obj: dict[str, Any]) -> Iterator[dict[str, Any]]:
@@ -310,18 +345,18 @@ class Transformer(ABC):
 
     @classmethod
     def _migrate_pv_sources_to_populated_from(cls, obj: dict[str, Any]) -> None:
-        """Copy deprecated ``sources`` into ``populated_from`` on PV derivs.
+        """Move deprecated ``sources`` into ``populated_from`` on PV derivs.
 
-        Only applied when ``populated_from`` is empty/unset; ``sources`` is
-        left in place so the validator's deprecation warning still fires.
-        Entries with **both** fields populated are not modified; the validator
-        surfaces those as ``severity="error"``. Runtime-only — the validator
-        operates on the un-migrated dict so it can distinguish user intent.
+        Applied after the pre-normalize scan has already detected and reported
+        any ``sources`` usage and any ``sources`` + ``populated_from`` conflicts.
+        For each PV deriv with ``sources`` set, copies into ``populated_from``
+        (if not already set) and clears the ``sources`` key. Post-condition:
+        no PV has ``sources`` set. The runtime can therefore rely on
+        ``populated_from`` as the single source of truth and ignore ``sources``.
         """
         for pvd in cls._iter_pv_derivations(obj):
-            pf = pvd.get("populated_from")
-            srcs = pvd.get("sources")
-            if not pf and srcs:
+            srcs = pvd.pop("sources", None)
+            if srcs and not pvd.get("populated_from"):
                 pvd["populated_from"] = list(srcs)
 
     @staticmethod
@@ -366,8 +401,7 @@ class Transformer(ABC):
         :param path:
         :return:
         """
-        self._normalize_spec_dict(obj)
-        self._migrate_pv_sources_to_populated_from(obj)
+        self.spec_messages = self._normalize_spec_dict(obj)
         self.specification = TransformationSpecification(**obj)
 
     def _apply_source_schema_patches(self) -> None:

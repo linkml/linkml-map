@@ -330,13 +330,13 @@ def test_pv_populated_from_scalar_form_still_works():
 
 
 def test_pv_sources_only_is_migrated_to_populated_from():
-    """sources-only PV derivs are migrated so the runtime uses populated_from."""
+    """sources-only PV derivs are migrated so the runtime sees only populated_from."""
     tr = _make_transformer()
-    # SimplePrimary in TRANSFORM_SPEC uses sources: [...] — confirm migration.
+    # SimplePrimary in TRANSFORM_SPEC uses sources: [...] — confirm migration cleared sources.
     pvds = tr.specification.enum_derivations["SimplePrimary"].permissible_value_derivations
     assert pvds["red"].populated_from == ["light_red", "dark_red"]
-    # sources is preserved so the validator's deprecation warning still fires.
-    assert pvds["red"].sources == ["light_red", "dark_red"]
+    # sources is cleared after migration — the runtime relies on populated_from alone.
+    assert not pvds["red"].sources
 
 
 def test_explicit_range_any_with_any_of():
