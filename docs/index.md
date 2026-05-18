@@ -200,6 +200,8 @@ You need three things:
 Validate the spec first, then run the transformation:
 
 ```bash
+mkdir -p output
+
 linkml-map validate-spec \
   --source-schema source/personinfo.yaml \
   --target-schema target/agent.yaml \
