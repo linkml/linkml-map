@@ -50,8 +50,13 @@ Not all parts of the model are implemented in the reference Python framework.
 ### Install
 
 ```bash
+pip install linkml-map
+```
+
+Or with `uv` for project-managed environments:
+
+```bash
 uv add linkml-map
-# or: pip install linkml-map
 ```
 
 Verify the install:
@@ -59,6 +64,8 @@ Verify the install:
 ```bash
 linkml-map --help
 ```
+
+When using `uv`, prefix CLI invocations with `uv run` to use the project environment (e.g. `uv run linkml-map --help`).
 
 ### Run the included example
 
@@ -165,7 +172,15 @@ The schema mapping is a collection of one or more [ClassDerivation](schema/Class
 which themselves consist of one or more [SlotDerivation](schema/SlotDerivation.md) objects.
 
 A single specification can contain derivations for multiple target classes, and multiple
-derivations can target the same class (their slot derivations are merged), producing:
+derivations can target the same class (their slot derivations are merged).
+
+Run the transformation:
+
+```bash
+linkml-map map-data -T tr.yaml -s schema.yaml my-data.yaml
+```
+
+Giving:
 
 ```yaml
 name: Jane Doe

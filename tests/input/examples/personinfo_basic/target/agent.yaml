@@ -32,6 +32,7 @@ emit_prefixes:
 classes:
 
   Entity:
+    abstract: true
     description: >-
       Abstract base for derived target classes that live in the agent world,
       independent of any class hierarchy in the source schema.

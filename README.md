@@ -35,8 +35,8 @@ Not all parts of the model are implemented in the reference Python framework.
 Install:
 
 ```bash
-uv add linkml-map
-# or: pip install linkml-map
+pip install linkml-map
+# or, in a uv-managed project: uv add linkml-map
 ```
 
 Run the included example:
