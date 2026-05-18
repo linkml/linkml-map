@@ -340,36 +340,16 @@ def _resolve_schema_path(
 
 
 def _iter_derivation_dicts(raw: Any) -> list[dict[str, Any]]:
-    """Normalize a derivations section (dict, list, or compact-key list) to dicts.
+    """Normalize a derivations section (dict or list) to a list of dicts.
 
-    Derivation sections in user input can take three shapes:
-
-    * Dict keyed by name: ``{"red": {"populated_from": "x"}}``
-    * Explicit-name list: ``[{"name": "red", "populated_from": "x"}]``
-    * Compact-key list: ``[{"red": {"populated_from": "x"}}]``
-
-    All three are normalized to a list of dicts with ``name`` injected, so
-    callers can scan fields uniformly without caring about user shape.
+    Assumes the SHAPE phase of ``Transformer._normalize_spec_dict`` has
+    already canonicalized compact-key list items, so callers only need to
+    handle dict-keyed and explicit-name list forms here.
     """
     if isinstance(raw, list):
-        result: list[dict[str, Any]] = []
-        for item in raw:
-            if not isinstance(item, dict):
-                continue
-            # Compact-key form: a single-key dict whose value is another dict,
-            # where the key isn't the literal "name" attribute. Hoist the key
-            # to a `name` field on the inner dict (mirrors Transformer._expand_compact_keys).
-            if len(item) == 1:
-                key, val = next(iter(item.items()))
-                if key != "name" and isinstance(val, dict):
-                    d = dict(val)
-                    d.setdefault("name", key)
-                    result.append(d)
-                    continue
-            result.append(item)
-        return result
+        return [item for item in raw if isinstance(item, dict)]
     if isinstance(raw, dict):
-        result = []
+        result: list[dict[str, Any]] = []
         for name, body in raw.items():
             d = dict(body) if isinstance(body, dict) else {}
             d.setdefault("name", name)

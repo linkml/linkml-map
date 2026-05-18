@@ -253,13 +253,10 @@ def test_pv_sources_and_populated_from_both_set_errors():
 def test_pv_sources_in_compact_key_list_form_detected():
     """Compact-key list-form PV derivs (`[{name: {sources: [...]}}]`) are scanned.
 
-    Targets the scan helper directly because the compact-key list form for PVs
-    isn't currently round-trippable through ``ReferenceValidator.normalize()``
-    — a separate concern from whether the deprecation scan catches it.
+    The SHAPE phase expands compact-key list items before the SCAN runs, so
+    the deprecation warning fires end-to-end through ``validate_spec``.
     """
-    from linkml_map.validator import check_deprecated_fields
-
-    obj = {
+    spec = {
         "enum_derivations": {
             "Target": {
                 "populated_from": "Source",
@@ -269,7 +266,8 @@ def test_pv_sources_in_compact_key_list_form_detected():
             },
         },
     }
-    msgs = check_deprecated_fields(obj)
+    msgs = validate_spec(spec)
+    assert _errors(msgs) == []
     warnings = _warnings(msgs)
     assert any("sources" in m.message and "PermissibleValueDerivation" in m.path for m in warnings), (
         f"Expected deprecation warning for compact-key list PV; got {warnings}"
