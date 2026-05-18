@@ -340,16 +340,36 @@ def _resolve_schema_path(
 
 
 def _iter_derivation_dicts(raw: Any) -> list[dict[str, Any]]:
-    """Normalize a derivations section (dict or list) to a list of dicts.
+    """Normalize a derivations section (dict, list, or compact-key list) to dicts.
 
-    After ``normalize_spec_dict``, derivation sections may be either a list of
-    dicts (with ``name`` keys) or a dict keyed by name.  This helper
-    normalizes to a consistent list-of-dicts form for iteration.
+    Derivation sections in user input can take three shapes:
+
+    * Dict keyed by name: ``{"red": {"populated_from": "x"}}``
+    * Explicit-name list: ``[{"name": "red", "populated_from": "x"}]``
+    * Compact-key list: ``[{"red": {"populated_from": "x"}}]``
+
+    All three are normalized to a list of dicts with ``name`` injected, so
+    callers can scan fields uniformly without caring about user shape.
     """
     if isinstance(raw, list):
-        return [item for item in raw if isinstance(item, dict)]
-    if isinstance(raw, dict):
         result: list[dict[str, Any]] = []
+        for item in raw:
+            if not isinstance(item, dict):
+                continue
+            # Compact-key form: a single-key dict whose value is another dict,
+            # where the key isn't the literal "name" attribute. Hoist the key
+            # to a `name` field on the inner dict (mirrors Transformer._expand_compact_keys).
+            if len(item) == 1:
+                key, val = next(iter(item.items()))
+                if key != "name" and isinstance(val, dict):
+                    d = dict(val)
+                    d.setdefault("name", key)
+                    result.append(d)
+                    continue
+            result.append(item)
+        return result
+    if isinstance(raw, dict):
+        result = []
         for name, body in raw.items():
             d = dict(body) if isinstance(body, dict) else {}
             d.setdefault("name", name)
@@ -361,11 +381,13 @@ def _iter_derivation_dicts(raw: Any) -> list[dict[str, Any]]:
 def check_deprecated_fields(data: dict[str, Any]) -> list[ValidationMessage]:
     """Scan a spec dict for deprecated-field usage and ambiguous combinations.
 
-    Runs **pre-migration** — i.e., on a structurally-normalized dict whose
-    deprecated fields are still as the user wrote them. ``Transformer._normalize_spec_dict``
-    calls this between structural normalization and field migration, so all
-    deprecations are detectable here regardless of whether the migration step
-    later removes them.
+    Runs **pre-migration** — i.e., before ``_normalize_slot_class_derivations``
+    flattens ``object_derivations`` and before the PV ``sources`` → ``populated_from``
+    migration. Called by ``Transformer._normalize_spec_dict`` after top-level
+    compact-key preprocessing but before ``ReferenceValidator.normalize()``;
+    :func:`_iter_derivation_dicts` handles the remaining shape variations
+    (dict-keyed, explicit-list, and compact-key list forms) so deprecations
+    are detected regardless of how the user wrote them.
 
     Flags:
 
@@ -387,8 +409,9 @@ def check_deprecated_fields(data: dict[str, Any]) -> list[ValidationMessage]:
     (deprecation, derivation type) pair to keep output readable on
     large specs; per-entry messages are emitted for the other categories.
 
-    :param data: A structurally-normalized spec dict (post
-        ``normalize_spec_dict``, pre field migration).
+    :param data: A spec dict after top-level compact-key preprocessing but
+        before field migration. Inner derivation shapes are handled by
+        :func:`_iter_derivation_dicts`.
     :returns: A list of validation messages — warnings for deprecations,
         errors for ambiguous combinations.
     """

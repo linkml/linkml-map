@@ -333,14 +333,25 @@ class Transformer(ABC):
 
     @classmethod
     def _coerce_pv_populated_from_to_list(cls, obj: dict[str, Any]) -> None:
-        """Wrap scalar ``populated_from`` to a one-element list on each PV deriv.
+        """Coerce ``populated_from`` to a list on each PV deriv.
 
-        ``PermissibleValueDerivation.populated_from`` is declared multivalued;
-        scalar input is a user convenience that pydantic would otherwise reject.
+        Input shapes handled:
+
+        * Scalar string: wrapped to a one-element list (user convenience that
+          pydantic would otherwise reject for a multivalued field).
+        * Explicit ``None`` or ``[None]`` (``populated_from:`` with no YAML
+          value, possibly already wrapped to a list by ``ReferenceValidator``):
+          the key is removed so pydantic uses the ``default_factory=list``
+          default — treats "explicitly set to nothing" as "unset".
+        * List: left as-is.
         """
         for pvd in cls._iter_pv_derivations(obj):
-            pf = pvd.get("populated_from")
-            if isinstance(pf, str):
+            if "populated_from" not in pvd:
+                continue
+            pf = pvd["populated_from"]
+            if pf is None or (isinstance(pf, list) and not any(pf)):
+                del pvd["populated_from"]
+            elif isinstance(pf, str):
                 pvd["populated_from"] = [pf]
 
     @classmethod

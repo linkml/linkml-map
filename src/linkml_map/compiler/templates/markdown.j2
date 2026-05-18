@@ -20,6 +20,6 @@
 | Target | Source | Info |
 | ------ | ------ | ---- |
     {%- for pvd in ed.permissible_value_derivations.values() %}
-| {{ pvd.name }} | {{ pvd.populated_from | join(", ") }} | . |
+| {{ pvd.name }} | {{ (pvd.populated_from or []) | join(", ") }} | . |
     {%- endfor -%}
 {%  endfor %}

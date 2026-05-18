@@ -250,6 +250,53 @@ def test_pv_sources_and_populated_from_both_set_errors():
     assert any("'red'" in m.message for m in errors)
 
 
+def test_pv_sources_in_compact_key_list_form_detected():
+    """Compact-key list-form PV derivs (`[{name: {sources: [...]}}]`) are scanned.
+
+    Targets the scan helper directly because the compact-key list form for PVs
+    isn't currently round-trippable through ``ReferenceValidator.normalize()``
+    — a separate concern from whether the deprecation scan catches it.
+    """
+    from linkml_map.validator import check_deprecated_fields
+
+    obj = {
+        "enum_derivations": {
+            "Target": {
+                "populated_from": "Source",
+                "permissible_value_derivations": [
+                    {"red": {"sources": ["light_red", "dark_red"]}},
+                ],
+            },
+        },
+    }
+    msgs = check_deprecated_fields(obj)
+    warnings = _warnings(msgs)
+    assert any("sources" in m.message and "PermissibleValueDerivation" in m.path for m in warnings), (
+        f"Expected deprecation warning for compact-key list PV; got {warnings}"
+    )
+
+
+def test_pv_populated_from_explicit_none_is_stripped():
+    """`populated_from: null` (explicit YAML None) is dropped during normalize."""
+    raw = {
+        "enum_derivations": {
+            "Target": {
+                "populated_from": "Source",
+                "permissible_value_derivations": {
+                    "red": {"populated_from": None},
+                },
+            },
+        },
+    }
+    normalized = normalize_spec_dict(raw)
+    # After normalize, the PV's populated_from key has been removed; pydantic
+    # will fill in the default factory ([]) when the model is built.
+    eds = normalized["enum_derivations"]
+    pvds = eds["Target"]["permissible_value_derivations"]
+    pvd = pvds["red"] if isinstance(pvds, dict) else next(iter(pvds))
+    assert "populated_from" not in pvd
+
+
 # ---------------------------------------------------------------------------
 # File-level validation against real trans-specs (structural only)
 # ---------------------------------------------------------------------------
