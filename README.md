@@ -23,9 +23,7 @@ Features:
 - Mappings are reversible (provided all expressions used are reversible)
 - Multiple output formats (YAML, JSON, JSONL, TSV, CSV)
 
-For full documentation see:
-
-- [linkml.io/linkml-map/](https://linkml.io/linkml-map/)
+For full documentation see [linkml.io/linkml-map/](https://linkml.io/linkml-map/).
 
 Status:
 
@@ -34,7 +32,28 @@ Not all parts of the model are implemented in the reference Python framework.
 
 ## Quickstart
 
+Install:
+
+```bash
+uv add linkml-map
+# or: pip install linkml-map
+```
+
+Run the included example:
+
+```bash
+cd tests/input/examples/personinfo_basic
+linkml-map map-data --unrestricted-eval \
+  -T transform/personinfo-to-agent.transform.yaml \
+  -s source/personinfo.yaml \
+  data/Container-001.yaml
+```
+
+See the [Quick Start guide](https://linkml.io/linkml-map/#quick-start) for the expected output and next steps.
+
+## More
+
 * [Tutorial Notebook](docs/examples/Tutorial.ipynb)
-* [Generated Docs](https://linkml.github.io/linkml-map/)
-* [Compliance Suite](https://linkml.github.io/linkml-map/specification/compliance)
-* [API Docs](https://linkml.github.io/linkml-map/api/)
+* [Full docs](https://linkml.io/linkml-map/)
+* [Compliance Suite](https://linkml.io/linkml-map/specification/compliance/)
+* [API Docs](https://linkml.io/linkml-map/api/)

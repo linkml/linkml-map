@@ -45,6 +45,57 @@ Status:
 The transformation data model is not yet fully stable, and may be subject to change.
 Not all parts of the model are implemented in the reference Python framework.
 
+## Quick Start
+
+### Install
+
+```bash
+uv add linkml-map
+# or: pip install linkml-map
+```
+
+Verify the install:
+
+```bash
+linkml-map --help
+```
+
+### Run the included example
+
+The repository includes a `personinfo_basic` example that transforms `Person` records into `Agent` records:
+
+```bash
+cd tests/input/examples/personinfo_basic
+linkml-map map-data --unrestricted-eval \
+  -T transform/personinfo-to-agent.transform.yaml \
+  -s source/personinfo.yaml \
+  data/Container-001.yaml
+```
+
+This produces:
+
+```yaml
+agents:
+- id: P:001
+  label: fred bloggs
+  age: 33 years
+  primary_email: fred.bloggs@example.com
+  driving_since: 2014-03-31
+  first_known_event: 1990-01-01
+  current_address:
+    address_of: foo
+    street: 1 oak street
+    city: oaktown
+  has_familial_relationships:
+  - type: SIBLING_OF
+    related_to: P:002
+  - type: CHILD_OF
+    related_to: P:003
+...
+```
+
+This example uses Python-rich expressions (filtering over multivalued slots) which require `--unrestricted-eval`. Most transformation specifications use simpler expressions and don't need this flag.
+
 ## Basic idea
 
 Given the LinkML schema
@@ -114,15 +165,7 @@ The schema mapping is a collection of one or more [ClassDerivation](schema/Class
 which themselves consist of one or more [SlotDerivation](schema/SlotDerivation.md) objects.
 
 A single specification can contain derivations for multiple target classes, and multiple
-derivations can target the same class (their slot derivations are merged):
-
-Transform the data:
-
-```bash
-linkml-map map-data -T tr.yaml -s schema.yaml my-data.yaml
-```
-
-Giving:
+derivations can target the same class (their slot derivations are merged), producing:
 
 ```yaml
 name: Jane Doe
@@ -130,30 +173,44 @@ height_in_meters: 1.72
 aliases: Janey|Janie
 ```
 
-## Installation and usage
+## Transform your own data
 
-Installation and command line usage:
+You need three things:
 
-```bash
-pip install linkml-map  # or: uv add linkml-map
-cd tests/input/examples/personinfo_basic
-linkml-map map-data \
-  -T transform/personinfo-to-agent.transform.yaml \
-  -s source/personinfo.yaml \
-   data/Container-001.yaml \
-   -o output/Translated-001.yaml
+1. **A source schema** — a LinkML schema describing your input data
+2. **A transformation specification** — the YAML file describing how source slots map to target slots
+3. **Your data** — files in YAML, JSON, JSONL, TSV, or CSV that conform to the source schema
+
+For one-off runs, invoke `linkml-map map-data` directly (see [Running the code](#running-the-code) below). For production pipelines, the recommended pattern is to glue validation and transformation together with `make`:
+
+```makefile
+RUN := uv run
+
+SOURCE_SCHEMA := source/personinfo.yaml
+TARGET_SCHEMA := target/agent.yaml
+TRANSFORM     := transform/personinfo-to-agent.transform.yaml
+INPUT_DIR     := data/
+OUTPUT        := output/agents.yaml
+
+.PHONY: validate transform
+
+validate:
+	$(RUN) linkml validate -s $(SOURCE_SCHEMA) $(INPUT_DIR)
+	$(RUN) linkml-map validate-spec \
+		--source-schema $(SOURCE_SCHEMA) \
+		--target-schema $(TARGET_SCHEMA) \
+		$(TRANSFORM)
+
+transform: validate
+	$(RUN) linkml-map map-data \
+		-T $(TRANSFORM) \
+		-s $(SOURCE_SCHEMA) \
+		--target-schema $(TARGET_SCHEMA) \
+		-o $(OUTPUT) \
+		$(INPUT_DIR)
 ```
 
-The command line has subcommands for:
-
-- `map-data` - map data from a source schema to a target schema
-- `derive-schema` - derive a target schema from a source schema and a mapping
-- `invert` - reverses a mapping
-- `compile` - compiles a mapping to another framework
-    - `markdown` - for generating static sites
-    - `graphviz` - for generating visualizations
-    - `python` - (partial)
-    - `sql` - SQL/DuckDB (experimental, limited subset)
+`make transform` then validates the data and spec before running the transformation. See the [Tutorial Notebook](examples/Tutorial.ipynb) for a deeper walk-through of the transformation language itself.
 
 ## Details
 
@@ -249,30 +306,27 @@ See:
 
 ## Running the code
 
-```bash
-linkml-map --help
-Usage: linkml-map [OPTIONS] COMMAND [ARGS]...
+The `linkml-map` CLI has the following subcommands:
 
-  CLI for linkml-map.
+- `map-data` — transform data from a source schema using a transformation specification
+- `derive-schema` — derive a target schema from a source schema and a transformation specification
+- `invert` — invert a transformation specification (when expressions are reversible)
+- `compile` — compile a transformation specification to another representation
+- `validate-spec` — structurally validate transformation specification files
 
-Options:
-  -v, --verbose
-  -q, --quiet TEXT
-  --help            Show this message and exit.
-
-Commands:
-  derive-schema  Derive a schema from a source schema and a mapping.
-  map-data       Map data in a source schema using a transformation.
-```
+Run any subcommand with `--help` for full options.
 
 ### map-data
 
 Transforms (maps) data from a source schema to a target schema. This could range from a simple data dictionary mapping
-through to a complex mappings.
+through to a complex mapping.
 
-```
+```bash
 cd tests/input/examples/personinfo_basic
-linkml-map map-data -T transform/personinfo-to-agent.transform.yaml -s source/personinfo.yaml  data/Container-001.yaml
+linkml-map map-data --unrestricted-eval \
+  -T transform/personinfo-to-agent.transform.yaml \
+  -s source/personinfo.yaml \
+  data/Container-001.yaml
 ```
 
 #### Tabular Data Support (TSV/CSV)
@@ -351,7 +405,33 @@ output file whose format is inferred from the file extension (`.json`, `.jsonl`,
 
 ### derive-schema
 
-```
+Derives a target schema (the "profile") implied by the transformation specification.
+
+```bash
 cd tests/input/examples/personinfo_basic
 linkml-map derive-schema -T transform/personinfo-to-agent.transform.yaml source/personinfo.yaml
 ```
+
+### validate-spec
+
+Structurally validates a transformation specification against source and target schemas. Reports unresolved class/slot references, deprecated fields, and other issues.
+
+```bash
+linkml-map validate-spec \
+  --source-schema source/personinfo.yaml \
+  --target-schema target/agent.yaml \
+  transform/personinfo-to-agent.transform.yaml
+```
+
+Use `--strict` to treat warnings as errors. Supports validating multiple files or directories of specs in a single call.
+
+### compile
+
+Compiles a transformation specification to another representation.
+
+```bash
+linkml-map compile --target python -T transform.yaml -s source.yaml
+linkml-map compile --target markdown -T transform.yaml -s source.yaml
+```
+
+Currently supported `--target` values are `python` (default) and `markdown`. A SQL compilation backend (`SQLCompiler` / `DuckDBTransformer`) exists for programmatic use but is not yet exposed through the `compile` subcommand.
