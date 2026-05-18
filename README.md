@@ -39,6 +39,8 @@ pip install linkml-map
 # or, in a uv-managed project: uv add linkml-map
 ```
 
+When using `uv`, prefix CLI invocations with `uv run` (e.g. `uv run linkml-map --help`).
+
 Run the included example (the example files live in this repo):
 
 ```bash
@@ -54,7 +56,7 @@ See the [Quick Start guide](https://linkml.io/linkml-map/#quick-start) for the e
 
 ## More
 
-* [Tutorial Notebook](docs/examples/Tutorial.ipynb)
+* [Tutorial Notebook](https://github.com/linkml/linkml-map/blob/main/docs/examples/Tutorial.ipynb)
 * [Full docs](https://linkml.io/linkml-map/)
 * [Compliance Suite](https://linkml.io/linkml-map/specification/compliance/)
 * [API Docs](https://linkml.io/linkml-map/api/)

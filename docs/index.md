@@ -203,19 +203,19 @@ Validate the spec first, then run the transformation:
 mkdir -p output
 
 linkml-map validate-spec \
-  --source-schema source/personinfo.yaml \
-  --target-schema target/agent.yaml \
-  transform/personinfo-to-agent.transform.yaml
+  --source-schema source.yaml \
+  --target-schema target.yaml \
+  transform.yaml
 
 linkml-map map-data \
-  -T transform/personinfo-to-agent.transform.yaml \
-  -s source/personinfo.yaml \
-  --target-schema target/agent.yaml \
-  -o output/agents.yaml \
-  data/
+  -T transform.yaml \
+  -s source.yaml \
+  --target-schema target.yaml \
+  -o output/result.yaml \
+  data.yaml
 ```
 
-The input can be a single file or a directory; for large datasets, add `--chunk-size N` for streaming output. See [Running the code](#running-the-code) for the full set of CLI options per subcommand, and the [Tutorial Notebook](examples/Tutorial.ipynb) for a deeper walk-through of the transformation language itself.
+For large datasets, add `--chunk-size N` for streaming output. See [Running the code](#running-the-code) for the full set of CLI options per subcommand (including directory-mode input, tabular formats, and multi-format output), and the [Tutorial Notebook](examples/Tutorial.ipynb) for a deeper walk-through of the transformation language itself.
 
 ## Details
 
