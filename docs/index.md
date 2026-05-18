@@ -181,36 +181,23 @@ You need three things:
 2. **A transformation specification** — the YAML file describing how source slots map to target slots
 3. **Your data** — files in YAML, JSON, JSONL, TSV, or CSV that conform to the source schema
 
-For one-off runs, invoke `linkml-map map-data` directly (see [Running the code](#running-the-code) below). For production pipelines, the recommended pattern is to glue validation and transformation together with `make`:
+Validate the spec first, then run the transformation:
 
-```makefile
-RUN := uv run
+```bash
+linkml-map validate-spec \
+  --source-schema source/personinfo.yaml \
+  --target-schema target/agent.yaml \
+  transform/personinfo-to-agent.transform.yaml
 
-SOURCE_SCHEMA := source/personinfo.yaml
-TARGET_SCHEMA := target/agent.yaml
-TRANSFORM     := transform/personinfo-to-agent.transform.yaml
-INPUT_DIR     := data/
-OUTPUT        := output/agents.yaml
-
-.PHONY: validate transform
-
-validate:
-	$(RUN) linkml validate -s $(SOURCE_SCHEMA) $(INPUT_DIR)
-	$(RUN) linkml-map validate-spec \
-		--source-schema $(SOURCE_SCHEMA) \
-		--target-schema $(TARGET_SCHEMA) \
-		$(TRANSFORM)
-
-transform: validate
-	$(RUN) linkml-map map-data \
-		-T $(TRANSFORM) \
-		-s $(SOURCE_SCHEMA) \
-		--target-schema $(TARGET_SCHEMA) \
-		-o $(OUTPUT) \
-		$(INPUT_DIR)
+linkml-map map-data \
+  -T transform/personinfo-to-agent.transform.yaml \
+  -s source/personinfo.yaml \
+  --target-schema target/agent.yaml \
+  -o output/agents.yaml \
+  data/
 ```
 
-`make transform` then validates the data and spec before running the transformation. See the [Tutorial Notebook](examples/Tutorial.ipynb) for a deeper walk-through of the transformation language itself.
+The input can be a single file or a directory; for large datasets, add `--chunk-size N` for streaming output. See [Running the code](#running-the-code) for the full set of CLI options per subcommand, and the [Tutorial Notebook](examples/Tutorial.ipynb) for a deeper walk-through of the transformation language itself.
 
 ## Details
 
