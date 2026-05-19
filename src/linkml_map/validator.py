@@ -361,13 +361,13 @@ def _iter_derivation_dicts(raw: Any) -> list[dict[str, Any]]:
 def check_deprecated_fields(data: dict[str, Any]) -> list[ValidationMessage]:
     """Scan a spec dict for deprecated-field usage and ambiguous combinations.
 
-    Runs **pre-migration** — i.e., before ``_normalize_slot_class_derivations``
-    flattens ``object_derivations`` and before the PV ``sources`` → ``populated_from``
-    migration. Called by ``Transformer._normalize_spec_dict`` after top-level
-    compact-key preprocessing but before ``ReferenceValidator.normalize()``;
-    :func:`_iter_derivation_dicts` handles the remaining shape variations
-    (dict-keyed, explicit-list, and compact-key list forms) so deprecations
-    are detected regardless of how the user wrote them.
+    Runs in the SCAN phase of ``Transformer._normalize_spec_dict`` — after
+    SHAPE (which runs ``ReferenceValidator.normalize()`` and the local
+    compact-key pre-expansion) and before MIGRATE (which flattens
+    ``object_derivations``, inherits ``populated_from``, and rewrites PV
+    ``sources``). So the dict the scan sees is structurally canonical
+    (dict-keyed or explicit-name list, no compact-key items) but the
+    deprecated field values are still as the user wrote them.
 
     Flags:
 
@@ -389,9 +389,8 @@ def check_deprecated_fields(data: dict[str, Any]) -> list[ValidationMessage]:
     (deprecation, derivation type) pair to keep output readable on
     large specs; per-entry messages are emitted for the other categories.
 
-    :param data: A spec dict after top-level compact-key preprocessing but
-        before field migration. Inner derivation shapes are handled by
-        :func:`_iter_derivation_dicts`.
+    :param data: A spec dict post-SHAPE, pre-MIGRATE. Derivation sections
+        are dict-keyed or explicit-name list (no compact-key items).
     :returns: A list of validation messages — warnings for deprecations,
         errors for ambiguous combinations.
     """

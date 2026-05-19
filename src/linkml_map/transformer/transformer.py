@@ -35,9 +35,10 @@ logger = logging.getLogger(__name__)
 def _iter_values_or_list(container: Any) -> Iterator[dict[str, Any]]:
     """Yield each dict in a derivations section (dict-keyed or list form).
 
-    Caller assumes shape has been canonicalized (i.e., the SHAPE phase of
-    ``Transformer._normalize_spec_dict`` has run), so compact-key list
-    items are already expanded.
+    Doesn't expand compact-key list items — used both pre-SHAPE (where
+    compact-key items are still present and the caller is responsible for
+    expanding them via ``_expand_compact_keys`` if it needs to descend
+    into them) and post-SHAPE (where everything is already canonical).
     """
     if isinstance(container, dict):
         for v in container.values():
@@ -475,17 +476,19 @@ class Transformer(ABC):
 
         * Scalar string: wrapped to a one-element list (user convenience that
           pydantic would otherwise reject for a multivalued field).
-        * Explicit ``None`` or ``[None]`` (``populated_from:`` with no YAML
-          value, possibly already wrapped to a list by ``ReferenceValidator``):
-          the key is removed so pydantic uses the ``default_factory=list``
-          default — treats "explicitly set to nothing" as "unset".
+        * Explicit ``None`` or a list whose every element is ``None``
+          (``populated_from:`` with no YAML value, possibly already wrapped to
+          ``[None]`` by ``ReferenceValidator``): the key is removed so pydantic
+          uses the ``default_factory=list`` default — treats "explicitly set to
+          nothing" as "unset". Empty strings and other falsy-but-not-None
+          values are kept (a user may legitimately map to the empty-string PV).
         * List: left as-is.
         """
         for pvd in cls._iter_pv_derivations(obj):
             if "populated_from" not in pvd:
                 continue
             pf = pvd["populated_from"]
-            if pf is None or (isinstance(pf, list) and not any(pf)):
+            if pf is None or (isinstance(pf, list) and all(x is None for x in pf)):
                 del pvd["populated_from"]
             elif isinstance(pf, str):
                 pvd["populated_from"] = [pf]
@@ -497,14 +500,16 @@ class Transformer(ABC):
         Applied after the pre-normalize scan has already detected and reported
         any ``sources`` usage and any ``sources`` + ``populated_from`` conflicts.
         For each PV deriv with ``sources`` set, copies into ``populated_from``
-        (if not already set) and clears the ``sources`` key. Post-condition:
-        no PV has ``sources`` set. The runtime can therefore rely on
+        (if not already set) and clears the ``sources`` key. A scalar string
+        is wrapped to a one-element list rather than exploded into characters
+        (defends against ``sources: "light_red"`` typos). Post-condition: no
+        PV has ``sources`` set. The runtime can therefore rely on
         ``populated_from`` as the single source of truth and ignore ``sources``.
         """
         for pvd in cls._iter_pv_derivations(obj):
             srcs = pvd.pop("sources", None)
             if srcs and not pvd.get("populated_from"):
-                pvd["populated_from"] = list(srcs)
+                pvd["populated_from"] = [srcs] if isinstance(srcs, str) else list(srcs)
 
     @staticmethod
     def _expand_compact_keys(items: list[dict[str, Any]]) -> None:
