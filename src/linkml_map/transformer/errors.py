@@ -6,6 +6,18 @@ from dataclasses import dataclass, field
 from typing import Any
 
 
+class SpecificationError(ValueError):
+    """The transformation specification is malformed or internally inconsistent.
+
+    Raised during spec loading when the pre-normalize scan detects a
+    user-intent error that the runtime cannot disambiguate (e.g., setting
+    both ``populated_from`` and ``sources`` on the same derivation, or
+    setting both ``object_derivations`` and ``class_derivations`` on a
+    slot). Subclasses ``ValueError`` for backward compatibility with
+    callers that already catch ``ValueError`` from ``_normalize_spec_dict``.
+    """
+
+
 @dataclass
 class TransformationError(Exception):
     """A row-level error during data transformation.

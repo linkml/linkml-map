@@ -500,14 +500,13 @@ class PermissibleValueDerivation(ElementDerivation):
     expr: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    populated_from: Optional[str] = Field(default=None, description="""Source permissible value that maps to this target permissible value.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ClassDerivation',
+    populated_from: Optional[list[str]] = Field(default_factory=list, description="""Source permissible value(s) that map to this target permissible value. Accepts a single value or a list; scalar input is normalized to a one-element list at load time.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ClassDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    sources: Optional[list[str]] = Field(default_factory=list, description="""Deprecated. Use populated_from instead.""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated. Use populated_from instead. See '
-                       'https://github.com/linkml/linkml-map/issues/193 for planned '
-                       'list support in populated_from. Will be removed in a future '
-                       'version.',
+    sources: Optional[list[str]] = Field(default_factory=list, description="""Deprecated. Use populated_from instead.""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated. Use populated_from instead, which now accepts a '
+                       'list. See https://github.com/linkml/linkml-map/issues/193. '
+                       'Will be removed in a future version.',
          'domain_of': ['ClassDerivation',
                        'SlotDerivation',
                        'EnumDerivation',
