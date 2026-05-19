@@ -328,10 +328,18 @@ class Transformer(ABC):
     def _pre_shape_expand_compact_keys(cls, obj: dict[str, Any]) -> None:
         """Recursively expand compact-key list forms before ReferenceValidator.
 
-        Covers spots ``ReferenceValidator`` doesn't normalize:
-        nested class_derivations in slot_derivations, OD-inner
-        class_derivations, and PV-level lists. Without this pass RV mangles
-        compact-key PV lists into ``{None: {<key>: {...}}}``.
+        Compact-key list form (``[{Name: {body}}]``) is a linkml-map convention,
+        not a documented LinkML collection form. ``ReferenceValidator``
+        therefore doesn't canonicalize it consistently — list-typed fields
+        (top-level class_derivations) are left as-is, and dict-typed fields
+        (permissible_value_derivations) get mangled to ``{None: ...}``. This
+        pre-pass converts compact-key items to explicit-name form everywhere
+        the linkml-map schema accepts a derivation section, so RV sees only
+        LinkML-canonical input.
+
+        See https://github.com/linkml/linkml/issues/3529 for the upstream
+        behavior. The local pre-expansion makes us independent of how (or
+        whether) that gets resolved.
         """
         cls._preprocess_class_derivations(obj)
         cls._preprocess_enum_derivations(obj)
