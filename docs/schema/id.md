@@ -1,16 +1,15 @@
+---
+search:
+  boost: 5.0
+---
 
+# Slot: id 
 
-# Slot: id
-
-
-_Unique identifier for this transformation specification_
-
-
-
-URI: [schema:identifier](http://schema.org/identifier)
+<div data-search-exclude markdown="1">
 
 
 
+URI: [linkmlmap:id](https://w3id.org/linkml/transformer/id)
 <!-- no inheritance hierarchy -->
 
 
@@ -22,7 +21,10 @@ URI: [schema:identifier](http://schema.org/identifier)
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
 | [TransformationSpecification](TransformationSpecification.md) | A collection of mappings between source and target classes |  no  |
-
+| [Agent](Agent.md) | An entity that can create or contribute to a digital object, such as an autho... |  no  |
+| [Person](Person.md) | An individual person who contributes to a mapping specification |  no  |
+| [Organization](Organization.md) | An organization or institution that contributes to a mapping specification |  no  |
+| [Software](Software.md) | A software tool or system used in creating mappings |  no  |
 
 
 
@@ -31,7 +33,22 @@ URI: [schema:identifier](http://schema.org/identifier)
 
 ## Properties
 
-* Range: NONE
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | NONE |
+| Domain Of | [TransformationSpecification](TransformationSpecification.md), [Agent](Agent.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+
+
+
+
+
 
 
 
@@ -44,11 +61,12 @@ URI: [schema:identifier](http://schema.org/identifier)
 
 
 
+## Mappings
 
-### Schema Source
-
-
-* from schema: https://w3id.org/linkml/transformer
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:id |
+| native | linkmlmap:id |
 
 
 
@@ -58,14 +76,9 @@ URI: [schema:identifier](http://schema.org/identifier)
 <details>
 ```yaml
 name: id
-description: Unique identifier for this transformation specification
-from_schema: https://w3id.org/linkml/transformer
-rank: 1000
-slot_uri: schema:identifier
-alias: id
-owner: TransformationSpecification
 domain_of:
 - TransformationSpecification
+- Agent
 
 ```
-</details>
+</details></div>

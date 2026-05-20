@@ -1,11 +1,15 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: expr 
+
+<div data-search-exclude markdown="1">
 
 
-# Slot: expr
 
-URI: [linkmltr:expr](https://w3id.org/linkml/transformer/expr)
-
-
-
+URI: [linkmlmap:expr](https://w3id.org/linkml/transformer/expr)
 <!-- no inheritance hierarchy -->
 
 
@@ -25,10 +29,24 @@ URI: [linkmltr:expr](https://w3id.org/linkml/transformer/expr)
 
 
 
-
 ## Properties
 
-* Range: NONE
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | NONE |
+| Domain Of | [SlotDerivation](SlotDerivation.md), [EnumDerivation](EnumDerivation.md), [PermissibleValueDerivation](PermissibleValueDerivation.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+
+
+
+
+
 
 
 
@@ -41,6 +59,14 @@ URI: [linkmltr:expr](https://w3id.org/linkml/transformer/expr)
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:expr |
+| native | linkmlmap:expr |
+
+
 
 
 ## LinkML Source
@@ -48,11 +74,10 @@ URI: [linkmltr:expr](https://w3id.org/linkml/transformer/expr)
 <details>
 ```yaml
 name: expr
-alias: expr
 domain_of:
 - SlotDerivation
 - EnumDerivation
 - PermissibleValueDerivation
 
 ```
-</details>
+</details></div>

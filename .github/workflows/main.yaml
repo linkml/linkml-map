@@ -63,5 +63,17 @@ jobs:
             exit 1
           fi
 
+      - name: Regenerate schema docs and check for drift
+        if: github.event_name == 'pull_request' && matrix.python-version == '3.12'
+        run: |
+          make gendoc
+          if ! git diff --quiet docs/schema/ || [ -n "$(git ls-files --others --exclude-standard docs/schema/)" ]; then
+            echo "::error::Generated files in docs/schema/ are out of date."
+            echo "Run 'make gendoc' and commit the result."
+            git status --short docs/schema/
+            git diff --stat docs/schema/
+            exit 1
+          fi
+
       - name: Run tests
         run: make test

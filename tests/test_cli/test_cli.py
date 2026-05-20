@@ -34,7 +34,7 @@ def runner() -> CliRunner:
     :return: command line interface runner
     :rtype: CliRunner
     """
-    return CliRunner(mix_stderr=False)
+    return CliRunner()
 
 
 def test_main_help(runner: CliRunner) -> None:
@@ -186,7 +186,8 @@ def _write_typo_spec_fixture(tmp_path: Path) -> tuple[Path, Path, Path]:
     )
     spec_path = tmp_path / "spec.yaml"
     spec_path.write_text(
-        "source_schema: typo_source\n"
+        "source_schema:\n"
+        "  name: typo_source\n"
         "class_derivations:\n"
         "  Agent:\n"
         "    populated_from: Person\n"

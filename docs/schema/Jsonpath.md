@@ -1,4 +1,7 @@
-# Type: Jsonpath
+---
+search:
+  boost: 1.0
+---# Type: Jsonpath 
 
 
 
@@ -7,18 +10,26 @@ _A string encoding a JSON Path. The value of the string MUST conform to JSON Poi
 
 
 
+<div data-search-exclude markdown="1">
+
 URI: [xsd:string](http://www.w3.org/2001/XMLSchema#string)
 
-* [base](https://w3id.org/linkml/base): str
+## Type Properties
 
-* [uri](https://w3id.org/linkml/uri): xsd:string
+| Property | Value |
+| --- | --- |
+| Base | `str` |
+| Type URI | [xsd:string](http://www.w3.org/2001/XMLSchema#string) |
+| Representation | `str` |
 
-* [repr](https://w3id.org/linkml/repr): str
 
 
 
 
 
+## Notes
+
+* If you are authoring schemas in LinkML YAML, the type is referenced with the lower case "jsonpath".
 
 
 
@@ -28,9 +39,22 @@ URI: [xsd:string](http://www.w3.org/2001/XMLSchema#string)
 
 
 
-
-
 ### Schema Source
 
 
 * from schema: https://w3id.org/linkml/transformer
+
+
+
+
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | xsd:string |
+| native | linkmlmap:jsonpath |
+
+
+
+
+</div>

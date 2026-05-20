@@ -7,6 +7,7 @@ from linkml_map.datamodel.transformer_model import (
     ClassDerivation,
     Organization,
     Person,
+    SchemaReference,
     SlotDerivation,
     TransformationSpecification,
 )
@@ -20,19 +21,16 @@ def test_datamodel() -> None:
     tr.load_transformer_specification(PERSONINFO_TR)
     trs = tr.specification
     assert trs.model_dump_json() != ""
-    assert trs.source_schema == "https://w3id.org/linkml/map/example/personinfo.yaml"
-    assert trs.target_schema == "https://w3id.org/linkml/map/example/agent.yaml"
+    assert trs.source_schema.name == "../source/personinfo.yaml"
+    assert trs.target_schema.name == "../target/agent.yaml"
 
     # class derivations
     class_derivs = {
         "Container": "Container",
         "Entity": None,
         "Agent": "Person",
-        "Job": None,
         "Address": "Address",
         "FamilialRelationship": "FamilialRelationship",
-        "SequenceFeature": None,
-        "DenormMapping": "Mapping",
     }
     for cd in trs.class_derivations:
         assert class_derivs[cd.name] == cd.populated_from
@@ -64,9 +62,9 @@ def test_datamodel() -> None:
 
     # enum derivations
     assert len(trs.enum_derivations) == 1
-    assert trs.enum_derivations["MyFamilialRelationshipType"].populated_from == "FamilialRelationshipType"
+    assert trs.enum_derivations["FamilialRelationshipType"].populated_from == "FamilialRelationshipType"
     assert {"SIBLING_OF", "CHILD_OF"} == set(
-        trs.enum_derivations["MyFamilialRelationshipType"].permissible_value_derivations.keys()
+        trs.enum_derivations["FamilialRelationshipType"].permissible_value_derivations.keys()
     )
 
 
@@ -303,8 +301,8 @@ def test_metadata_and_agent_roundtrip() -> None:
         mapping_method="semapv:ManualMappingCuration",
         documentation="https://example.org/docs",
         content_url="https://example.org/content.yaml",
-        source_schema="source.yaml",
-        target_schema="target.yaml",
+        source_schema=SchemaReference(name="source.yaml"),
+        target_schema=SchemaReference(name="target.yaml"),
         creator=[
             Person(id="orcid:0000-0001-1234-5678", name="Alice", orcid="orcid:0000-0001-1234-5678"),
             Organization(id="ror:03yrm5c26", name="Example Org", ror_id="ror:03yrm5c26"),
@@ -369,3 +367,48 @@ def test_create_transformer_specification_dict_input() -> None:
     assert len(spec.class_derivations) == 1
     assert spec.class_derivations[0].name == "Agent"
     assert spec.class_derivations[0].populated_from == "Person"
+
+
+def test_schema_reference_full_object() -> None:
+    """A dict input with all fields constructs a SchemaReference."""
+    spec = TransformationSpecification(
+        id="t",
+        source_schema={
+            "name": "personinfo",
+            "version": "1.2.3",
+            "schema_uri": "https://w3id.org/linkml/map/example/personinfo.yaml",
+            "source_file": "schemas/personinfo.yaml",
+        },
+    )
+    ref = spec.source_schema
+    assert isinstance(ref, SchemaReference)
+    assert ref.name == "personinfo"
+    assert ref.version == "1.2.3"
+    assert ref.schema_uri == "https://w3id.org/linkml/map/example/personinfo.yaml"
+    assert ref.source_file == "schemas/personinfo.yaml"
+
+
+def test_schema_reference_yaml_object_form_loads(tmp_path) -> None:
+    """A YAML spec using the structured object form loads with all fields."""
+    yaml_str = """\
+id: structured-spec
+source_schema:
+  name: personinfo
+  version: '1.0'
+  schema_uri: https://w3id.org/linkml/map/example/personinfo.yaml
+  source_file: schemas/personinfo.yaml
+target_schema:
+  name: agent
+  version: '2.0'
+"""
+    spec_path = tmp_path / "spec.yaml"
+    spec_path.write_text(yaml_str)
+    tr = ObjectTransformer()
+    tr.load_transformer_specification(str(spec_path))
+    src = tr.specification.source_schema
+    assert src.name == "personinfo"
+    assert src.version == "1.0"
+    assert src.schema_uri == "https://w3id.org/linkml/map/example/personinfo.yaml"
+    assert src.source_file == "schemas/personinfo.yaml"
+    assert tr.specification.target_schema.name == "agent"
+    assert tr.specification.target_schema.version == "2.0"

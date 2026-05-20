@@ -1,11 +1,15 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: key 
+
+<div data-search-exclude markdown="1">
 
 
-# Slot: key
 
-URI: [linkmltr:key](https://w3id.org/linkml/transformer/key)
-
-
-
+URI: [linkmlmap:key](https://w3id.org/linkml/transformer/key)
 <!-- no inheritance hierarchy -->
 
 
@@ -23,20 +27,39 @@ URI: [linkmltr:key](https://w3id.org/linkml/transformer/key)
 
 
 
-
 ## Properties
 
-* Range: NONE
+### Type and Range
 
-* Required: True
+| Property | Value |
+| --- | --- |
+| Range | NONE |
+| Domain Of | [KeyVal](KeyVal.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+| Required | Yes |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Key | Yes |
+| Owner | [KeyVal](KeyVal.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -50,6 +73,16 @@ URI: [linkmltr:key](https://w3id.org/linkml/transformer/key)
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:key |
+| native | linkmlmap:key |
+
+
+
+
 ## LinkML Source
 
 <details>
@@ -58,11 +91,10 @@ name: key
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 key: true
-alias: key
 owner: KeyVal
 domain_of:
 - KeyVal
 required: true
 
 ```
-</details>
+</details></div>

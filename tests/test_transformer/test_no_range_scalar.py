@@ -52,8 +52,8 @@ TARGET_SCHEMA = textwrap.dedent("""\
 def _make_transformer() -> ObjectTransformer:
     """Build a transformer with schemas that have slots without explicit ranges."""
     transform = {
-        "source_schema": "https://example.org/source",
-        "target_schema": "https://example.org/target",
+        "source_schema": {"name": "https://example.org/source"},
+        "target_schema": {"name": "https://example.org/target"},
         "class_derivations": {
             "Output": {
                 "populated_from": "Record",

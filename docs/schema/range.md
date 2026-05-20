@@ -1,11 +1,15 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: range 
+
+<div data-search-exclude markdown="1">
 
 
-# Slot: range
 
 URI: [linkml:range](https://w3id.org/linkml/range)
-
-
-
 <!-- no inheritance hierarchy -->
 
 
@@ -23,18 +27,38 @@ URI: [linkml:range](https://w3id.org/linkml/range)
 
 
 
-
 ## Properties
 
-* Range: [String](String.md)
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | [String](String.md) |
+| Domain Of | [SlotDerivation](SlotDerivation.md) |
+| Slot URI | [linkml:range](https://w3id.org/linkml/range) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [SlotDerivation](SlotDerivation.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -48,6 +72,16 @@ URI: [linkml:range](https://w3id.org/linkml/range)
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkml:range |
+| native | linkmlmap:range |
+
+
+
+
 ## LinkML Source
 
 <details>
@@ -56,11 +90,10 @@ name: range
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 slot_uri: linkml:range
-alias: range
 owner: SlotDerivation
 domain_of:
 - SlotDerivation
 range: string
 
 ```
-</details>
+</details></div>

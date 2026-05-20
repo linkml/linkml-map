@@ -1,11 +1,18 @@
-# Enum: SerializationSyntaxType
+---
+search:
+  boost: 2.0
+---
+
+
+# Enum: SerializationSyntaxType 
 
 
 
-URI: [SerializationSyntaxType](SerializationSyntaxType.md)
+<div data-search-exclude markdown="1">
+
+URI: [linkmlmap:SerializationSyntaxType](https://w3id.org/linkml/transformer/SerializationSyntaxType)
 
 ## Permissible Values
-
 | Value | Meaning | Description |
 | --- | --- | --- |
 | JSON | None |  |
@@ -26,9 +33,11 @@ URI: [SerializationSyntaxType](SerializationSyntaxType.md)
 
 
 
+
+
+
+
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -38,6 +47,8 @@ URI: [SerializationSyntaxType](SerializationSyntaxType.md)
 
 
 * from schema: https://w3id.org/linkml/transformer
+
+
 
 
 
@@ -59,3 +70,5 @@ permissible_values:
 
 ```
 </details>
+
+</div>

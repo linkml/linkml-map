@@ -1,16 +1,20 @@
+---
+search:
+  boost: 5.0
+---
 
-
-# Slot: joins
+# Slot: joins 
 
 
 _Additional classes to be joined to derive instances of the target class_
 
 
 
-URI: [linkmltr:joins](https://w3id.org/linkml/transformer/joins)
+<div data-search-exclude markdown="1">
 
 
 
+URI: [linkmlmap:joins](https://w3id.org/linkml/transformer/joins)
 <!-- no inheritance hierarchy -->
 
 
@@ -28,12 +32,30 @@ URI: [linkmltr:joins](https://w3id.org/linkml/transformer/joins)
 
 
 
-
 ## Properties
 
-* Range: [AliasedClass](AliasedClass.md)
+### Type and Range
 
-* Multivalued: True
+| Property | Value |
+| --- | --- |
+| Range | [AliasedClass](AliasedClass.md) |
+| Domain Of | [ClassDerivation](ClassDerivation.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+| Multivalued | Yes |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [ClassDerivation](ClassDerivation.md) |
+
+
+
+
+
 
 
 
@@ -43,9 +65,9 @@ URI: [linkmltr:joins](https://w3id.org/linkml/transformer/joins)
 
 * supports cross-table lookups via source_key/lookup_key or the join_on field
 
+
+
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -55,6 +77,16 @@ URI: [linkmltr:joins](https://w3id.org/linkml/transformer/joins)
 
 
 * from schema: https://w3id.org/linkml/transformer
+
+
+
+
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:joins |
+| native | linkmlmap:joins |
 
 
 
@@ -69,13 +101,12 @@ comments:
 - supports cross-table lookups via source_key/lookup_key or the join_on field
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
-multivalued: true
-alias: joins
 owner: ClassDerivation
 domain_of:
 - ClassDerivation
 range: AliasedClass
+multivalued: true
 inlined: true
 
 ```
-</details>
+</details></div>

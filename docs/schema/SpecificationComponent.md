@@ -1,12 +1,18 @@
+---
+search:
+  boost: 10.0
+---
 
+# Class: SpecificationComponent 
 
-# Class: SpecificationComponent
+<div data-search-exclude markdown="1">
 
 
 * __NOTE__: this is an abstract class and should not be instantiated directly
 
 
-URI: [linkmltr:SpecificationComponent](https://w3id.org/linkml/transformer/SpecificationComponent)
+URI: [linkmlmap:SpecificationComponent](https://w3id.org/linkml/transformer/SpecificationComponent)
+
 
 
 
@@ -14,18 +20,19 @@ URI: [linkmltr:SpecificationComponent](https://w3id.org/linkml/transformer/Speci
 ```mermaid
  classDiagram
     class SpecificationComponent
+    click SpecificationComponent href "../SpecificationComponent/"
       SpecificationComponent <|-- TransformationSpecification
+        click TransformationSpecification href "../TransformationSpecification/"
       SpecificationComponent <|-- ElementDerivation
-
+        click ElementDerivation href "../ElementDerivation/"
+      
       SpecificationComponent : comments
-
+        
       SpecificationComponent : description
-
-          SpecificationComponent --> None : description
-
+        
       SpecificationComponent : implements
-
-
+        
+      
 ```
 
 
@@ -38,14 +45,19 @@ URI: [linkmltr:SpecificationComponent](https://w3id.org/linkml/transformer/Speci
     * [ElementDerivation](ElementDerivation.md)
 
 
-
 ## Slots
 
 | Name | Cardinality and Range | Description | Inheritance |
 | ---  | --- | --- | --- |
 | [description](description.md) | 0..1 <br/> [String](String.md) | description of the specification component | direct |
-| [implements](implements.md) | 0..* <br/> [Uriorcurie](Uriorcurie.md) | A reference to a specification that this component implements | direct |
-| [comments](comments.md) | 0..* <br/> [String](String.md) | A list of comments about this component | direct |
+| [implements](implements.md) | * <br/> [Uriorcurie](Uriorcurie.md) | A reference to a specification that this component implements | direct |
+| [comments](comments.md) | * <br/> [String](String.md) | A list of comments about this component | direct |
+
+
+
+
+
+
 
 
 
@@ -61,8 +73,6 @@ URI: [linkmltr:SpecificationComponent](https://w3id.org/linkml/transformer/Speci
 
 
 
-
-
 ### Schema Source
 
 
@@ -71,13 +81,13 @@ URI: [linkmltr:SpecificationComponent](https://w3id.org/linkml/transformer/Speci
 
 
 
-
 ## Mappings
 
 | Mapping Type | Mapped Value |
 | ---  | ---  |
-| self | linkmltr:SpecificationComponent |
-| native | linkmltr:SpecificationComponent |
+| self | linkmlmap:SpecificationComponent |
+| native | linkmlmap:SpecificationComponent |
+
 
 
 
@@ -108,10 +118,10 @@ attributes:
     description: A reference to a specification that this component implements.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    multivalued: true
     domain_of:
     - SpecificationComponent
     range: uriorcurie
+    multivalued: true
   comments:
     name: comments
     description: A list of comments about this component. Comments are free text,
@@ -120,10 +130,10 @@ attributes:
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     slot_uri: rdfs:comment
-    multivalued: true
     domain_of:
     - SpecificationComponent
     range: string
+    multivalued: true
 
 ```
 </details>
@@ -142,7 +152,6 @@ attributes:
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     slot_uri: dcterms:description
-    alias: description
     owner: SpecificationComponent
     domain_of:
     - SpecificationComponent
@@ -151,12 +160,11 @@ attributes:
     description: A reference to a specification that this component implements.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    multivalued: true
-    alias: implements
     owner: SpecificationComponent
     domain_of:
     - SpecificationComponent
     range: uriorcurie
+    multivalued: true
   comments:
     name: comments
     description: A list of comments about this component. Comments are free text,
@@ -165,12 +173,11 @@ attributes:
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     slot_uri: rdfs:comment
-    multivalued: true
-    alias: comments
     owner: SpecificationComponent
     domain_of:
     - SpecificationComponent
     range: string
+    multivalued: true
 
 ```
-</details>
+</details></div>

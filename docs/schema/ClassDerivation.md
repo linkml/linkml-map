@@ -1,15 +1,21 @@
+---
+search:
+  boost: 10.0
+---
 
-
-# Class: ClassDerivation
+# Class: ClassDerivation 
 
 
 _A specification of how to derive a target class from a source class._
 
 
 
+<div data-search-exclude markdown="1">
 
 
-URI: [linkmltr:ClassDerivation](https://w3id.org/linkml/transformer/ClassDerivation)
+
+URI: [linkmlmap:ClassDerivation](https://w3id.org/linkml/transformer/ClassDerivation)
+
 
 
 
@@ -17,63 +23,157 @@ URI: [linkmltr:ClassDerivation](https://w3id.org/linkml/transformer/ClassDerivat
 ```mermaid
  classDiagram
     class ClassDerivation
+    click ClassDerivation href "../ClassDerivation/"
       ElementDerivation <|-- ClassDerivation
-
+        click ElementDerivation href "../ElementDerivation/"
+      
       ClassDerivation : comments
-
+        
       ClassDerivation : copy_directives
+        
+          
+    
+        
+        
+        ClassDerivation --> "*" CopyDirective : copy_directives
+        click CopyDirective href "../CopyDirective/"
+    
 
-          ClassDerivation --> CopyDirective : copy_directives
-
+        
       ClassDerivation : description
+        
+      ClassDerivation : expression_mappings
+        
+          
+    
+        
+        
+        ClassDerivation --> "*" KeyVal : expression_mappings
+        click KeyVal href "../KeyVal/"
+    
 
-          ClassDerivation --> None : description
-
+        
       ClassDerivation : expression_to_expression_mappings
+        
+          
+    
+        
+        
+        ClassDerivation --> "*" KeyVal : expression_to_expression_mappings
+        click KeyVal href "../KeyVal/"
+    
 
-          ClassDerivation --> KeyVal : expression_to_expression_mappings
-
+        
       ClassDerivation : expression_to_value_mappings
+        
+          
+    
+        
+        
+        ClassDerivation --> "*" KeyVal : expression_to_value_mappings
+        click KeyVal href "../KeyVal/"
+    
 
-          ClassDerivation --> KeyVal : expression_to_value_mappings
-
+        
       ClassDerivation : implements
-
+        
       ClassDerivation : is_a
+        
+          
+    
+        
+        
+        ClassDerivation --> "0..1" ElementDerivation : is_a
+        click ElementDerivation href "../ElementDerivation/"
+    
 
-          ClassDerivation --> ElementDerivation : is_a
-
+        
       ClassDerivation : joins
+        
+          
+    
+        
+        
+        ClassDerivation --> "*" AliasedClass : joins
+        click AliasedClass href "../AliasedClass/"
+    
 
-          ClassDerivation --> AliasedClass : joins
-
+        
       ClassDerivation : mirror_source
-
+        
       ClassDerivation : mixins
+        
+          
+    
+        
+        
+        ClassDerivation --> "*" ElementDerivation : mixins
+        click ElementDerivation href "../ElementDerivation/"
+    
 
-          ClassDerivation --> ElementDerivation : mixins
-
+        
       ClassDerivation : name
-
-          ClassDerivation --> None : name
-
+        
       ClassDerivation : overrides
+        
+          
+    
+        
+        
+        ClassDerivation --> "0..1" Any : overrides
+        click Any href "../Any/"
+    
 
-          ClassDerivation --> Any : overrides
+        
+      ClassDerivation : pivot_operation
+        
+          
+    
+        
+        
+        ClassDerivation --> "0..1" PivotOperation : pivot_operation
+        click PivotOperation href "../PivotOperation/"
+    
 
+        
       ClassDerivation : populated_from
-
+        
       ClassDerivation : slot_derivations
+        
+          
+    
+        
+        
+        ClassDerivation --> "*" SlotDerivation : slot_derivations
+        click SlotDerivation href "../SlotDerivation/"
+    
 
-          ClassDerivation --> SlotDerivation : slot_derivations
-
+        
       ClassDerivation : sources
+        
+      ClassDerivation : target_definition
+        
+          
+    
+        
+        
+        ClassDerivation --> "0..1" Any : target_definition
+        click Any href "../Any/"
+    
 
+        
       ClassDerivation : value_mappings
+        
+          
+    
+        
+        
+        ClassDerivation --> "*" KeyVal : value_mappings
+        click KeyVal href "../KeyVal/"
+    
 
-          ClassDerivation --> KeyVal : value_mappings
-
-
+        
+      
 ```
 
 
@@ -86,27 +186,29 @@ URI: [linkmltr:ClassDerivation](https://w3id.org/linkml/transformer/ClassDerivat
         * **ClassDerivation**
 
 
-
 ## Slots
 
 | Name | Cardinality and Range | Description | Inheritance |
 | ---  | --- | --- | --- |
-| [populated_from](populated_from.md) | 0..1 <br/> [ClassReference](ClassReference.md) | Name of the class in the source schema | direct |
-| [sources](sources.md) | 0..* <br/> [ClassReference](ClassReference.md) |  | direct |
-| [joins](joins.md) | 0..* <br/> [AliasedClass](AliasedClass.md) | Additional classes to be joined to derive instances of the target class | direct |
-| [slot_derivations](slot_derivations.md) | 0..* <br/> [SlotDerivation](SlotDerivation.md) |  | direct |
-| [name](name.md) | 1..1 <br/> [String](String.md) | Name of the element in the target schema | [ElementDerivation](ElementDerivation.md) |
-| [copy_directives](copy_directives.md) | 0..* <br/> [CopyDirective](CopyDirective.md) |  | [ElementDerivation](ElementDerivation.md) |
+| [populated_from](populated_from.md) | 0..1 <br/> [ClassReference](ClassReference.md) | Source class to derive this target class from | direct |
+| [sources](sources.md) | * <br/> [ClassReference](ClassReference.md) | Deprecated | direct |
+| [joins](joins.md) | * <br/> [AliasedClass](AliasedClass.md) | Additional classes to be joined to derive instances of the target class | direct |
+| [slot_derivations](slot_derivations.md) | * <br/> [SlotDerivation](SlotDerivation.md) |  | direct |
+| [target_definition](target_definition.md) | 0..1 <br/> [Any](Any.md) | LinkML class definition object for this slot | direct |
+| [pivot_operation](pivot_operation.md) | 0..1 <br/> [PivotOperation](PivotOperation.md) | Configuration for pivot (unmelt) operations at class level | direct |
+| [name](name.md) | 1 <br/> [String](String.md) | Name of the element in the target schema | [ElementDerivation](ElementDerivation.md) |
+| [copy_directives](copy_directives.md) | * <br/> [CopyDirective](CopyDirective.md) |  | [ElementDerivation](ElementDerivation.md) |
 | [overrides](overrides.md) | 0..1 <br/> [Any](Any.md) | overrides source schema slots | [ElementDerivation](ElementDerivation.md) |
 | [is_a](is_a.md) | 0..1 <br/> [ElementDerivation](ElementDerivation.md) |  | [ElementDerivation](ElementDerivation.md) |
-| [mixins](mixins.md) | 0..* <br/> [ElementDerivation](ElementDerivation.md) |  | [ElementDerivation](ElementDerivation.md) |
-| [value_mappings](value_mappings.md) | 0..* <br/> [KeyVal](KeyVal.md) | A mapping table that is applied directly to mappings, in order of precedence | [ElementDerivation](ElementDerivation.md) |
-| [expression_to_value_mappings](expression_to_value_mappings.md) | 0..* <br/> [KeyVal](KeyVal.md) | A mapping table in which the keys are expressions | [ElementDerivation](ElementDerivation.md) |
-| [expression_to_expression_mappings](expression_to_expression_mappings.md) | 0..* <br/> [KeyVal](KeyVal.md) | A mapping table in which the keys and values are expressions | [ElementDerivation](ElementDerivation.md) |
+| [mixins](mixins.md) | * <br/> [ElementDerivation](ElementDerivation.md) |  | [ElementDerivation](ElementDerivation.md) |
+| [value_mappings](value_mappings.md) | * <br/> [KeyVal](KeyVal.md) | A mapping table that is applied directly to mappings, in order of precedence | [ElementDerivation](ElementDerivation.md) |
+| [expression_mappings](expression_mappings.md) | * <br/> [KeyVal](KeyVal.md) | A mapping table where the values are expressions evaluated against source bin... | [ElementDerivation](ElementDerivation.md) |
+| [expression_to_value_mappings](expression_to_value_mappings.md) | * <br/> [KeyVal](KeyVal.md) | A mapping table in which the keys are boolean expressions and the values are ... | [ElementDerivation](ElementDerivation.md) |
+| [expression_to_expression_mappings](expression_to_expression_mappings.md) | * <br/> [KeyVal](KeyVal.md) | A mapping table in which the keys and values are expressions | [ElementDerivation](ElementDerivation.md) |
 | [mirror_source](mirror_source.md) | 0..1 <br/> [Boolean](Boolean.md) |  | [ElementDerivation](ElementDerivation.md) |
 | [description](description.md) | 0..1 <br/> [String](String.md) | description of the specification component | [SpecificationComponent](SpecificationComponent.md) |
-| [implements](implements.md) | 0..* <br/> [Uriorcurie](Uriorcurie.md) | A reference to a specification that this component implements | [SpecificationComponent](SpecificationComponent.md) |
-| [comments](comments.md) | 0..* <br/> [String](String.md) | A list of comments about this component | [SpecificationComponent](SpecificationComponent.md) |
+| [implements](implements.md) | * <br/> [Uriorcurie](Uriorcurie.md) | A reference to a specification that this component implements | [SpecificationComponent](SpecificationComponent.md) |
+| [comments](comments.md) | * <br/> [String](String.md) | A list of comments about this component | [SpecificationComponent](SpecificationComponent.md) |
 
 
 
@@ -117,6 +219,14 @@ URI: [linkmltr:ClassDerivation](https://w3id.org/linkml/transformer/ClassDerivat
 | used by | used in | type | used |
 | ---  | --- | --- | --- |
 | [TransformationSpecification](TransformationSpecification.md) | [class_derivations](class_derivations.md) | range | [ClassDerivation](ClassDerivation.md) |
+| [ObjectDerivation](ObjectDerivation.md) | [class_derivations](class_derivations.md) | range | [ClassDerivation](ClassDerivation.md) |
+| [SlotDerivation](SlotDerivation.md) | [class_derivations](class_derivations.md) | range | [ClassDerivation](ClassDerivation.md) |
+
+
+
+
+
+
 
 
 
@@ -124,8 +234,6 @@ URI: [linkmltr:ClassDerivation](https://w3id.org/linkml/transformer/ClassDerivat
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -139,13 +247,13 @@ URI: [linkmltr:ClassDerivation](https://w3id.org/linkml/transformer/ClassDerivat
 
 
 
-
 ## Mappings
 
 | Mapping Type | Mapped Value |
 | ---  | ---  |
-| self | linkmltr:ClassDerivation |
-| native | linkmltr:ClassDerivation |
+| self | linkmlmap:ClassDerivation |
+| native | linkmlmap:ClassDerivation |
+
 
 
 
@@ -166,7 +274,7 @@ is_a: ElementDerivation
 attributes:
   populated_from:
     name: populated_from
-    description: Name of the class in the source schema
+    description: Source class to derive this target class from.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     domain_of:
@@ -177,37 +285,60 @@ attributes:
     range: ClassReference
   sources:
     name: sources
+    description: Deprecated. Use populated_from instead.
+    deprecated: Deprecated. Use populated_from instead. See https://github.com/linkml/linkml-map/issues/193
+      for planned list support in populated_from. Will be removed in a future version.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    multivalued: true
     domain_of:
     - ClassDerivation
     - SlotDerivation
     - EnumDerivation
     - PermissibleValueDerivation
     range: ClassReference
+    multivalued: true
   joins:
     name: joins
     description: Additional classes to be joined to derive instances of the target
       class
     comments:
-    - not yet implemented
+    - supports cross-table lookups via source_key/lookup_key or the join_on field
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    multivalued: true
     domain_of:
     - ClassDerivation
     range: AliasedClass
+    multivalued: true
     inlined: true
   slot_derivations:
     name: slot_derivations
     from_schema: https://w3id.org/linkml/transformer
-    multivalued: true
     domain_of:
     - TransformationSpecification
     - ClassDerivation
     range: SlotDerivation
+    multivalued: true
     inlined: true
+  target_definition:
+    name: target_definition
+    description: LinkML class definition object for this slot.
+    comments:
+    - currently defined as Any to avoid coupling with metamodel
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    domain_of:
+    - ClassDerivation
+    - SlotDerivation
+    range: Any
+  pivot_operation:
+    name: pivot_operation
+    description: Configuration for pivot (unmelt) operations at class level
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    domain_of:
+    - ClassDerivation
+    - SlotDerivation
+    range: PivotOperation
 
 ```
 </details>
@@ -223,10 +354,9 @@ is_a: ElementDerivation
 attributes:
   populated_from:
     name: populated_from
-    description: Name of the class in the source schema
+    description: Source class to derive this target class from.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    alias: populated_from
     owner: ClassDerivation
     domain_of:
     - ClassDerivation
@@ -236,10 +366,11 @@ attributes:
     range: ClassReference
   sources:
     name: sources
+    description: Deprecated. Use populated_from instead.
+    deprecated: Deprecated. Use populated_from instead. See https://github.com/linkml/linkml-map/issues/193
+      for planned list support in populated_from. Will be removed in a future version.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    multivalued: true
-    alias: sources
     owner: ClassDerivation
     domain_of:
     - ClassDerivation
@@ -247,64 +378,84 @@ attributes:
     - EnumDerivation
     - PermissibleValueDerivation
     range: ClassReference
+    multivalued: true
   joins:
     name: joins
     description: Additional classes to be joined to derive instances of the target
       class
     comments:
-    - not yet implemented
+    - supports cross-table lookups via source_key/lookup_key or the join_on field
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    multivalued: true
-    alias: joins
     owner: ClassDerivation
     domain_of:
     - ClassDerivation
     range: AliasedClass
+    multivalued: true
     inlined: true
   slot_derivations:
     name: slot_derivations
     from_schema: https://w3id.org/linkml/transformer
-    multivalued: true
-    alias: slot_derivations
     owner: ClassDerivation
     domain_of:
     - TransformationSpecification
     - ClassDerivation
     range: SlotDerivation
+    multivalued: true
     inlined: true
+  target_definition:
+    name: target_definition
+    description: LinkML class definition object for this slot.
+    comments:
+    - currently defined as Any to avoid coupling with metamodel
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    owner: ClassDerivation
+    domain_of:
+    - ClassDerivation
+    - SlotDerivation
+    range: Any
+  pivot_operation:
+    name: pivot_operation
+    description: Configuration for pivot (unmelt) operations at class level
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    owner: ClassDerivation
+    domain_of:
+    - ClassDerivation
+    - SlotDerivation
+    range: PivotOperation
   name:
     name: name
     description: Name of the element in the target schema
     from_schema: https://w3id.org/linkml/transformer
-    rank: 1000
-    key: true
-    alias: name
+    identifier: true
     owner: ClassDerivation
     domain_of:
+    - SchemaReference
     - ElementDerivation
+    - ObjectDerivation
     - SlotDerivation
     - EnumDerivation
     - PermissibleValueDerivation
+    - Agent
     range: string
     required: true
   copy_directives:
     name: copy_directives
     from_schema: https://w3id.org/linkml/transformer
-    rank: 1000
-    multivalued: true
-    alias: copy_directives
     owner: ClassDerivation
     domain_of:
+    - TransformationSpecification
     - ElementDerivation
     range: CopyDirective
+    multivalued: true
     inlined: true
   overrides:
     name: overrides
     description: overrides source schema slots
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    alias: overrides
     owner: ClassDerivation
     domain_of:
     - ElementDerivation
@@ -314,7 +465,6 @@ attributes:
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     slot_uri: linkml:is_a
-    alias: is_a
     owner: ClassDerivation
     domain_of:
     - ElementDerivation
@@ -324,55 +474,72 @@ attributes:
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     slot_uri: linkml:mixins
-    multivalued: true
-    alias: mixins
     owner: ClassDerivation
     domain_of:
     - ElementDerivation
     range: ElementDerivation
+    multivalued: true
     inlined: false
   value_mappings:
     name: value_mappings
     description: A mapping table that is applied directly to mappings, in order of
-      precedence
+      precedence. Keys should always be quoted in YAML to prevent type coercion —
+      unquoted true/false become booleans and bare numbers become integers, which
+      will not match the stringified source value used for lookup.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    multivalued: true
-    alias: value_mappings
     owner: ClassDerivation
     domain_of:
     - ElementDerivation
     range: KeyVal
+    multivalued: true
+    inlined: true
+  expression_mappings:
+    name: expression_mappings
+    description: A mapping table where the values are expressions evaluated against
+      source bindings. Looked up by the same key as value_mappings (the stringified
+      source value). Keys should always be quoted (see value_mappings). If both value_mappings
+      and expression_mappings are present, value_mappings takes precedence for keys
+      that appear in both.
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    owner: ClassDerivation
+    domain_of:
+    - ElementDerivation
+    range: KeyVal
+    multivalued: true
     inlined: true
   expression_to_value_mappings:
     name: expression_to_value_mappings
-    description: A mapping table in which the keys are expressions
+    description: 'A mapping table in which the keys are boolean expressions and the
+      values are literal results. On enum derivations, used for scalar binning: each
+      key is evaluated with value() bound to the incoming value, and the first truthy
+      key''s value is returned as the target permissible value. See issue #99.'
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    multivalued: true
-    alias: expression_to_value_mappings
     owner: ClassDerivation
     domain_of:
     - ElementDerivation
     range: KeyVal
+    multivalued: true
     inlined: true
   expression_to_expression_mappings:
     name: expression_to_expression_mappings
     description: A mapping table in which the keys and values are expressions
+    deprecated: 'Deprecated: use case() with and/or operators instead (#127). Will
+      be removed before 1.0.'
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    multivalued: true
-    alias: expression_to_expression_mappings
     owner: ClassDerivation
     domain_of:
     - ElementDerivation
     range: KeyVal
+    multivalued: true
     inlined: true
   mirror_source:
     name: mirror_source
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    alias: mirror_source
     owner: ClassDerivation
     domain_of:
     - ElementDerivation
@@ -383,7 +550,6 @@ attributes:
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     slot_uri: dcterms:description
-    alias: description
     owner: ClassDerivation
     domain_of:
     - SpecificationComponent
@@ -393,12 +559,11 @@ attributes:
     description: A reference to a specification that this component implements.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
-    multivalued: true
-    alias: implements
     owner: ClassDerivation
     domain_of:
     - SpecificationComponent
     range: uriorcurie
+    multivalued: true
   comments:
     name: comments
     description: A list of comments about this component. Comments are free text,
@@ -407,12 +572,11 @@ attributes:
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     slot_uri: rdfs:comment
-    multivalued: true
-    alias: comments
     owner: ClassDerivation
     domain_of:
     - SpecificationComponent
     range: string
+    multivalued: true
 
 ```
-</details>
+</details></div>
