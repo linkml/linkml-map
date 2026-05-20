@@ -40,8 +40,9 @@
         var pageToc = [
           {title: "LinkML-Map", url: "#_top", children: [
               {title: "Architecture", url: "#architecture" },
+              {title: "Quick Start", url: "#quick-start" },
               {title: "Basic idea", url: "#basic-idea" },
-              {title: "Installation and usage", url: "#installation-and-usage" },
+              {title: "Transform your own data", url: "#transform-your-own-data" },
               {title: "Details", url: "#details" },
               {title: "Working with Auto-Generated Schemas", url: "#working-with-auto-generated-schemas" },
               {title: "Data Model", url: "#data-model" },
@@ -233,6 +234,46 @@ text-based representations of transformed data. For loading results into analyti
 <p>Status:</p>
 <p>The transformation data model is not yet fully stable, and may be subject to change.
 Not all parts of the model are implemented in the reference Python framework.</p>
+<h2 id="quick-start">Quick Start</h2>
+<h3 id="install">Install</h3>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>linkml-map
+</code></pre></div>
+<p>Or with <code>uv</code> for project-managed environments:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>add<span class="w"> </span>linkml-map
+</code></pre></div>
+<p>Verify the install:</p>
+<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>--help
+</code></pre></div>
+<p>When using <code>uv</code>, prefix CLI invocations with <code>uv run</code> to use the project environment (e.g. <code>uv run linkml-map --help</code>).</p>
+<h3 id="run-the-included-example">Run the included example</h3>
+<p>The repository includes a <code>personinfo_basic</code> example that transforms <code>Person</code> records into <code>Agent</code> records. Clone the repo to get the example files:</p>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/linkml/linkml-map.git
+<span class="nb">cd</span><span class="w"> </span>linkml-map/tests/input/examples/personinfo_basic
+linkml-map<span class="w"> </span>map-data<span class="w"> </span>--unrestricted-eval<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-T<span class="w"> </span>transform/personinfo-to-agent.transform.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-s<span class="w"> </span>source/personinfo.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>data/Container-001.yaml
+</code></pre></div>
+<p>This produces:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">agents</span><span class="p">:</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">P:001</span>
+<span class="w">  </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fred bloggs</span>
+<span class="w">  </span><span class="nt">age</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">33 years</span>
+<span class="w">  </span><span class="nt">primary_email</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fred.bloggs@example.com</span>
+<span class="w">  </span><span class="nt">driving_since</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2014-03-31</span>
+<span class="w">  </span><span class="nt">first_known_event</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1990-01-01</span>
+<span class="w">  </span><span class="nt">current_address</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">address_of</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">foo</span>
+<span class="w">    </span><span class="nt">street</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1 oak street</span>
+<span class="w">    </span><span class="nt">city</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">oaktown</span>
+<span class="w">  </span><span class="nt">has_familial_relationships</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SIBLING_OF</span>
+<span class="w">    </span><span class="nt">related_to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">P:002</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CHILD_OF</span>
+<span class="w">    </span><span class="nt">related_to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">P:003</span>
+<span class="nn">...</span>
+</code></pre></div>
+<p>This example uses Python-rich expressions (filtering over multivalued slots) which require <code>--unrestricted-eval</code>. Most transformation specifications use simpler expressions and don't need this flag.</p>
 <h2 id="basic-idea">Basic idea</h2>
 <p>Given the LinkML schema</p>
 <div class="highlight"><pre><span></span><code><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/examples/personinfo</span>
@@ -290,8 +331,8 @@ Not all parts of the model are implemented in the reference Python framework.</p
 <p>The schema mapping is a collection of one or more <a href="schema/ClassDerivation/">ClassDerivation</a> objects,
 which themselves consist of one or more <a href="schema/SlotDerivation/">SlotDerivation</a> objects.</p>
 <p>A single specification can contain derivations for multiple target classes, and multiple
-derivations can target the same class (their slot derivations are merged):</p>
-<p>Transform the data:</p>
+derivations can target the same class (their slot derivations are merged).</p>
+<p>Run the transformation:</p>
 <div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>map-data<span class="w"> </span>-T<span class="w"> </span>tr.yaml<span class="w"> </span>-s<span class="w"> </span>schema.yaml<span class="w"> </span>my-data.yaml
 </code></pre></div>
 <p>Giving:</p>
@@ -299,29 +340,29 @@ derivations can target the same class (their slot derivations are merged):</p>
 <span class="nt">height_in_meters</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.72</span>
 <span class="nt">aliases</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Janey|Janie</span>
 </code></pre></div>
-<h2 id="installation-and-usage">Installation and usage</h2>
-<p>Installation and command line usage:</p>
-<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>linkml-map<span class="w">  </span><span class="c1"># or: uv add linkml-map</span>
-<span class="nb">cd</span><span class="w"> </span>tests/input/examples/personinfo_basic
+<h2 id="transform-your-own-data">Transform your own data</h2>
+<p>You need three things:</p>
+<ol>
+<li><strong>A source schema</strong> — a LinkML schema describing your input data</li>
+<li><strong>A transformation specification</strong> — the YAML file describing how source slots map to target slots</li>
+<li><strong>Your data</strong> — files in YAML, JSON, JSONL, TSV, or CSV that conform to the source schema</li>
+</ol>
+<p>Validate the spec first, then run the transformation:</p>
+<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>-p<span class="w"> </span>output
+
+linkml-map<span class="w"> </span>validate-spec<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--source-schema<span class="w"> </span>source.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--target-schema<span class="w"> </span>target.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>transform.yaml
+
 linkml-map<span class="w"> </span>map-data<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-T<span class="w"> </span>transform/personinfo-to-agent.transform.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-s<span class="w"> </span>source/personinfo.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">   </span>data/Container-001.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">   </span>-o<span class="w"> </span>output/Translated-001.yaml
+<span class="w">  </span>-T<span class="w"> </span>transform.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-s<span class="w"> </span>source.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--target-schema<span class="w"> </span>target.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span>output/result.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>data.yaml
 </code></pre></div>
-<p>The command line has subcommands for:</p>
-<ul>
-<li><code>map-data</code> - map data from a source schema to a target schema</li>
-<li><code>derive-schema</code> - derive a target schema from a source schema and a mapping</li>
-<li><code>invert</code> - reverses a mapping</li>
-<li><code>compile</code> - compiles a mapping to another framework<ul>
-<li><code>markdown</code> - for generating static sites</li>
-<li><code>graphviz</code> - for generating visualizations</li>
-<li><code>python</code> - (partial)</li>
-<li><code>sql</code> - SQL/DuckDB (experimental, limited subset)</li>
-</ul>
-</li>
-</ul>
+<p>For large datasets, add <code>--chunk-size N</code> for streaming output. See <a href="#running-the-code">Running the code</a> for the full set of CLI options per subcommand (including directory-mode input, tabular formats, and multi-format output), and the <a href="examples/Tutorial/">Tutorial Notebook</a> for a deeper walk-through of the transformation language itself.</p>
 <h2 id="details">Details</h2>
 <p>This repo contains both:</p>
 <ul>
@@ -398,25 +439,23 @@ This keeps your auto-generated schemas reproducible while adding semantic inform
 <li><a href="specification/compliance/">Compliance Suite</a></li>
 </ul>
 <h2 id="running-the-code">Running the code</h2>
-<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>--help
-Usage:<span class="w"> </span>linkml-map<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
-
-<span class="w">  </span>CLI<span class="w"> </span><span class="k">for</span><span class="w"> </span>linkml-map.
-
-Options:
-<span class="w">  </span>-v,<span class="w"> </span>--verbose
-<span class="w">  </span>-q,<span class="w"> </span>--quiet<span class="w"> </span>TEXT
-<span class="w">  </span>--help<span class="w">            </span>Show<span class="w"> </span>this<span class="w"> </span>message<span class="w"> </span>and<span class="w"> </span>exit.
-
-Commands:
-<span class="w">  </span>derive-schema<span class="w">  </span>Derive<span class="w"> </span>a<span class="w"> </span>schema<span class="w"> </span>from<span class="w"> </span>a<span class="w"> </span><span class="nb">source</span><span class="w"> </span>schema<span class="w"> </span>and<span class="w"> </span>a<span class="w"> </span>mapping.
-<span class="w">  </span>map-data<span class="w">       </span>Map<span class="w"> </span>data<span class="w"> </span><span class="k">in</span><span class="w"> </span>a<span class="w"> </span><span class="nb">source</span><span class="w"> </span>schema<span class="w"> </span>using<span class="w"> </span>a<span class="w"> </span>transformation.
-</code></pre></div>
+<p>The <code>linkml-map</code> CLI has the following subcommands:</p>
+<ul>
+<li><code>map-data</code> — transform data from a source schema using a transformation specification</li>
+<li><code>derive-schema</code> — derive a target schema from a source schema and a transformation specification</li>
+<li><code>invert</code> — invert a transformation specification (when expressions are reversible)</li>
+<li><code>compile</code> — compile a transformation specification to another representation</li>
+<li><code>validate-spec</code> — structurally validate transformation specification files</li>
+</ul>
+<p>Run any subcommand with <code>--help</code> for full options.</p>
 <h3 id="map-data">map-data</h3>
 <p>Transforms (maps) data from a source schema to a target schema. This could range from a simple data dictionary mapping
-through to a complex mappings.</p>
-<div class="highlight"><pre><span></span><code>cd tests/input/examples/personinfo_basic
-linkml-map map-data -T transform/personinfo-to-agent.transform.yaml -s source/personinfo.yaml  data/Container-001.yaml
+through to a complex mapping.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>tests/input/examples/personinfo_basic
+linkml-map<span class="w"> </span>map-data<span class="w"> </span>--unrestricted-eval<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-T<span class="w"> </span>transform/personinfo-to-agent.transform.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-s<span class="w"> </span>source/personinfo.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>data/Container-001.yaml
 </code></pre></div>
 <h4 id="tabular-data-support-tsvcsv">Tabular Data Support (TSV/CSV)</h4>
 <p>The <code>map-data</code> command supports tabular data files (TSV and CSV) as input, enabling transformations
@@ -472,9 +511,24 @@ from a single transformation pass:</p>
 output file whose format is inferred from the file extension (<code>.json</code>, <code>.jsonl</code>,
 <code>.yaml</code>, <code>.yml</code>, <code>.tsv</code>, <code>.csv</code>). All outputs are written in a single streaming pass.</p>
 <h3 id="derive-schema">derive-schema</h3>
-<div class="highlight"><pre><span></span><code>cd tests/input/examples/personinfo_basic
-linkml-map derive-schema -T transform/personinfo-to-agent.transform.yaml source/personinfo.yaml
+<p>Derives a target schema (the "profile") implied by the transformation specification.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>tests/input/examples/personinfo_basic
+linkml-map<span class="w"> </span>derive-schema<span class="w"> </span>-T<span class="w"> </span>transform/personinfo-to-agent.transform.yaml<span class="w"> </span>source/personinfo.yaml
 </code></pre></div>
+<h3 id="validate-spec">validate-spec</h3>
+<p>Structurally validates a transformation specification against source and target schemas. Reports unresolved class/slot references, deprecated fields, and other issues.</p>
+<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>validate-spec<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--source-schema<span class="w"> </span>source/personinfo.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--target-schema<span class="w"> </span>target/agent.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>transform/personinfo-to-agent.transform.yaml
+</code></pre></div>
+<p>Use <code>--strict</code> to treat warnings as errors. Supports validating multiple files or directories of specs in a single call.</p>
+<h3 id="compile">compile</h3>
+<p>Compiles a transformation specification to another representation.</p>
+<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>compile<span class="w"> </span>--target<span class="w"> </span>python<span class="w"> </span>-T<span class="w"> </span>transform.yaml<span class="w"> </span>-s<span class="w"> </span>source.yaml
+linkml-map<span class="w"> </span>compile<span class="w"> </span>--target<span class="w"> </span>markdown<span class="w"> </span>-T<span class="w"> </span>transform.yaml<span class="w"> </span>-s<span class="w"> </span>source.yaml
+</code></pre></div>
+<p>Currently supported <code>--target</code> values are <code>python</code> (default) and <code>markdown</code>. A SQL compilation backend (<code>SQLCompiler</code> / <code>DuckDBTransformer</code>) exists for programmatic use but is not yet exposed through the <code>compile</code> subcommand.</p>
 
   <br>
     
@@ -513,5 +567,5 @@ Edit on GitHub</a>
 </html>
 <!--
 MkDocs version : 1.6.1
-Build Date UTC : 2026-05-14 20:12:47.395908+00:00
+Build Date UTC : 2026-05-20 14:52:02.467330+00:00
 -->
