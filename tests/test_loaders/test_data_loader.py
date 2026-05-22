@@ -425,21 +425,18 @@ class TestSchemaAwareGetFileLoader:
         row = next(loader.iter_instances())
         _assert_schema_aware_row(row)
 
-    def test_ignored_for_yaml(self, tmp_path: Path, schema_file: Path) -> None:
-        """schema_path/target_class are accepted but ignored for non-tabular formats."""
+    def test_rejected_for_yaml(self, tmp_path: Path, schema_file: Path) -> None:
+        """schema_path/target_class are not valid kwargs for non-tabular loaders."""
         yaml_path = tmp_path / "data.yaml"
         yaml_path.write_text(yaml.dump({"id": 1, "zipcode": "90210"}))
-        loader = get_file_loader(yaml_path, schema_path=schema_file, target_class="Record")
-        row = next(loader.iter_instances())
-        assert row["id"] == 1
+        with pytest.raises(TypeError):
+            get_file_loader(yaml_path, schema_path=schema_file, target_class="Record")
 
 
 class TestSchemaAwareDataLoader:
     """DataLoader forwards schema params through to underlying loaders."""
 
-    def test_single_file_with_schema(
-        self, schema_aware_tsv: Path, schema_file: Path
-    ) -> None:
+    def test_single_file_with_schema(self, schema_aware_tsv: Path, schema_file: Path) -> None:
         loader = DataLoader(schema_aware_tsv, schema_path=schema_file, target_class="Record")
         row = next(iter(loader))
         _assert_schema_aware_row(row)
@@ -458,9 +455,7 @@ class TestSchemaAwareDataLoader:
         row = next(loader["Record"])
         assert isinstance(row["zipcode"], int)
 
-    def test_iter_sources_with_schema(
-        self, schema_aware_tsv: Path, schema_file: Path
-    ) -> None:
+    def test_iter_sources_with_schema(self, schema_aware_tsv: Path, schema_file: Path) -> None:
         loader = DataLoader(schema_aware_tsv, schema_path=schema_file, target_class="Record")
         sources = list(loader.iter_sources())
         assert len(sources) == 1

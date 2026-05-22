@@ -137,9 +137,6 @@ class CsvFileLoader(BaseFileLoader):
 def get_file_loader(
     path: str | Path,
     file_format: FileFormat | None = None,
-    *,
-    schema_path: str | Path | None = None,
-    target_class: str | None = None,
     **kwargs: Any,
 ) -> BaseFileLoader:
     """
@@ -147,9 +144,7 @@ def get_file_loader(
 
     :param path: Path to the file
     :param file_format: Explicit file format (auto-detected from extension if not provided)
-    :param schema_path: Path to the LinkML schema (enables schema-aware type coercion for TSV/CSV)
-    :param target_class: Target class name within the schema
-    :param kwargs: Additional arguments passed to the loader
+    :param kwargs: Additional arguments passed to the loader class
     :return: Appropriate file loader instance
     """
     if file_format is None:
@@ -166,10 +161,6 @@ def get_file_loader(
     if loader_class is None:
         msg = f"No loader available for format: {file_format}"
         raise ValueError(msg)
-
-    if file_format in (FileFormat.TSV, FileFormat.CSV):
-        kwargs["schema_path"] = schema_path
-        kwargs["target_class"] = target_class
 
     return loader_class(path, **kwargs)
 
@@ -314,10 +305,10 @@ class DataLoader:
         file_format = FileFormat.from_extension(file_path)
         if file_format in (FileFormat.TSV, FileFormat.CSV):
             loader_kwargs["skip_empty_rows"] = self.skip_empty_rows
+            loader_kwargs["schema_path"] = self.schema_path
+            loader_kwargs["target_class"] = self.target_class
 
-        loader = get_file_loader(
-            file_path, schema_path=self.schema_path, target_class=self.target_class, **loader_kwargs
-        )
+        loader = get_file_loader(file_path, **loader_kwargs)
         return loader.iter_instances()
 
     def __iter__(self) -> Iterator[dict[str, Any]]:
@@ -330,10 +321,10 @@ class DataLoader:
         file_format = FileFormat.from_extension(self.base_path)
         if file_format in (FileFormat.TSV, FileFormat.CSV):
             loader_kwargs["skip_empty_rows"] = self.skip_empty_rows
+            loader_kwargs["schema_path"] = self.schema_path
+            loader_kwargs["target_class"] = self.target_class
 
-        loader = get_file_loader(
-            self.base_path, schema_path=self.schema_path, target_class=self.target_class, **loader_kwargs
-        )
+        loader = get_file_loader(self.base_path, **loader_kwargs)
         yield from loader.iter_instances()
 
     def get_available_identifiers(self) -> list[str]:
