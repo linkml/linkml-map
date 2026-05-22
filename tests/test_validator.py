@@ -1096,6 +1096,44 @@ def test_identity_case_parent_cd_validated_against_runtime():
     assert len(attr_warnings) == 1
 
 
+def test_nested_cd_without_populated_from_inherits_parent_source():
+    """A nested CD without populated_from inherits the parent's effective source.
+
+    Runtime's _derive_nested_objects feeds the parent's row through to a
+    nested CD that omits populated_from, so the validator must resolve
+    ``source_class_slots`` against the parent's effective source class
+    (``parent.populated_from or parent.name``). Otherwise bogus slot refs
+    inside the nested CD silently pass semantic validation.
+    """
+    sv = SchemaView(JOINABLE_SCHEMA)
+    spec = normalize_spec_dict(
+        {
+            "class_derivations": {
+                "Measurement": {
+                    "populated_from": "Measurement",
+                    "slot_derivations": {
+                        "observation": {
+                            # Nested CD inherits parent's source (Measurement) — no populated_from.
+                            "class_derivations": [
+                                {
+                                    "Inner": {
+                                        "slot_derivations": {
+                                            "x": {"populated_from": "bogus_slot"},
+                                        },
+                                    }
+                                }
+                            ],
+                        },
+                    },
+                }
+            }
+        }
+    )
+    msgs = validate_spec_semantics(spec, source_schemaview=sv)
+    errors = [m for m in msgs if m.severity == "error" and "bogus_slot" in m.message]
+    assert len(errors) == 1
+
+
 # ---------------------------------------------------------------------------
 # is_a / mixins resolution (#219, Option C)
 # ---------------------------------------------------------------------------

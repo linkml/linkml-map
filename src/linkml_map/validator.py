@@ -635,10 +635,18 @@ def _validate_class_derivation(
         else:
             source_class_slots = {s.name for s in source_sv.class_induced_slots(source_class)}
 
-    # If source_sv provided but no populated_from, try identity (class name = source class)
+    # If source_sv provided but no populated_from, fall back to match the runtime:
+    # - Nested CDs without populated_from inherit the parent's effective source
+    #   (see ObjectTransformer._derive_nested_objects, which feeds the parent's
+    #   row through when the nested CD has no populated_from).
+    # - Top-level CDs fall back to the identity case (cd_name == source class).
     if source_sv is not None and source_class is None and source_class_slots is None:
-        if cd_name in source_sv.all_classes():
-            source_class_slots = {s.name for s in source_sv.class_induced_slots(cd_name)}
+        if parent_class_deriv is not None:
+            fallback_class = parent_class_deriv.get("populated_from") or parent_class_deriv.get("name")
+        else:
+            fallback_class = cd_name
+        if fallback_class and fallback_class in source_sv.all_classes():
+            source_class_slots = {s.name for s in source_sv.class_induced_slots(fallback_class)}
 
     # Validate slot_derivations (may be list or dict after normalization)
     slot_derivation_dicts = _iter_derivation_dicts(cd.get("slot_derivations", []))
