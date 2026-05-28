@@ -1,11 +1,22 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: exclude 
 
 
-# Slot: exclude
+_Remove certain sub-elements from the list of sub-elements to be copied._
 
-URI: [linkmltr:exclude](https://w3id.org/linkml/transformer/exclude)
+_As of now there it is under-specified, how to specify the sub-elements to exclude. One possible implementation would be a list where all element types can be mixed, since there might not be name conflicts across element types._
 
 
 
+<div data-search-exclude markdown="1">
+
+
+
+URI: [linkmlmap:exclude](https://w3id.org/linkml/transformer/exclude)
 <!-- no inheritance hierarchy -->
 
 
@@ -23,18 +34,37 @@ URI: [linkmltr:exclude](https://w3id.org/linkml/transformer/exclude)
 
 
 
-
 ## Properties
 
-* Range: [Any](Any.md)
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | [Any](Any.md) |
+| Domain Of | [CopyDirective](CopyDirective.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [CopyDirective](CopyDirective.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -48,18 +78,32 @@ URI: [linkmltr:exclude](https://w3id.org/linkml/transformer/exclude)
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:exclude |
+| native | linkmlmap:exclude |
+
+
+
+
 ## LinkML Source
 
 <details>
 ```yaml
 name: exclude
+description: 'Remove certain sub-elements from the list of sub-elements to be copied.
+
+  As of now there it is under-specified, how to specify the sub-elements to exclude.
+  One possible implementation would be a list where all element types can be mixed,
+  since there might not be name conflicts across element types.'
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
-alias: exclude
 owner: CopyDirective
 domain_of:
 - CopyDirective
 range: Any
 
 ```
-</details>
+</details></div>

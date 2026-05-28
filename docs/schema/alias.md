@@ -1,16 +1,20 @@
+---
+search:
+  boost: 5.0
+---
 
-
-# Slot: alias
+# Slot: alias 
 
 
 _name of the class to be aliased_
 
 
 
-URI: [linkmltr:alias](https://w3id.org/linkml/transformer/alias)
+<div data-search-exclude markdown="1">
 
 
 
+URI: [linkmlmap:alias](https://w3id.org/linkml/transformer/alias)
 <!-- no inheritance hierarchy -->
 
 
@@ -28,20 +32,39 @@ URI: [linkmltr:alias](https://w3id.org/linkml/transformer/alias)
 
 
 
-
 ## Properties
 
-* Range: NONE
+### Type and Range
 
-* Required: True
+| Property | Value |
+| --- | --- |
+| Range | NONE |
+| Domain Of | [AliasedClass](AliasedClass.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+| Required | Yes |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Key | Yes |
+| Owner | [AliasedClass](AliasedClass.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -55,6 +78,16 @@ URI: [linkmltr:alias](https://w3id.org/linkml/transformer/alias)
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:alias |
+| native | linkmlmap:alias |
+
+
+
+
 ## LinkML Source
 
 <details>
@@ -64,11 +97,10 @@ description: name of the class to be aliased
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 key: true
-alias: alias
 owner: AliasedClass
 domain_of:
 - AliasedClass
 required: true
 
 ```
-</details>
+</details></div>

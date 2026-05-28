@@ -1,11 +1,15 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: element_name 
+
+<div data-search-exclude markdown="1">
 
 
-# Slot: element_name
 
-URI: [linkmltr:element_name](https://w3id.org/linkml/transformer/element_name)
-
-
-
+URI: [linkmlmap:element_name](https://w3id.org/linkml/transformer/element_name)
 <!-- no inheritance hierarchy -->
 
 
@@ -23,20 +27,39 @@ URI: [linkmltr:element_name](https://w3id.org/linkml/transformer/element_name)
 
 
 
-
 ## Properties
 
-* Range: NONE
+### Type and Range
 
-* Required: True
+| Property | Value |
+| --- | --- |
+| Range | NONE |
+| Domain Of | [CopyDirective](CopyDirective.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+| Required | Yes |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Key | Yes |
+| Owner | [CopyDirective](CopyDirective.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -50,6 +73,16 @@ URI: [linkmltr:element_name](https://w3id.org/linkml/transformer/element_name)
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:element_name |
+| native | linkmlmap:element_name |
+
+
+
+
 ## LinkML Source
 
 <details>
@@ -58,11 +91,10 @@ name: element_name
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 key: true
-alias: element_name
 owner: CopyDirective
 domain_of:
 - CopyDirective
 required: true
 
 ```
-</details>
+</details></div>

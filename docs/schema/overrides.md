@@ -1,16 +1,20 @@
+---
+search:
+  boost: 5.0
+---
 
-
-# Slot: overrides
+# Slot: overrides 
 
 
 _overrides source schema slots_
 
 
 
-URI: [linkmltr:overrides](https://w3id.org/linkml/transformer/overrides)
+<div data-search-exclude markdown="1">
 
 
 
+URI: [linkmlmap:overrides](https://w3id.org/linkml/transformer/overrides)
 <!-- no inheritance hierarchy -->
 
 
@@ -21,13 +25,13 @@ URI: [linkmltr:overrides](https://w3id.org/linkml/transformer/overrides)
 
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
-| [EnumDerivation](EnumDerivation.md) | A specification of how to derive the value of a target enum from a source enu... |  no  |
+| [ElementDerivation](ElementDerivation.md) | An abstract grouping for classes that provide a specification of how to deriv... |  no  |
 | [ClassDerivation](ClassDerivation.md) | A specification of how to derive a target class from a source class |  no  |
-| [PrefixDerivation](PrefixDerivation.md) |  |  no  |
+| [ObjectDerivation](ObjectDerivation.md) | Deprecated |  no  |
 | [SlotDerivation](SlotDerivation.md) | A specification of how to derive the value of a target slot from a source slo... |  no  |
+| [EnumDerivation](EnumDerivation.md) | A specification of how to derive the value of a target enum from a source enu... |  no  |
 | [PermissibleValueDerivation](PermissibleValueDerivation.md) | A specification of how to derive the value of a PV from a source enum |  no  |
-| [ElementDerivation](ElementDerivation.md) | An abstract grouping for classes that provide a specification of how to  deri... |  no  |
-
+| [PrefixDerivation](PrefixDerivation.md) |  |  no  |
 
 
 
@@ -36,15 +40,35 @@ URI: [linkmltr:overrides](https://w3id.org/linkml/transformer/overrides)
 
 ## Properties
 
-* Range: [Any](Any.md)
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | [Any](Any.md) |
+| Domain Of | [ElementDerivation](ElementDerivation.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [ElementDerivation](ElementDerivation.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -58,6 +82,16 @@ URI: [linkmltr:overrides](https://w3id.org/linkml/transformer/overrides)
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:overrides |
+| native | linkmlmap:overrides |
+
+
+
+
 ## LinkML Source
 
 <details>
@@ -66,11 +100,10 @@ name: overrides
 description: overrides source schema slots
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
-alias: overrides
 owner: ElementDerivation
 domain_of:
 - ElementDerivation
 range: Any
 
 ```
-</details>
+</details></div>

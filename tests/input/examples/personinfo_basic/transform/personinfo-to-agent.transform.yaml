@@ -14,9 +14,9 @@ author:
   - id: https://orcid.org/0000-0002-7356-1779
 publication_date: 2025-08-14
 source_schema:
-  name: https://w3id.org/linkml/map/example/personinfo.yaml
+  name: ../source/personinfo.yaml
 target_schema:
-  name: https://w3id.org/linkml/map/example/agent.yaml
+  name: ../target/agent.yaml
 mapping_method: semapv:ManualMappingCuration
 class_derivations:
   Container:
@@ -28,7 +28,7 @@ class_derivations:
     #  "*":
     #    copy_all: true
   Entity:
-    description: Abstract base derivation for entity-like target classes
+    description: Abstract base for entity-like target classes
   Agent:
     is_a: Entity
     populated_from: Person
@@ -99,14 +99,6 @@ class_derivations:
       has_familial_relationships:
         populated_from: has_familial_relationships
 
-  Job:
-    #primitive: uriorcurie
-    slot_derivations:
-      type:
-      #  this: true   ## use input primitive
-      current:
-        expr: "True"
-
   Address:
     populated_from: Address
     slot_derivations:
@@ -130,38 +122,8 @@ class_derivations:
       #    slot_name: has_familial_relationships
       #    class_name: Person
 
-  SequenceFeature:
-    slot_derivations:
-      type:
-        type_designator: true
-        hide: true
-        populated_from: feature_type
-
-  DenormMapping:
-    populated_from: Mapping
-    #joins:
-    #  subject: Entity
-    #  object: Entity
-    slot_derivations:
-      id:         ## implicitly mapping.id
-      creator:
-      license:
-      subject_id:
-        expr: subject.id
-      subject_name:
-        expr: subject.name
-      object_id:
-        expr: object.id
-      object_name:
-        expr: object.name
-      predicate_id:
-        ## implicitly: mapping.predicate
-        populated_from: predicate
-      predicate_label:
-        expr: "lookup(predicate)"
-
 enum_derivations:
-  MyFamilialRelationshipType:
+  FamilialRelationshipType:
     populated_from: FamilialRelationshipType
     mirror_source: true
     permissible_value_derivations:

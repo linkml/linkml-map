@@ -1,6 +1,11 @@
+---
+search:
+  boost: 10.0
+---
 
+# Class: Any 
 
-# Class: Any
+<div data-search-exclude markdown="1">
 
 
 
@@ -10,18 +15,23 @@ URI: [linkml:Any](https://w3id.org/linkml/Any)
 
 
 
-
 ```mermaid
  classDiagram
     class Any
-    click Any href "../Any"
-
+    click Any href "../Any/"
+      
 ```
 
 
 
 
 <!-- no inheritance hierarchy -->
+
+## Class Properties
+
+| Property | Value |
+| --- | --- |
+| Class URI | [linkml:Any](https://w3id.org/linkml/Any) |
 
 
 ## Slots
@@ -58,9 +68,13 @@ URI: [linkml:Any](https://w3id.org/linkml/Any)
 
 
 
+
+
+
+
+
+
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -80,7 +94,6 @@ URI: [linkml:Any](https://w3id.org/linkml/Any)
 | ---  | ---  |
 | self | linkml:Any |
 | native | linkmlmap:Any |
-
 
 
 
@@ -111,4 +124,4 @@ from_schema: https://w3id.org/linkml/transformer
 class_uri: linkml:Any
 
 ```
-</details>
+</details></div>

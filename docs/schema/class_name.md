@@ -1,11 +1,15 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: class_name 
+
+<div data-search-exclude markdown="1">
 
 
-# Slot: class_name
 
-URI: [linkmltr:class_name](https://w3id.org/linkml/transformer/class_name)
-
-
-
+URI: [linkmlmap:class_name](https://w3id.org/linkml/transformer/class_name)
 <!-- no inheritance hierarchy -->
 
 
@@ -23,18 +27,37 @@ URI: [linkmltr:class_name](https://w3id.org/linkml/transformer/class_name)
 
 
 
-
 ## Properties
 
-* Range: NONE
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | NONE |
+| Domain Of | [Inverse](Inverse.md) |
+
+### Cardinality and Requirements
+
+| Property | Value |
+| --- | --- |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [Inverse](Inverse.md) |
+
+
+
+
+
+
+
 
 
 
 
 
 ## Identifier and Mapping Information
-
-
 
 
 
@@ -48,6 +71,16 @@ URI: [linkmltr:class_name](https://w3id.org/linkml/transformer/class_name)
 
 
 
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:class_name |
+| native | linkmlmap:class_name |
+
+
+
+
 ## LinkML Source
 
 <details>
@@ -55,10 +88,9 @@ URI: [linkmltr:class_name](https://w3id.org/linkml/transformer/class_name)
 name: class_name
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
-alias: class_name
 owner: Inverse
 domain_of:
 - Inverse
 
 ```
-</details>
+</details></div>
