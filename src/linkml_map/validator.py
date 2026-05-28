@@ -544,9 +544,21 @@ def validate_spec_semantics(
     # top-level CD list.
     derivation_pool = _collect_class_derivation_pool(data)
 
+    # Precompute once and thread through the recursion: every nested CD
+    # would otherwise rebuild it in _build_joined_class_map and _check_cross_table_join.
+    source_all_classes = set(source_sv.all_classes()) if source_sv is not None else set()
+
     # Validate class_derivations (recurses into nested CDs internally)
     for cd in _iter_derivation_dicts(data.get("class_derivations", [])):
-        _validate_class_derivation(cd, source_sv, target_sv, strict, messages, derivation_pool=derivation_pool)
+        _validate_class_derivation(
+            cd,
+            source_sv,
+            target_sv,
+            strict,
+            messages,
+            derivation_pool=derivation_pool,
+            source_all_classes=source_all_classes,
+        )
 
     # Validate enum_derivations
     for ed in _iter_derivation_dicts(data.get("enum_derivations", [])):
@@ -576,6 +588,7 @@ def _validate_class_derivation(
     parent_class_deriv: dict[str, Any] | None = None,
     parent_path: str = "",
     derivation_pool: set[str] | None = None,
+    source_all_classes: set[str] | None = None,
 ) -> None:
     """Validate a single class derivation against schemas.
 
@@ -591,14 +604,20 @@ def _validate_class_derivation(
     :param derivation_pool: Names of all top-level class_derivations in
         the spec. Used to resolve ``is_a``/``mixins`` (#219). ``None``
         skips the check.
+    :param source_all_classes: Precomputed ``set(source_sv.all_classes())``,
+        shared across recursion so each nested CD doesn't rebuild it.
+        ``None`` triggers a local computation (callers outside the
+        public entrypoint).
     """
+    if source_all_classes is None:
+        source_all_classes = set(source_sv.all_classes()) if source_sv is not None else set()
     cd_name = cd.get("name", "?")
     cd_path = f"{parent_path}.class_derivations[{cd_name}]" if parent_path else f"class_derivations[{cd_name}]"
 
     # Cross-table check for nested CDs (closes #211): does the nested CD's
     # populated_from differ from its parent's, and can the join be resolved?
     if parent_class_deriv is not None:
-        _check_cross_table_join(cd, parent_class_deriv, source_sv, cd_path, messages)
+        _check_cross_table_join(cd, parent_class_deriv, source_sv, cd_path, messages, source_all_classes)
 
     # is_a / mixins resolution check (closes #219).
     if derivation_pool is not None:
@@ -623,8 +642,7 @@ def _validate_class_derivation(
     source_class = cd.get("populated_from")
     source_class_slots: set[str] | None = None
     if source_sv is not None and source_class is not None:
-        source_classes = set(source_sv.all_classes())
-        if source_class not in source_classes:
+        if source_class not in source_all_classes:
             messages.append(
                 ValidationMessage(
                     severity="error",
@@ -645,7 +663,7 @@ def _validate_class_derivation(
             fallback_class = parent_class_deriv.get("populated_from") or parent_class_deriv.get("name")
         else:
             fallback_class = cd_name
-        if fallback_class and fallback_class in source_sv.all_classes():
+        if fallback_class and fallback_class in source_all_classes:
             source_class_slots = {s.name for s in source_sv.class_induced_slots(fallback_class)}
 
     # Validate slot_derivations (may be list or dict after normalization)
@@ -654,7 +672,7 @@ def _validate_class_derivation(
     # Build alias -> slot-set map for cross-table expression reference checks.
     # Covers both explicit `joins:` aliases and the nested-CD populated_from
     # targets that #212's normalization will synthesize joins for.
-    joined_class_slots = _build_joined_class_map(cd, source_sv, slot_derivation_dicts)
+    joined_class_slots = _build_joined_class_map(cd, source_sv, slot_derivation_dicts, source_all_classes)
 
     for sd in slot_derivation_dicts:
         sd_name = sd.get("name", "?")
@@ -681,6 +699,7 @@ def _validate_class_derivation(
                 parent_class_deriv=cd,
                 parent_path=sd_path,
                 derivation_pool=derivation_pool,
+                source_all_classes=source_all_classes,
             )
 
     # Warning: target class has required slots with no derivation
@@ -701,6 +720,7 @@ def _build_joined_class_map(
     cd: dict[str, Any],
     source_sv: SchemaView | None,
     slot_derivation_dicts: list[dict[str, Any]],
+    source_all_classes: set[str],
 ) -> dict[str, tuple[str, set[str] | None]]:
     """Map alias names to the resolved joined-class name and its slot set.
 
@@ -717,6 +737,8 @@ def _build_joined_class_map(
     :param source_sv: Source schema view, or ``None``.
     :param slot_derivation_dicts: Pre-iterated slot derivations (avoids
         re-walking).
+    :param source_all_classes: Precomputed ``set(source_sv.all_classes())``
+        threaded from the validation entrypoint.
     :returns: Mapping of alias name to a ``(joined_class_name, slot_set)``
         tuple. ``slot_set`` is ``None`` when the joined class can't be
         resolved in the source schema (or when no source schema is
@@ -725,7 +747,6 @@ def _build_joined_class_map(
         ``class_named`` joins.
     """
     result: dict[str, tuple[str, set[str] | None]] = {}
-    all_classes = set(source_sv.all_classes()) if source_sv is not None else set()
 
     joins = cd.get("joins") or {}
     if isinstance(joins, dict):
@@ -735,7 +756,7 @@ def _build_joined_class_map(
                 joined_class = spec.get("class_named") or alias
             else:
                 joined_class = alias
-            if source_sv is not None and joined_class in all_classes:
+            if source_sv is not None and joined_class in source_all_classes:
                 slots = {s.name for s in source_sv.class_induced_slots(joined_class)}
                 result[alias] = (joined_class, slots)
             else:
@@ -750,7 +771,7 @@ def _build_joined_class_map(
             for nested in _iter_derivation_dicts(sd.get("class_derivations", [])):
                 nested_source = nested.get("populated_from")
                 if nested_source and nested_source != parent_source and nested_source not in result:
-                    if nested_source in all_classes:
+                    if nested_source in source_all_classes:
                         slots = {s.name for s in source_sv.class_induced_slots(nested_source)}
                         result[nested_source] = (nested_source, slots)
                     else:
@@ -765,6 +786,7 @@ def _check_cross_table_join(
     source_sv: SchemaView | None,
     nested_path: str,
     messages: list[ValidationMessage],
+    source_all_classes: set[str],
 ) -> None:
     """Diagnose nested CDs that reference a different source table than their parent.
 
@@ -816,8 +838,7 @@ def _check_cross_table_join(
 
     from linkml_map.utils.join_utils import find_common_columns, pick_join_key
 
-    all_classes = set(source_sv.all_classes())
-    if parent_source not in all_classes or nested_source not in all_classes:
+    if parent_source not in source_all_classes or nested_source not in source_all_classes:
         # Missing-class errors are emitted elsewhere; can't predict joinability.
         return
 
