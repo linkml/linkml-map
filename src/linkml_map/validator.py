@@ -545,8 +545,10 @@ def validate_spec_semantics(
     derivation_pool = _collect_class_derivation_pool(data)
 
     # Precompute once and thread through the recursion: every nested CD
-    # would otherwise rebuild it in _build_joined_class_map and _check_cross_table_join.
+    # would otherwise rebuild these in _build_joined_class_map,
+    # _check_cross_table_join, and _check_class_inheritance_refs.
     source_all_classes = set(source_sv.all_classes()) if source_sv is not None else set()
+    target_all_classes = set(target_sv.all_classes()) if target_sv is not None else set()
 
     # Validate class_derivations (recurses into nested CDs internally)
     for cd in _iter_derivation_dicts(data.get("class_derivations", [])):
@@ -558,6 +560,7 @@ def validate_spec_semantics(
             messages,
             derivation_pool=derivation_pool,
             source_all_classes=source_all_classes,
+            target_all_classes=target_all_classes,
         )
 
     # Validate enum_derivations
@@ -589,6 +592,7 @@ def _validate_class_derivation(
     parent_path: str = "",
     derivation_pool: set[str] | None = None,
     source_all_classes: set[str] | None = None,
+    target_all_classes: set[str] | None = None,
 ) -> None:
     """Validate a single class derivation against schemas.
 
@@ -608,9 +612,13 @@ def _validate_class_derivation(
         shared across recursion so each nested CD doesn't rebuild it.
         ``None`` triggers a local computation (callers outside the
         public entrypoint).
+    :param target_all_classes: Precomputed ``set(target_sv.all_classes())``,
+        same rationale as ``source_all_classes``.
     """
     if source_all_classes is None:
         source_all_classes = set(source_sv.all_classes()) if source_sv is not None else set()
+    if target_all_classes is None:
+        target_all_classes = set(target_sv.all_classes()) if target_sv is not None else set()
     cd_name = cd.get("name", "?")
     cd_path = f"{parent_path}.class_derivations[{cd_name}]" if parent_path else f"class_derivations[{cd_name}]"
 
@@ -621,13 +629,12 @@ def _validate_class_derivation(
 
     # is_a / mixins resolution check (closes #219).
     if derivation_pool is not None:
-        _check_class_inheritance_refs(cd, cd_path, derivation_pool, target_sv, messages)
+        _check_class_inheritance_refs(cd, cd_path, derivation_pool, target_sv, messages, target_all_classes)
 
     # Target: class name should exist
     target_class_slots: set[str] | None = None
     if target_sv is not None:
-        target_classes = set(target_sv.all_classes())
-        if cd_name not in target_classes:
+        if cd_name not in target_all_classes:
             messages.append(
                 ValidationMessage(
                     severity="error",
@@ -700,6 +707,7 @@ def _validate_class_derivation(
                 parent_path=sd_path,
                 derivation_pool=derivation_pool,
                 source_all_classes=source_all_classes,
+                target_all_classes=target_all_classes,
             )
 
     # Warning: target class has required slots with no derivation
@@ -831,6 +839,35 @@ def _check_cross_table_join(
                     ),
                 )
             )
+        elif source_sv is not None and parent_source in source_all_classes and nested_source in source_all_classes:
+            # Keys are declared — verify they exist on the respective source
+            # classes. A typo'd key passes the structural check but produces
+            # silent nulls at runtime: ``source_obj.get(missing_key)`` returns
+            # None, the join match fails, cross-table values resolve to null.
+            parent_slots = {s.name for s in source_sv.class_induced_slots(parent_source)}
+            nested_slots = {s.name for s in source_sv.class_induced_slots(nested_source)}
+            if join_on:
+                key_checks = [(join_on, parent_slots, parent_source), (join_on, nested_slots, nested_source)]
+                key_label = "join_on"
+            else:
+                key_checks = [(source_key, parent_slots, parent_source), (lookup_key, nested_slots, nested_source)]
+            for i, (key_value, slot_set, class_name) in enumerate(key_checks):
+                if key_value in slot_set:
+                    continue
+                if not join_on:
+                    key_label = "source_key" if i == 0 else "lookup_key"
+                messages.append(
+                    ValidationMessage(
+                        severity="warning",
+                        path=nested_path,
+                        message=(
+                            f"Join spec for '{nested_source}': "
+                            f"'{key_label}={key_value}' is not a slot on source class "
+                            f"'{class_name}'. Runtime will silently resolve cross-table "
+                            f"values to null."
+                        ),
+                    )
+                )
         return
 
     if source_sv is None:
@@ -887,6 +924,7 @@ def _check_class_inheritance_refs(
     derivation_pool: set[str],
     target_sv: SchemaView | None,
     messages: list[ValidationMessage],
+    target_all_classes: set[str],
 ) -> None:
     """Resolve ``is_a`` and ``mixins`` string references (closes #219).
 
@@ -914,12 +952,10 @@ def _check_class_inheritance_refs(
     if not parents or target_sv is None:
         return
 
-    target_classes = set(target_sv.all_classes())
-
     for field_label, parent_name in parents:
         if parent_name in derivation_pool:
             continue
-        if parent_name in target_classes:
+        if parent_name in target_all_classes:
             continue
         messages.append(
             ValidationMessage(

@@ -1353,6 +1353,63 @@ def test_cross_table_source_key_only_emits_warning():
     assert len(warnings) == 1
 
 
+def test_cross_table_join_on_typo_emits_warning_per_side():
+    """A join_on key that exists on neither side emits a warning naming each class."""
+    sv = SchemaView(JOINABLE_SCHEMA)
+    spec = _nested_spec(
+        outer_pf="Measurement",
+        inner_pf="Reading",
+        joins={"Reading": {"join_on": "subjet_id"}},  # typo
+    )
+    msgs = validate_spec_semantics(spec, source_schemaview=sv)
+    warnings = [m for m in _warnings(msgs) if "'join_on=subjet_id' is not a slot" in m.message]
+    assert len(warnings) == 2
+    classes_named = {w.message.split("source class '")[1].split("'")[0] for w in warnings}
+    assert classes_named == {"Measurement", "Reading"}
+
+
+def test_cross_table_join_on_one_sided_emits_single_warning():
+    """A join_on key present on parent but absent on nested fires only for the nested side."""
+    sv = SchemaView(JOINABLE_SCHEMA)
+    spec = _nested_spec(
+        outer_pf="Measurement",
+        inner_pf="Reading",
+        joins={"Reading": {"join_on": "method"}},  # method exists on Measurement, not Reading
+    )
+    msgs = validate_spec_semantics(spec, source_schemaview=sv)
+    warnings = [m for m in _warnings(msgs) if "'join_on=method' is not a slot" in m.message]
+    assert len(warnings) == 1
+    assert "'Reading'" in warnings[0].message
+
+
+def test_cross_table_source_key_typo_emits_warning():
+    """A source_key absent on the parent class emits a warning."""
+    sv = SchemaView(JOINABLE_SCHEMA)
+    spec = _nested_spec(
+        outer_pf="Measurement",
+        inner_pf="Reading",
+        joins={"Reading": {"source_key": "subjet_id", "lookup_key": "subject_id"}},
+    )
+    msgs = validate_spec_semantics(spec, source_schemaview=sv)
+    warnings = [m for m in _warnings(msgs) if "'source_key=subjet_id' is not a slot" in m.message]
+    assert len(warnings) == 1
+    assert "'Measurement'" in warnings[0].message
+
+
+def test_cross_table_lookup_key_typo_emits_warning():
+    """A lookup_key absent on the nested class emits a warning."""
+    sv = SchemaView(JOINABLE_SCHEMA)
+    spec = _nested_spec(
+        outer_pf="Measurement",
+        inner_pf="Reading",
+        joins={"Reading": {"source_key": "subject_id", "lookup_key": "subjet_id"}},
+    )
+    msgs = validate_spec_semantics(spec, source_schemaview=sv)
+    warnings = [m for m in _warnings(msgs) if "'lookup_key=subjet_id' is not a slot" in m.message]
+    assert len(warnings) == 1
+    assert "'Reading'" in warnings[0].message
+
+
 # ---------------------------------------------------------------------------
 # Joined-class error message includes resolved class name when aliased
 # ---------------------------------------------------------------------------
