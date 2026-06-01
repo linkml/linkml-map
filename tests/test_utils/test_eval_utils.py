@@ -408,8 +408,31 @@ def test_function_distributes_over_lists() -> None:
 
 def test_unknown_function_raises() -> None:
     """Calling an unknown function raises an error with a helpful message."""
-    with pytest.raises(Exception, match="Unknown function 'my_func'"):
+    with pytest.raises(Exception, match="Unknown function 'my_func'") as excinfo:
         eval_expr("my_func(1)")
+    assert "--functions" in str(excinfo.value)
+
+
+def test_unknown_underscore_function_omits_extensions_hint() -> None:
+    """Names starting with ``_`` cannot be loaded via ``--functions``.
+
+    The extension loader skips ``_``-prefixed names, so suggesting
+    ``--functions`` would mislead the user. The error message stays minimal.
+    """
+    from linkml_map.utils.eval_utils import UnknownFunctionError
+
+    with pytest.raises(UnknownFunctionError, match="Unknown function '_hidden'") as excinfo:
+        eval_expr("_hidden(1)")
+    assert "--functions" not in str(excinfo.value)
+
+
+def test_import_call_reports_unsupported() -> None:
+    """``__import__`` raises with an explicit unsupported-feature message."""
+    from linkml_map.utils.eval_utils import UnknownFunctionError
+
+    with pytest.raises(UnknownFunctionError, match="Import expressions are not supported") as excinfo:
+        eval_expr("__import__('os')")
+    assert "--functions" not in str(excinfo.value)
 
 
 # ---- Conditionals ----
@@ -553,7 +576,7 @@ def test_import_blocked() -> None:
     """Import expressions are not supported."""
     from simpleeval import InvalidExpression
 
-    with pytest.raises(InvalidExpression, match="__import__"):
+    with pytest.raises(InvalidExpression, match="Import expressions are not supported"):
         eval_expr("__import__('os').listdir()")
 
 
@@ -1209,11 +1232,12 @@ def test_substr_null_in_list() -> None:
         ('slugify("Hello, World!")', {}, "hello_world"),
         ('slugify("Schöne Grüße")', {}, "schone_grusse"),
         ('slugify("Smith, J.R. (Jr.)")', {}, "smith_j_r_jr"),
-        ('slugify("123 hits")', {}, "123_hits"),
+        ('slugify("123 hits")', {}, "_123_hits"),
+        ('slugify("9lives", "-")', {}, "-9lives"),
         ('slugify("café-au-lait", "-")', {}, "cafe-au-lait"),
         ("slugify(x)", {"x": "Hello World"}, "hello_world"),
     ],
-    ids=["basic", "unicode", "punctuation", "leading_digit", "dash_sep", "with_var"],
+    ids=["basic", "unicode", "punctuation", "leading_digit", "leading_digit_dash_sep", "dash_sep", "with_var"],
 )
 def test_slugify(expr: str, kwargs: dict, expected: str) -> None:
     """slugify converts arbitrary strings to identifier-shaped slugs."""

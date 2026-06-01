@@ -226,9 +226,11 @@ def _slugify(s: str, separator: str = "_") -> str | None:
     """Slugify a string to an identifier-shaped form.
 
     ASCII-folds, lowercases, and collapses non-alphanumeric runs to
-    ``separator``. Returns ``None`` if no identifier-shaped content remains —
-    matching the SQL-style null convention so ``slugify`` composes with
-    ``or``-chain fallbacks::
+    ``separator``. If the result would start with a digit, prefixes
+    ``separator`` so the output is a valid identifier in downstream contexts
+    that disallow digit-leading names. Returns ``None`` if no identifier-shaped
+    content remains — matching the SQL-style null convention so ``slugify``
+    composes with ``or``-chain fallbacks::
 
         expr: "slugify(name) or slugify(label) or 'anonymous'"
 
@@ -240,12 +242,17 @@ def _slugify(s: str, separator: str = "_") -> str | None:
     'schone_grusse'
     >>> _slugify("café-au-lait", separator="-")
     'cafe-au-lait'
+    >>> _slugify("123 hits")
+    '_123_hits'
     >>> _slugify("!!!") is None
     True
     >>> _slugify("") is None
     True
     """
-    return _slugify_lib(s, separator=separator, lowercase=True) or None
+    result = _slugify_lib(s, separator=separator, lowercase=True) or None
+    if result is not None and result[0].isdigit():
+        result = f"{separator}{result}"
+    return result
 
 
 def _to_snake(s: str) -> str:
@@ -554,10 +561,20 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
         Replaces simpleeval's default ``FunctionNotDefined`` message ("Function
         'X' not defined") with one that includes Levenshtein suggestions and a
         pointer to ``--functions`` for the missing-extension case.
+
+        Names starting with ``_`` cannot be loaded via ``--functions`` (the
+        extension loader skips them), so we omit the ``--functions`` hint and
+        special-case ``__import__`` with an explicit unsupported-feature
+        message rather than misleading users into thinking it could be enabled.
         """
         if isinstance(node.func, ast.Name) and node.func.id not in self.functions:
-            msg = suggest_for_unknown_name(node.func.id, known_names=self.functions.keys())
-            raise UnknownFunctionError(node.func.id, msg) from None
+            name = node.func.id
+            if name == "__import__":
+                raise UnknownFunctionError(name, "Import expressions are not supported.") from None
+            if name.startswith("_"):
+                raise UnknownFunctionError(name, f"Unknown function {name!r}.") from None
+            msg = suggest_for_unknown_name(name, known_names=self.functions.keys())
+            raise UnknownFunctionError(name, msg) from None
         return super()._eval_call(node)
 
     def _eval_name(self, node: ast.Name) -> Any:  # noqa: ANN401
