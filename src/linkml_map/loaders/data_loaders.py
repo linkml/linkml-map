@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from linkml_runtime import SchemaView
 
 
 class FileFormat(str, Enum):
@@ -144,7 +145,7 @@ def get_file_loader(
 
     :param path: Path to the file
     :param file_format: Explicit file format (auto-detected from extension if not provided)
-    :param kwargs: Additional arguments passed to the loader class
+    :param kwargs: Additional arguments passed to the loader
     :return: Appropriate file loader instance
     """
     if file_format is None:
@@ -193,8 +194,7 @@ class DataLoader:
         base_path: str | Path,
         default_format: FileFormat | None = None,
         skip_empty_rows: bool = True,
-        schema_path: str | Path | None = None,
-        target_class: str | None = None,
+        schemaview: SchemaView | None = None,
     ) -> None:
         """
         Initialize the data loader.
@@ -202,8 +202,8 @@ class DataLoader:
         :param base_path: Base directory containing data files, or a single file path
         :param default_format: Default format to use when extension is ambiguous
         :param skip_empty_rows: Skip empty rows in tabular files (default: True)
-        :param schema_path: Path to the LinkML schema (enables schema-aware type coercion for TSV/CSV)
-        :param target_class: Target class name within the schema
+        :param schemaview: Source schema (enables schema-aware type coercion for TSV/CSV).
+            The target class is derived from each file's identifier.
         :raises FileNotFoundError: If the path does not exist
         """
         self.base_path = Path(base_path)
@@ -212,8 +212,26 @@ class DataLoader:
             raise FileNotFoundError(msg)
         self.default_format = default_format
         self.skip_empty_rows = skip_empty_rows
-        self.schema_path = schema_path
-        self.target_class = target_class
+        self.schemaview = schemaview
+
+    def _schema_loader_kwargs(self, identifier: str) -> dict[str, Any]:
+        """
+        Build schema-aware kwargs for a TSV/CSV leaf loader.
+
+        linkml's delimited loader currently takes a ``schema_path``, so we bridge
+        the in-scope :class:`SchemaView` to its source file. When that loader gains
+        native ``SchemaView`` support, this is the single spot that changes.
+
+        :param identifier: Names the source class the file's rows conform to.
+        :return: ``schema_path``/``target_class`` kwargs, or empty if no schema is
+            available (in-memory schemas with no source file degrade to no coercion).
+        """
+        if self.schemaview is None:
+            return {}
+        schema_path = self.schemaview.schema.source_file
+        if schema_path is None:
+            return {}
+        return {"schema_path": schema_path, "target_class": identifier}
 
     @property
     def is_single_file(self) -> bool:
@@ -305,8 +323,7 @@ class DataLoader:
         file_format = FileFormat.from_extension(file_path)
         if file_format in (FileFormat.TSV, FileFormat.CSV):
             loader_kwargs["skip_empty_rows"] = self.skip_empty_rows
-            loader_kwargs["schema_path"] = self.schema_path
-            loader_kwargs["target_class"] = self.target_class
+            loader_kwargs.update(self._schema_loader_kwargs(identifier))
 
         loader = get_file_loader(file_path, **loader_kwargs)
         return loader.iter_instances()
@@ -321,8 +338,8 @@ class DataLoader:
         file_format = FileFormat.from_extension(self.base_path)
         if file_format in (FileFormat.TSV, FileFormat.CSV):
             loader_kwargs["skip_empty_rows"] = self.skip_empty_rows
-            loader_kwargs["schema_path"] = self.schema_path
-            loader_kwargs["target_class"] = self.target_class
+            # Single-file mode: the file stem names the source class.
+            loader_kwargs.update(self._schema_loader_kwargs(self.base_path.stem))
 
         loader = get_file_loader(self.base_path, **loader_kwargs)
         yield from loader.iter_instances()

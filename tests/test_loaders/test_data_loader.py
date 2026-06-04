@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 import yaml
+from linkml_runtime import SchemaView
 
 from linkml_map.loaders import DataLoader, FileFormat, load_data_file
 from linkml_map.loaders.data_loaders import CsvFileLoader, TsvFileLoader, get_file_loader
@@ -437,14 +438,16 @@ class TestSchemaAwareDataLoader:
     """DataLoader forwards schema params through to underlying loaders."""
 
     def test_single_file_with_schema(self, schema_aware_tsv: Path, schema_file: Path) -> None:
-        loader = DataLoader(schema_aware_tsv, schema_path=schema_file, target_class="Record")
+        # Single-file mode derives target_class from the file stem ("Record").
+        loader = DataLoader(schema_aware_tsv, schemaview=SchemaView(str(schema_file)))
         row = next(iter(loader))
         _assert_schema_aware_row(row)
 
     def test_directory_with_schema(self, tmp_path: Path, schema_file: Path) -> None:
         tsv_path = tmp_path / "Record.tsv"
         tsv_path.write_text("id\tzipcode\tscore\tweight\n1\t90210\t2\t3.5\n")
-        loader = DataLoader(tmp_path, schema_path=schema_file, target_class="Record")
+        # Directory mode derives target_class from the identifier ("Record").
+        loader = DataLoader(tmp_path, schemaview=SchemaView(str(schema_file)))
         row = next(loader["Record"])
         _assert_schema_aware_row(row)
 
@@ -456,9 +459,35 @@ class TestSchemaAwareDataLoader:
         assert isinstance(row["zipcode"], int)
 
     def test_iter_sources_with_schema(self, schema_aware_tsv: Path, schema_file: Path) -> None:
-        loader = DataLoader(schema_aware_tsv, schema_path=schema_file, target_class="Record")
+        loader = DataLoader(schema_aware_tsv, schemaview=SchemaView(str(schema_file)))
         sources = list(loader.iter_sources())
         assert len(sources) == 1
         _, rows = sources[0]
         row = next(rows)
         _assert_schema_aware_row(row)
+
+    def test_directory_derives_target_class_per_identifier(self, tmp_path: Path) -> None:
+        """Each file's target_class is derived from its identifier, so the same
+        column name is coerced differently depending on its class's schema range."""
+        schema = {
+            "id": "https://example.org/multi",
+            "name": "multi",
+            "prefixes": {"linkml": "https://w3id.org/linkml/"},
+            "imports": ["linkml:types"],
+            "default_range": "string",
+            "classes": {
+                "Coded": {"attributes": {"code": {"range": "string"}}},
+                "Numbered": {"attributes": {"code": {"range": "integer"}}},
+            },
+        }
+        schema_path = tmp_path / "multi.yaml"
+        schema_path.write_text(yaml.dump(schema))
+        (tmp_path / "Coded.tsv").write_text("code\n007\n")
+        (tmp_path / "Numbered.tsv").write_text("code\n007\n")
+
+        loader = DataLoader(tmp_path, schemaview=SchemaView(str(schema_path)))
+        coded = next(loader["Coded"])
+        numbered = next(loader["Numbered"])
+
+        assert coded["code"] == "007"  # string range preserved
+        assert numbered["code"] == 7  # integer range coerced
