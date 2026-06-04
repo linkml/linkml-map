@@ -16,6 +16,15 @@ on:
 
 jobs:
   check-mention:
+    # Only spin up the job when an @dragon-ai-agent mention is actually
+    # present. Without this the job runs (and shows a green check) on every
+    # issue, PR, and review comment; the per-event detail is still handled by
+    # the script below.
+    if: |
+      (github.event_name == 'issues' && contains(github.event.issue.body, '@dragon-ai-agent')) ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.body, '@dragon-ai-agent')) ||
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@dragon-ai-agent')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@dragon-ai-agent'))
     runs-on: ubuntu-latest
     outputs:
       result: ${{ steps.check.outputs.result }}
