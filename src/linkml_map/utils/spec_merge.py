@@ -168,3 +168,39 @@ def load_and_merge_specs(paths: tuple[str | Path, ...]) -> dict[str, Any]:
         raise ValueError(msg)
 
     return merge_spec_dicts(all_dicts)
+
+
+def class_derivation_names(spec: dict[str, Any]) -> list[str]:
+    """Extract the class_derivation names from a (merged) spec dict.
+
+    Handles the three shapes ``class_derivations`` can take: a dict keyed by
+    name, a list of expanded dicts (``{"name": "X", ...}``), or a list of
+    compact single-key dicts (``{"X": {...}}``). Names are returned in
+    encounter order without deduplication; callers that want a sorted, unique
+    view (e.g. for display) apply ``sorted(set(...))`` themselves.
+
+    :param spec: A spec dict, typically the output of :func:`load_and_merge_specs`.
+    :returns: The class_derivation names in encounter order.
+
+    >>> class_derivation_names({"class_derivations": {"Person": {}, "Org": {}}})
+    ['Person', 'Org']
+    >>> class_derivation_names({"class_derivations": [{"name": "Person"}, {"name": "Org"}]})
+    ['Person', 'Org']
+    >>> class_derivation_names({"class_derivations": [{"Person": {}}, {"Org": {}}]})
+    ['Person', 'Org']
+    >>> class_derivation_names({})
+    []
+    """
+    cd = spec.get("class_derivations")
+    names: list[str] = []
+    if isinstance(cd, list):
+        for item in cd:
+            if not isinstance(item, dict):
+                continue
+            if "name" in item:  # expanded format
+                names.append(item["name"])
+            elif len(item) == 1:  # compact-key format
+                names.append(next(iter(item)))
+    elif isinstance(cd, dict):
+        names.extend(cd.keys())
+    return names

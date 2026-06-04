@@ -467,3 +467,32 @@ def test_validate_spec_entity_without_merge_errors(runner: CliRunner, split_spec
     )
     assert result.exit_code == 1
     assert "--merge" in result.stderr
+
+
+# --- --list-entities tests ---
+
+
+def test_list_entities_prints_sorted_names(runner: CliRunner, split_specs: Path) -> None:
+    """--list-entities prints merged class_derivation names, sorted, one per line.
+
+    No schema is passed, proving it skips schema-binding validation.
+    """
+    result = runner.invoke(main, ["validate-spec", "--list-entities", str(split_specs)])
+    assert result.exit_code == 0, result.stderr
+    lines = [line for line in result.output.strip().split("\n") if line]
+    assert lines == ["Org", "Person"]
+
+
+def test_list_entities_multiple_files(runner: CliRunner, split_specs: Path) -> None:
+    """--list-entities discovers across multiple explicitly-listed spec files."""
+    result = runner.invoke(
+        main,
+        [
+            "validate-spec",
+            "--list-entities",
+            str(split_specs / "person.yaml"),
+            str(split_specs / "org.yaml"),
+        ],
+    )
+    assert result.exit_code == 0, result.stderr
+    assert [line for line in result.output.strip().split("\n") if line] == ["Org", "Person"]

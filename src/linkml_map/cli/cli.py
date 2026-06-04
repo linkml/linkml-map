@@ -586,6 +586,14 @@ def invert(
 )
 @click.option("--strict", is_flag=True, help="Treat warnings as errors.")
 @click.option("--no-warnings", is_flag=True, help="Suppress warning output.")
+@click.option(
+    "--list-entities",
+    is_flag=True,
+    default=False,
+    help="Print the class_derivation names from the merged spec (one per line, "
+    "sorted) and exit, skipping schema-binding validation.  For discovery by "
+    "external orchestrators before per-entity runs.",
+)
 def validate_spec_cmd(
     spec_files: tuple[str, ...],
     source_schema: str | None = None,
@@ -595,6 +603,7 @@ def validate_spec_cmd(
     entity: str | None = None,
     merge: bool = False,
     emit_spec: str | None = None,
+    list_entities: bool = False,
 ) -> None:
     """Validate transformation specification YAML files.
 
@@ -615,7 +624,17 @@ def validate_spec_cmd(
         linkml-map validate-spec specs/*.yaml
 
         linkml-map validate-spec --merge --entity Person --emit-spec resolved.yaml specs/
+
+        linkml-map validate-spec --list-entities specs/
     """
+    if list_entities:
+        from linkml_map.utils.spec_merge import class_derivation_names, load_and_merge_specs
+
+        merged = load_and_merge_specs(spec_files)
+        for name in sorted(set(class_derivation_names(merged))):
+            click.echo(name)
+        return
+
     if merge:
         _validate_spec_merged(
             spec_files,
