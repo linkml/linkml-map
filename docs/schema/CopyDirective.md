@@ -83,12 +83,12 @@ URI: [linkmlmap:CopyDirective](https://w3id.org/linkml/transformer/CopyDirective
 
 | Name | Cardinality and Range | Description | Inheritance |
 | ---  | --- | --- | --- |
-| [element_name](element_name.md) | 1 <br/> [String](String.md) |  | direct |
+| [element_name](element_name.md) | 1 <br/> [String](String.md) | Name of the source element (class, slot, enum, etc | direct |
 | [copy_all](copy_all.md) | 0..1 <br/> [Boolean](Boolean.md) | Copy all sub-elements of the Element being derived | direct |
 | [exclude_all](exclude_all.md) | 0..1 <br/> [Boolean](Boolean.md) | Do not copy any of the sub-elements of the Element being derived | direct |
 | [exclude](exclude.md) | 0..1 <br/> [Any](Any.md) | Remove certain sub-elements from the list of sub-elements to be copied | direct |
 | [include](include.md) | 0..1 <br/> [Any](Any.md) | Add certain sub-elements to the list of sub-elements to be copied | direct |
-| [add](add.md) | 0..1 <br/> [Any](Any.md) |  | direct |
+| [add](add.md) | 0..1 <br/> [Any](Any.md) | Add new sub-elements that are not present in the source element | direct |
 
 
 
@@ -181,6 +181,8 @@ status: testing
 attributes:
   element_name:
     name: element_name
+    description: Name of the source element (class, slot, enum, etc.) this directive
+      applies to.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     key: true
@@ -229,6 +231,8 @@ attributes:
     range: Any
   add:
     name: add
+    description: 'Add new sub-elements that are not present in the source element.
+      Currently under-specified and not yet implemented (see issue #245).'
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     domain_of:
@@ -267,6 +271,8 @@ status: testing
 attributes:
   element_name:
     name: element_name
+    description: Name of the source element (class, slot, enum, etc.) this directive
+      applies to.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     key: true
@@ -321,6 +327,8 @@ attributes:
     range: Any
   add:
     name: add
+    description: 'Add new sub-elements that are not present in the source element.
+      Currently under-specified and not yet implemented (see issue #245).'
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     owner: CopyDirective

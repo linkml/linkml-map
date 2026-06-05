@@ -5,6 +5,11 @@ search:
 
 # Slot: key 
 
+
+_The key._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -20,7 +25,7 @@ URI: [linkmlmap:key](https://w3id.org/linkml/transformer/key)
 
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
-| [KeyVal](KeyVal.md) |  |  no  |
+| [KeyVal](KeyVal.md) | A generic key-value pair |  no  |
 
 
 
@@ -88,6 +93,7 @@ URI: [linkmlmap:key](https://w3id.org/linkml/transformer/key)
 <details>
 ```yaml
 name: key
+description: The key.
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 key: true

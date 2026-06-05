@@ -5,6 +5,11 @@ search:
 
 # Slot: element_name 
 
+
+_Name of the source element (class, slot, enum, etc.) this directive applies to._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -88,6 +93,8 @@ URI: [linkmlmap:element_name](https://w3id.org/linkml/transformer/element_name)
 <details>
 ```yaml
 name: element_name
+description: Name of the source element (class, slot, enum, etc.) this directive applies
+  to.
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 key: true

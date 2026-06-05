@@ -199,7 +199,7 @@ URI: [linkmlmap:TransformationSpecification](https://w3id.org/linkml/transformer
 | [license](license.md) | 0..1 <br/> [Uriorcurie](Uriorcurie.md) | license under which this transformation specification is published | direct |
 | [version](version.md) | 0..1 <br/> [String](String.md) | version of this transformation specification | direct |
 | [prefixes](prefixes.md) | * <br/> [KeyVal](KeyVal.md) | maps prefixes to URL expansions | direct |
-| [copy_directives](copy_directives.md) | * <br/> [CopyDirective](CopyDirective.md) |  | direct |
+| [copy_directives](copy_directives.md) | * <br/> [CopyDirective](CopyDirective.md) | Directives controlling which elements of the source schema are copied into th... | direct |
 | [source_schema](source_schema.md) | 0..1 <br/> [SchemaReference](SchemaReference.md) | Reference to the schema that describes the source (input) objects | direct |
 | [target_schema](target_schema.md) | 0..1 <br/> [SchemaReference](SchemaReference.md) | Reference to the schema that describes the target (output) objects | direct |
 | [source_schema_patches](source_schema_patches.md) | 0..1 <br/> [Any](Any.md) | Schema patches to apply to the source schema before transformation | direct |
@@ -328,6 +328,8 @@ attributes:
     inlined: true
   copy_directives:
     name: copy_directives
+    description: Directives controlling which elements of the source schema are copied
+      into the target schema.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     domain_of:
@@ -542,6 +544,8 @@ attributes:
     inlined: true
   copy_directives:
     name: copy_directives
+    description: Directives controlling which elements of the source schema are copied
+      into the target schema.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     owner: TransformationSpecification

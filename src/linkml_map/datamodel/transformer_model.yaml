@@ -43,6 +43,10 @@ types:
 classes:
 
   Any:
+    description: >-
+      A wildcard type that accepts any value. Used where the model deliberately
+      avoids coupling to a specific range, such as embedded LinkML definition
+      objects.
     class_uri: linkml:Any
 
   SpecificationComponent:
@@ -96,6 +100,9 @@ classes:
         inlined: true
         slot_uri: sh:declare
       copy_directives:
+        description: >-
+          Directives controlling which elements of the source schema are
+          copied into the target schema.
         range: CopyDirective
         multivalued: true
         inlined: true
@@ -204,6 +211,9 @@ classes:
         identifier: true
         description: Name of the element in the target schema
       copy_directives:
+        description: >-
+          Directives controlling which sub-elements of the source element are
+          copied into the derived target element.
         range: CopyDirective
         multivalued: true
         inlined: true
@@ -213,9 +223,11 @@ classes:
         #multivalued: true
         #inlined: true
       is_a:
+        description: The parent element that the derived target element inherits from.
         range: ElementDerivation
         slot_uri: linkml:is_a
       mixins:
+        description: Mixin elements applied to the derived target element.
         range: ElementDerivation
         multivalued: true
         inlined: false
@@ -259,6 +271,9 @@ classes:
         description: >-
           A mapping table in which the keys and values are expressions
       mirror_source:
+        description: >-
+          If true, pass the source value through unchanged instead of
+          transforming it.
         range: boolean
 
 
@@ -291,6 +306,9 @@ classes:
         comments:
           - supports cross-table lookups via source_key/lookup_key or the join_on field
       slot_derivations:
+        description: >-
+          Instructions on how to derive the slots of this target class from
+          source data.
         range: SlotDerivation
         multivalued: true
         inlined: true
@@ -317,6 +335,9 @@ classes:
         description: Name of the element in the target schema
         required: false
       class_derivations:
+        description: >-
+          Class derivations used to construct nested instances for this
+          (deprecated) object derivation.
         range: ClassDerivation
         multivalued: true
         inlined: true
@@ -398,9 +419,15 @@ classes:
         description: >-
           A constant value to assign to the target slot.
       range:
+        description: >-
+          The range (value type) to assign to the derived target slot,
+          overriding the range inferred from the source.
         slot_uri: linkml:range
         range: string
       unit_conversion:
+        description: >-
+          Configuration for converting the source value's unit of measure when
+          deriving this slot.
         range: UnitConversionConfiguration
       inverse_of:
         range: Inverse
@@ -413,6 +440,9 @@ classes:
         range: boolean
         description: True if this is suppressed
       type_designator:
+        description: >-
+          True if this target slot designates the type (class) of the instance,
+          analogous to LinkML's designates_type.
         range: boolean
       target_definition:
         range: Any
@@ -421,12 +451,24 @@ classes:
         comments:
           - currently defined as Any to avoid coupling with metamodel
       cast_collection_as:
+        description: >-
+          Coerce the derived slot's collection form (for example single-valued,
+          list, or dictionary).
         range: CollectionType
       dictionary_key:
+        description: >-
+          When the derived value is a list of objects, the slot whose value is
+          used as the key to index them into a dictionary.
         range: string
       stringification:
+        description: >-
+          Configuration for combining multiple values into a single string
+          value.
         range: StringificationConfiguration
       aggregation_operation:
+        description: >-
+          An aggregation operation that reduces multiple source values into this
+          slot's value.
         range: AggregationOperation
       pivot_operation:
         range: PivotOperation
@@ -483,6 +525,10 @@ classes:
         key: true
         description: Target permissible value text
       expr:
+        description: >-
+          An expression evaluated on the source object to derive this
+          permissible value. Should be specified using the LinkML expression
+          language.
         range: string
       populated_from:
         range: string
@@ -498,27 +544,55 @@ classes:
         description: >-
           Deprecated. Use populated_from instead.
       hide:
+        description: True if this is suppressed
         range: boolean
 
   PrefixDerivation:
+    description: >-
+      A specification of how to derive a target prefix declaration. Currently a
+      placeholder with no additional fields.
     is_a: ElementDerivation
 
   UnitConversionConfiguration:
+    description: >-
+      Configuration for converting a slot value from a source unit of measure to
+      a target unit during transformation.
     attributes:
       target_unit:
+        description: >-
+          The unit to convert the value into. If omitted, the source unit is
+          used unchanged.
       target_unit_scheme:
+        description: The unit scheme or system identifying target_unit (for example ucum).
         range: string
         examples:
           - value: ucum
       source_unit:
+        description: >-
+          The unit the source value is expressed in. Cross-checked against any
+          unit declared on the source slot in the schema.
       source_unit_scheme:
+          description: The unit scheme or system identifying source_unit (for example ucum).
           range: string
           examples:
           - value: ucum
       source_unit_slot:
+        description: >-
+          For structured value-and-unit source input, the key within the source
+          value that holds the unit.
       source_magnitude_slot:
+        description: >-
+          For structured value-and-unit source input, the key within the source
+          value that holds the numeric magnitude.
       target_unit_slot:
+        description: >-
+          When emitting structured output, the key to write the target unit
+          into.
       target_magnitude_slot:
+        description: >-
+          When emitting structured output, the key to write the converted
+          magnitude into. Its presence makes the result a structured value
+          rather than a bare number.
       none_if_non_numeric:
         range: boolean
         description: >-
@@ -558,19 +632,30 @@ classes:
           Defaults to false (addition).
 
   StringificationConfiguration:
+    description: >-
+      Configuration for collapsing multiple values into a single delimited or
+      serialized string value.
     attributes:
       delimiter:
+        description: Delimiter used to join multiple values into a single string.
         range: string
         examples:
           - value: ','
           - value: '|'
           - value: ';'
       reversed:
+        description: >-
+          If true, reverse the operation, splitting a delimited or serialized
+          string back into multiple values.
         range: boolean
       over_slots:
+        description: The source slots whose values are combined into the stringified result.
         range: string
         multivalued: true
       syntax:
+        description: >-
+          Serialization syntax used to stringify the values when no delimiter is
+          given.
         range: SerializationSyntaxType
         examples:
           - value: 'json'
@@ -583,26 +668,38 @@ classes:
       - back_references
     attributes:
       slot_name:
+        description: Name of the slot on the referenced class that back-references the derived slot.
       class_name:
+        description: Name of the class that holds the back-reference (foreign key) slot.
 
   TransformationOperation:
     abstract: true
 
   AggregationOperation:
     is_a: TransformationOperation
+    description: >-
+      An operation that reduces multiple input values to a single value using an
+      aggregation function such as sum, average, or count.
     attributes:
       operator:
+        description: The aggregation function to apply (for example SUM, AVERAGE, COUNT).
         range: AggregationType
         required: true
       null_handling:
+        description: How to handle null values encountered during aggregation.
         range: InvalidValueHandlingStrategy
       invalid_value_handling:
+        description: >-
+          How to handle values that cannot be interpreted as valid input to the
+          aggregation.
         range: InvalidValueHandlingStrategy
 
   GroupingOperation:
     is_a: TransformationOperation
+    description: An operation that groups source rows prior to aggregation.
     attributes:
       null_handling:
+        description: How to handle null values when grouping.
         range: InvalidValueHandlingStrategy
 
   PivotOperation:
@@ -610,8 +707,12 @@ classes:
       - melt/unmelt
       - reification/dereification
     is_a: TransformationOperation
+    description: >-
+      An operation that reshapes data between wide and long (EAV)
+      representations, i.e. melt (wide to long) and unmelt (long to wide).
     attributes:
       direction:
+        description: Whether to MELT (wide to long) or UNMELT (long to wide).
         range: PivotDirectionType
         required: true
       variable_slot:
@@ -633,6 +734,9 @@ classes:
           representation) must conform to valid attributes in this class
         range: ClassReference
       unmelt_to_slots:
+        description: >-
+          For an unmelt operation, the target wide-format slots to populate from
+          the long/EAV rows.
         range: SlotReference
         multivalued: true
       unit_slot:
@@ -652,10 +756,13 @@ classes:
         description: Slots that identify the entity (not pivoted)
 
   KeyVal:
+    description: A generic key-value pair.
     attributes:
       key:
+        description: The key.
         key: true
       value:
+        description: The value associated with the key.
         range: Any
 
   # Aligned with fair_mappings_schema:Agent
@@ -733,6 +840,7 @@ classes:
     status: testing
     attributes:
       element_name:
+        description: Name of the source element (class, slot, enum, etc.) this directive applies to.
         key: true
       copy_all:
         range: boolean
@@ -755,6 +863,9 @@ classes:
           As of now there it is under-specified, how to specify the sub-elements to include.
           One possible implementation would be a list where all element types can be mixed, since there might not be name conflicts across element types.
       add:
+        description: >-
+          Add new sub-elements that are not present in the source element.
+          Currently under-specified and not yet implemented (see issue #245).
         range: Any
 
 enums:

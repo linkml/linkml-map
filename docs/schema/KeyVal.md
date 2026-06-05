@@ -5,6 +5,11 @@ search:
 
 # Class: KeyVal 
 
+
+_A generic key-value pair._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -44,8 +49,8 @@ URI: [linkmlmap:KeyVal](https://w3id.org/linkml/transformer/KeyVal)
 
 | Name | Cardinality and Range | Description | Inheritance |
 | ---  | --- | --- | --- |
-| [key](key.md) | 1 <br/> [String](String.md) |  | direct |
-| [value](value.md) | 0..1 <br/> [Any](Any.md) |  | direct |
+| [key](key.md) | 1 <br/> [String](String.md) | The key | direct |
+| [value](value.md) | 0..1 <br/> [Any](Any.md) | The value associated with the key | direct |
 
 
 
@@ -131,10 +136,12 @@ URI: [linkmlmap:KeyVal](https://w3id.org/linkml/transformer/KeyVal)
 <details>
 ```yaml
 name: KeyVal
+description: A generic key-value pair.
 from_schema: https://w3id.org/linkml/transformer
 attributes:
   key:
     name: key
+    description: The key.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     key: true
@@ -142,6 +149,7 @@ attributes:
     - KeyVal
   value:
     name: value
+    description: The value associated with the key.
     from_schema: https://w3id.org/linkml/transformer
     domain_of:
     - SlotDerivation
@@ -156,10 +164,12 @@ attributes:
 <details>
 ```yaml
 name: KeyVal
+description: A generic key-value pair.
 from_schema: https://w3id.org/linkml/transformer
 attributes:
   key:
     name: key
+    description: The key.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     key: true
@@ -169,6 +179,7 @@ attributes:
     required: true
   value:
     name: value
+    description: The value associated with the key.
     from_schema: https://w3id.org/linkml/transformer
     owner: KeyVal
     domain_of:
