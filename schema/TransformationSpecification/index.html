@@ -245,7 +245,7 @@ URI: [linkmlmap:TransformationSpecification](https://w3id.org/linkml/transformer
 | [license](license.md) | 0..1 <br/> [Uriorcurie](Uriorcurie.md) | license under which this transformation specification is published | direct |
 | [version](version.md) | 0..1 <br/> [String](String.md) | version of this transformation specification | direct |
 | [prefixes](prefixes.md) | * <br/> [KeyVal](KeyVal.md) | maps prefixes to URL expansions | direct |
-| [copy_directives](copy_directives.md) | * <br/> [CopyDirective](CopyDirective.md) |  | direct |
+| [copy_directives](copy_directives.md) | * <br/> [CopyDirective](CopyDirective.md) | Directives controlling which elements of the source schema are copied into th... | direct |
 | [source_schema](source_schema.md) | 0..1 <br/> [SchemaReference](SchemaReference.md) | Reference to the schema that describes the source (input) objects | direct |
 | [target_schema](target_schema.md) | 0..1 <br/> [SchemaReference](SchemaReference.md) | Reference to the schema that describes the target (output) objects | direct |
 | [source_schema_patches](source_schema_patches.md) | 0..1 <br/> [Any](Any.md) | Schema patches to apply to the source schema before transformation | direct |
@@ -373,6 +373,8 @@ URI: [linkmlmap:TransformationSpecification](https://w3id.org/linkml/transformer
 <span class="w">    </span><span class="nt">inlined</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">  </span><span class="nt">copy_directives</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">copy_directives</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Directives controlling which elements of the source schema are copied</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">into the target schema.</span>
 <span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
 <span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
 <span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
@@ -585,6 +587,8 @@ URI: [linkmlmap:TransformationSpecification](https://w3id.org/linkml/transformer
 <span class="w">    </span><span class="nt">inlined</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">  </span><span class="nt">copy_directives</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">copy_directives</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Directives controlling which elements of the source schema are copied</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">into the target schema.</span>
 <span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
 <span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
 <span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TransformationSpecification</span>

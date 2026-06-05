@@ -135,7 +135,7 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../Any/">Any</a></td>
-<td></td>
+<td>A wildcard type that accepts any value</td>
 </tr>
 <tr>
 <td><a href="../CopyDirective/">CopyDirective</a></td>
@@ -147,7 +147,7 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../KeyVal/">KeyVal</a></td>
-<td></td>
+<td>A generic key-value pair</td>
 </tr>
 <tr>
 <td><a href="../Offset/">Offset</a></td>
@@ -183,7 +183,7 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="../PrefixDerivation/">PrefixDerivation</a></td>
-<td></td>
+<td>A specification of how to derive a target prefix declaration</td>
 </tr>
 <tr>
 <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="../SlotDerivation/">SlotDerivation</a></td>
@@ -195,7 +195,7 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../StringificationConfiguration/">StringificationConfiguration</a></td>
-<td></td>
+<td>Configuration for collapsing multiple values into a single delimited or seria...</td>
 </tr>
 <tr>
 <td><a href="../TransformationOperation/">TransformationOperation</a></td>
@@ -203,19 +203,19 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="../AggregationOperation/">AggregationOperation</a></td>
-<td></td>
+<td>An operation that reduces multiple input values to a single value using an ag...</td>
 </tr>
 <tr>
 <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="../GroupingOperation/">GroupingOperation</a></td>
-<td></td>
+<td>An operation that groups source rows prior to aggregation</td>
 </tr>
 <tr>
 <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="../PivotOperation/">PivotOperation</a></td>
-<td></td>
+<td>An operation that reshapes data between wide and long (EAV) representations, ...</td>
 </tr>
 <tr>
 <td><a href="../UnitConversionConfiguration/">UnitConversionConfiguration</a></td>
-<td></td>
+<td>Configuration for converting a slot value from a source unit of measure to a ...</td>
 </tr>
 </tbody>
 </table>
@@ -230,7 +230,7 @@ data. It allows different approaches, including:</p>
 <tbody>
 <tr>
 <td><a href="../add/">add</a></td>
-<td></td>
+<td>Add new sub-elements that are not present in the source element</td>
 </tr>
 <tr>
 <td><a href="../affiliation/">affiliation</a></td>
@@ -238,7 +238,7 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../aggregation_operation/">aggregation_operation</a></td>
-<td></td>
+<td>An aggregation operation that reduces multiple source values into this slot's...</td>
 </tr>
 <tr>
 <td><a href="../alias/">alias</a></td>
@@ -250,7 +250,7 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../cast_collection_as/">cast_collection_as</a></td>
-<td></td>
+<td>Coerce the derived slot's collection form (for example single-valued, list, o...</td>
 </tr>
 <tr>
 <td><a href="../class_derivations/">class_derivations</a></td>
@@ -258,7 +258,7 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../class_name/">class_name</a></td>
-<td></td>
+<td>Name of the class that holds the back-reference (foreign key) slot</td>
 </tr>
 <tr>
 <td><a href="../class_named/">class_named</a></td>
@@ -278,7 +278,7 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../copy_directives/">copy_directives</a></td>
-<td></td>
+<td>Directives controlling which elements of the source schema are copied into th...</td>
 </tr>
 <tr>
 <td><a href="../creator/">creator</a></td>
@@ -286,7 +286,7 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../delimiter/">delimiter</a></td>
-<td></td>
+<td>Delimiter used to join multiple values into a single string</td>
 </tr>
 <tr>
 <td><a href="../derived_from/">derived_from</a></td>
@@ -298,11 +298,11 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../dictionary_key/">dictionary_key</a></td>
-<td></td>
+<td>When the derived value is a list of objects, the slot whose value is used as ...</td>
 </tr>
 <tr>
 <td><a href="../direction/">direction</a></td>
-<td></td>
+<td>Whether to MELT (wide to long) or UNMELT (long to wide)</td>
 </tr>
 <tr>
 <td><a href="../documentation/">documentation</a></td>
@@ -310,7 +310,7 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../element_name/">element_name</a></td>
-<td></td>
+<td>Name of the source element this directive applies to (a class, slot, enum, et...</td>
 </tr>
 <tr>
 <td><a href="../enum_derivations/">enum_derivations</a></td>
@@ -362,7 +362,7 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../invalid_value_handling/">invalid_value_handling</a></td>
-<td></td>
+<td>How to handle values that cannot be interpreted as valid input to the aggrega...</td>
 </tr>
 <tr>
 <td><a href="../inverse_of/">inverse_of</a></td>
@@ -370,7 +370,7 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../is_a/">is_a</a></td>
-<td></td>
+<td>The parent element that the derived target element inherits from</td>
 </tr>
 <tr>
 <td><a href="../join_on/">join_on</a></td>
@@ -382,7 +382,7 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../key/">key</a></td>
-<td></td>
+<td>The key</td>
 </tr>
 <tr>
 <td><a href="../license/">license</a></td>
@@ -398,11 +398,11 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../mirror_source/">mirror_source</a></td>
-<td></td>
+<td>If true, pass the source value through unchanged instead of transforming it</td>
 </tr>
 <tr>
 <td><a href="../mixins/">mixins</a></td>
-<td></td>
+<td>Mixin elements applied to the derived target element</td>
 </tr>
 <tr>
 <td><a href="../name/">name</a></td>
@@ -414,7 +414,7 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../null_handling/">null_handling</a></td>
-<td></td>
+<td>How to handle null values encountered during aggregation</td>
 </tr>
 <tr>
 <td><a href="../object_derivations/">object_derivations</a></td>
@@ -438,7 +438,7 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../operator/">operator</a></td>
-<td></td>
+<td>The aggregation function to apply (for example SUM, AVERAGE, COUNT)</td>
 </tr>
 <tr>
 <td><a href="../orcid/">orcid</a></td>
@@ -446,7 +446,7 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../over_slots/">over_slots</a></td>
-<td></td>
+<td>The source slots whose values are combined into the stringified result</td>
 </tr>
 <tr>
 <td><a href="../overrides/">overrides</a></td>
@@ -474,7 +474,7 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../range/">range</a></td>
-<td></td>
+<td>The range (value type) to assign to the derived target slot, overriding the r...</td>
 </tr>
 <tr>
 <td><a href="../repository_url/">repository_url</a></td>
@@ -482,7 +482,7 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../reversed/">reversed</a></td>
-<td></td>
+<td>If true, reverse the operation, splitting a delimited or serialized string ba...</td>
 </tr>
 <tr>
 <td><a href="../reviewer/">reviewer</a></td>
@@ -502,7 +502,7 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../slot_name/">slot_name</a></td>
-<td></td>
+<td>Name of the slot on the referenced class that back-references the derived slo...</td>
 </tr>
 <tr>
 <td><a href="../slot_name_template/">slot_name_template</a></td>
@@ -518,7 +518,7 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../source_magnitude_slot/">source_magnitude_slot</a></td>
-<td></td>
+<td>For structured value-and-unit source input, the key within the source value t...</td>
 </tr>
 <tr>
 <td><a href="../source_schema/">source_schema</a></td>
@@ -534,15 +534,15 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../source_unit/">source_unit</a></td>
-<td></td>
+<td>The unit the source value is expressed in</td>
 </tr>
 <tr>
 <td><a href="../source_unit_scheme/">source_unit_scheme</a></td>
-<td></td>
+<td>The unit scheme or system identifying source_unit (for example ucum)</td>
 </tr>
 <tr>
 <td><a href="../source_unit_slot/">source_unit_slot</a></td>
-<td></td>
+<td>For structured value-and-unit source input, the key within the source value t...</td>
 </tr>
 <tr>
 <td><a href="../sources/">sources</a></td>
@@ -550,11 +550,11 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../stringification/">stringification</a></td>
-<td></td>
+<td>Configuration for combining multiple values into a single string value</td>
 </tr>
 <tr>
 <td><a href="../syntax/">syntax</a></td>
-<td></td>
+<td>Serialization syntax used to stringify the values when no delimiter is given</td>
 </tr>
 <tr>
 <td><a href="../target_definition/">target_definition</a></td>
@@ -562,7 +562,7 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../target_magnitude_slot/">target_magnitude_slot</a></td>
-<td></td>
+<td>When emitting structured output, the key to write the converted magnitude int...</td>
 </tr>
 <tr>
 <td><a href="../target_schema/">target_schema</a></td>
@@ -570,15 +570,15 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../target_unit/">target_unit</a></td>
-<td></td>
+<td>The unit to convert the value into</td>
 </tr>
 <tr>
 <td><a href="../target_unit_scheme/">target_unit_scheme</a></td>
-<td></td>
+<td>The unit scheme or system identifying target_unit (for example ucum)</td>
 </tr>
 <tr>
 <td><a href="../target_unit_slot/">target_unit_slot</a></td>
-<td></td>
+<td>When emitting structured output, the key to write the target unit into</td>
 </tr>
 <tr>
 <td><a href="../title/">title</a></td>
@@ -590,11 +590,11 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../type_designator/">type_designator</a></td>
-<td></td>
+<td>True if this target slot designates the type (class) of the instance, analogo...</td>
 </tr>
 <tr>
 <td><a href="../unit_conversion/">unit_conversion</a></td>
-<td></td>
+<td>Configuration for converting the source value's unit of measure when deriving...</td>
 </tr>
 <tr>
 <td><a href="../unit_slot/">unit_slot</a></td>
@@ -606,7 +606,7 @@ data. It allows different approaches, including:</p>
 </tr>
 <tr>
 <td><a href="../unmelt_to_slots/">unmelt_to_slots</a></td>
-<td></td>
+<td>For an unmelt operation, the target wide-format slots to populate from the lo...</td>
 </tr>
 <tr>
 <td><a href="../url/">url</a></td>

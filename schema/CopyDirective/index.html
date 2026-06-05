@@ -123,12 +123,12 @@ URI: [linkmlmap:CopyDirective](https://w3id.org/linkml/transformer/CopyDirective
 
 | Name | Cardinality and Range | Description | Inheritance |
 | ---  | --- | --- | --- |
-| [element_name](element_name.md) | 1 <br/> [String](String.md) |  | direct |
+| [element_name](element_name.md) | 1 <br/> [String](String.md) | Name of the source element this directive applies to (a class, slot, enum, et... | direct |
 | [copy_all](copy_all.md) | 0..1 <br/> [Boolean](Boolean.md) | Copy all sub-elements of the Element being derived | direct |
 | [exclude_all](exclude_all.md) | 0..1 <br/> [Boolean](Boolean.md) | Do not copy any of the sub-elements of the Element being derived | direct |
 | [exclude](exclude.md) | 0..1 <br/> [Any](Any.md) | Remove certain sub-elements from the list of sub-elements to be copied | direct |
 | [include](include.md) | 0..1 <br/> [Any](Any.md) | Add certain sub-elements to the list of sub-elements to be copied | direct |
-| [add](add.md) | 0..1 <br/> [Any](Any.md) |  | direct |
+| [add](add.md) | 0..1 <br/> [Any](Any.md) | Add new sub-elements that are not present in the source element | direct |
 
 
 
@@ -220,6 +220,8 @@ URI: [linkmlmap:CopyDirective](https://w3id.org/linkml/transformer/CopyDirective
 <span class="nt">attributes</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">element_name</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">element_name</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Name of the source element this directive applies to (a class, slot,</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">enum, etc.).</span>
 <span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
 <span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
 <span class="w">    </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
@@ -268,6 +270,8 @@ URI: [linkmlmap:CopyDirective](https://w3id.org/linkml/transformer/CopyDirective
 <span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Any</span>
 <span class="w">  </span><span class="nt">add</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">add</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Add</span><span class="nv"> </span><span class="s">new</span><span class="nv"> </span><span class="s">sub-elements</span><span class="nv"> </span><span class="s">that</span><span class="nv"> </span><span class="s">are</span><span class="nv"> </span><span class="s">not</span><span class="nv"> </span><span class="s">present</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">source</span><span class="nv"> </span><span class="s">element.</span>
+<span class="w">      </span><span class="s">Currently</span><span class="nv"> </span><span class="s">under-specified</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">not</span><span class="nv"> </span><span class="s">yet</span><span class="nv"> </span><span class="s">implemented</span><span class="nv"> </span><span class="s">(see</span><span class="nv"> </span><span class="s">issue</span><span class="nv"> </span><span class="s">#245).&#39;</span>
 <span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
 <span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
 <span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
@@ -304,6 +308,8 @@ URI: [linkmlmap:CopyDirective](https://w3id.org/linkml/transformer/CopyDirective
 <span class="nt">attributes</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">element_name</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">element_name</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Name of the source element this directive applies to (a class, slot,</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">enum, etc.).</span>
 <span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
 <span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
 <span class="w">    </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
@@ -358,6 +364,8 @@ URI: [linkmlmap:CopyDirective](https://w3id.org/linkml/transformer/CopyDirective
 <span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Any</span>
 <span class="w">  </span><span class="nt">add</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">add</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Add</span><span class="nv"> </span><span class="s">new</span><span class="nv"> </span><span class="s">sub-elements</span><span class="nv"> </span><span class="s">that</span><span class="nv"> </span><span class="s">are</span><span class="nv"> </span><span class="s">not</span><span class="nv"> </span><span class="s">present</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">source</span><span class="nv"> </span><span class="s">element.</span>
+<span class="w">      </span><span class="s">Currently</span><span class="nv"> </span><span class="s">under-specified</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">not</span><span class="nv"> </span><span class="s">yet</span><span class="nv"> </span><span class="s">implemented</span><span class="nv"> </span><span class="s">(see</span><span class="nv"> </span><span class="s">issue</span><span class="nv"> </span><span class="s">#245).&#39;</span>
 <span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
 <span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
 <span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CopyDirective</span>

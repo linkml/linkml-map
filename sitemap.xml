@@ -2,730 +2,730 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://linkml.github.io/linkml-map/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/faq/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/api/compiler/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/api/expressions/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/api/functions/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/api/inference/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/api/session/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/api/transformer/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/examples/MetamodelMapping/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/examples/Tutorial-SQLCompiler/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/examples/Tutorial/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/examples/biolink-subsetting/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/examples/denormalizing/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/Agent/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/AggregationOperation/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/AggregationType/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/AliasedClass/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/Any/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/Boolean/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/ClassDerivation/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/ClassReference/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/CollectionType/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/CopyDirective/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/Curie/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/Date/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/DateOrDatetime/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/Datetime/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/Decimal/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/Double/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/ElementDerivation/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/EnumDerivation/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/EnumReference/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/Float/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/GroupingOperation/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/Integer/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/InvalidValueHandlingStrategy/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/Inverse/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/Jsonpath/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/Jsonpointer/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/KeyVal/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/Ncname/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/Nodeidentifier/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/ObjectDerivation/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/Objectidentifier/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/Offset/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/Organization/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/PermissibleValueDerivation/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/Person/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/PivotDirectionType/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/PivotOperation/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/PrefixDerivation/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/SchemaReference/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/SerializationSyntaxType/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/SlotDerivation/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/SlotReference/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/Software/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/Sparqlpath/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/SpecificationComponent/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/String/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/StringificationConfiguration/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/Time/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/TransformationOperation/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/TransformationSpecification/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/UnitConversionConfiguration/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/Uri/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/Uriorcurie/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/about/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/add/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/affiliation/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/aggregation_operation/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/alias/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/api/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/author/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/cast_collection_as/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/class_derivations/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/class_name/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/class_named/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/comments/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/compiler/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/content_url/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/copy_all/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/copy_directives/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/creator/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/datamodel/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/delimiter/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/derived_from/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/description/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/dictionary_key/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/direction/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/documentation/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/element_name/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/enum_derivations/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/exclude/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/exclude_all/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/expr/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/expression_mappings/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/expression_to_expression_mappings/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/expression_to_value_mappings/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/faq/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/functions/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/hide/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/id/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/id_slots/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/implements/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/include/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/invalid_value_handling/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/inverse_of/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/is_a/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/join_on/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/joins/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/key/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/license/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/linkml-map/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/lookup_key/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/mapping_method/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/mirror_source/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/mixins/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/name/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/none_if_non_numeric/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/null_handling/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/object_derivations/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/offset/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/offset_field/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/offset_reverse/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/offset_value/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/operator/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/orcid/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/over_slots/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/overrides/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/overview/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/permissible_value_derivations/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/pivot_operation/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/populated_from/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/prefixes/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/publication_date/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/range/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/repository_url/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/reversed/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/reviewer/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/ror_id/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/same_as/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/schema_uri/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/session/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/slot_derivations/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/slot_name/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/slot_name_template/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/source_file/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/source_key/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/source_magnitude_slot/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/source_schema/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/source_schema_patches/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/source_slots/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/source_unit/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/source_unit_scheme/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/source_unit_slot/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/sources/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/stringification/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/syntax/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/target_definition/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/target_magnitude_slot/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/target_schema/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/target_unit/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/target_unit_scheme/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/target_unit_slot/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/title/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/transformer/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/type/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/type_designator/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/types/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/unit/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/unit_conversion/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/unit_slot/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/unmelt_to_class/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/unmelt_to_slots/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/url/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/value/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/value_mappings/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/value_slot/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/variable_slot/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/schema/version/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
     <url>
          <loc>https://linkml.github.io/linkml-map/specification/compliance/</loc>
-         <lastmod>2026-05-20</lastmod>
+         <lastmod>2026-06-05</lastmod>
     </url>
 </urlset>
