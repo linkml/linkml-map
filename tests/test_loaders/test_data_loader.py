@@ -430,7 +430,7 @@ class TestSchemaAwareGetFileLoader:
         """schema_path/target_class are not valid kwargs for non-tabular loaders."""
         yaml_path = tmp_path / "data.yaml"
         yaml_path.write_text(yaml.dump({"id": 1, "zipcode": "90210"}))
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeError, match="unexpected keyword argument"):
             get_file_loader(yaml_path, schema_path=schema_file, target_class="Record")
 
 
