@@ -5,6 +5,11 @@ search:
 
 # Slot: reversed 
 
+
+_If true, reverse the operation, splitting a delimited or serialized string back into multiple values._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -20,7 +25,7 @@ URI: [linkmlmap:reversed](https://w3id.org/linkml/transformer/reversed)
 
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
-| [StringificationConfiguration](StringificationConfiguration.md) |  |  no  |
+| [StringificationConfiguration](StringificationConfiguration.md) | Configuration for collapsing multiple values into a single delimited or seria... |  no  |
 
 
 
@@ -86,6 +91,8 @@ URI: [linkmlmap:reversed](https://w3id.org/linkml/transformer/reversed)
 <details>
 ```yaml
 name: reversed
+description: If true, reverse the operation, splitting a delimited or serialized string
+  back into multiple values.
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 owner: StringificationConfiguration

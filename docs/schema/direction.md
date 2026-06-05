@@ -5,6 +5,11 @@ search:
 
 # Slot: direction 
 
+
+_Whether to MELT (wide to long) or UNMELT (long to wide)._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -20,7 +25,7 @@ URI: [linkmlmap:direction](https://w3id.org/linkml/transformer/direction)
 
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
-| [PivotOperation](PivotOperation.md) |  |  no  |
+| [PivotOperation](PivotOperation.md) | An operation that reshapes data between wide and long (EAV) representations, ... |  no  |
 
 
 
@@ -87,6 +92,7 @@ URI: [linkmlmap:direction](https://w3id.org/linkml/transformer/direction)
 <details>
 ```yaml
 name: direction
+description: Whether to MELT (wide to long) or UNMELT (long to wide).
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 owner: PivotOperation

@@ -5,6 +5,11 @@ search:
 
 # Slot: add 
 
+
+_Add new sub-elements that are not present in the source element. Currently under-specified and not yet implemented (see issue #245)._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -86,6 +91,8 @@ URI: [linkmlmap:add](https://w3id.org/linkml/transformer/add)
 <details>
 ```yaml
 name: add
+description: 'Add new sub-elements that are not present in the source element. Currently
+  under-specified and not yet implemented (see issue #245).'
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 owner: CopyDirective

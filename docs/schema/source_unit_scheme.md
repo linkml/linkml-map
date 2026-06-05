@@ -5,6 +5,11 @@ search:
 
 # Slot: source_unit_scheme 
 
+
+_The unit scheme or system identifying source_unit (for example ucum)._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -20,7 +25,7 @@ URI: [linkmlmap:source_unit_scheme](https://w3id.org/linkml/transformer/source_u
 
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
-| [UnitConversionConfiguration](UnitConversionConfiguration.md) |  |  no  |
+| [UnitConversionConfiguration](UnitConversionConfiguration.md) | Configuration for converting a slot value from a source unit of measure to a ... |  no  |
 
 
 
@@ -93,6 +98,7 @@ URI: [linkmlmap:source_unit_scheme](https://w3id.org/linkml/transformer/source_u
 <details>
 ```yaml
 name: source_unit_scheme
+description: The unit scheme or system identifying source_unit (for example ucum).
 examples:
 - value: ucum
 from_schema: https://w3id.org/linkml/transformer

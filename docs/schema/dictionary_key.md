@@ -5,6 +5,11 @@ search:
 
 # Slot: dictionary_key 
 
+
+_When the derived value is a list of objects, the slot whose value is used as the key to index them into a dictionary._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -86,6 +91,8 @@ URI: [linkmlmap:dictionary_key](https://w3id.org/linkml/transformer/dictionary_k
 <details>
 ```yaml
 name: dictionary_key
+description: When the derived value is a list of objects, the slot whose value is
+  used as the key to index them into a dictionary.
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 owner: SlotDerivation
