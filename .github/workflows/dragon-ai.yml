@@ -16,6 +16,17 @@ on:
 
 jobs:
   check-mention:
+    # Only spin up the job when the actual command phrase is present, matching
+    # the script's qualifying regex (/@dragon-ai-agent\s+please\s+/i). Without
+    # this the job runs (and shows a green check) on every issue, PR, and
+    # review comment; gating on the bare handle would also trip on any comment
+    # that merely mentions the bot. The script below still does the precise
+    # check (authorized user, captured prompt).
+    if: |
+      (github.event_name == 'issues' && contains(github.event.issue.body, '@dragon-ai-agent please')) ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.body, '@dragon-ai-agent please')) ||
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@dragon-ai-agent please')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@dragon-ai-agent please'))
     runs-on: ubuntu-latest
     outputs:
       result: ${{ steps.check.outputs.result }}
