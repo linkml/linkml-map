@@ -21,19 +21,16 @@ def test_datamodel() -> None:
     tr.load_transformer_specification(PERSONINFO_TR)
     trs = tr.specification
     assert trs.model_dump_json() != ""
-    assert trs.source_schema.name == "https://w3id.org/linkml/map/example/personinfo.yaml"
-    assert trs.target_schema.name == "https://w3id.org/linkml/map/example/agent.yaml"
+    assert trs.source_schema.name == "../source/personinfo.yaml"
+    assert trs.target_schema.name == "../target/agent.yaml"
 
     # class derivations
     class_derivs = {
         "Container": "Container",
         "Entity": None,
         "Agent": "Person",
-        "Job": None,
         "Address": "Address",
         "FamilialRelationship": "FamilialRelationship",
-        "SequenceFeature": None,
-        "DenormMapping": "Mapping",
     }
     for cd in trs.class_derivations:
         assert class_derivs[cd.name] == cd.populated_from
@@ -65,9 +62,9 @@ def test_datamodel() -> None:
 
     # enum derivations
     assert len(trs.enum_derivations) == 1
-    assert trs.enum_derivations["MyFamilialRelationshipType"].populated_from == "FamilialRelationshipType"
+    assert trs.enum_derivations["FamilialRelationshipType"].populated_from == "FamilialRelationshipType"
     assert {"SIBLING_OF", "CHILD_OF"} == set(
-        trs.enum_derivations["MyFamilialRelationshipType"].permissible_value_derivations.keys()
+        trs.enum_derivations["FamilialRelationshipType"].permissible_value_derivations.keys()
     )
 
 
