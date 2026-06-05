@@ -83,7 +83,7 @@ URI: [linkmlmap:CopyDirective](https://w3id.org/linkml/transformer/CopyDirective
 
 | Name | Cardinality and Range | Description | Inheritance |
 | ---  | --- | --- | --- |
-| [element_name](element_name.md) | 1 <br/> [String](String.md) | Name of the source element (class, slot, enum, etc | direct |
+| [element_name](element_name.md) | 1 <br/> [String](String.md) | Name of the source element this directive applies to (a class, slot, enum, et... | direct |
 | [copy_all](copy_all.md) | 0..1 <br/> [Boolean](Boolean.md) | Copy all sub-elements of the Element being derived | direct |
 | [exclude_all](exclude_all.md) | 0..1 <br/> [Boolean](Boolean.md) | Do not copy any of the sub-elements of the Element being derived | direct |
 | [exclude](exclude.md) | 0..1 <br/> [Any](Any.md) | Remove certain sub-elements from the list of sub-elements to be copied | direct |
@@ -181,8 +181,8 @@ status: testing
 attributes:
   element_name:
     name: element_name
-    description: Name of the source element (class, slot, enum, etc.) this directive
-      applies to.
+    description: Name of the source element this directive applies to (a class, slot,
+      enum, etc.).
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     key: true
@@ -271,8 +271,8 @@ status: testing
 attributes:
   element_name:
     name: element_name
-    description: Name of the source element (class, slot, enum, etc.) this directive
-      applies to.
+    description: Name of the source element this directive applies to (a class, slot,
+      enum, etc.).
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     key: true

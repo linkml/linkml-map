@@ -572,9 +572,9 @@ classes:
           The unit the source value is expressed in. Cross-checked against any
           unit declared on the source slot in the schema.
       source_unit_scheme:
-          description: The unit scheme or system identifying source_unit (for example ucum).
-          range: string
-          examples:
+        description: The unit scheme or system identifying source_unit (for example ucum).
+        range: string
+        examples:
           - value: ucum
       source_unit_slot:
         description: >-
@@ -840,7 +840,7 @@ classes:
     status: testing
     attributes:
       element_name:
-        description: Name of the source element (class, slot, enum, etc.) this directive applies to.
+        description: Name of the source element this directive applies to (a class, slot, enum, etc.).
         key: true
       copy_all:
         range: boolean

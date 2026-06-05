@@ -77,7 +77,7 @@ Name: linkml-map
 | [dictionary_key](dictionary_key.md) | When the derived value is a list of objects, the slot whose value is used as ... |
 | [direction](direction.md) | Whether to MELT (wide to long) or UNMELT (long to wide) |
 | [documentation](documentation.md) | URL or reference to documentation for the mapping specification |
-| [element_name](element_name.md) | Name of the source element (class, slot, enum, etc |
+| [element_name](element_name.md) | Name of the source element this directive applies to (a class, slot, enum, et... |
 | [enum_derivations](enum_derivations.md) | Instructions on how to derive a set of enums in the target schema |
 | [exclude](exclude.md) | Remove certain sub-elements from the list of sub-elements to be copied |
 | [exclude_all](exclude_all.md) | Do not copy any of the sub-elements of the Element being derived |

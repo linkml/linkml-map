@@ -6,7 +6,7 @@ search:
 # Slot: element_name 
 
 
-_Name of the source element (class, slot, enum, etc.) this directive applies to._
+_Name of the source element this directive applies to (a class, slot, enum, etc.)._
 
 
 
@@ -93,8 +93,8 @@ URI: [linkmlmap:element_name](https://w3id.org/linkml/transformer/element_name)
 <details>
 ```yaml
 name: element_name
-description: Name of the source element (class, slot, enum, etc.) this directive applies
-  to.
+description: Name of the source element this directive applies to (a class, slot,
+  enum, etc.).
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 key: true

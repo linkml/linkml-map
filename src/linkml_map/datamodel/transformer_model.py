@@ -760,7 +760,7 @@ class CopyDirective(ConfiguredBaseModel):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/linkml/transformer', 'status': 'testing'})
 
-    element_name: str = Field(default=..., description="""Name of the source element (class, slot, enum, etc.) this directive applies to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['CopyDirective']} })
+    element_name: str = Field(default=..., description="""Name of the source element this directive applies to (a class, slot, enum, etc.).""", json_schema_extra = { "linkml_meta": {'domain_of': ['CopyDirective']} })
     copy_all: Optional[bool] = Field(default=None, description="""Copy all sub-elements of the Element being derived.""", json_schema_extra = { "linkml_meta": {'domain_of': ['CopyDirective']} })
     exclude_all: Optional[bool] = Field(default=None, description="""Do not copy any of the sub-elements of the Element being derived.""", json_schema_extra = { "linkml_meta": {'domain_of': ['CopyDirective']} })
     exclude: Optional[Any] = Field(default=None, description="""Remove certain sub-elements from the list of sub-elements to be copied.
