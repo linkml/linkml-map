@@ -5,6 +5,11 @@ search:
 
 # Slot: over_slots 
 
+
+_The source slots whose values are combined into the stringified result._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -20,7 +25,7 @@ URI: [linkmlmap:over_slots](https://w3id.org/linkml/transformer/over_slots)
 
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
-| [StringificationConfiguration](StringificationConfiguration.md) |  |  no  |
+| [StringificationConfiguration](StringificationConfiguration.md) | Configuration for collapsing multiple values into a single delimited or seria... |  no  |
 
 
 
@@ -87,6 +92,7 @@ URI: [linkmlmap:over_slots](https://w3id.org/linkml/transformer/over_slots)
 <details>
 ```yaml
 name: over_slots
+description: The source slots whose values are combined into the stringified result.
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 owner: StringificationConfiguration

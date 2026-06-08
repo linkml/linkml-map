@@ -22,5 +22,5 @@ def test_compile(compiler: GraphvizCompiler) -> None:
     """Basic test of the graphviz compiler functionality."""
     spec = load_specification(SPECIFICATION)
     compiled = compiler.compile(spec)
-    assert "sourceMapping:id -> targetDenormMapping:subject_id [style=dashed]" in compiled.serialization
+    assert "sourcePerson:name -> targetAgent:label" in compiled.serialization
     compiled.render(OUTPUT_DIR / "test.png", view=False)

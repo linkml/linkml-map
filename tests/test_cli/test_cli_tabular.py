@@ -152,6 +152,41 @@ class TestMapDataTsv:
             assert "id" in obj
             assert "label" in obj
 
+    def test_tsv_string_id_not_numerically_coerced(
+        self,
+        runner: CliRunner,
+        tmp_path: Path,
+        sample_schema: Path,
+        sample_transform: Path,
+    ) -> None:
+        """A numeric-looking string id keeps its leading zeros end-to-end.
+
+        Without schema-aware loading, pandas-style inference coerces "00123"
+        to the int 123, losing the leading zeros and breaking downstream lookups.
+        """
+        tsv_path = tmp_path / "Person.tsv"
+        tsv_path.write_text(
+            "id\tname\tprimary_email\tage_in_years\tgender\n00123\tAlice\talice@example.com\t30\tcisgender woman\n"
+        )
+        result = runner.invoke(
+            main,
+            [
+                "map-data",
+                "-T",
+                str(sample_transform),
+                "-s",
+                str(sample_schema),
+                "--source-type",
+                "Person",
+                "-f",
+                "jsonl",
+                str(tsv_path),
+            ],
+        )
+        assert result.exit_code == 0
+        obj = json.loads(result.stdout.strip())
+        assert obj["id"] == "00123"
+
     def test_tsv_input_tsv_output(
         self,
         runner: CliRunner,

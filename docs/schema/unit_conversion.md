@@ -5,6 +5,11 @@ search:
 
 # Slot: unit_conversion 
 
+
+_Configuration for converting the source value's unit of measure when deriving this slot._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -86,6 +91,8 @@ URI: [linkmlmap:unit_conversion](https://w3id.org/linkml/transformer/unit_conver
 <details>
 ```yaml
 name: unit_conversion
+description: Configuration for converting the source value's unit of measure when
+  deriving this slot.
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 owner: SlotDerivation
