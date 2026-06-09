@@ -5,6 +5,11 @@ search:
 
 # Slot: source_unit_slot 
 
+
+_For structured value-and-unit source input, the key within the source value that holds the unit._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -20,7 +25,7 @@ URI: [linkmlmap:source_unit_slot](https://w3id.org/linkml/transformer/source_uni
 
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
-| [UnitConversionConfiguration](UnitConversionConfiguration.md) |  |  no  |
+| [UnitConversionConfiguration](UnitConversionConfiguration.md) | Configuration for converting a slot value from a source unit of measure to a ... |  no  |
 
 
 
@@ -86,6 +91,8 @@ URI: [linkmlmap:source_unit_slot](https://w3id.org/linkml/transformer/source_uni
 <details>
 ```yaml
 name: source_unit_slot
+description: For structured value-and-unit source input, the key within the source
+  value that holds the unit.
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 owner: UnitConversionConfiguration

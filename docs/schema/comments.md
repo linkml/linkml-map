@@ -33,7 +33,7 @@ URI: [rdfs:comment](http://www.w3.org/2000/01/rdf-schema#comment)
 | [SlotDerivation](SlotDerivation.md) | A specification of how to derive the value of a target slot from a source slo... |  no  |
 | [EnumDerivation](EnumDerivation.md) | A specification of how to derive the value of a target enum from a source enu... |  no  |
 | [PermissibleValueDerivation](PermissibleValueDerivation.md) | A specification of how to derive the value of a PV from a source enum |  no  |
-| [PrefixDerivation](PrefixDerivation.md) |  |  no  |
+| [PrefixDerivation](PrefixDerivation.md) | A specification of how to derive a target prefix declaration |  no  |
 
 
 
