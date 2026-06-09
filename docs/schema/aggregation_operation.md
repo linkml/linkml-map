@@ -5,6 +5,11 @@ search:
 
 # Slot: aggregation_operation 
 
+
+_An aggregation operation that reduces multiple source values into this slot's value._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -86,6 +91,8 @@ URI: [linkmlmap:aggregation_operation](https://w3id.org/linkml/transformer/aggre
 <details>
 ```yaml
 name: aggregation_operation
+description: An aggregation operation that reduces multiple source values into this
+  slot's value.
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 owner: SlotDerivation

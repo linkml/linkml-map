@@ -5,6 +5,11 @@ search:
 
 # Slot: range 
 
+
+_The range (value type) to assign to the derived target slot, overriding the range inferred from the source._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -87,6 +92,8 @@ URI: [linkml:range](https://w3id.org/linkml/range)
 <details>
 ```yaml
 name: range
+description: The range (value type) to assign to the derived target slot, overriding
+  the range inferred from the source.
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 slot_uri: linkml:range

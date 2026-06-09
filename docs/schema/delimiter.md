@@ -5,6 +5,11 @@ search:
 
 # Slot: delimiter 
 
+
+_Delimiter used to join multiple values into a single string._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -20,7 +25,7 @@ URI: [linkmlmap:delimiter](https://w3id.org/linkml/transformer/delimiter)
 
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
-| [StringificationConfiguration](StringificationConfiguration.md) |  |  no  |
+| [StringificationConfiguration](StringificationConfiguration.md) | Configuration for collapsing multiple values into a single delimited or seria... |  no  |
 
 
 
@@ -95,6 +100,7 @@ URI: [linkmlmap:delimiter](https://w3id.org/linkml/transformer/delimiter)
 <details>
 ```yaml
 name: delimiter
+description: Delimiter used to join multiple values into a single string.
 examples:
 - value: ','
 - value: '|'

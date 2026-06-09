@@ -395,8 +395,8 @@ def _map_data_streaming(
     if emit_spec:
         _emit_spec_to_file(tr, emit_spec)
 
-    # Initialize data loader
-    data_loader = DataLoader(input_path)
+    # Initialize data loader (schema enables type-preserving coercion for TSV/CSV)
+    data_loader = DataLoader(input_path, schemaview=tr.source_schemaview)
 
     # Set up error collection when continue-on-error is enabled
     errors: list[TransformationError] = []

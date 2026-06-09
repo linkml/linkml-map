@@ -5,6 +5,11 @@ search:
 
 # Slot: unmelt_to_slots 
 
+
+_For an unmelt operation, the target wide-format slots to populate from the long/EAV rows._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -20,7 +25,7 @@ URI: [linkmlmap:unmelt_to_slots](https://w3id.org/linkml/transformer/unmelt_to_s
 
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
-| [PivotOperation](PivotOperation.md) |  |  no  |
+| [PivotOperation](PivotOperation.md) | An operation that reshapes data between wide and long (EAV) representations, ... |  no  |
 
 
 
@@ -87,6 +92,8 @@ URI: [linkmlmap:unmelt_to_slots](https://w3id.org/linkml/transformer/unmelt_to_s
 <details>
 ```yaml
 name: unmelt_to_slots
+description: For an unmelt operation, the target wide-format slots to populate from
+  the long/EAV rows.
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 owner: PivotOperation

@@ -20,8 +20,8 @@ URI: [linkmlmap:null_handling](https://w3id.org/linkml/transformer/null_handling
 
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
-| [AggregationOperation](AggregationOperation.md) |  |  no  |
-| [GroupingOperation](GroupingOperation.md) |  |  no  |
+| [AggregationOperation](AggregationOperation.md) | An operation that reduces multiple input values to a single value using an ag... |  no  |
+| [GroupingOperation](GroupingOperation.md) | An operation that groups source rows prior to aggregation |  no  |
 
 
 

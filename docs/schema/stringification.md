@@ -5,6 +5,11 @@ search:
 
 # Slot: stringification 
 
+
+_Configuration for combining multiple values into a single string value._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -86,6 +91,7 @@ URI: [linkmlmap:stringification](https://w3id.org/linkml/transformer/stringifica
 <details>
 ```yaml
 name: stringification
+description: Configuration for combining multiple values into a single string value.
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 owner: SlotDerivation
