@@ -26,6 +26,17 @@ import yaml
 logger = logging.getLogger(__name__)
 
 
+class SpecMergeError(ValueError):
+    """Raised for expected, user-facing spec load/merge failures.
+
+    Distinguishes conditions we deliberately raise with a precise message
+    (no spec files found, conflicting derivations) from unexpected errors
+    that should still surface as a traceback. CLI callers catch this to
+    report the message cleanly instead of dumping a stack trace; subclassing
+    :class:`ValueError` keeps backward compatibility for existing handlers.
+    """
+
+
 def resolve_spec_paths(paths: tuple[str | Path, ...]) -> list[Path]:
     """Resolve a mix of file paths and directories to a flat list of YAML files.
 
@@ -89,7 +100,7 @@ def merge_spec_dicts(spec_dicts: list[dict[str, Any]]) -> dict[str, Any]:
 
     :param spec_dicts: A list of raw spec dicts to merge.
     :returns: A single merged spec dict.
-    :raises ValueError: If enum or slot derivations conflict on the same name.
+    :raises SpecMergeError: If enum or slot derivations conflict on the same name.
     """
     if not spec_dicts:
         return {}
@@ -119,7 +130,7 @@ def merge_spec_dicts(spec_dicts: list[dict[str, Any]]) -> dict[str, Any]:
             for name, body in ed.items():
                 if name in merged_enum_derivations and merged_enum_derivations[name] != body:
                     msg = f"Conflicting enum_derivations for '{name}'"
-                    raise ValueError(msg)
+                    raise SpecMergeError(msg)
                 merged_enum_derivations[name] = body
 
         # Union slot_derivations by name
@@ -128,7 +139,7 @@ def merge_spec_dicts(spec_dicts: list[dict[str, Any]]) -> dict[str, Any]:
             for name, body in sd.items():
                 if name in merged_slot_derivations and merged_slot_derivations[name] != body:
                     msg = f"Conflicting slot_derivations for '{name}'"
-                    raise ValueError(msg)
+                    raise SpecMergeError(msg)
                 merged_slot_derivations[name] = body
 
         # Scalar fields: first non-None wins
@@ -152,12 +163,12 @@ def load_and_merge_specs(paths: tuple[str | Path, ...]) -> dict[str, Any]:
     :param paths: File paths or directory paths to load.
     :returns: A single merged spec dict.
     :raises FileNotFoundError: If a path does not exist.
-    :raises ValueError: If no YAML files are found or derivations conflict.
+    :raises SpecMergeError: If no YAML files are found or derivations conflict.
     """
     file_paths = resolve_spec_paths(paths)
     if not file_paths:
         msg = "No YAML files found in the provided paths"
-        raise ValueError(msg)
+        raise SpecMergeError(msg)
 
     all_dicts: list[dict[str, Any]] = []
     for fp in file_paths:
@@ -165,7 +176,7 @@ def load_and_merge_specs(paths: tuple[str | Path, ...]) -> dict[str, Any]:
 
     if not all_dicts:
         msg = "No valid spec dicts found in the provided files"
-        raise ValueError(msg)
+        raise SpecMergeError(msg)
 
     return merge_spec_dicts(all_dicts)
 

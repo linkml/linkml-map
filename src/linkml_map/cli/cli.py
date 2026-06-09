@@ -628,9 +628,9 @@ def validate_spec_cmd(
         linkml-map validate-spec --list-entities specs/
     """
     if list_entities:
-        from linkml_map.utils.spec_merge import class_derivation_names, load_and_merge_specs
+        from linkml_map.utils.spec_merge import class_derivation_names
 
-        merged = load_and_merge_specs(spec_files)
+        merged = _merge_or_exit(spec_files)
         for name in sorted(set(class_derivation_names(merged))):
             click.echo(name)
         return
@@ -713,6 +713,23 @@ def _validate_spec_individual(
         raise SystemExit(1)
 
 
+def _merge_or_exit(spec_files: tuple[str, ...]) -> dict:
+    """Merge spec files, reporting expected load/merge failures cleanly.
+
+    Catches :class:`SpecMergeError` (no spec files found, conflicting
+    derivations) and exits with code 1 and the message on stderr, rather
+    than dumping a traceback for a condition we deliberately raise. Any
+    other exception propagates, since it signals an actual bug.
+    """
+    from linkml_map.utils.spec_merge import SpecMergeError, load_and_merge_specs
+
+    try:
+        return load_and_merge_specs(spec_files)
+    except SpecMergeError as err:
+        click.echo(str(err), err=True)
+        raise SystemExit(1) from err
+
+
 def _validate_spec_merged(
     spec_files: tuple[str, ...],
     *,
@@ -724,10 +741,9 @@ def _validate_spec_merged(
     no_warnings: bool = False,
 ) -> None:
     """Merge spec files, validate the result, optionally emit."""
-    from linkml_map.utils.spec_merge import load_and_merge_specs
     from linkml_map.validator import validate_spec
 
-    merged = load_and_merge_specs(spec_files)
+    merged = _merge_or_exit(spec_files)
 
     # Apply entity filter before validation so we only validate what
     # map-data --entity would actually execute.
