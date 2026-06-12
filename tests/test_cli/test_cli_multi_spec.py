@@ -467,3 +467,54 @@ def test_validate_spec_entity_without_merge_errors(runner: CliRunner, split_spec
     )
     assert result.exit_code == 1
     assert "--merge" in result.stderr
+
+
+# --- --list-entities tests ---
+
+
+def test_list_entities_prints_sorted_names(runner: CliRunner, split_specs: Path) -> None:
+    """--list-entities prints merged class_derivation names, sorted, one per line.
+
+    No schema is passed, proving it skips schema-binding validation.
+    """
+    result = runner.invoke(main, ["validate-spec", "--list-entities", str(split_specs)])
+    assert result.exit_code == 0, result.stderr
+    lines = [line for line in result.output.strip().split("\n") if line]
+    assert lines == ["Org", "Person"]
+
+
+def test_list_entities_multiple_files(runner: CliRunner, split_specs: Path) -> None:
+    """--list-entities discovers across multiple explicitly-listed spec files."""
+    result = runner.invoke(
+        main,
+        [
+            "validate-spec",
+            "--list-entities",
+            str(split_specs / "person.yaml"),
+            str(split_specs / "org.yaml"),
+        ],
+    )
+    assert result.exit_code == 0, result.stderr
+    assert [line for line in result.output.strip().split("\n") if line] == ["Org", "Person"]
+
+
+def test_list_entities_empty_dir_reports_cleanly(runner: CliRunner, tmp_path: Path) -> None:
+    """No specs found surfaces a clean message + exit 1, not a Python traceback."""
+    empty = tmp_path / "empty"
+    empty.mkdir()
+    result = runner.invoke(main, ["validate-spec", "--list-entities", str(empty)])
+    assert result.exit_code == 1
+    assert "No YAML files" in result.stderr
+    assert "Traceback" not in result.stderr
+
+
+def test_merge_conflict_reports_cleanly(runner: CliRunner, tmp_path: Path) -> None:
+    """A merge conflict surfaces SpecMergeError's message cleanly, not a traceback."""
+    spec_dir = tmp_path / "conflict"
+    spec_dir.mkdir()
+    (spec_dir / "a.yaml").write_text(yaml.dump({"slot_derivations": {"s1": {"populated_from": "x"}}}))
+    (spec_dir / "b.yaml").write_text(yaml.dump({"slot_derivations": {"s1": {"populated_from": "y"}}}))
+    result = runner.invoke(main, ["validate-spec", "--merge", str(spec_dir)])
+    assert result.exit_code == 1
+    assert "Conflicting slot_derivations" in result.stderr
+    assert "Traceback" not in result.stderr
