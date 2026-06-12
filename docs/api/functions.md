@@ -20,6 +20,13 @@ and null propagation.
 | `len(items)` | Length of a list |
 | `case(pairs...)` | Conditional — first matching `(condition, value)` pair |
 | `uuid5(namespace, name)` | Deterministic UUID v5 generation |
+| `slugify(s, separator="_")` | ASCII-fold + lowercase + collapse non-alphanumerics; `None` on no extractable content |
+| `to_snake(s)` | Convert to `snake_case` |
+| `to_camel(s)` | Convert to `camelCase` |
+| `to_pascal(s)` | Convert to `PascalCase` |
+
+For functions not in this list, see [Extension Functions](extensions.md) to
+register your own.
 
 ## Unit Conversion
 

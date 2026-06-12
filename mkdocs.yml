@@ -39,6 +39,7 @@ nav:
       - Inference: api/inference.md
       - Expressions: api/expressions.md
       - Functions: api/functions.md
+      - Extensions: api/extensions.md
       # - Subsetter: api/subsetter.md
   - FAQ: faq.md
 site_url: https://linkml.github.io/linkml-map/

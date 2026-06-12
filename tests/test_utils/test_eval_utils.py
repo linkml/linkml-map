@@ -407,9 +407,32 @@ def test_function_distributes_over_lists() -> None:
 
 
 def test_unknown_function_raises() -> None:
-    """Calling an unknown function raises an error."""
-    with pytest.raises(Exception, match="[Nn]ot defined"):  # codespell:ignore
+    """Calling an unknown function raises an error with a helpful message."""
+    with pytest.raises(Exception, match="Unknown function 'my_func'") as excinfo:
         eval_expr("my_func(1)")
+    assert "--functions" in str(excinfo.value)
+
+
+def test_unknown_underscore_function_omits_extensions_hint() -> None:
+    """Names starting with ``_`` cannot be loaded via ``--functions``.
+
+    The extension loader skips ``_``-prefixed names, so suggesting
+    ``--functions`` would mislead the user. The error message stays minimal.
+    """
+    from linkml_map.utils.eval_utils import UnknownFunctionError
+
+    with pytest.raises(UnknownFunctionError, match="Unknown function '_hidden'") as excinfo:
+        eval_expr("_hidden(1)")
+    assert "--functions" not in str(excinfo.value)
+
+
+def test_import_call_reports_unsupported() -> None:
+    """``__import__`` raises with an explicit unsupported-feature message."""
+    from linkml_map.utils.eval_utils import UnknownFunctionError
+
+    with pytest.raises(UnknownFunctionError, match="Import expressions are not supported") as excinfo:
+        eval_expr("__import__('os')")
+    assert "--functions" not in str(excinfo.value)
 
 
 # ---- Conditionals ----
@@ -551,9 +574,9 @@ def test_constants(expr: str, expected: Any) -> None:
 
 def test_import_blocked() -> None:
     """Import expressions are not supported."""
-    from simpleeval import FunctionNotDefined
+    from simpleeval import InvalidExpression
 
-    with pytest.raises(FunctionNotDefined):
+    with pytest.raises(InvalidExpression, match="Import expressions are not supported"):
         eval_expr("__import__('os').listdir()")
 
 
@@ -1197,4 +1220,86 @@ def test_substr_null_in_list() -> None:
         "2024",
         None,
         "2023",
+    ]
+
+
+# ---- slugify ----
+
+
+@pytest.mark.parametrize(
+    ("expr", "kwargs", "expected"),
+    [
+        ('slugify("Hello, World!")', {}, "hello_world"),
+        ('slugify("Schöne Grüße")', {}, "schone_grusse"),
+        ('slugify("Smith, J.R. (Jr.)")', {}, "smith_j_r_jr"),
+        ('slugify("123 hits")', {}, "_123_hits"),
+        ('slugify("9lives", "-")', {}, "-9lives"),
+        ('slugify("café-au-lait", "-")', {}, "cafe-au-lait"),
+        ("slugify(x)", {"x": "Hello World"}, "hello_world"),
+    ],
+    ids=["basic", "unicode", "punctuation", "leading_digit", "leading_digit_dash_sep", "dash_sep", "with_var"],
+)
+def test_slugify(expr: str, kwargs: dict, expected: str) -> None:
+    """slugify converts arbitrary strings to identifier-shaped slugs."""
+    assert eval_expr(expr, **kwargs) == expected
+
+
+@pytest.mark.parametrize(
+    "expr",
+    ['slugify("")', 'slugify("!!!")', 'slugify("   ")'],
+    ids=["empty", "all_punct", "all_whitespace"],
+)
+def test_slugify_no_content_returns_none(expr: str) -> None:
+    """slugify returns None when no identifier-shaped content remains."""
+    assert eval_expr(expr) is None
+
+
+def test_slugify_null_propagation() -> None:
+    """slugify propagates None."""
+    assert eval_expr("slugify(x)", x=None) is None
+
+
+def test_slugify_distributes_over_list() -> None:
+    """slugify distributes over lists."""
+    assert eval_expr("slugify(names)", names=["Foo Bar", "Baz Qux"]) == ["foo_bar", "baz_qux"]
+
+
+def test_slugify_composes_with_or_fallback() -> None:
+    """slugify returning None composes with ``or`` for fallback chains."""
+    assert eval_expr('slugify(x) or "anonymous"', x="!!!") == "anonymous"
+
+
+# ---- to_snake / to_camel / to_pascal ----
+
+
+@pytest.mark.parametrize(
+    ("expr", "expected"),
+    [
+        ('to_snake("CamelCase")', "camel_case"),
+        ('to_snake("HTTPResponse")', "http_response"),
+        ('to_pascal("snake_case")', "SnakeCase"),
+        ('to_pascal("http_response")', "HttpResponse"),
+        ('to_camel("snake_case")', "snakeCase"),
+        ('to_camel("http_response")', "httpResponse"),
+    ],
+    ids=[
+        "snake_from_camel",
+        "snake_from_acronym",
+        "pascal_from_snake",
+        "pascal_two_word",
+        "camel_from_snake",
+        "camel_two_word",
+    ],
+)
+def test_case_converters(expr: str, expected: str) -> None:
+    """Case converters wrap inflection.underscore / inflection.camelize."""
+    assert eval_expr(expr) == expected
+
+
+def test_case_converters_distribute_and_propagate_none() -> None:
+    """Case converters share the standard distributing + null-propagating wrapper."""
+    assert eval_expr("to_snake(x)", x=None) is None
+    assert eval_expr("to_pascal(x)", x=["snake_case", "http_response"]) == [
+        "SnakeCase",
+        "HttpResponse",
     ]
