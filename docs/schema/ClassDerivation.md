@@ -193,19 +193,19 @@ URI: [linkmlmap:ClassDerivation](https://w3id.org/linkml/transformer/ClassDeriva
 | [populated_from](populated_from.md) | 0..1 <br/> [ClassReference](ClassReference.md) | Source class to derive this target class from | direct |
 | [sources](sources.md) | * <br/> [ClassReference](ClassReference.md) | Deprecated | direct |
 | [joins](joins.md) | * <br/> [AliasedClass](AliasedClass.md) | Additional classes to be joined to derive instances of the target class | direct |
-| [slot_derivations](slot_derivations.md) | * <br/> [SlotDerivation](SlotDerivation.md) |  | direct |
+| [slot_derivations](slot_derivations.md) | * <br/> [SlotDerivation](SlotDerivation.md) | Instructions on how to derive the slots of this target class from source data | direct |
 | [target_definition](target_definition.md) | 0..1 <br/> [Any](Any.md) | LinkML class definition object for this slot | direct |
 | [pivot_operation](pivot_operation.md) | 0..1 <br/> [PivotOperation](PivotOperation.md) | Configuration for pivot (unmelt) operations at class level | direct |
 | [name](name.md) | 1 <br/> [String](String.md) | Name of the element in the target schema | [ElementDerivation](ElementDerivation.md) |
-| [copy_directives](copy_directives.md) | * <br/> [CopyDirective](CopyDirective.md) |  | [ElementDerivation](ElementDerivation.md) |
+| [copy_directives](copy_directives.md) | * <br/> [CopyDirective](CopyDirective.md) | Directives controlling which sub-elements of the source element are copied in... | [ElementDerivation](ElementDerivation.md) |
 | [overrides](overrides.md) | 0..1 <br/> [Any](Any.md) | overrides source schema slots | [ElementDerivation](ElementDerivation.md) |
-| [is_a](is_a.md) | 0..1 <br/> [ElementDerivation](ElementDerivation.md) |  | [ElementDerivation](ElementDerivation.md) |
-| [mixins](mixins.md) | * <br/> [ElementDerivation](ElementDerivation.md) |  | [ElementDerivation](ElementDerivation.md) |
+| [is_a](is_a.md) | 0..1 <br/> [ElementDerivation](ElementDerivation.md) | The parent element that the derived target element inherits from | [ElementDerivation](ElementDerivation.md) |
+| [mixins](mixins.md) | * <br/> [ElementDerivation](ElementDerivation.md) | Mixin elements applied to the derived target element | [ElementDerivation](ElementDerivation.md) |
 | [value_mappings](value_mappings.md) | * <br/> [KeyVal](KeyVal.md) | A mapping table that is applied directly to mappings, in order of precedence | [ElementDerivation](ElementDerivation.md) |
 | [expression_mappings](expression_mappings.md) | * <br/> [KeyVal](KeyVal.md) | A mapping table where the values are expressions evaluated against source bin... | [ElementDerivation](ElementDerivation.md) |
 | [expression_to_value_mappings](expression_to_value_mappings.md) | * <br/> [KeyVal](KeyVal.md) | A mapping table in which the keys are boolean expressions and the values are ... | [ElementDerivation](ElementDerivation.md) |
 | [expression_to_expression_mappings](expression_to_expression_mappings.md) | * <br/> [KeyVal](KeyVal.md) | A mapping table in which the keys and values are expressions | [ElementDerivation](ElementDerivation.md) |
-| [mirror_source](mirror_source.md) | 0..1 <br/> [Boolean](Boolean.md) |  | [ElementDerivation](ElementDerivation.md) |
+| [mirror_source](mirror_source.md) | 0..1 <br/> [Boolean](Boolean.md) | If true, pass the source value through unchanged instead of transforming it | [ElementDerivation](ElementDerivation.md) |
 | [description](description.md) | 0..1 <br/> [String](String.md) | description of the specification component | [SpecificationComponent](SpecificationComponent.md) |
 | [implements](implements.md) | * <br/> [Uriorcurie](Uriorcurie.md) | A reference to a specification that this component implements | [SpecificationComponent](SpecificationComponent.md) |
 | [comments](comments.md) | * <br/> [String](String.md) | A list of comments about this component | [SpecificationComponent](SpecificationComponent.md) |
@@ -312,6 +312,8 @@ attributes:
     inlined: true
   slot_derivations:
     name: slot_derivations
+    description: Instructions on how to derive the slots of this target class from
+      source data.
     from_schema: https://w3id.org/linkml/transformer
     domain_of:
     - TransformationSpecification
@@ -395,6 +397,8 @@ attributes:
     inlined: true
   slot_derivations:
     name: slot_derivations
+    description: Instructions on how to derive the slots of this target class from
+      source data.
     from_schema: https://w3id.org/linkml/transformer
     owner: ClassDerivation
     domain_of:
@@ -443,6 +447,8 @@ attributes:
     required: true
   copy_directives:
     name: copy_directives
+    description: Directives controlling which sub-elements of the source element are
+      copied into the derived target element.
     from_schema: https://w3id.org/linkml/transformer
     owner: ClassDerivation
     domain_of:
@@ -462,6 +468,7 @@ attributes:
     range: Any
   is_a:
     name: is_a
+    description: The parent element that the derived target element inherits from.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     slot_uri: linkml:is_a
@@ -471,6 +478,7 @@ attributes:
     range: ElementDerivation
   mixins:
     name: mixins
+    description: Mixin elements applied to the derived target element.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     slot_uri: linkml:mixins
@@ -538,6 +546,8 @@ attributes:
     inlined: true
   mirror_source:
     name: mirror_source
+    description: If true, pass the source value through unchanged instead of transforming
+      it.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     owner: ClassDerivation

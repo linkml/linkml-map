@@ -5,6 +5,11 @@ search:
 
 # Class: Any 
 
+
+_A wildcard type that accepts any value. Used where the model deliberately avoids coupling to a specific range, such as embedded LinkML definition objects._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -109,6 +114,8 @@ URI: [linkml:Any](https://w3id.org/linkml/Any)
 <details>
 ```yaml
 name: Any
+description: A wildcard type that accepts any value. Used where the model deliberately
+  avoids coupling to a specific range, such as embedded LinkML definition objects.
 from_schema: https://w3id.org/linkml/transformer
 class_uri: linkml:Any
 
@@ -120,6 +127,8 @@ class_uri: linkml:Any
 <details>
 ```yaml
 name: Any
+description: A wildcard type that accepts any value. Used where the model deliberately
+  avoids coupling to a specific range, such as embedded LinkML definition objects.
 from_schema: https://w3id.org/linkml/transformer
 class_uri: linkml:Any
 

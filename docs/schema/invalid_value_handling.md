@@ -5,6 +5,11 @@ search:
 
 # Slot: invalid_value_handling 
 
+
+_How to handle values that cannot be interpreted as valid input to the aggregation._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -20,7 +25,7 @@ URI: [linkmlmap:invalid_value_handling](https://w3id.org/linkml/transformer/inva
 
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
-| [AggregationOperation](AggregationOperation.md) |  |  no  |
+| [AggregationOperation](AggregationOperation.md) | An operation that reduces multiple input values to a single value using an ag... |  no  |
 
 
 
@@ -86,6 +91,8 @@ URI: [linkmlmap:invalid_value_handling](https://w3id.org/linkml/transformer/inva
 <details>
 ```yaml
 name: invalid_value_handling
+description: How to handle values that cannot be interpreted as valid input to the
+  aggregation.
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 owner: AggregationOperation

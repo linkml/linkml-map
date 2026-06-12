@@ -179,7 +179,7 @@ class TransformationSpecification(SpecificationComponent):
     version: Optional[str] = Field(default=None, description="""version of this transformation specification""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'SchemaReference', 'Software'],
          'slot_uri': 'schema:version'} })
     prefixes: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""maps prefixes to URL expansions""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification'], 'slot_uri': 'sh:declare'} })
-    copy_directives: Optional[dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
+    copy_directives: Optional[dict[str, CopyDirective]] = Field(default_factory=dict, description="""Directives controlling which elements of the source schema are copied into the target schema.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     source_schema: Optional[SchemaReference] = Field(default=None, description="""Reference to the schema that describes the source (input) objects.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification']} })
     target_schema: Optional[SchemaReference] = Field(default=None, description="""Reference to the schema that describes the target (output) objects.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification']} })
     source_schema_patches: Optional[Any] = Field(default=None, description="""Schema patches to apply to the source schema before transformation. Useful for adding foreign key relationships to auto-generated schemas. Uses LinkML schema YAML structure (classes, slots, attributes, etc.).""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification']} })
@@ -252,17 +252,17 @@ class ElementDerivation(SpecificationComponent):
                        'EnumDerivation',
                        'PermissibleValueDerivation',
                        'Agent']} })
-    copy_directives: Optional[dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
+    copy_directives: Optional[dict[str, CopyDirective]] = Field(default_factory=dict, description="""Directives controlling which sub-elements of the source element are copied into the derived target element.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     overrides: Optional[Any] = Field(default=None, description="""overrides source schema slots""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
-    is_a: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:is_a'} })
-    mixins: Optional[list[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:mixins'} })
+    is_a: Optional[str] = Field(default=None, description="""The parent element that the derived target element inherits from.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:is_a'} })
+    mixins: Optional[list[str]] = Field(default_factory=list, description="""Mixin elements applied to the derived target element.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:mixins'} })
     value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table that is applied directly to mappings, in order of precedence. Keys should always be quoted in YAML to prevent type coercion — unquoted true/false become booleans and bare numbers become integers, which will not match the stringified source value used for lookup.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table where the values are expressions evaluated against source bindings. Looked up by the same key as value_mappings (the stringified source value). Keys should always be quoted (see value_mappings). If both value_mappings and expression_mappings are present, value_mappings takes precedence for keys that appear in both.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_to_value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys are boolean expressions and the values are literal results. On enum derivations, used for scalar binning: each key is evaluated with value() bound to the incoming value, and the first truthy key's value is returned as the target permissible value. See issue #99.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_to_expression_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated: use case() with and/or operators instead (#127). '
                        'Will be removed before 1.0.',
          'domain_of': ['ElementDerivation']} })
-    mirror_source: Optional[bool] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
+    mirror_source: Optional[bool] = Field(default=None, description="""If true, pass the source value through unchanged instead of transforming it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     description: Optional[str] = Field(default=None, description="""description of the specification component""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent'], 'slot_uri': 'dcterms:description'} })
     implements: Optional[list[str]] = Field(default_factory=list, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent']} })
     comments: Optional[list[str]] = Field(default_factory=list, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent'], 'slot_uri': 'rdfs:comment'} })
@@ -289,7 +289,7 @@ class ClassDerivation(ElementDerivation):
     joins: Optional[dict[str, AliasedClass]] = Field(default_factory=dict, description="""Additional classes to be joined to derive instances of the target class""", json_schema_extra = { "linkml_meta": {'comments': ['supports cross-table lookups via source_key/lookup_key or the '
                       'join_on field'],
          'domain_of': ['ClassDerivation']} })
-    slot_derivations: Optional[dict[str, SlotDerivation]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'ClassDerivation']} })
+    slot_derivations: Optional[dict[str, SlotDerivation]] = Field(default_factory=dict, description="""Instructions on how to derive the slots of this target class from source data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'ClassDerivation']} })
     target_definition: Optional[Any] = Field(default=None, description="""LinkML class definition object for this slot.""", json_schema_extra = { "linkml_meta": {'comments': ['currently defined as Any to avoid coupling with metamodel'],
          'domain_of': ['ClassDerivation', 'SlotDerivation']} })
     pivot_operation: Optional[PivotOperation] = Field(default=None, description="""Configuration for pivot (unmelt) operations at class level""", json_schema_extra = { "linkml_meta": {'domain_of': ['ClassDerivation', 'SlotDerivation']} })
@@ -300,17 +300,17 @@ class ClassDerivation(ElementDerivation):
                        'EnumDerivation',
                        'PermissibleValueDerivation',
                        'Agent']} })
-    copy_directives: Optional[dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
+    copy_directives: Optional[dict[str, CopyDirective]] = Field(default_factory=dict, description="""Directives controlling which sub-elements of the source element are copied into the derived target element.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     overrides: Optional[Any] = Field(default=None, description="""overrides source schema slots""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
-    is_a: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:is_a'} })
-    mixins: Optional[list[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:mixins'} })
+    is_a: Optional[str] = Field(default=None, description="""The parent element that the derived target element inherits from.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:is_a'} })
+    mixins: Optional[list[str]] = Field(default_factory=list, description="""Mixin elements applied to the derived target element.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:mixins'} })
     value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table that is applied directly to mappings, in order of precedence. Keys should always be quoted in YAML to prevent type coercion — unquoted true/false become booleans and bare numbers become integers, which will not match the stringified source value used for lookup.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table where the values are expressions evaluated against source bindings. Looked up by the same key as value_mappings (the stringified source value). Keys should always be quoted (see value_mappings). If both value_mappings and expression_mappings are present, value_mappings takes precedence for keys that appear in both.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_to_value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys are boolean expressions and the values are literal results. On enum derivations, used for scalar binning: each key is evaluated with value() bound to the incoming value, and the first truthy key's value is returned as the target permissible value. See issue #99.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_to_expression_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated: use case() with and/or operators instead (#127). '
                        'Will be removed before 1.0.',
          'domain_of': ['ElementDerivation']} })
-    mirror_source: Optional[bool] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
+    mirror_source: Optional[bool] = Field(default=None, description="""If true, pass the source value through unchanged instead of transforming it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     description: Optional[str] = Field(default=None, description="""description of the specification component""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent'], 'slot_uri': 'dcterms:description'} })
     implements: Optional[list[str]] = Field(default_factory=list, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent']} })
     comments: Optional[list[str]] = Field(default_factory=list, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent'], 'slot_uri': 'rdfs:comment'} })
@@ -332,20 +332,20 @@ class ObjectDerivation(ElementDerivation):
                        'EnumDerivation',
                        'PermissibleValueDerivation',
                        'Agent']} })
-    class_derivations: Optional[dict[str, ClassDerivation]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification',
+    class_derivations: Optional[dict[str, ClassDerivation]] = Field(default_factory=dict, description="""Class derivations used to construct nested instances for this (deprecated) object derivation.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification',
                        'ObjectDerivation',
                        'SlotDerivation']} })
-    copy_directives: Optional[dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
+    copy_directives: Optional[dict[str, CopyDirective]] = Field(default_factory=dict, description="""Directives controlling which sub-elements of the source element are copied into the derived target element.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     overrides: Optional[Any] = Field(default=None, description="""overrides source schema slots""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
-    is_a: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:is_a'} })
-    mixins: Optional[list[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:mixins'} })
+    is_a: Optional[str] = Field(default=None, description="""The parent element that the derived target element inherits from.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:is_a'} })
+    mixins: Optional[list[str]] = Field(default_factory=list, description="""Mixin elements applied to the derived target element.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:mixins'} })
     value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table that is applied directly to mappings, in order of precedence. Keys should always be quoted in YAML to prevent type coercion — unquoted true/false become booleans and bare numbers become integers, which will not match the stringified source value used for lookup.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table where the values are expressions evaluated against source bindings. Looked up by the same key as value_mappings (the stringified source value). Keys should always be quoted (see value_mappings). If both value_mappings and expression_mappings are present, value_mappings takes precedence for keys that appear in both.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_to_value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys are boolean expressions and the values are literal results. On enum derivations, used for scalar binning: each key is evaluated with value() bound to the incoming value, and the first truthy key's value is returned as the target permissible value. See issue #99.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_to_expression_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated: use case() with and/or operators instead (#127). '
                        'Will be removed before 1.0.',
          'domain_of': ['ElementDerivation']} })
-    mirror_source: Optional[bool] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
+    mirror_source: Optional[bool] = Field(default=None, description="""If true, pass the source value through unchanged instead of transforming it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     description: Optional[str] = Field(default=None, description="""description of the specification component""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent'], 'slot_uri': 'dcterms:description'} })
     implements: Optional[list[str]] = Field(default_factory=list, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent']} })
     comments: Optional[list[str]] = Field(default_factory=list, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent'], 'slot_uri': 'rdfs:comment'} })
@@ -403,32 +403,32 @@ class SlotDerivation(ElementDerivation):
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
     value: Optional[Any] = Field(default=None, description="""A constant value to assign to the target slot.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation', 'KeyVal']} })
-    range: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation'], 'slot_uri': 'linkml:range'} })
-    unit_conversion: Optional[UnitConversionConfiguration] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation']} })
+    range: Optional[str] = Field(default=None, description="""The range (value type) to assign to the derived target slot, overriding the range inferred from the source.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation'], 'slot_uri': 'linkml:range'} })
+    unit_conversion: Optional[UnitConversionConfiguration] = Field(default=None, description="""Configuration for converting the source value's unit of measure when deriving this slot.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation']} })
     inverse_of: Optional[Inverse] = Field(default=None, description="""Used to specify a class-slot tuple that is the inverse of the derived/target slot. This is used primarily for mapping to relational databases or formalisms that do not allow multiple values. The class representing the repeated element has a foreign key slot inserted in that 'back references' the original multivalued slot.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation']} })
     hide: Optional[bool] = Field(default=None, description="""True if this is suppressed""", json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    type_designator: Optional[bool] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation']} })
+    type_designator: Optional[bool] = Field(default=None, description="""True if this target slot designates the type (class) of the instance, analogous to LinkML's designates_type.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation']} })
     target_definition: Optional[Any] = Field(default=None, description="""LinkML definition object for this slot.""", json_schema_extra = { "linkml_meta": {'comments': ['currently defined as Any to avoid coupling with metamodel'],
          'domain_of': ['ClassDerivation', 'SlotDerivation']} })
-    cast_collection_as: Optional[CollectionType] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation']} })
-    dictionary_key: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation']} })
-    stringification: Optional[StringificationConfiguration] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation']} })
-    aggregation_operation: Optional[AggregationOperation] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation']} })
+    cast_collection_as: Optional[CollectionType] = Field(default=None, description="""Coerce the derived slot's collection form (for example single-valued, list, or dictionary).""", json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation']} })
+    dictionary_key: Optional[str] = Field(default=None, description="""When the derived value is a list of objects, the slot whose value is used as the key to index them into a dictionary.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation']} })
+    stringification: Optional[StringificationConfiguration] = Field(default=None, description="""Configuration for combining multiple values into a single string value.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation']} })
+    aggregation_operation: Optional[AggregationOperation] = Field(default=None, description="""An aggregation operation that reduces multiple source values into this slot's value.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation']} })
     pivot_operation: Optional[PivotOperation] = Field(default=None, description="""Configuration for pivot (melt) operations producing this slot""", json_schema_extra = { "linkml_meta": {'domain_of': ['ClassDerivation', 'SlotDerivation']} })
     offset: Optional[Offset] = Field(default=None, description="""Configuration for calculating a value by applying an offset to a baseline value. The baseline value comes from the slot's populated_from field. This is commonly used for longitudinal data where measurements are recorded relative to a baseline. For example, calculating age_at_visit from age + (days * 1/365).""", json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation']} })
-    copy_directives: Optional[dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
+    copy_directives: Optional[dict[str, CopyDirective]] = Field(default_factory=dict, description="""Directives controlling which sub-elements of the source element are copied into the derived target element.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     overrides: Optional[Any] = Field(default=None, description="""overrides source schema slots""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
-    is_a: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:is_a'} })
-    mixins: Optional[list[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:mixins'} })
+    is_a: Optional[str] = Field(default=None, description="""The parent element that the derived target element inherits from.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:is_a'} })
+    mixins: Optional[list[str]] = Field(default_factory=list, description="""Mixin elements applied to the derived target element.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:mixins'} })
     value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table that is applied directly to mappings, in order of precedence. Keys should always be quoted in YAML to prevent type coercion — unquoted true/false become booleans and bare numbers become integers, which will not match the stringified source value used for lookup.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table where the values are expressions evaluated against source bindings. Looked up by the same key as value_mappings (the stringified source value). Keys should always be quoted (see value_mappings). If both value_mappings and expression_mappings are present, value_mappings takes precedence for keys that appear in both.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_to_value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys are boolean expressions and the values are literal results. On enum derivations, used for scalar binning: each key is evaluated with value() bound to the incoming value, and the first truthy key's value is returned as the target permissible value. See issue #99.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_to_expression_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated: use case() with and/or operators instead (#127). '
                        'Will be removed before 1.0.',
          'domain_of': ['ElementDerivation']} })
-    mirror_source: Optional[bool] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
+    mirror_source: Optional[bool] = Field(default=None, description="""If true, pass the source value through unchanged instead of transforming it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     description: Optional[str] = Field(default=None, description="""description of the specification component""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent'], 'slot_uri': 'dcterms:description'} })
     implements: Optional[list[str]] = Field(default_factory=list, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent']} })
     comments: Optional[list[str]] = Field(default_factory=list, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent'], 'slot_uri': 'rdfs:comment'} })
@@ -466,17 +466,17 @@ class EnumDerivation(ElementDerivation):
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
     permissible_value_derivations: Optional[dict[str, PermissibleValueDerivation]] = Field(default_factory=dict, description="""Instructions on how to derive a set of PVs in the target schema""", json_schema_extra = { "linkml_meta": {'domain_of': ['EnumDerivation']} })
-    copy_directives: Optional[dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
+    copy_directives: Optional[dict[str, CopyDirective]] = Field(default_factory=dict, description="""Directives controlling which sub-elements of the source element are copied into the derived target element.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     overrides: Optional[Any] = Field(default=None, description="""overrides source schema slots""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
-    is_a: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:is_a'} })
-    mixins: Optional[list[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:mixins'} })
+    is_a: Optional[str] = Field(default=None, description="""The parent element that the derived target element inherits from.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:is_a'} })
+    mixins: Optional[list[str]] = Field(default_factory=list, description="""Mixin elements applied to the derived target element.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:mixins'} })
     value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table that is applied directly to mappings, in order of precedence. Keys should always be quoted in YAML to prevent type coercion — unquoted true/false become booleans and bare numbers become integers, which will not match the stringified source value used for lookup.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table where the values are expressions evaluated against source bindings. Looked up by the same key as value_mappings (the stringified source value). Keys should always be quoted (see value_mappings). If both value_mappings and expression_mappings are present, value_mappings takes precedence for keys that appear in both.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_to_value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys are boolean expressions and the values are literal results. On enum derivations, used for scalar binning: each key is evaluated with value() bound to the incoming value, and the first truthy key's value is returned as the target permissible value. See issue #99.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_to_expression_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated: use case() with and/or operators instead (#127). '
                        'Will be removed before 1.0.',
          'domain_of': ['ElementDerivation']} })
-    mirror_source: Optional[bool] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
+    mirror_source: Optional[bool] = Field(default=None, description="""If true, pass the source value through unchanged instead of transforming it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     description: Optional[str] = Field(default=None, description="""description of the specification component""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent'], 'slot_uri': 'dcterms:description'} })
     implements: Optional[list[str]] = Field(default_factory=list, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent']} })
     comments: Optional[list[str]] = Field(default_factory=list, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent'], 'slot_uri': 'rdfs:comment'} })
@@ -497,7 +497,7 @@ class PermissibleValueDerivation(ElementDerivation):
                        'EnumDerivation',
                        'PermissibleValueDerivation',
                        'Agent']} })
-    expr: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation',
+    expr: Optional[str] = Field(default=None, description="""An expression evaluated on the source object to derive this permissible value. Should be specified using the LinkML expression language.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
     populated_from: Optional[list[str]] = Field(default_factory=list, description="""Source permissible value(s) that map to this target permissible value. Accepts a single value or a list; scalar input is normalized to a one-element list at load time.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ClassDerivation',
@@ -511,26 +511,29 @@ class PermissibleValueDerivation(ElementDerivation):
                        'SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    hide: Optional[bool] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation',
+    hide: Optional[bool] = Field(default=None, description="""True if this is suppressed""", json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation',
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
-    copy_directives: Optional[dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
+    copy_directives: Optional[dict[str, CopyDirective]] = Field(default_factory=dict, description="""Directives controlling which sub-elements of the source element are copied into the derived target element.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     overrides: Optional[Any] = Field(default=None, description="""overrides source schema slots""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
-    is_a: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:is_a'} })
-    mixins: Optional[list[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:mixins'} })
+    is_a: Optional[str] = Field(default=None, description="""The parent element that the derived target element inherits from.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:is_a'} })
+    mixins: Optional[list[str]] = Field(default_factory=list, description="""Mixin elements applied to the derived target element.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:mixins'} })
     value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table that is applied directly to mappings, in order of precedence. Keys should always be quoted in YAML to prevent type coercion — unquoted true/false become booleans and bare numbers become integers, which will not match the stringified source value used for lookup.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table where the values are expressions evaluated against source bindings. Looked up by the same key as value_mappings (the stringified source value). Keys should always be quoted (see value_mappings). If both value_mappings and expression_mappings are present, value_mappings takes precedence for keys that appear in both.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_to_value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys are boolean expressions and the values are literal results. On enum derivations, used for scalar binning: each key is evaluated with value() bound to the incoming value, and the first truthy key's value is returned as the target permissible value. See issue #99.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_to_expression_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated: use case() with and/or operators instead (#127). '
                        'Will be removed before 1.0.',
          'domain_of': ['ElementDerivation']} })
-    mirror_source: Optional[bool] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
+    mirror_source: Optional[bool] = Field(default=None, description="""If true, pass the source value through unchanged instead of transforming it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     description: Optional[str] = Field(default=None, description="""description of the specification component""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent'], 'slot_uri': 'dcterms:description'} })
     implements: Optional[list[str]] = Field(default_factory=list, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent']} })
     comments: Optional[list[str]] = Field(default_factory=list, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent'], 'slot_uri': 'rdfs:comment'} })
 
 
 class PrefixDerivation(ElementDerivation):
+    """
+    A specification of how to derive a target prefix declaration. Currently a placeholder with no additional fields.
+    """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/linkml/transformer'})
 
     name: str = Field(default=..., description="""Name of the element in the target schema""", json_schema_extra = { "linkml_meta": {'domain_of': ['SchemaReference',
@@ -540,33 +543,36 @@ class PrefixDerivation(ElementDerivation):
                        'EnumDerivation',
                        'PermissibleValueDerivation',
                        'Agent']} })
-    copy_directives: Optional[dict[str, CopyDirective]] = Field(default_factory=dict, json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
+    copy_directives: Optional[dict[str, CopyDirective]] = Field(default_factory=dict, description="""Directives controlling which sub-elements of the source element are copied into the derived target element.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'ElementDerivation']} })
     overrides: Optional[Any] = Field(default=None, description="""overrides source schema slots""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
-    is_a: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:is_a'} })
-    mixins: Optional[list[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:mixins'} })
+    is_a: Optional[str] = Field(default=None, description="""The parent element that the derived target element inherits from.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:is_a'} })
+    mixins: Optional[list[str]] = Field(default_factory=list, description="""Mixin elements applied to the derived target element.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation'], 'slot_uri': 'linkml:mixins'} })
     value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table that is applied directly to mappings, in order of precedence. Keys should always be quoted in YAML to prevent type coercion — unquoted true/false become booleans and bare numbers become integers, which will not match the stringified source value used for lookup.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table where the values are expressions evaluated against source bindings. Looked up by the same key as value_mappings (the stringified source value). Keys should always be quoted (see value_mappings). If both value_mappings and expression_mappings are present, value_mappings takes precedence for keys that appear in both.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_to_value_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys are boolean expressions and the values are literal results. On enum derivations, used for scalar binning: each key is evaluated with value() bound to the incoming value, and the first truthy key's value is returned as the target permissible value. See issue #99.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     expression_to_expression_mappings: Optional[dict[str, KeyVal]] = Field(default_factory=dict, description="""A mapping table in which the keys and values are expressions""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated: use case() with and/or operators instead (#127). '
                        'Will be removed before 1.0.',
          'domain_of': ['ElementDerivation']} })
-    mirror_source: Optional[bool] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
+    mirror_source: Optional[bool] = Field(default=None, description="""If true, pass the source value through unchanged instead of transforming it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ElementDerivation']} })
     description: Optional[str] = Field(default=None, description="""description of the specification component""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent'], 'slot_uri': 'dcterms:description'} })
     implements: Optional[list[str]] = Field(default_factory=list, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent']} })
     comments: Optional[list[str]] = Field(default_factory=list, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent'], 'slot_uri': 'rdfs:comment'} })
 
 
 class UnitConversionConfiguration(ConfiguredBaseModel):
+    """
+    Configuration for converting a slot value from a source unit of measure to a target unit during transformation.
+    """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/linkml/transformer'})
 
-    target_unit: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['UnitConversionConfiguration']} })
-    target_unit_scheme: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['UnitConversionConfiguration'], 'examples': [{'value': 'ucum'}]} })
-    source_unit: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['UnitConversionConfiguration']} })
-    source_unit_scheme: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['UnitConversionConfiguration'], 'examples': [{'value': 'ucum'}]} })
-    source_unit_slot: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['UnitConversionConfiguration']} })
-    source_magnitude_slot: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['UnitConversionConfiguration']} })
-    target_unit_slot: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['UnitConversionConfiguration']} })
-    target_magnitude_slot: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['UnitConversionConfiguration']} })
+    target_unit: Optional[str] = Field(default=None, description="""The unit to convert the value into. If omitted, the source unit is used unchanged.""", json_schema_extra = { "linkml_meta": {'domain_of': ['UnitConversionConfiguration']} })
+    target_unit_scheme: Optional[str] = Field(default=None, description="""The unit scheme or system identifying target_unit (for example ucum).""", json_schema_extra = { "linkml_meta": {'domain_of': ['UnitConversionConfiguration'], 'examples': [{'value': 'ucum'}]} })
+    source_unit: Optional[str] = Field(default=None, description="""The unit the source value is expressed in. Cross-checked against any unit declared on the source slot in the schema.""", json_schema_extra = { "linkml_meta": {'domain_of': ['UnitConversionConfiguration']} })
+    source_unit_scheme: Optional[str] = Field(default=None, description="""The unit scheme or system identifying source_unit (for example ucum).""", json_schema_extra = { "linkml_meta": {'domain_of': ['UnitConversionConfiguration'], 'examples': [{'value': 'ucum'}]} })
+    source_unit_slot: Optional[str] = Field(default=None, description="""For structured value-and-unit source input, the key within the source value that holds the unit.""", json_schema_extra = { "linkml_meta": {'domain_of': ['UnitConversionConfiguration']} })
+    source_magnitude_slot: Optional[str] = Field(default=None, description="""For structured value-and-unit source input, the key within the source value that holds the numeric magnitude.""", json_schema_extra = { "linkml_meta": {'domain_of': ['UnitConversionConfiguration']} })
+    target_unit_slot: Optional[str] = Field(default=None, description="""When emitting structured output, the key to write the target unit into.""", json_schema_extra = { "linkml_meta": {'domain_of': ['UnitConversionConfiguration']} })
+    target_magnitude_slot: Optional[str] = Field(default=None, description="""When emitting structured output, the key to write the converted magnitude into. Its presence makes the result a structured value rather than a bare number.""", json_schema_extra = { "linkml_meta": {'domain_of': ['UnitConversionConfiguration']} })
     none_if_non_numeric: Optional[bool] = Field(default=None, description="""If true, return None when the source value cannot be coerced to a numeric type instead of raising an error. This is an explicit opt-in for columns that contain non-numeric coded values (e.g. 'A', 'M') mixed with numeric data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['UnitConversionConfiguration']} })
 
 
@@ -583,13 +589,16 @@ class Offset(ConfiguredBaseModel):
 
 
 class StringificationConfiguration(ConfiguredBaseModel):
+    """
+    Configuration for collapsing multiple values into a single delimited or serialized string value.
+    """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/linkml/transformer'})
 
-    delimiter: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['StringificationConfiguration'],
+    delimiter: Optional[str] = Field(default=None, description="""Delimiter used to join multiple values into a single string.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StringificationConfiguration'],
          'examples': [{'value': ','}, {'value': '|'}, {'value': ';'}]} })
-    reversed: Optional[bool] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['StringificationConfiguration']} })
-    over_slots: Optional[list[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'domain_of': ['StringificationConfiguration']} })
-    syntax: Optional[SerializationSyntaxType] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['StringificationConfiguration'],
+    reversed: Optional[bool] = Field(default=None, description="""If true, reverse the operation, splitting a delimited or serialized string back into multiple values.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StringificationConfiguration']} })
+    over_slots: Optional[list[str]] = Field(default_factory=list, description="""The source slots whose values are combined into the stringified result.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StringificationConfiguration']} })
+    syntax: Optional[SerializationSyntaxType] = Field(default=None, description="""Serialization syntax used to stringify the values when no delimiter is given.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StringificationConfiguration'],
          'examples': [{'value': 'json'}, {'value': 'yaml'}]} })
 
 
@@ -600,8 +609,8 @@ class Inverse(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'aliases': ['backref', 'back_references'],
          'from_schema': 'https://w3id.org/linkml/transformer'})
 
-    slot_name: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['Inverse']} })
-    class_name: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['Inverse']} })
+    slot_name: Optional[str] = Field(default=None, description="""Name of the slot on the referenced class that back-references the derived slot.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Inverse']} })
+    class_name: Optional[str] = Field(default=None, description="""Name of the class that holds the back-reference (foreign key) slot.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Inverse']} })
 
 
 class TransformationOperation(ConfiguredBaseModel):
@@ -611,24 +620,33 @@ class TransformationOperation(ConfiguredBaseModel):
 
 
 class AggregationOperation(TransformationOperation):
+    """
+    An operation that reduces multiple input values to a single value using an aggregation function such as sum, average, or count.
+    """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/linkml/transformer'})
 
-    operator: AggregationType = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['AggregationOperation']} })
-    null_handling: Optional[InvalidValueHandlingStrategy] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['AggregationOperation', 'GroupingOperation']} })
-    invalid_value_handling: Optional[InvalidValueHandlingStrategy] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['AggregationOperation']} })
+    operator: AggregationType = Field(default=..., description="""The aggregation function to apply (for example SUM, AVERAGE, COUNT).""", json_schema_extra = { "linkml_meta": {'domain_of': ['AggregationOperation']} })
+    null_handling: Optional[InvalidValueHandlingStrategy] = Field(default=None, description="""How to handle null values encountered during aggregation.""", json_schema_extra = { "linkml_meta": {'domain_of': ['AggregationOperation', 'GroupingOperation']} })
+    invalid_value_handling: Optional[InvalidValueHandlingStrategy] = Field(default=None, description="""How to handle values that cannot be interpreted as valid input to the aggregation.""", json_schema_extra = { "linkml_meta": {'domain_of': ['AggregationOperation']} })
 
 
 class GroupingOperation(TransformationOperation):
+    """
+    An operation that groups source rows prior to aggregation.
+    """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/linkml/transformer'})
 
-    null_handling: Optional[InvalidValueHandlingStrategy] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['AggregationOperation', 'GroupingOperation']} })
+    null_handling: Optional[InvalidValueHandlingStrategy] = Field(default=None, description="""How to handle null values when grouping.""", json_schema_extra = { "linkml_meta": {'domain_of': ['AggregationOperation', 'GroupingOperation']} })
 
 
 class PivotOperation(TransformationOperation):
+    """
+    An operation that reshapes data between wide and long (EAV) representations, i.e. melt (wide to long) and unmelt (long to wide).
+    """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'aliases': ['melt/unmelt', 'reification/dereification'],
          'from_schema': 'https://w3id.org/linkml/transformer'})
 
-    direction: PivotDirectionType = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['PivotOperation']} })
+    direction: PivotDirectionType = Field(default=..., description="""Whether to MELT (wide to long) or UNMELT (long to wide).""", json_schema_extra = { "linkml_meta": {'domain_of': ['PivotOperation']} })
     variable_slot: Optional[str] = Field(default="variable", description="""Slot to use for the variable column in the melted/long representation. In EAV this is the name of the 'A' variable""", json_schema_extra = { "linkml_meta": {'aliases': ['var_name'],
          'domain_of': ['PivotOperation'],
          'ifabsent': 'string(variable)'} })
@@ -636,7 +654,7 @@ class PivotOperation(TransformationOperation):
          'domain_of': ['PivotOperation'],
          'ifabsent': 'string(value)'} })
     unmelt_to_class: Optional[str] = Field(default=None, description="""In an unmelt operation, attributes (which are values in the long/melted/EAV representation) must conform to valid attributes in this class""", json_schema_extra = { "linkml_meta": {'domain_of': ['PivotOperation']} })
-    unmelt_to_slots: Optional[list[str]] = Field(default_factory=list, json_schema_extra = { "linkml_meta": {'domain_of': ['PivotOperation']} })
+    unmelt_to_slots: Optional[list[str]] = Field(default_factory=list, description="""For an unmelt operation, the target wide-format slots to populate from the long/EAV rows.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PivotOperation']} })
     unit_slot: Optional[str] = Field(default=None, description="""Optional slot containing unit information for {variable}_{unit} naming""", json_schema_extra = { "linkml_meta": {'domain_of': ['PivotOperation']} })
     slot_name_template: Optional[str] = Field(default="{variable}", description="""Template for generating target slot names. Supports {variable} and {unit}.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PivotOperation'], 'ifabsent': 'string({variable})'} })
     source_slots: Optional[list[str]] = Field(default_factory=list, description="""For MELT, the list of wide-format slots to melt""", json_schema_extra = { "linkml_meta": {'domain_of': ['PivotOperation']} })
@@ -644,10 +662,13 @@ class PivotOperation(TransformationOperation):
 
 
 class KeyVal(ConfiguredBaseModel):
+    """
+    A generic key-value pair.
+    """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/linkml/transformer'})
 
-    key: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['KeyVal']} })
-    value: Optional[Any] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation', 'KeyVal']} })
+    key: str = Field(default=..., description="""The key.""", json_schema_extra = { "linkml_meta": {'domain_of': ['KeyVal']} })
+    value: Optional[Any] = Field(default=None, description="""The value associated with the key.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation', 'KeyVal']} })
 
 
 class Agent(ConfiguredBaseModel):
@@ -738,14 +759,14 @@ class CopyDirective(ConfiguredBaseModel):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/linkml/transformer', 'status': 'testing'})
 
-    element_name: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['CopyDirective']} })
+    element_name: str = Field(default=..., description="""Name of the source element this directive applies to (a class, slot, enum, etc.).""", json_schema_extra = { "linkml_meta": {'domain_of': ['CopyDirective']} })
     copy_all: Optional[bool] = Field(default=None, description="""Copy all sub-elements of the Element being derived.""", json_schema_extra = { "linkml_meta": {'domain_of': ['CopyDirective']} })
     exclude_all: Optional[bool] = Field(default=None, description="""Do not copy any of the sub-elements of the Element being derived.""", json_schema_extra = { "linkml_meta": {'domain_of': ['CopyDirective']} })
     exclude: Optional[Any] = Field(default=None, description="""Remove certain sub-elements from the list of sub-elements to be copied.
 As of now there it is under-specified, how to specify the sub-elements to exclude. One possible implementation would be a list where all element types can be mixed, since there might not be name conflicts across element types.""", json_schema_extra = { "linkml_meta": {'domain_of': ['CopyDirective']} })
     include: Optional[Any] = Field(default=None, description="""Add certain sub-elements to the list of sub-elements to be copied.
 As of now there it is under-specified, how to specify the sub-elements to include. One possible implementation would be a list where all element types can be mixed, since there might not be name conflicts across element types.""", json_schema_extra = { "linkml_meta": {'domain_of': ['CopyDirective']} })
-    add: Optional[Any] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['CopyDirective']} })
+    add: Optional[Any] = Field(default=None, description="""Add new sub-elements that are not present in the source element. Currently under-specified and not yet implemented (see issue #245).""", json_schema_extra = { "linkml_meta": {'domain_of': ['CopyDirective']} })
 
 
 # Model rebuild

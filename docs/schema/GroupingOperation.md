@@ -5,6 +5,11 @@ search:
 
 # Class: GroupingOperation 
 
+
+_An operation that groups source rows prior to aggregation._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -49,7 +54,7 @@ URI: [linkmlmap:GroupingOperation](https://w3id.org/linkml/transformer/GroupingO
 
 | Name | Cardinality and Range | Description | Inheritance |
 | ---  | --- | --- | --- |
-| [null_handling](null_handling.md) | 0..1 <br/> [InvalidValueHandlingStrategy](InvalidValueHandlingStrategy.md) |  | direct |
+| [null_handling](null_handling.md) | 0..1 <br/> [InvalidValueHandlingStrategy](InvalidValueHandlingStrategy.md) | How to handle null values when grouping | direct |
 
 
 
@@ -100,11 +105,13 @@ URI: [linkmlmap:GroupingOperation](https://w3id.org/linkml/transformer/GroupingO
 <details>
 ```yaml
 name: GroupingOperation
+description: An operation that groups source rows prior to aggregation.
 from_schema: https://w3id.org/linkml/transformer
 is_a: TransformationOperation
 attributes:
   null_handling:
     name: null_handling
+    description: How to handle null values when grouping.
     from_schema: https://w3id.org/linkml/transformer
     domain_of:
     - AggregationOperation
@@ -119,11 +126,13 @@ attributes:
 <details>
 ```yaml
 name: GroupingOperation
+description: An operation that groups source rows prior to aggregation.
 from_schema: https://w3id.org/linkml/transformer
 is_a: TransformationOperation
 attributes:
   null_handling:
     name: null_handling
+    description: How to handle null values when grouping.
     from_schema: https://w3id.org/linkml/transformer
     owner: GroupingOperation
     domain_of:

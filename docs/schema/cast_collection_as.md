@@ -5,6 +5,11 @@ search:
 
 # Slot: cast_collection_as 
 
+
+_Coerce the derived slot's collection form (for example single-valued, list, or dictionary)._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -86,6 +91,8 @@ URI: [linkmlmap:cast_collection_as](https://w3id.org/linkml/transformer/cast_col
 <details>
 ```yaml
 name: cast_collection_as
+description: Coerce the derived slot's collection form (for example single-valued,
+  list, or dictionary).
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 owner: SlotDerivation
