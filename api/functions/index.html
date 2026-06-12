@@ -72,12 +72,12 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
   <div class="row wm-article-nav-buttons" role="navigation" aria-label="navigation">
     
     <div class="wm-article-nav pull-right">
-      <a href="../../faq/" class="btn btn-xs btn-default pull-right">
+      <a href="../extensions/" class="btn btn-xs btn-default pull-right">
         Next
         <i class="fa fa-chevron-right" aria-hidden="true"></i>
       </a>
-      <a href="../../faq/" class="btn btn-xs btn-link">
-        FAQ
+      <a href="../extensions/" class="btn btn-xs btn-link">
+        Extensions
       </a>
     </div>
     
@@ -154,8 +154,26 @@ and null propagation.</p>
 <td><code>uuid5(namespace, name)</code></td>
 <td>Deterministic UUID v5 generation</td>
 </tr>
+<tr>
+<td><code>slugify(s, separator="_")</code></td>
+<td>ASCII-fold + lowercase + collapse non-alphanumerics; <code>None</code> on no extractable content</td>
+</tr>
+<tr>
+<td><code>to_snake(s)</code></td>
+<td>Convert to <code>snake_case</code></td>
+</tr>
+<tr>
+<td><code>to_camel(s)</code></td>
+<td>Convert to <code>camelCase</code></td>
+</tr>
+<tr>
+<td><code>to_pascal(s)</code></td>
+<td>Convert to <code>PascalCase</code></td>
+</tr>
 </tbody>
 </table>
+<p>For functions not in this list, see <a href="../extensions/">Extension Functions</a> to
+register your own.</p>
 <h2 id="unit-conversion">Unit Conversion</h2>
 
 
@@ -749,12 +767,12 @@ sireg("ha")
   <div class="row wm-article-nav-buttons" role="navigation" aria-label="navigation">
     
     <div class="wm-article-nav pull-right">
-      <a href="../../faq/" class="btn btn-xs btn-default pull-right">
+      <a href="../extensions/" class="btn btn-xs btn-default pull-right">
         Next
         <i class="fa fa-chevron-right" aria-hidden="true"></i>
       </a>
-      <a href="../../faq/" class="btn btn-xs btn-link">
-        FAQ
+      <a href="../extensions/" class="btn btn-xs btn-link">
+        Extensions
       </a>
     </div>
     

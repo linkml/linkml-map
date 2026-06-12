@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    
+    <link rel="canonical" href="https://linkml.github.io/linkml-map/api/extensions/">
+    <link rel="shortcut icon" href="../../img/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <title>Extensions - LinkML-Map</title>
+    <link href="../../css/bootstrap-3.3.7.min.css" rel="stylesheet">
+    <link href="../../css/font-awesome-4.7.0.css" rel="stylesheet">
+    <link href="../../css/base.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/highlight.css">
+    <link href="../../assets/_mkdocstrings.css" rel="stylesheet">
+    <link href="../../css/ansi-colours.css" rel="stylesheet">
+    <link href="../../css/jupyter-cells.css" rel="stylesheet">
+    <link href="../../css/pandas-dataframe.css" rel="stylesheet">
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+
+    <script src="../../js/jquery-3.2.1.min.js"></script>
+    <script src="../../js/bootstrap-3.3.7.min.js"></script>
+    <script src="../../js/highlight.pack.js"></script>
+    
+    <base target="_top">
+    <script>
+      var base_url = '../..';
+      var is_top_frame = false;
+        
+        var pageToc = [
+          {title: "Extension Functions", url: "#_top", children: [
+              {title: "Quick example", url: "#quick-example" },
+              {title: "The @safe_function contract", url: "#the-safe_function-contract" },
+              {title: "When NOT to use extensions", url: "#when-not-to-use-extensions" },
+              {title: "Reserved names", url: "#reserved-names" },
+              {title: "Override semantics", url: "#override-semantics" },
+              {title: "List-style functions", url: "#list-style-functions" },
+              {title: "Required-extension convention", url: "#required-extension-convention" },
+              {title: "Programmatic use", url: "#programmatic-use" },
+              {title: "API reference", url: "#api-reference" },
+              {title: "ExtensionError", url: "#linkml_map.utils.extensions.ExtensionError" },
+              {title: "load_extensions", url: "#linkml_map.utils.extensions.load_extensions" },
+              {title: "safe_function", url: "#linkml_map.utils.extensions.safe_function" },
+          ]},
+        ];
+
+    </script>
+    <script src="../../js/base.js"></script> 
+</head>
+
+<body>
+<script>
+if (is_top_frame) { $('body').addClass('wm-top-page'); }
+</script>
+
+
+
+<div class="container-fluid wm-page-content">
+  <a name="_top"></a>
+    
+
+    
+    
+      
+    
+
+  <div class="row wm-article-nav-buttons" role="navigation" aria-label="navigation">
+    
+    <div class="wm-article-nav pull-right">
+      <a href="../../faq/" class="btn btn-xs btn-default pull-right">
+        Next
+        <i class="fa fa-chevron-right" aria-hidden="true"></i>
+      </a>
+      <a href="../../faq/" class="btn btn-xs btn-link">
+        FAQ
+      </a>
+    </div>
+    
+    <div class="wm-article-nav">
+      <a href="../functions/" class="btn btn-xs btn-default pull-left">
+        <i class="fa fa-chevron-left" aria-hidden="true"></i>
+        Previous</a><a href="../functions/" class="btn btn-xs btn-link">
+        Functions
+      </a>
+    </div>
+    
+  </div>
+
+    
+
+    <h1 id="extension-functions">Extension Functions</h1>
+<p>linkml-map ships a curated set of safe built-in functions for use in
+<a href="../expressions/">expressions</a>. When you need a function that isn't built in,
+you can register your own — without forking linkml-map or wrapping it in a
+custom Python harness — by tagging plain Python functions with
+<code>@safe_function</code> and pointing the CLI at the file.</p>
+<h2 id="quick-example">Quick example</h2>
+<p>A user-supplied <code>my_helpers.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.utils.extensions</span><span class="w"> </span><span class="kn">import</span> <span class="n">safe_function</span>
+
+
+<span class="nd">@safe_function</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">normalize_taxon_id</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Strip the &#39;NCBI:&#39; prefix and pad to 8 digits.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="s2">&quot;NCBI:&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;NCBI:</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span><span class="si">:</span><span class="s2">08d</span><span class="si">}</span><span class="s2">&quot;</span>
+</code></pre></div>
+<p>Then in a trans-spec:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># required_extensions: my_helpers.py  (convention; see below)</span>
+<span class="nt">class_derivations</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">Organism</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SourceOrganism</span>
+<span class="w">    </span><span class="nt">slot_derivations</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">tax_id</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">expr</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;normalize_taxon_id(taxon)&quot;</span>
+</code></pre></div>
+<p>And at the command line:</p>
+<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>map-data<span class="w"> </span>-s<span class="w"> </span>schema.yaml<span class="w"> </span>-T<span class="w"> </span>transform.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--functions<span class="w"> </span>./my_helpers.py<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>data.tsv<span class="w"> </span>-o<span class="w"> </span>out.jsonl
+</code></pre></div>
+<p>The flag is repeatable: pass <code>--functions</code> (or the short form <code>-F</code>) once per
+extension file.</p>
+<h2 id="the-safe_function-contract">The <code>@safe_function</code> contract</h2>
+<p>Applying <code>@safe_function</code> is a <strong>declaration by the author</strong> that the function
+is:</p>
+<ul>
+<li><strong>Pure</strong> — no I/O, no network calls, no global state mutation</li>
+<li><strong>Bounded-time</strong> — deterministic and fast; runs once per row in a transform</li>
+<li><strong>Deterministic</strong> — same inputs produce same outputs</li>
+</ul>
+<p>linkml-map <strong>does not verify</strong> these properties. The name "safe" reflects what
+<em>you</em> are declaring about the function, not what linkml-map enforces. This is
+the same posture as <code>typing.final</code> or <code>@SafeVarargs</code> in other ecosystems.</p>
+<p>The trust model is identical to <code>pip install</code>: anything in a module you import
+will run. If you're importing a third-party extension, treat it like any other
+dependency.</p>
+<h2 id="when-not-to-use-extensions">When NOT to use extensions</h2>
+<p>Extensions are not an escape hatch for putting transformation logic in Python.
+They exist for <strong>named atomic operations</strong> that read cleaner as a name than as
+an expression chain — <code>slugify(name)</code> instead of
+<code>replace(replace(lower(strip(name)), ' ', '_'), ',', '')</code>.</p>
+<p>If the function you're tempted to write is more than a few lines of pure
+data manipulation, ask first whether it belongs in the trans-spec or in the
+source/target schema. The declarative spec is the documentation of what the
+transformation does; pulling logic out into Python hides it from review.</p>
+<h2 id="reserved-names">Reserved names</h2>
+<p>A handful of names are injected per-call by the transformer (currently <code>slot</code>,
+used inside expressions to reference a previously derived target slot). An
+extension cannot define a function with one of these names — it would be
+silently shadowed at evaluation time. <code>load_extensions</code> raises
+<code>ExtensionError</code> on the attempt so the conflict shows up at load time
+rather than as silent wrong behavior.</p>
+<h2 id="override-semantics">Override semantics</h2>
+<p>A <code>@safe_function</code> may shadow a built-in if you explicitly say so:</p>
+<div class="highlight"><pre><span></span><code><span class="nd">@safe_function</span><span class="p">(</span><span class="n">override</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">lower</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">casefold</span><span class="p">()</span>  <span class="c1"># locale-aware, replaces the built-in str.lower</span>
+</code></pre></div>
+<ul>
+<li><strong>Without <code>override=True</code></strong>: collision with a built-in raises <code>ExtensionError</code>
+  at load time — protects against accidental shadowing from a typo.</li>
+<li><strong>With <code>override=True</code> but no matching built-in</strong>: logged as a warning (still
+  loaded) — useful as a typo catcher for the override case.</li>
+<li><strong>Collision between two extensions</strong>: always an error. Pick one.</li>
+</ul>
+<p>There is no CLI flag to enable overrides. The decision lives on the function
+declaration, where the author is responsible for it.</p>
+<h2 id="list-style-functions">List-style functions</h2>
+<p>By default, scalar functions distribute over lists and propagate <code>None</code>
+(<code>slugify([a, b, None])</code> → <code>[slugify(a), slugify(b), None]</code>). For functions
+that legitimately accept a list as their first argument (aggregators, etc.),
+opt out:</p>
+<div class="highlight"><pre><span></span><code><span class="nd">@safe_function</span><span class="p">(</span><span class="n">distributes</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">median</span><span class="p">(</span><span class="n">items</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="n">sorted_items</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">items</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sorted_items</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">sorted_items</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">]</span>
+</code></pre></div>
+<h2 id="required-extension-convention">Required-extension convention</h2>
+<p>A trans-spec that references an extension function won't run without
+<code>--functions</code>. The runtime error is clear (<code>Unknown function 'foo'. (If this
+is a custom function, pass it via --functions &lt;path&gt;.)</code>), but it's still
+runtime. Until linkml-map gains a declarative <code>required_extensions:</code> key, the
+convention is to note the dependency in a header comment on the spec:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># required_extensions:</span>
+<span class="c1">#   - my_helpers.py</span>
+<span class="c1">#</span>
+<span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://example.org/my-transform</span>
+<span class="nt">class_derivations</span><span class="p">:</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+</code></pre></div>
+<h2 id="programmatic-use">Programmatic use</h2>
+<p>Python callers can skip the CLI and set extensions directly on the transformer:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.transformer.object_transformer</span><span class="w"> </span><span class="kn">import</span> <span class="n">ObjectTransformer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.utils.extensions</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_extensions</span>
+
+<span class="n">ext</span> <span class="o">=</span> <span class="n">load_extensions</span><span class="p">([</span><span class="s2">&quot;./my_helpers.py&quot;</span><span class="p">])</span>
+<span class="n">tr</span> <span class="o">=</span> <span class="n">ObjectTransformer</span><span class="p">(</span><span class="n">extension_functions</span><span class="o">=</span><span class="n">ext</span><span class="p">)</span>
+</code></pre></div>
+<p><code>extension_functions</code> accepts any <code>dict[str, Callable]</code>, so you can also bypass
+the loader entirely and hand-build the dict if you prefer (skipping the
+decorator-tagging step).</p>
+<h2 id="api-reference">API reference</h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+
+    <div class="doc doc-contents first">
+
+        <p>Extension surface for downstream-supplied safe functions.</p>
+<p>Trans-spec authors register custom functions into the eval namespace by writing
+a Python module and tagging functions with :func:<code>safe_function</code>. linkml-map
+loads these via the <code>-F</code>/<code>--functions</code> CLI flag (repeatable) or the
+<code>extension_functions</code> kwarg on :class:<code>~linkml_map.transformer.object_transformer.ObjectTransformer</code>.</p>
+<p>The decorator is a <strong>declaration by the author</strong> that the function is pure,
+bounded-time, and free of I/O. linkml-map does not verify this — the safety
+boundary is the named namespace, not sandboxed execution. Same posture as
+:func:<code>typing.final</code>.</p>
+<h3 id="linkml_map.utils.extensions--example">Example</h3>
+<p>A user-supplied <code>my_helpers.py</code>::</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.utils.extensions</span><span class="w"> </span><span class="kn">import</span> <span class="n">safe_function</span>
+
+<span class="nd">@safe_function</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">slugify</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">separator</span><span class="o">=</span><span class="s2">&quot;_&quot;</span><span class="p">):</span>
+    <span class="o">...</span>
+
+<span class="nd">@safe_function</span><span class="p">(</span><span class="n">override</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># explicit shadowing of a built-in</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">lower</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="o">...</span>
+
+<span class="nd">@safe_function</span><span class="p">(</span><span class="n">distributes</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># list-style; opts out of scalar distribution</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">my_aggregator</span><span class="p">(</span><span class="n">items</span><span class="p">):</span>
+    <span class="o">...</span>
+</code></pre></div>
+
+<p>Then::</p>
+<div class="codehilite"><pre><span></span><code>linkml-map map-data ... --functions ./my_helpers.py
+</code></pre></div>
+
+<h3 id="linkml_map.utils.extensions--semantics">Semantics</h3>
+<ul>
+<li>Collision between two extensions → :class:<code>ExtensionError</code>.</li>
+<li>Collision with a built-in without <code>override=True</code> → :class:<code>ExtensionError</code>.</li>
+<li><code>override=True</code> declared but no matching built-in → <code>logging.warning</code>.</li>
+<li>Missing extension file → :class:<code>ExtensionError</code>.</li>
+</ul>
+<p>For the contract authors are declaring, see <code>docs/api/extensions.md</code>.</p>
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="linkml_map.utils.extensions.ExtensionError" class="doc doc-heading">
+            <code>ExtensionError</code>
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="Exception">Exception</span></code></p>
+
+
+        <p>Raised when loading an extension function module fails.</p>
+
+
+
+
+
+
+
+              <details class="quote">
+                <summary>Source code in <code>src/linkml_map/utils/extensions.py</code></summary>
+                <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">67</span>
+<span class="normal">68</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">ExtensionError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised when loading an extension function module fails.&quot;&quot;&quot;</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+    </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="linkml_map.utils.extensions.load_extensions" class="doc doc-heading">
+            <code class=" language-python"><span class="n">load_extensions</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Load tagged functions from a list of file paths into one merged dict.</p>
+<p>Applies the scalar-distributing wrapper to functions declared with
+<code>distributes=True</code> (the default), so they broadcast over lists and
+propagate <code>None</code> consistently with the built-ins.</p>
+<p>:param paths: Iterable of file paths to <code>.py</code> modules with tagged functions.
+:returns: Mapping of <code>name → callable</code> ready to merge into
+    <code>ObjectTransformer.extension_functions</code>.
+:raises ExtensionError: On missing file, name collision between extensions,
+    or attempt to shadow a built-in without <code>override=True</code>.</p>
+
+
+            <details class="quote">
+              <summary>Source code in <code>src/linkml_map/utils/extensions.py</code></summary>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_extensions</span><span class="p">(</span><span class="n">paths</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Load tagged functions from a list of file paths into one merged dict.</span>
+
+<span class="sd">    Applies the scalar-distributing wrapper to functions declared with</span>
+<span class="sd">    ``distributes=True`` (the default), so they broadcast over lists and</span>
+<span class="sd">    propagate ``None`` consistently with the built-ins.</span>
+
+<span class="sd">    :param paths: Iterable of file paths to ``.py`` modules with tagged functions.</span>
+<span class="sd">    :returns: Mapping of ``name → callable`` ready to merge into</span>
+<span class="sd">        ``ObjectTransformer.extension_functions``.</span>
+<span class="sd">    :raises ExtensionError: On missing file, name collision between extensions,</span>
+<span class="sd">        or attempt to shadow a built-in without ``override=True``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">merged</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">sources</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">raw_path</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">raw_path</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+        <span class="n">module</span> <span class="o">=</span> <span class="n">_load_module_from_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">tagged</span> <span class="o">=</span> <span class="n">_collect_tagged_functions</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">meta</span> <span class="ow">in</span> <span class="n">tagged</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_RESERVED_NAMES</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Extension name </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> from </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> is reserved — the &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;transformer injects it per-call, so it would silently &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;shadow your extension. Pick a different name.&quot;</span>
+                <span class="p">)</span>
+                <span class="k">raise</span> <span class="n">ExtensionError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">merged</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Extension name collision: </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> defined in both </span><span class="si">{</span><span class="n">sources</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">raise</span> <span class="n">ExtensionError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">FUNCTIONS</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">meta</span><span class="p">[</span><span class="s2">&quot;override&quot;</span><span class="p">]:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Extension </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> from </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> shadows a built-in of the &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;same name. Declare ``@safe_function(override=True)`` if intentional.&quot;</span>
+                <span class="p">)</span>
+                <span class="k">raise</span> <span class="n">ExtensionError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">meta</span><span class="p">[</span><span class="s2">&quot;override&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">FUNCTIONS</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;Extension </span><span class="si">%r</span><span class="s2"> from </span><span class="si">%s</span><span class="s2"> declared override=True but no built-in </span><span class="si">%r</span><span class="s2"> exists&quot;</span><span class="p">,</span>
+                    <span class="n">name</span><span class="p">,</span>
+                    <span class="n">path</span><span class="p">,</span>
+                    <span class="n">name</span><span class="p">,</span>
+                <span class="p">)</span>
+
+            <span class="n">fn</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="s2">&quot;func&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">meta</span><span class="p">[</span><span class="s2">&quot;distributes&quot;</span><span class="p">]:</span>
+                <span class="n">fn</span> <span class="o">=</span> <span class="n">_distributing</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+            <span class="n">merged</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">fn</span>
+            <span class="n">sources</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">path</span>
+
+    <span class="k">return</span> <span class="n">merged</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="linkml_map.utils.extensions.safe_function" class="doc doc-heading">
+            <code class=" language-python"><span class="n">safe_function</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">override</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">distributes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Tag a function for inclusion in the safe-function namespace.</p>
+<p>Applying this decorator is a <strong>declaration by the author</strong> that the
+function is pure, bounded-time, and free of I/O. linkml-map does not
+verify these properties.</p>
+<p>Usable bare or with kwargs::</p>
+<div class="codehilite"><pre><span></span><code><span class="nv">@safe_function</span>
+<span class="n">def</span><span class="w"> </span><span class="n">slugify</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="err">:</span><span class="w"> </span><span class="p">...</span>
+
+<span class="nv">@safe_function</span><span class="p">(</span><span class="n">override</span><span class="o">=</span><span class="k">True</span><span class="p">)</span>
+<span class="n">def</span><span class="w"> </span><span class="nf">lower</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="err">:</span><span class="w"> </span><span class="p">...</span>
+</code></pre></div>
+
+<p>:param override: Allow shadowing a built-in of the same name. Without this,
+    a collision with a built-in raises :class:<code>ExtensionError</code> at load time.
+:param distributes: Apply the scalar-distributing wrapper (broadcasts over
+    lists, propagates <code>None</code>). Default <code>True</code>; set <code>False</code> for
+    functions that accept a list as their first argument.</p>
+
+
+            <details class="quote">
+              <summary>Source code in <code>src/linkml_map/utils/extensions.py</code></summary>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">safe_function</span><span class="p">(</span>
+    <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">override</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">distributes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tag a function for inclusion in the safe-function namespace.</span>
+
+<span class="sd">    Applying this decorator is a **declaration by the author** that the</span>
+<span class="sd">    function is pure, bounded-time, and free of I/O. linkml-map does not</span>
+<span class="sd">    verify these properties.</span>
+
+<span class="sd">    Usable bare or with kwargs::</span>
+
+<span class="sd">        @safe_function</span>
+<span class="sd">        def slugify(s): ...</span>
+
+<span class="sd">        @safe_function(override=True)</span>
+<span class="sd">        def lower(s): ...</span>
+
+<span class="sd">    :param override: Allow shadowing a built-in of the same name. Without this,</span>
+<span class="sd">        a collision with a built-in raises :class:`ExtensionError` at load time.</span>
+<span class="sd">    :param distributes: Apply the scalar-distributing wrapper (broadcasts over</span>
+<span class="sd">        lists, propagates ``None``). Default ``True``; set ``False`` for</span>
+<span class="sd">        functions that accept a list as their first argument.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_tag</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">_SAFE_FUNCTION_ATTR</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;override&quot;</span><span class="p">:</span> <span class="n">override</span><span class="p">,</span> <span class="s2">&quot;distributes&quot;</span><span class="p">:</span> <span class="n">distributes</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">fn</span>
+
+    <span class="k">if</span> <span class="n">func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Bare ``@safe_function`` with no parentheses.</span>
+        <span class="k">return</span> <span class="n">_tag</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_tag</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+  <br>
+    
+
+    
+    
+      
+    
+
+  <div class="row wm-article-nav-buttons" role="navigation" aria-label="navigation">
+    
+    <div class="wm-article-nav pull-right">
+      <a href="../../faq/" class="btn btn-xs btn-default pull-right">
+        Next
+        <i class="fa fa-chevron-right" aria-hidden="true"></i>
+      </a>
+      <a href="../../faq/" class="btn btn-xs btn-link">
+        FAQ
+      </a>
+    </div>
+    
+    <div class="wm-article-nav">
+      <a href="../functions/" class="btn btn-xs btn-default pull-left">
+        <i class="fa fa-chevron-left" aria-hidden="true"></i>
+        Previous</a><a href="../functions/" class="btn btn-xs btn-link">
+        Functions
+      </a>
+    </div>
+    
+  </div>
+
+    <br>
+</div>
+
+<footer class="container-fluid wm-page-content">
+      <p>
+        <a href="https://github.com/linkml/linkml-map/edit/master/docs/api/extensions.md"><i class="fa fa-github"></i>
+Edit on GitHub</a>
+      </p>
+  <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a> using <a href="https://github.com/gristlabs/mkdocs-windmill">Windmill</a> theme by Grist Labs.</p>
+</footer>
+
+</body>
+</html>
