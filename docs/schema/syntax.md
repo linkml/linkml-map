@@ -5,6 +5,11 @@ search:
 
 # Slot: syntax 
 
+
+_Serialization syntax used to stringify the values when no delimiter is given._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -20,7 +25,7 @@ URI: [linkmlmap:syntax](https://w3id.org/linkml/transformer/syntax)
 
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
-| [StringificationConfiguration](StringificationConfiguration.md) |  |  no  |
+| [StringificationConfiguration](StringificationConfiguration.md) | Configuration for collapsing multiple values into a single delimited or seria... |  no  |
 
 
 
@@ -94,6 +99,8 @@ URI: [linkmlmap:syntax](https://w3id.org/linkml/transformer/syntax)
 <details>
 ```yaml
 name: syntax
+description: Serialization syntax used to stringify the values when no delimiter is
+  given.
 examples:
 - value: json
 - value: yaml

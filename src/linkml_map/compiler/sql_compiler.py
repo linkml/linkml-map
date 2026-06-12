@@ -68,7 +68,7 @@ class SQLCompiler(Compiler):
         if not col_trs:
             return
         stmt += ", \n".join(col_trs)
-        stmt += f" FROM {cd.name}"
+        stmt += f" FROM {cd.populated_from or cd.name}"
         compiled.serialization += f"{stmt};\n"
 
     def compile_slot_derivation(self, sd) -> str:
@@ -85,7 +85,7 @@ class SQLCompiler(Compiler):
                 expr = f"CAST({expr} AS TEXT)"
             elif delimiter:
                 expr = f"STRING_AGG({expr}, '{delimiter}')"
-        return f"  {sd.name} AS {expr}"
+        return f"  {expr} AS {sd.name}"
 
     def create_ddl(self, schemaview: SchemaView) -> str:
         """

@@ -5,6 +5,11 @@ search:
 
 # Slot: target_magnitude_slot 
 
+
+_When emitting structured output, the key to write the converted magnitude into. Its presence makes the result a structured value rather than a bare number._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -20,7 +25,7 @@ URI: [linkmlmap:target_magnitude_slot](https://w3id.org/linkml/transformer/targe
 
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
-| [UnitConversionConfiguration](UnitConversionConfiguration.md) |  |  no  |
+| [UnitConversionConfiguration](UnitConversionConfiguration.md) | Configuration for converting a slot value from a source unit of measure to a ... |  no  |
 
 
 
@@ -86,6 +91,8 @@ URI: [linkmlmap:target_magnitude_slot](https://w3id.org/linkml/transformer/targe
 <details>
 ```yaml
 name: target_magnitude_slot
+description: When emitting structured output, the key to write the converted magnitude
+  into. Its presence makes the result a structured value rather than a bare number.
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 owner: UnitConversionConfiguration

@@ -16,12 +16,23 @@ on:
 
 jobs:
   check-mention:
+    # Only spin up the job when the actual command phrase is present, matching
+    # the script's qualifying regex (/@dragon-ai-agent\s+please\s+/i). Without
+    # this the job runs (and shows a green check) on every issue, PR, and
+    # review comment; gating on the bare handle would also trip on any comment
+    # that merely mentions the bot. The script below still does the precise
+    # check (authorized user, captured prompt).
+    if: |
+      (github.event_name == 'issues' && contains(github.event.issue.body, '@dragon-ai-agent please')) ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.body, '@dragon-ai-agent please')) ||
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@dragon-ai-agent please')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@dragon-ai-agent please'))
     runs-on: ubuntu-latest
     outputs:
       result: ${{ steps.check.outputs.result }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         # this seems to be necessary to ensure actions uses the latest; see
         # https://github.com/actions/checkout/issues/439
         with:
@@ -29,7 +40,7 @@ jobs:
 
       - name: Check for qualifying mention
         id: check
-        uses: actions/github-script@v6
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.PAT_FOR_PR }}  # Use PAT instead of default token
           script: |
@@ -101,7 +112,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.ref }}
           token: ${{ secrets.PAT_FOR_PR }}  # Use PAT for checkout to allow committing later
@@ -115,7 +126,7 @@ jobs:
         run: mkdir -p ${{ env.TOOLS_DIR }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
           node-version: '18'
 
@@ -131,7 +142,7 @@ jobs:
           ls -alt ${{ env.TOOLS_DIR }}
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v8.2.0
 
       - name: Install python tools
         run: |

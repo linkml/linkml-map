@@ -25,7 +25,7 @@ URI: [linkmlmap:PivotDirectionType](https://w3id.org/linkml/transformer/PivotDir
 
 | Name | Description |
 | ---  | --- |
-| [direction](direction.md) |  |
+| [direction](direction.md) | Whether to MELT (wide to long) or UNMELT (long to wide) |
 
 
 

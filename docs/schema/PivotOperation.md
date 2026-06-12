@@ -5,6 +5,11 @@ search:
 
 # Class: PivotOperation 
 
+
+_An operation that reshapes data between wide and long (EAV) representations, i.e. melt (wide to long) and unmelt (long to wide)._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -65,11 +70,11 @@ URI: [linkmlmap:PivotOperation](https://w3id.org/linkml/transformer/PivotOperati
 
 | Name | Cardinality and Range | Description | Inheritance |
 | ---  | --- | --- | --- |
-| [direction](direction.md) | 1 <br/> [PivotDirectionType](PivotDirectionType.md) |  | direct |
+| [direction](direction.md) | 1 <br/> [PivotDirectionType](PivotDirectionType.md) | Whether to MELT (wide to long) or UNMELT (long to wide) | direct |
 | [variable_slot](variable_slot.md) | 0..1 <br/> [SlotReference](SlotReference.md) | Slot to use for the variable column in the melted/long representation | direct |
 | [value_slot](value_slot.md) | 0..1 <br/> [SlotReference](SlotReference.md) | Slot to use for the value column in the melted/long representation | direct |
 | [unmelt_to_class](unmelt_to_class.md) | 0..1 <br/> [ClassReference](ClassReference.md) | In an unmelt operation, attributes (which are values in the long/melted/EAV r... | direct |
-| [unmelt_to_slots](unmelt_to_slots.md) | * <br/> [SlotReference](SlotReference.md) |  | direct |
+| [unmelt_to_slots](unmelt_to_slots.md) | * <br/> [SlotReference](SlotReference.md) | For an unmelt operation, the target wide-format slots to populate from the lo... | direct |
 | [unit_slot](unit_slot.md) | 0..1 <br/> [SlotReference](SlotReference.md) | Optional slot containing unit information for {variable}_{unit} naming | direct |
 | [slot_name_template](slot_name_template.md) | 0..1 <br/> [String](String.md) | Template for generating target slot names | direct |
 | [source_slots](source_slots.md) | * <br/> [SlotReference](SlotReference.md) | For MELT, the list of wide-format slots to melt | direct |
@@ -138,6 +143,8 @@ URI: [linkmlmap:PivotOperation](https://w3id.org/linkml/transformer/PivotOperati
 <details>
 ```yaml
 name: PivotOperation
+description: An operation that reshapes data between wide and long (EAV) representations,
+  i.e. melt (wide to long) and unmelt (long to wide).
 from_schema: https://w3id.org/linkml/transformer
 aliases:
 - melt/unmelt
@@ -146,6 +153,7 @@ is_a: TransformationOperation
 attributes:
   direction:
     name: direction
+    description: Whether to MELT (wide to long) or UNMELT (long to wide).
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     domain_of:
@@ -187,6 +195,8 @@ attributes:
     range: ClassReference
   unmelt_to_slots:
     name: unmelt_to_slots
+    description: For an unmelt operation, the target wide-format slots to populate
+      from the long/EAV rows.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     domain_of:
@@ -238,6 +248,8 @@ attributes:
 <details>
 ```yaml
 name: PivotOperation
+description: An operation that reshapes data between wide and long (EAV) representations,
+  i.e. melt (wide to long) and unmelt (long to wide).
 from_schema: https://w3id.org/linkml/transformer
 aliases:
 - melt/unmelt
@@ -246,6 +258,7 @@ is_a: TransformationOperation
 attributes:
   direction:
     name: direction
+    description: Whether to MELT (wide to long) or UNMELT (long to wide).
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     owner: PivotOperation
@@ -291,6 +304,8 @@ attributes:
     range: ClassReference
   unmelt_to_slots:
     name: unmelt_to_slots
+    description: For an unmelt operation, the target wide-format slots to populate
+      from the long/EAV rows.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     owner: PivotOperation

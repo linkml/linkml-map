@@ -5,6 +5,11 @@ search:
 
 # Slot: is_a 
 
+
+_The parent element that the derived target element inherits from._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -26,7 +31,7 @@ URI: [linkml:is_a](https://w3id.org/linkml/is_a)
 | [SlotDerivation](SlotDerivation.md) | A specification of how to derive the value of a target slot from a source slo... |  no  |
 | [EnumDerivation](EnumDerivation.md) | A specification of how to derive the value of a target enum from a source enu... |  no  |
 | [PermissibleValueDerivation](PermissibleValueDerivation.md) | A specification of how to derive the value of a PV from a source enum |  no  |
-| [PrefixDerivation](PrefixDerivation.md) |  |  no  |
+| [PrefixDerivation](PrefixDerivation.md) | A specification of how to derive a target prefix declaration |  no  |
 
 
 
@@ -93,6 +98,7 @@ URI: [linkml:is_a](https://w3id.org/linkml/is_a)
 <details>
 ```yaml
 name: is_a
+description: The parent element that the derived target element inherits from.
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 slot_uri: linkml:is_a

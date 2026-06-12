@@ -5,6 +5,11 @@ search:
 
 # Slot: slot_name 
 
+
+_Name of the slot on the referenced class that back-references the derived slot._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -86,6 +91,8 @@ URI: [linkmlmap:slot_name](https://w3id.org/linkml/transformer/slot_name)
 <details>
 ```yaml
 name: slot_name
+description: Name of the slot on the referenced class that back-references the derived
+  slot.
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 owner: Inverse
