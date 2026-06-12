@@ -34,6 +34,7 @@ from linkml_runtime import SchemaView
 from linkml_map.datamodel import TR_SCHEMA
 from linkml_map.transformer.transformer import Transformer
 from linkml_map.utils.eval_utils import FUNCTIONS
+from linkml_map.utils.join_utils import find_common_columns, pick_join_key
 
 logger = logging.getLogger(__name__)
 
@@ -360,6 +361,48 @@ def _resolve_schema_path(
     return None, False
 
 
+def _resolve_schemaview(
+    preloaded: SchemaView | None,
+    spec_value: dict | None,
+    explicit: str | Path | None,
+    base_path: Path | None,
+    label: str,
+    messages: list[ValidationMessage],
+) -> SchemaView | None:
+    """Resolve a single (source or target) schema view, loading it if needed.
+
+    Returns ``preloaded`` unchanged when a SchemaView was already supplied.
+    Otherwise resolves a path via :func:`_resolve_schema_path` and loads it,
+    appending a message to ``messages`` on failure (``error`` when the path
+    was explicitly provided by the user, ``warning`` when auto-detected).
+
+    :param preloaded: A pre-loaded SchemaView, or ``None`` to resolve a path.
+    :param spec_value: The ``source_schema``/``target_schema`` spec field.
+    :param explicit: An explicitly provided schema path (overrides the spec).
+    :param base_path: Directory for resolving relative paths.
+    :param label: ``"source_schema"`` or ``"target_schema"`` — used as the
+        message path and in the failure text.
+    :param messages: List to append a load-failure message to.
+    :returns: The resolved SchemaView, or ``None`` if none was available.
+    """
+    if preloaded is not None:
+        return preloaded
+    path, explicit_provided = _resolve_schema_path(spec_value, explicit, base_path)
+    if not path:
+        return None
+    try:
+        return _load_schemaview_with_timeout(path)
+    except Exception as exc:
+        messages.append(
+            ValidationMessage(
+                severity="error" if explicit_provided else "warning",
+                path=label,
+                message=f"Could not load {label.replace('_', ' ')} '{path}': {exc}",
+            )
+        )
+        return None
+
+
 def _iter_derivation_dicts(raw: Any) -> list[dict[str, Any]]:
     """Normalize a derivations section (dict or list) to a list of dicts.
 
@@ -504,36 +547,12 @@ def validate_spec_semantics(
     """
     messages: list[ValidationMessage] = []
 
-    source_sv: SchemaView | None = source_schemaview
-    target_sv: SchemaView | None = target_schemaview
-
-    if source_sv is None:
-        source_path, source_explicit = _resolve_schema_path(data.get("source_schema"), source_schema, spec_base_path)
-        if source_path:
-            try:
-                source_sv = _load_schemaview_with_timeout(source_path)
-            except Exception as exc:
-                messages.append(
-                    ValidationMessage(
-                        severity="error" if source_explicit else "warning",
-                        path="source_schema",
-                        message=f"Could not load source schema '{source_path}': {exc}",
-                    )
-                )
-
-    if target_sv is None:
-        target_path, target_explicit = _resolve_schema_path(data.get("target_schema"), target_schema, spec_base_path)
-        if target_path:
-            try:
-                target_sv = _load_schemaview_with_timeout(target_path)
-            except Exception as exc:
-                messages.append(
-                    ValidationMessage(
-                        severity="error" if target_explicit else "warning",
-                        path="target_schema",
-                        message=f"Could not load target schema '{target_path}': {exc}",
-                    )
-                )
+    source_sv = _resolve_schemaview(
+        source_schemaview, data.get("source_schema"), source_schema, spec_base_path, "source_schema", messages
+    )
+    target_sv = _resolve_schemaview(
+        target_schemaview, data.get("target_schema"), target_schema, spec_base_path, "target_schema", messages
+    )
 
     if source_sv is None and target_sv is None:
         return messages
@@ -872,8 +891,6 @@ def _check_cross_table_join(
 
     if source_sv is None:
         return
-
-    from linkml_map.utils.join_utils import find_common_columns, pick_join_key
 
     if parent_source not in source_all_classes or nested_source not in source_all_classes:
         # Missing-class errors are emitted elsewhere; can't predict joinability.
