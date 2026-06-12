@@ -713,7 +713,7 @@ def _validate_spec_individual(
         raise SystemExit(1)
 
 
-def _merge_or_exit(spec_files: tuple[str, ...]) -> dict:
+def _merge_or_exit(spec_files: tuple[str, ...]) -> dict[str, Any]:
     """Merge spec files, reporting expected load/merge failures cleanly.
 
     Catches :class:`SpecMergeError` (no spec files found, conflicting
