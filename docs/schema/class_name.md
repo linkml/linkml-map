@@ -5,6 +5,11 @@ search:
 
 # Slot: class_name 
 
+
+_Name of the class that holds the back-reference (foreign key) slot._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -86,6 +91,7 @@ URI: [linkmlmap:class_name](https://w3id.org/linkml/transformer/class_name)
 <details>
 ```yaml
 name: class_name
+description: Name of the class that holds the back-reference (foreign key) slot.
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 owner: Inverse

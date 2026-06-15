@@ -25,7 +25,7 @@ URI: [linkmlmap:unit_slot](https://w3id.org/linkml/transformer/unit_slot)
 
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
-| [PivotOperation](PivotOperation.md) |  |  no  |
+| [PivotOperation](PivotOperation.md) | An operation that reshapes data between wide and long (EAV) representations, ... |  no  |
 
 
 

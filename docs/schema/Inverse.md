@@ -40,8 +40,8 @@ URI: [linkmlmap:Inverse](https://w3id.org/linkml/transformer/Inverse)
 
 | Name | Cardinality and Range | Description | Inheritance |
 | ---  | --- | --- | --- |
-| [slot_name](slot_name.md) | 0..1 <br/> [String](String.md) |  | direct |
-| [class_name](class_name.md) | 0..1 <br/> [String](String.md) |  | direct |
+| [slot_name](slot_name.md) | 0..1 <br/> [String](String.md) | Name of the slot on the referenced class that back-references the derived slo... | direct |
+| [class_name](class_name.md) | 0..1 <br/> [String](String.md) | Name of the class that holds the back-reference (foreign key) slot | direct |
 
 
 
@@ -113,12 +113,15 @@ aliases:
 attributes:
   slot_name:
     name: slot_name
+    description: Name of the slot on the referenced class that back-references the
+      derived slot.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     domain_of:
     - Inverse
   class_name:
     name: class_name
+    description: Name of the class that holds the back-reference (foreign key) slot.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     domain_of:
@@ -140,6 +143,8 @@ aliases:
 attributes:
   slot_name:
     name: slot_name
+    description: Name of the slot on the referenced class that back-references the
+      derived slot.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     owner: Inverse
@@ -147,6 +152,7 @@ attributes:
     - Inverse
   class_name:
     name: class_name
+    description: Name of the class that holds the back-reference (foreign key) slot.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     owner: Inverse

@@ -21,6 +21,7 @@ from linkml_map.loaders import DataLoader
 from linkml_map.transformer.engine import transform_spec
 from linkml_map.transformer.errors import TransformationError
 from linkml_map.transformer.object_transformer import ObjectTransformer
+from linkml_map.utils.extensions import ExtensionError, load_extensions
 from linkml_map.writers import (
     EXTENSION_FORMAT_MAP,
     MultiStreamWriter,
@@ -128,6 +129,16 @@ def main(verbose: int, quiet: bool) -> None:
     default=None,
     help="Write the resolved (merged + filtered) spec to this file path as a side-effect.",
 )
+@click.option(
+    "-F",
+    "--functions",
+    multiple=True,
+    type=click.Path(exists=True, dir_okay=False),
+    help=(
+        "Python file containing functions tagged with ``@safe_function``. "
+        "Their names are merged into the expression eval namespace. Repeatable."
+    ),
+)
 @click.argument("input_data")
 def map_data(
     input_data: str,
@@ -173,6 +184,13 @@ def map_data(
 
     """
     logger.info(f"Transforming {input_data} conforming to {schema} using {transformer_specification}")
+
+    function_paths = kwargs.pop("functions", ())
+    if function_paths:
+        try:
+            kwargs["extension_functions"] = load_extensions(function_paths)
+        except ExtensionError as err:
+            raise click.ClickException(str(err)) from err
 
     input_path = Path(input_data)
 
@@ -236,27 +254,27 @@ def _pre_flight_validate(
 ) -> None:
     """Surface static spec checks before performing a CLI action.
 
-    Runs deprecation checks and reference resolution against the loaded
-    specification, printing all findings to stderr. **Does not gate** —
-    even error-severity findings are informational only; the runtime
-    remains the authoritative arbiter of whether a transformation can
-    actually execute. Users who want fail-fast behavior should run
-    ``validate-spec --strict`` separately.
+    Replays pre-normalize scan messages captured at spec-load time and runs
+    reference resolution, printing all findings to stderr. **Does not gate** —
+    findings are informational only; the runtime remains the authoritative
+    arbiter of whether a transformation can actually execute. Users who want
+    fail-fast behavior should run ``validate-spec --strict`` separately.
 
-    Validates the merged ``tr.specification`` (after multi-file loading
-    is complete) so cross-file issues surface where users would see
-    them via ``validate-spec --merge``. Reuses ``tr.source_schemaview``
-    and ``tr.target_schemaview`` when set, avoiding a duplicate load
-    of large or remote schemas.
+    Reading scan messages from ``tr.spec_messages`` rather than re-scanning
+    the post-migration spec means deprecations whose source fields were
+    cleared by normalization (e.g., ``object_derivations``, PV ``sources``)
+    are still surfaced here. Reuses ``tr.source_schemaview`` and
+    ``tr.target_schemaview`` when set, avoiding a duplicate load of large
+    or remote schemas.
     """
-    from linkml_map.validator import check_deprecated_fields, validate_spec_semantics
+    from linkml_map.validator import validate_spec_semantics
 
     if tr.specification is None:
         return
 
     spec_dict = tr.specification.model_dump(exclude_none=True)
 
-    messages = list(check_deprecated_fields(spec_dict))
+    messages = list(tr.spec_messages)
     messages.extend(
         validate_spec_semantics(
             spec_dict,
@@ -395,8 +413,8 @@ def _map_data_streaming(
     if emit_spec:
         _emit_spec_to_file(tr, emit_spec)
 
-    # Initialize data loader
-    data_loader = DataLoader(input_path)
+    # Initialize data loader (schema enables type-preserving coercion for TSV/CSV)
+    data_loader = DataLoader(input_path, schemaview=tr.source_schemaview)
 
     # Set up error collection when continue-on-error is enabled
     errors: list[TransformationError] = []
@@ -586,6 +604,14 @@ def invert(
 )
 @click.option("--strict", is_flag=True, help="Treat warnings as errors.")
 @click.option("--no-warnings", is_flag=True, help="Suppress warning output.")
+@click.option(
+    "--list-entities",
+    is_flag=True,
+    default=False,
+    help="Print the class_derivation names from the merged spec (one per line, "
+    "sorted) and exit, skipping schema-binding validation.  For discovery by "
+    "external orchestrators before per-entity runs.",
+)
 def validate_spec_cmd(
     spec_files: tuple[str, ...],
     source_schema: str | None = None,
@@ -595,6 +621,7 @@ def validate_spec_cmd(
     entity: str | None = None,
     merge: bool = False,
     emit_spec: str | None = None,
+    list_entities: bool = False,
 ) -> None:
     """Validate transformation specification YAML files.
 
@@ -615,7 +642,17 @@ def validate_spec_cmd(
         linkml-map validate-spec specs/*.yaml
 
         linkml-map validate-spec --merge --entity Person --emit-spec resolved.yaml specs/
+
+        linkml-map validate-spec --list-entities specs/
     """
+    if list_entities:
+        from linkml_map.utils.spec_merge import class_derivation_names
+
+        merged = _merge_or_exit(spec_files)
+        for name in sorted(set(class_derivation_names(merged))):
+            click.echo(name)
+        return
+
     if merge:
         _validate_spec_merged(
             spec_files,
@@ -694,6 +731,23 @@ def _validate_spec_individual(
         raise SystemExit(1)
 
 
+def _merge_or_exit(spec_files: tuple[str, ...]) -> dict[str, Any]:
+    """Merge spec files, reporting expected load/merge failures cleanly.
+
+    Catches :class:`SpecMergeError` (no spec files found, conflicting
+    derivations) and exits with code 1 and the message on stderr, rather
+    than dumping a traceback for a condition we deliberately raise. Any
+    other exception propagates, since it signals an actual bug.
+    """
+    from linkml_map.utils.spec_merge import SpecMergeError, load_and_merge_specs
+
+    try:
+        return load_and_merge_specs(spec_files)
+    except SpecMergeError as err:
+        click.echo(str(err), err=True)
+        raise SystemExit(1) from err
+
+
 def _validate_spec_merged(
     spec_files: tuple[str, ...],
     *,
@@ -705,10 +759,9 @@ def _validate_spec_merged(
     no_warnings: bool = False,
 ) -> None:
     """Merge spec files, validate the result, optionally emit."""
-    from linkml_map.utils.spec_merge import load_and_merge_specs
     from linkml_map.validator import validate_spec
 
-    merged = load_and_merge_specs(spec_files)
+    merged = _merge_or_exit(spec_files)
 
     # Apply entity filter before validation so we only validate what
     # map-data --entity would actually execute.

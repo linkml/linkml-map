@@ -36,7 +36,7 @@ URI: [linkmlmap:AggregationType](https://w3id.org/linkml/transformer/Aggregation
 
 | Name | Description |
 | ---  | --- |
-| [operator](operator.md) |  |
+| [operator](operator.md) | The aggregation function to apply (for example SUM, AVERAGE, COUNT) |
 
 
 

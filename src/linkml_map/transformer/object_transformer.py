@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from collections.abc import Iterator, Mapping
+from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Any
@@ -271,6 +271,16 @@ class ObjectTransformer(Transformer):
     object_index: ObjectIndex = None
     lookup_index: Any = None  # Optional[LookupIndex] — lazy import to avoid hard duckdb dep
 
+    extension_functions: dict[str, Callable] = field(default_factory=dict)
+    """Custom safe functions to merge into the expression eval namespace.
+
+    Set by the CLI loader (from ``--functions`` files) or directly by Python
+    callers. Names here are available inside ``expr:`` expressions alongside
+    the built-ins. Per-call context functions (currently ``slot()``) take
+    precedence; built-in functions are precedence-checked at load time via
+    :func:`~linkml_map.utils.extensions.load_extensions`.
+    """
+
     _warned_unbound_names: set[str] = field(default_factory=set, repr=False)
     """Names already warned about in non-strict mode.
 
@@ -396,7 +406,7 @@ class ObjectTransformer(Transformer):
         )
         tgt_attrs = {}
         bindings = Bindings.from_context(self, context)
-        expr_functions = {"slot": lambda name: tgt_attrs.get(name)}
+        expr_functions = {**self.extension_functions, "slot": lambda name: tgt_attrs.get(name)}
         for slot_deriv in class_deriv.slot_derivations.values():
             with self._slot_error_context(slot_deriv, context):
                 tgt_attrs[str(slot_deriv.name)] = self._derive_slot(
@@ -1177,9 +1187,16 @@ class ObjectTransformer(Transformer):
                 if v is not None:
                     return v
             for pv_deriv in enum_deriv.permissible_value_derivations.values():
-                if source_value == pv_deriv.populated_from:
-                    return pv_deriv.name
-                if source_value in pv_deriv.sources:
+                if pv_deriv.sources:
+                    from linkml_map.transformer.errors import SpecificationError
+
+                    msg = (
+                        f"PermissibleValueDerivation '{pv_deriv.name}' has 'sources' set; "
+                        "this should have been migrated to 'populated_from' during spec load. "
+                        "Did the spec bypass Transformer._normalize_spec_dict?"
+                    )
+                    raise SpecificationError(msg)
+                if pv_deriv.populated_from and source_value in pv_deriv.populated_from:
                     return pv_deriv.name
             if enum_deriv.mirror_source:
                 return str(source_value)

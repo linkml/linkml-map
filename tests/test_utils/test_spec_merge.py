@@ -4,6 +4,7 @@ import pytest
 import yaml
 
 from linkml_map.utils.spec_merge import (
+    SpecMergeError,
     load_and_merge_specs,
     load_spec_file,
     merge_spec_dicts,
@@ -193,4 +194,12 @@ class TestLoadAndMergeSpecs:
         sub = tmp_path / "empty"
         sub.mkdir()
         with pytest.raises(ValueError, match="No YAML files"):
+            load_and_merge_specs((str(sub),))
+
+    def test_failure_is_spec_merge_error(self, tmp_path):
+        """Deliberate failures raise SpecMergeError (a ValueError subclass)."""
+        assert issubclass(SpecMergeError, ValueError)
+        sub = tmp_path / "empty"
+        sub.mkdir()
+        with pytest.raises(SpecMergeError, match="No YAML files"):
             load_and_merge_specs((str(sub),))

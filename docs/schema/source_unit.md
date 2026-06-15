@@ -5,6 +5,11 @@ search:
 
 # Slot: source_unit 
 
+
+_The unit the source value is expressed in. Cross-checked against any unit declared on the source slot in the schema._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -20,7 +25,7 @@ URI: [linkmlmap:source_unit](https://w3id.org/linkml/transformer/source_unit)
 
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
-| [UnitConversionConfiguration](UnitConversionConfiguration.md) |  |  no  |
+| [UnitConversionConfiguration](UnitConversionConfiguration.md) | Configuration for converting a slot value from a source unit of measure to a ... |  no  |
 
 
 
@@ -86,6 +91,8 @@ URI: [linkmlmap:source_unit](https://w3id.org/linkml/transformer/source_unit)
 <details>
 ```yaml
 name: source_unit
+description: The unit the source value is expressed in. Cross-checked against any
+  unit declared on the source slot in the schema.
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 owner: UnitConversionConfiguration

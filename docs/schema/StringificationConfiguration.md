@@ -5,6 +5,11 @@ search:
 
 # Class: StringificationConfiguration 
 
+
+_Configuration for collapsing multiple values into a single delimited or serialized string value._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -48,10 +53,10 @@ URI: [linkmlmap:StringificationConfiguration](https://w3id.org/linkml/transforme
 
 | Name | Cardinality and Range | Description | Inheritance |
 | ---  | --- | --- | --- |
-| [delimiter](delimiter.md) | 0..1 <br/> [String](String.md) |  | direct |
-| [reversed](reversed.md) | 0..1 <br/> [Boolean](Boolean.md) |  | direct |
-| [over_slots](over_slots.md) | * <br/> [String](String.md) |  | direct |
-| [syntax](syntax.md) | 0..1 <br/> [SerializationSyntaxType](SerializationSyntaxType.md) |  | direct |
+| [delimiter](delimiter.md) | 0..1 <br/> [String](String.md) | Delimiter used to join multiple values into a single string | direct |
+| [reversed](reversed.md) | 0..1 <br/> [Boolean](Boolean.md) | If true, reverse the operation, splitting a delimited or serialized string ba... | direct |
+| [over_slots](over_slots.md) | * <br/> [String](String.md) | The source slots whose values are combined into the stringified result | direct |
+| [syntax](syntax.md) | 0..1 <br/> [SerializationSyntaxType](SerializationSyntaxType.md) | Serialization syntax used to stringify the values when no delimiter is given | direct |
 
 
 
@@ -109,10 +114,13 @@ URI: [linkmlmap:StringificationConfiguration](https://w3id.org/linkml/transforme
 <details>
 ```yaml
 name: StringificationConfiguration
+description: Configuration for collapsing multiple values into a single delimited
+  or serialized string value.
 from_schema: https://w3id.org/linkml/transformer
 attributes:
   delimiter:
     name: delimiter
+    description: Delimiter used to join multiple values into a single string.
     examples:
     - value: ','
     - value: '|'
@@ -124,6 +132,8 @@ attributes:
     range: string
   reversed:
     name: reversed
+    description: If true, reverse the operation, splitting a delimited or serialized
+      string back into multiple values.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     domain_of:
@@ -131,6 +141,7 @@ attributes:
     range: boolean
   over_slots:
     name: over_slots
+    description: The source slots whose values are combined into the stringified result.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     domain_of:
@@ -139,6 +150,8 @@ attributes:
     multivalued: true
   syntax:
     name: syntax
+    description: Serialization syntax used to stringify the values when no delimiter
+      is given.
     examples:
     - value: json
     - value: yaml
@@ -156,10 +169,13 @@ attributes:
 <details>
 ```yaml
 name: StringificationConfiguration
+description: Configuration for collapsing multiple values into a single delimited
+  or serialized string value.
 from_schema: https://w3id.org/linkml/transformer
 attributes:
   delimiter:
     name: delimiter
+    description: Delimiter used to join multiple values into a single string.
     examples:
     - value: ','
     - value: '|'
@@ -172,6 +188,8 @@ attributes:
     range: string
   reversed:
     name: reversed
+    description: If true, reverse the operation, splitting a delimited or serialized
+      string back into multiple values.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     owner: StringificationConfiguration
@@ -180,6 +198,7 @@ attributes:
     range: boolean
   over_slots:
     name: over_slots
+    description: The source slots whose values are combined into the stringified result.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     owner: StringificationConfiguration
@@ -189,6 +208,8 @@ attributes:
     multivalued: true
   syntax:
     name: syntax
+    description: Serialization syntax used to stringify the values when no delimiter
+      is given.
     examples:
     - value: json
     - value: yaml

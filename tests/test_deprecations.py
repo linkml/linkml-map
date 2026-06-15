@@ -43,7 +43,7 @@ classes:
 
 
 def test_derived_from_emits_deprecation_warning():
-    """Using derived_from on a SlotDerivation emits a DeprecationWarning."""
+    """Using derived_from on a SlotDerivation emits a DeprecationWarning at load time."""
     tr = ObjectTransformer()
     tr.source_schemaview = SchemaView(SOURCE_SCHEMA)
     tr.target_schemaview = SchemaView(TARGET_SCHEMA)
@@ -60,17 +60,14 @@ def test_derived_from_emits_deprecation_warning():
             },
         },
     }
-    tr.create_transformer_specification(spec)
-
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always", DeprecationWarning)
-        # Trigger induce_missing_values via derived_specification
-        _ = tr.derived_specification
+        tr.create_transformer_specification(spec)
 
     deprecation_warnings = [w for w in caught if issubclass(w.category, DeprecationWarning)]
-    assert len(deprecation_warnings) == 1
-    assert "derived_from" in str(deprecation_warnings[0].message)
-    assert "full_name" in str(deprecation_warnings[0].message)
+    derived_from_warnings = [w for w in deprecation_warnings if "derived_from" in str(w.message)]
+    assert len(derived_from_warnings) == 1
+    assert "full_name" in str(derived_from_warnings[0].message)
 
 
 def test_derived_from_does_not_affect_transformation():
@@ -105,7 +102,7 @@ def test_derived_from_does_not_affect_transformation():
 
 
 def test_sources_on_pv_emits_deprecation_warning():
-    """Using sources on a PermissibleValueDerivation emits a DeprecationWarning."""
+    """Using sources on a PermissibleValueDerivation emits a DeprecationWarning at load time."""
     tr = ObjectTransformer()
     tr.source_schemaview = SchemaView(SOURCE_SCHEMA)
     tr.target_schemaview = SchemaView(TARGET_SCHEMA)
@@ -128,11 +125,9 @@ def test_sources_on_pv_emits_deprecation_warning():
             },
         },
     }
-    tr.create_transformer_specification(spec)
-
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always", DeprecationWarning)
-        _ = tr.derived_specification
+        tr.create_transformer_specification(spec)
 
     deprecation_warnings = [w for w in caught if issubclass(w.category, DeprecationWarning)]
     sources_warnings = [w for w in deprecation_warnings if "sources" in str(w.message)]
@@ -141,7 +136,7 @@ def test_sources_on_pv_emits_deprecation_warning():
 
 
 def test_sources_on_slot_emits_deprecation_warning():
-    """Using sources on a SlotDerivation emits a DeprecationWarning."""
+    """Using sources on a SlotDerivation emits a DeprecationWarning at load time."""
     tr = ObjectTransformer()
     tr.source_schemaview = SchemaView(SOURCE_SCHEMA)
     tr.target_schemaview = SchemaView(TARGET_SCHEMA)
@@ -157,11 +152,9 @@ def test_sources_on_slot_emits_deprecation_warning():
             },
         },
     }
-    tr.create_transformer_specification(spec)
-
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always", DeprecationWarning)
-        _ = tr.derived_specification
+        tr.create_transformer_specification(spec)
 
     deprecation_warnings = [w for w in caught if issubclass(w.category, DeprecationWarning)]
     sources_warnings = [w for w in deprecation_warnings if "sources" in str(w.message)]
@@ -246,11 +239,9 @@ def test_no_warning_without_deprecated_fields():
             },
         },
     }
-    tr.create_transformer_specification(spec)
-
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always", DeprecationWarning)
-        _ = tr.derived_specification
+        tr.create_transformer_specification(spec)
 
     deprecation_warnings = [w for w in caught if issubclass(w.category, DeprecationWarning)]
     assert len(deprecation_warnings) == 0
