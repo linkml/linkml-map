@@ -404,6 +404,22 @@ with additional type information needed for cross-table lookups.</p>
 <p>This requires:
 1. The source schema defines <code>org_id</code> with <code>range: Organization</code>
 2. The transformer has an <code>ObjectIndex</code> created via <code>transformer.index(container_data, "Container")</code></p>
+<h3 id="inlined-nested-data">Inlined Nested Data</h3>
+<p>The same dot notation also traverses <em>inlined</em> nested objects (tree-shaped sources such
+as XML, JSON Schema, OWL, or EML), walking directly into the nested structure:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">class_derivations</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">SchemaDefinition</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">EMLDocument</span>
+<span class="w">    </span><span class="nt">slot_derivations</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">title</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dataset.title</span><span class="w">  </span><span class="c1"># &#39;title&#39; inside the inlined &#39;dataset&#39; object</span>
+</code></pre></div>
+<p>A segment is treated as inline traversal when the source slot is declared <code>inlined</code> /
+<code>inlined_as_list</code>, or when the value is a nested object at runtime. No <code>ObjectIndex</code> is
+needed — the nested data is already present. Mapping each item of a multivalued inline
+list through a sibling class derivation is not yet supported
+(<a href="https://github.com/linkml/linkml-map/issues/265">#265</a>); such a path raises an error
+naming the multivalued segment.</p>
 <h3 id="schema-patches-for-auto-generated-schemas">Schema Patches for Auto-Generated Schemas</h3>
 <p>If your source schema doesn't define FK relationships (common with auto-generated schemas),
 use <code>source_schema_patches</code> to add them:</p>
@@ -569,5 +585,5 @@ Edit on GitHub</a>
 </html>
 <!--
 MkDocs version : 1.6.1
-Build Date UTC : 2026-06-15 16:07:43.984345+00:00
+Build Date UTC : 2026-06-15 18:30:05.367941+00:00
 -->

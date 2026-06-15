@@ -3328,7 +3328,112 @@ them sees the user's original field values.</p>
 <span class="normal">1404</span>
 <span class="normal">1405</span>
 <span class="normal">1406</span>
-<span class="normal">1407</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="normal">1407</span>
+<span class="normal">1408</span>
+<span class="normal">1409</span>
+<span class="normal">1410</span>
+<span class="normal">1411</span>
+<span class="normal">1412</span>
+<span class="normal">1413</span>
+<span class="normal">1414</span>
+<span class="normal">1415</span>
+<span class="normal">1416</span>
+<span class="normal">1417</span>
+<span class="normal">1418</span>
+<span class="normal">1419</span>
+<span class="normal">1420</span>
+<span class="normal">1421</span>
+<span class="normal">1422</span>
+<span class="normal">1423</span>
+<span class="normal">1424</span>
+<span class="normal">1425</span>
+<span class="normal">1426</span>
+<span class="normal">1427</span>
+<span class="normal">1428</span>
+<span class="normal">1429</span>
+<span class="normal">1430</span>
+<span class="normal">1431</span>
+<span class="normal">1432</span>
+<span class="normal">1433</span>
+<span class="normal">1434</span>
+<span class="normal">1435</span>
+<span class="normal">1436</span>
+<span class="normal">1437</span>
+<span class="normal">1438</span>
+<span class="normal">1439</span>
+<span class="normal">1440</span>
+<span class="normal">1441</span>
+<span class="normal">1442</span>
+<span class="normal">1443</span>
+<span class="normal">1444</span>
+<span class="normal">1445</span>
+<span class="normal">1446</span>
+<span class="normal">1447</span>
+<span class="normal">1448</span>
+<span class="normal">1449</span>
+<span class="normal">1450</span>
+<span class="normal">1451</span>
+<span class="normal">1452</span>
+<span class="normal">1453</span>
+<span class="normal">1454</span>
+<span class="normal">1455</span>
+<span class="normal">1456</span>
+<span class="normal">1457</span>
+<span class="normal">1458</span>
+<span class="normal">1459</span>
+<span class="normal">1460</span>
+<span class="normal">1461</span>
+<span class="normal">1462</span>
+<span class="normal">1463</span>
+<span class="normal">1464</span>
+<span class="normal">1465</span>
+<span class="normal">1466</span>
+<span class="normal">1467</span>
+<span class="normal">1468</span>
+<span class="normal">1469</span>
+<span class="normal">1470</span>
+<span class="normal">1471</span>
+<span class="normal">1472</span>
+<span class="normal">1473</span>
+<span class="normal">1474</span>
+<span class="normal">1475</span>
+<span class="normal">1476</span>
+<span class="normal">1477</span>
+<span class="normal">1478</span>
+<span class="normal">1479</span>
+<span class="normal">1480</span>
+<span class="normal">1481</span>
+<span class="normal">1482</span>
+<span class="normal">1483</span>
+<span class="normal">1484</span>
+<span class="normal">1485</span>
+<span class="normal">1486</span>
+<span class="normal">1487</span>
+<span class="normal">1488</span>
+<span class="normal">1489</span>
+<span class="normal">1490</span>
+<span class="normal">1491</span>
+<span class="normal">1492</span>
+<span class="normal">1493</span>
+<span class="normal">1494</span>
+<span class="normal">1495</span>
+<span class="normal">1496</span>
+<span class="normal">1497</span>
+<span class="normal">1498</span>
+<span class="normal">1499</span>
+<span class="normal">1500</span>
+<span class="normal">1501</span>
+<span class="normal">1502</span>
+<span class="normal">1503</span>
+<span class="normal">1504</span>
+<span class="normal">1505</span>
+<span class="normal">1506</span>
+<span class="normal">1507</span>
+<span class="normal">1508</span>
+<span class="normal">1509</span>
+<span class="normal">1510</span>
+<span class="normal">1511</span>
+<span class="normal">1512</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ObjectTransformer</span><span class="p">(</span><span class="n">Transformer</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A Transformer that works on in-memory dict objects.</span>
@@ -3719,6 +3824,8 @@ them sees the user's original field values.</p>
 <span class="sd">            (used for dot-notation without a matching join).</span>
 <span class="sd">        :returns: Tuple of (resolved value, source slot definition or None).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;.&quot;</span> <span class="ow">in</span> <span class="n">populated_from</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_inline_path</span><span class="p">(</span><span class="n">populated_from</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_inline_path</span><span class="p">(</span><span class="n">populated_from</span><span class="p">,</span> <span class="n">slot_derivation</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
         <span class="n">fk_resolution</span> <span class="o">=</span> <span class="n">resolve_fk_path</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">sv</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">source_type</span><span class="p">,</span> <span class="n">populated_from</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">fk_resolution</span><span class="p">:</span>
             <span class="n">fk_value</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">source_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fk_resolution</span><span class="o">.</span><span class="n">fk_slot_name</span><span class="p">)</span>
@@ -3738,6 +3845,96 @@ them sees the user's original field values.</p>
             <span class="p">)</span>
         <span class="n">source_class_slot</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">sv</span><span class="o">.</span><span class="n">induced_slot</span><span class="p">(</span><span class="n">populated_from</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">source_type</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">v</span><span class="p">,</span> <span class="n">source_class_slot</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_is_inline_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">populated_from</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">DerivationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Decide whether a dot-path traverses inlined nested data rather than an FK.</span>
+
+<span class="sd">        Detection is declarative first, with a runtime fallback (issue #247):</span>
+
+<span class="sd">        * **Declarative:** the first path segment&#39;s source slot has a class range</span>
+<span class="sd">          and is marked ``inlined`` / ``inlined_as_list``.</span>
+<span class="sd">        * **Runtime fallback:** the value at the first segment is actually a nested</span>
+<span class="sd">          object (dict) or list, even when the schema doesn&#39;t declare ``inlined``.</span>
+
+<span class="sd">        Foreign keys (class range, scalar identifier value, not inlined) fall</span>
+<span class="sd">        through to :func:`resolve_fk_path` as before.</span>
+
+<span class="sd">        :param populated_from: The dotted ``populated_from`` path.</span>
+<span class="sd">        :param context: Current derivation context.</span>
+<span class="sd">        :returns: True if the path should be walked structurally through inline data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">first_segment</span> <span class="o">=</span> <span class="n">populated_from</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">slot</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">sv</span><span class="o">.</span><span class="n">induced_slot</span><span class="p">(</span><span class="n">first_segment</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">source_type</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">slot</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">slot</span> <span class="ow">and</span> <span class="n">slot</span><span class="o">.</span><span class="n">range</span> <span class="ow">in</span> <span class="n">context</span><span class="o">.</span><span class="n">sv</span><span class="o">.</span><span class="n">all_classes</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span><span class="n">slot</span><span class="o">.</span><span class="n">inlined</span> <span class="ow">or</span> <span class="n">slot</span><span class="o">.</span><span class="n">inlined_as_list</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">source_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">first_segment</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">source_obj</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span> <span class="o">|</span> <span class="nb">list</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_inline_path</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">populated_from</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">slot_derivation</span><span class="p">:</span> <span class="n">SlotDerivation</span><span class="p">,</span>
+        <span class="n">context</span><span class="p">:</span> <span class="n">DerivationContext</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">SlotDefinition</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Walk a dot-path structurally through inlined nested objects (issue #247).</span>
+
+<span class="sd">        Descends into the nested dict(s) one segment at a time and returns the</span>
+<span class="sd">        leaf value together with its source slot (for range mapping). A segment</span>
+<span class="sd">        that is legitimately absent yields ``None`` rather than an error.</span>
+
+<span class="sd">        :param populated_from: The dotted ``populated_from`` path.</span>
+<span class="sd">        :param slot_derivation: The active slot derivation (for diagnostics).</span>
+<span class="sd">        :param context: Current derivation context.</span>
+<span class="sd">        :returns: Tuple of (leaf value, final source slot or None).</span>
+<span class="sd">        :raises TransformationError: if a segment holds a list (multivalued inline</span>
+<span class="sd">            fan-out, tracked in #265) or a non-dict value is encountered mid-path.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">segments</span> <span class="o">=</span> <span class="n">populated_from</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+        <span class="n">current_val</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">source_obj</span>
+        <span class="n">current_class</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">source_type</span>
+        <span class="n">final_slot</span><span class="p">:</span> <span class="n">SlotDefinition</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">segment</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">segments</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">current_val</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Cannot traverse inlined path </span><span class="si">{</span><span class="n">populated_from</span><span class="si">!r}</span><span class="s2">: segment </span><span class="si">{</span><span class="n">segment</span><span class="si">!r}</span><span class="s2"> &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;expected a nested object but found </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">current_val</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+                <span class="k">raise</span> <span class="n">TransformationError</span><span class="p">(</span>
+                    <span class="n">message</span><span class="o">=</span><span class="n">msg</span><span class="p">,</span>
+                    <span class="n">slot_derivation_name</span><span class="o">=</span><span class="n">slot_derivation</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="n">slot_populated_from</span><span class="o">=</span><span class="n">populated_from</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="n">slot</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">current_class</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">slot</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">sv</span><span class="o">.</span><span class="n">induced_slot</span><span class="p">(</span><span class="n">segment</span><span class="p">,</span> <span class="n">current_class</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="n">slot</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">current_val</span> <span class="o">=</span> <span class="n">current_val</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">segment</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">current_val</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Inlined path </span><span class="si">{</span><span class="n">populated_from</span><span class="si">!r}</span><span class="s2"> reaches a multivalued segment </span><span class="si">{</span><span class="n">segment</span><span class="si">!r}</span><span class="s2">; &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;per-item fan-out to a matching class_derivation is not yet supported (see #265)&quot;</span>
+                <span class="p">)</span>
+                <span class="k">raise</span> <span class="n">TransformationError</span><span class="p">(</span>
+                    <span class="n">message</span><span class="o">=</span><span class="n">msg</span><span class="p">,</span>
+                    <span class="n">slot_derivation_name</span><span class="o">=</span><span class="n">slot_derivation</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="n">slot_populated_from</span><span class="o">=</span><span class="n">populated_from</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">segments</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">final_slot</span> <span class="o">=</span> <span class="n">slot</span>
+            <span class="k">elif</span> <span class="n">slot</span> <span class="ow">and</span> <span class="n">slot</span><span class="o">.</span><span class="n">range</span> <span class="ow">in</span> <span class="n">context</span><span class="o">.</span><span class="n">sv</span><span class="o">.</span><span class="n">all_classes</span><span class="p">():</span>
+                <span class="n">current_class</span> <span class="o">=</span> <span class="n">slot</span><span class="o">.</span><span class="n">range</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">current_class</span> <span class="o">=</span> <span class="n">slot</span><span class="o">.</span><span class="n">range</span> <span class="k">if</span> <span class="n">slot</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">current_val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">break</span>
+
+        <span class="k">return</span> <span class="n">current_val</span><span class="p">,</span> <span class="n">final_slot</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_joined_row</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -3907,16 +4104,29 @@ them sees the user's original field values.</p>
                 <span class="k">if</span> <span class="n">has_join</span><span class="p">:</span>
                     <span class="c1"># Join spec exists (explicit or synthesized) — resolve and merge</span>
                     <span class="n">joined_row</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_joined_row</span><span class="p">(</span><span class="n">nested_source</span><span class="p">,</span> <span class="n">source_obj</span><span class="p">,</span> <span class="n">parent_class_deriv</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">joined_row</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="n">join_spec</span> <span class="o">=</span> <span class="n">parent_class_deriv</span><span class="o">.</span><span class="n">joins</span><span class="p">[</span><span class="n">nested_source</span><span class="p">]</span>
-                        <span class="n">join_key</span> <span class="o">=</span> <span class="n">join_spec</span><span class="o">.</span><span class="n">join_on</span> <span class="ow">or</span> <span class="n">join_spec</span><span class="o">.</span><span class="n">source_key</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
-                        <span class="n">effective_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merge_rows</span><span class="p">(</span>
-                            <span class="n">source_obj</span><span class="p">,</span>
-                            <span class="n">joined_row</span><span class="p">,</span>
-                            <span class="n">join_key</span><span class="p">,</span>
-                            <span class="n">parent_source</span><span class="p">,</span>
+                    <span class="k">if</span> <span class="n">joined_row</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="c1"># Sparse join miss. The nested object is anchored to its</span>
+                        <span class="c1"># populated_from table, so with no matching row there is no</span>
+                        <span class="c1"># object to emit. Skip it entirely rather than building a hollow</span>
+                        <span class="c1"># object against the bare parent row: that would both mask absence</span>
+                        <span class="c1"># as a real null (re: #211) and bypass the _AMBIGUOUS markers that</span>
+                        <span class="c1"># _merge_rows adds, making ambiguity enforcement data-dependent. See #217.</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                            <span class="s2">&quot;No row in </span><span class="si">%r</span><span class="s2"> matched the join from </span><span class="si">%r</span><span class="s2"> for nested </span><span class="si">%r</span><span class="s2">; emitting no object&quot;</span><span class="p">,</span>
                             <span class="n">nested_source</span><span class="p">,</span>
+                            <span class="n">parent_source</span><span class="p">,</span>
+                            <span class="n">cls_derivation</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                         <span class="p">)</span>
+                        <span class="k">continue</span>
+                    <span class="n">join_spec</span> <span class="o">=</span> <span class="n">parent_class_deriv</span><span class="o">.</span><span class="n">joins</span><span class="p">[</span><span class="n">nested_source</span><span class="p">]</span>
+                    <span class="n">join_key</span> <span class="o">=</span> <span class="n">join_spec</span><span class="o">.</span><span class="n">join_on</span> <span class="ow">or</span> <span class="n">join_spec</span><span class="o">.</span><span class="n">source_key</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
+                    <span class="n">effective_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merge_rows</span><span class="p">(</span>
+                        <span class="n">source_obj</span><span class="p">,</span>
+                        <span class="n">joined_row</span><span class="p">,</span>
+                        <span class="n">join_key</span><span class="p">,</span>
+                        <span class="n">parent_source</span><span class="p">,</span>
+                        <span class="n">nested_source</span><span class="p">,</span>
+                    <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c1"># No join spec for this nested source — cross-table reference can&#39;t be resolved.</span>
                     <span class="c1"># Re-derive the candidate set so the diagnostic tells the user *why* synthesis</span>
@@ -4772,45 +4982,45 @@ returns the source value unchanged without trying further enums.</p>
 
             <details class="quote">
               <summary>Source code in <code>src/linkml_map/transformer/object_transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1152</span>
-<span class="normal">1153</span>
-<span class="normal">1154</span>
-<span class="normal">1155</span>
-<span class="normal">1156</span>
-<span class="normal">1157</span>
-<span class="normal">1158</span>
-<span class="normal">1159</span>
-<span class="normal">1160</span>
-<span class="normal">1161</span>
-<span class="normal">1162</span>
-<span class="normal">1163</span>
-<span class="normal">1164</span>
-<span class="normal">1165</span>
-<span class="normal">1166</span>
-<span class="normal">1167</span>
-<span class="normal">1168</span>
-<span class="normal">1169</span>
-<span class="normal">1170</span>
-<span class="normal">1171</span>
-<span class="normal">1172</span>
-<span class="normal">1173</span>
-<span class="normal">1174</span>
-<span class="normal">1175</span>
-<span class="normal">1176</span>
-<span class="normal">1177</span>
-<span class="normal">1178</span>
-<span class="normal">1179</span>
-<span class="normal">1180</span>
-<span class="normal">1181</span>
-<span class="normal">1182</span>
-<span class="normal">1183</span>
-<span class="normal">1184</span>
-<span class="normal">1185</span>
-<span class="normal">1186</span>
-<span class="normal">1187</span>
-<span class="normal">1188</span>
-<span class="normal">1189</span>
-<span class="normal">1190</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">transform_enum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_value</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">enum_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">source_obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1257</span>
+<span class="normal">1258</span>
+<span class="normal">1259</span>
+<span class="normal">1260</span>
+<span class="normal">1261</span>
+<span class="normal">1262</span>
+<span class="normal">1263</span>
+<span class="normal">1264</span>
+<span class="normal">1265</span>
+<span class="normal">1266</span>
+<span class="normal">1267</span>
+<span class="normal">1268</span>
+<span class="normal">1269</span>
+<span class="normal">1270</span>
+<span class="normal">1271</span>
+<span class="normal">1272</span>
+<span class="normal">1273</span>
+<span class="normal">1274</span>
+<span class="normal">1275</span>
+<span class="normal">1276</span>
+<span class="normal">1277</span>
+<span class="normal">1278</span>
+<span class="normal">1279</span>
+<span class="normal">1280</span>
+<span class="normal">1281</span>
+<span class="normal">1282</span>
+<span class="normal">1283</span>
+<span class="normal">1284</span>
+<span class="normal">1285</span>
+<span class="normal">1286</span>
+<span class="normal">1287</span>
+<span class="normal">1288</span>
+<span class="normal">1289</span>
+<span class="normal">1290</span>
+<span class="normal">1291</span>
+<span class="normal">1292</span>
+<span class="normal">1293</span>
+<span class="normal">1294</span>
+<span class="normal">1295</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">transform_enum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_value</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">enum_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">source_obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Transform a source enum value through one or more enum derivations.</span>
 
 <span class="sd">    Iterates *enum_names* in order. For each enum derivation, tries</span>
@@ -4877,35 +5087,35 @@ returns the source value unchanged without trying further enums.</p>
 
             <details class="quote">
               <summary>Source code in <code>src/linkml_map/transformer/object_transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1122</span>
-<span class="normal">1123</span>
-<span class="normal">1124</span>
-<span class="normal">1125</span>
-<span class="normal">1126</span>
-<span class="normal">1127</span>
-<span class="normal">1128</span>
-<span class="normal">1129</span>
-<span class="normal">1130</span>
-<span class="normal">1131</span>
-<span class="normal">1132</span>
-<span class="normal">1133</span>
-<span class="normal">1134</span>
-<span class="normal">1135</span>
-<span class="normal">1136</span>
-<span class="normal">1137</span>
-<span class="normal">1138</span>
-<span class="normal">1139</span>
-<span class="normal">1140</span>
-<span class="normal">1141</span>
-<span class="normal">1142</span>
-<span class="normal">1143</span>
-<span class="normal">1144</span>
-<span class="normal">1145</span>
-<span class="normal">1146</span>
-<span class="normal">1147</span>
-<span class="normal">1148</span>
-<span class="normal">1149</span>
-<span class="normal">1150</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">transform_object</span><span class="p">(</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1227</span>
+<span class="normal">1228</span>
+<span class="normal">1229</span>
+<span class="normal">1230</span>
+<span class="normal">1231</span>
+<span class="normal">1232</span>
+<span class="normal">1233</span>
+<span class="normal">1234</span>
+<span class="normal">1235</span>
+<span class="normal">1236</span>
+<span class="normal">1237</span>
+<span class="normal">1238</span>
+<span class="normal">1239</span>
+<span class="normal">1240</span>
+<span class="normal">1241</span>
+<span class="normal">1242</span>
+<span class="normal">1243</span>
+<span class="normal">1244</span>
+<span class="normal">1245</span>
+<span class="normal">1246</span>
+<span class="normal">1247</span>
+<span class="normal">1248</span>
+<span class="normal">1249</span>
+<span class="normal">1250</span>
+<span class="normal">1251</span>
+<span class="normal">1252</span>
+<span class="normal">1253</span>
+<span class="normal">1254</span>
+<span class="normal">1255</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">transform_object</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">source_obj</span><span class="p">:</span> <span class="n">YAMLRoot</span> <span class="o">|</span> <span class="n">BaseModel</span><span class="p">,</span>
     <span class="n">target_class</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">YAMLRoot</span><span class="p">]</span> <span class="o">|</span> <span class="nb">type</span><span class="p">[</span><span class="n">BaseModel</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
