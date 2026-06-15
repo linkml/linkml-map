@@ -177,6 +177,24 @@ def data_dir_sparse(tmp_path):
     return tmp_path
 
 
+@pytest.fixture()
+def data_dir_no_match(tmp_path):
+    """Create TSV files where no Measurement row has a matching Reading (all sparse)."""
+    measurement_path = tmp_path / "Measurement.tsv"
+    with open(measurement_path, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=["id", "subject_id", "method"], delimiter="\t")
+        writer.writeheader()
+        writer.writerow({"id": "M1", "subject_id": "S_NODATA", "method": "spirometry"})
+
+    reading_path = tmp_path / "Reading.tsv"
+    with open(reading_path, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=["id", "subject_id", "score"], delimiter="\t")
+        writer.writeheader()
+        writer.writerow({"id": "R1", "subject_id": "S_OTHER", "score": "95.5"})
+
+    return tmp_path
+
+
 def test_implicit_join_resolves_via_engine(data_dir):
     """Engine mode: implicit join on common column 'subject_id' resolves nested values."""
     tr = _make_transformer(SOURCE_SCHEMA, TRANSFORM_SPEC, TARGET_SCHEMA_YAML)
@@ -645,13 +663,15 @@ def test_expr_dot_notation_disambiguates_both_tables(data_dir):
 
 
 def test_implicit_join_sparse_data_no_match(data_dir_sparse):
-    """When a join key has no match in the secondary table, nested slots get None.
+    """When a join key has no match in the secondary table, the nested object is absent.
 
-    This is the sparse-data case: subject S_NODATA exists in Measurement but
-    not in Reading. The row is still produced (with parent fields intact) but
-    nested values from Reading are None. No error is raised — this is expected
-    behavior for optional/sparse joins, distinct from "no join could be
-    determined" (which is a spec-level error).
+    This is the sparse-data case: subject S_NODATA exists in Measurement but not
+    in Reading. The parent row is still produced, but the nested object — which is
+    anchored to ``populated_from: Reading`` — is ``None`` rather than a hollow
+    ``{value: None}``. That keeps "no Reading row exists" distinguishable from
+    "a Reading row exists but score is null" (#217 bug 1, re: #211). No error is
+    raised — this is expected for optional/sparse joins, distinct from "no join
+    could be determined" (which is a spec-level error).
     """
     tr = _make_transformer(SOURCE_SCHEMA, TRANSFORM_SPEC, TARGET_SCHEMA_YAML)
     data_loader = DataLoader(data_dir_sparse)
@@ -664,9 +684,164 @@ def test_implicit_join_sparse_data_no_match(data_dir_sparse):
     assert results[0]["id"] == "M1"
     assert results[0]["observation"]["value"] == 95.5
 
-    # S_NODATA has no matching Reading — nested value is None, no error
+    # S_NODATA has no matching Reading — no nested object emitted, no error
     assert results[1]["id"] == "M2"
-    assert results[1]["observation"]["value"] is None
+    assert results[1]["observation"] is None
+
+
+def test_sparse_no_match_does_not_silently_resolve_ambiguous_to_parent(data_dir_no_match):
+    """A join miss must not silently resolve ambiguous columns to the parent row.
+
+    Regression for #217 bug 2 (data-dependent ambiguity enforcement). Previously
+    the no-match path passed the bare parent row to ``map_object``, so an ambiguous
+    column like ``id`` silently resolved to the parent's value — while a matching
+    row would *raise* on the same access. Enforcement was therefore data-dependent.
+    Now no object is emitted on a miss, so the result is ``None`` and the parent's
+    ``id`` ("M1") never leaks through as the nested value.
+    """
+    transform_accessing_ambiguous = yaml.safe_load(
+        textwrap.dedent("""\
+        id: ambiguous-access-transform
+        title: Access ambiguous column
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              id:
+              method:
+              observation:
+                class_derivations:
+                  - Observation:
+                      populated_from: Reading
+                      slot_derivations:
+                        value:
+                          populated_from: id
+    """)
+    )
+    target_with_string_value = textwrap.dedent("""\
+        id: https://example.org/target-ambiguous
+        name: target_ambiguous
+        prefixes:
+          linkml: https://w3id.org/linkml/
+          xsd: http://www.w3.org/2001/XMLSchema#
+        default_prefix: target_ambiguous
+        default_range: string
+        imports:
+          - linkml:types
+        classes:
+          Result:
+            attributes:
+              id:
+                identifier: true
+              method:
+                range: string
+              observation:
+                range: Observation
+                inlined: true
+          Observation:
+            attributes:
+              value:
+                range: string
+    """)
+
+    tr = _make_transformer(SOURCE_SCHEMA, transform_accessing_ambiguous, target_with_string_value)
+    data_loader = DataLoader(data_dir_no_match)
+
+    results = list(transform_spec(tr, data_loader, source_type="Measurement"))
+
+    assert len(results) == 1
+    # No matching Reading → no object, and crucially not the parent's id ("M1").
+    assert results[0]["observation"] is None
+
+
+def test_implicit_join_dot_notation_miss_yields_none(data_dir_no_match):
+    """A nested value read via dot notation yields no object when the join misses (#217)."""
+    transform_dot = yaml.safe_load(
+        textwrap.dedent("""\
+        id: dot-miss-transform
+        title: Dot notation on join miss
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              id:
+              method:
+              observation:
+                class_derivations:
+                  - Observation:
+                      populated_from: Reading
+                      slot_derivations:
+                        value:
+                          populated_from: Reading.score
+    """)
+    )
+
+    tr = _make_transformer(SOURCE_SCHEMA, transform_dot, TARGET_SCHEMA_YAML)
+    data_loader = DataLoader(data_dir_no_match)
+
+    results = list(transform_spec(tr, data_loader, source_type="Measurement"))
+
+    assert len(results) == 1
+    assert results[0]["observation"] is None
+
+
+def test_implicit_join_multivalued_all_miss_yields_empty_list(data_dir_no_match):
+    """A multivalued nested slot whose joins all miss yields [] rather than [None] (#217).
+
+    This is the blood-pressure-style case: a set of nested observations where none
+    of the underlying readings exist. The parent is still emitted, but its nested
+    collection is empty rather than a list of hollow objects.
+    """
+    transform_multi = yaml.safe_load(
+        textwrap.dedent("""\
+        id: multi-miss-transform
+        title: Multivalued nested all-miss
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              id:
+              observations:
+                class_derivations:
+                  - Observation:
+                      populated_from: Reading
+                      slot_derivations:
+                        value:
+                          populated_from: score
+    """)
+    )
+    target_multivalued = textwrap.dedent("""\
+        id: https://example.org/target-multi
+        name: target_multi
+        prefixes:
+          linkml: https://w3id.org/linkml/
+          xsd: http://www.w3.org/2001/XMLSchema#
+        default_prefix: target_multi
+        default_range: string
+        imports:
+          - linkml:types
+        classes:
+          Result:
+            attributes:
+              id:
+                identifier: true
+              observations:
+                range: Observation
+                multivalued: true
+                inlined_as_list: true
+          Observation:
+            attributes:
+              value:
+                range: float
+    """)
+
+    tr = _make_transformer(SOURCE_SCHEMA, transform_multi, target_multivalued)
+    data_loader = DataLoader(data_dir_no_match)
+
+    results = list(transform_spec(tr, data_loader, source_type="Measurement"))
+
+    assert len(results) == 1
+    assert results[0]["observations"] == []
 
 
 def test_ambiguous_sentinel_survives_deepcopy_and_pickle():

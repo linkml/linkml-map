@@ -829,16 +829,29 @@ class ObjectTransformer(Transformer):
                 if has_join:
                     # Join spec exists (explicit or synthesized) — resolve and merge
                     joined_row = self._resolve_joined_row(nested_source, source_obj, parent_class_deriv)
-                    if joined_row is not None:
-                        join_spec = parent_class_deriv.joins[nested_source]
-                        join_key = join_spec.join_on or join_spec.source_key or ""
-                        effective_obj = self._merge_rows(
-                            source_obj,
-                            joined_row,
-                            join_key,
-                            parent_source,
+                    if joined_row is None:
+                        # Sparse join miss. The nested object is anchored to its
+                        # populated_from table, so with no matching row there is no
+                        # object to emit. Skip it entirely rather than building a hollow
+                        # object against the bare parent row: that would both mask absence
+                        # as a real null (re: #211) and bypass the _AMBIGUOUS markers that
+                        # _merge_rows adds, making ambiguity enforcement data-dependent. See #217.
+                        logger.debug(
+                            "No row in %r matched the join from %r for nested %r; emitting no object",
                             nested_source,
+                            parent_source,
+                            cls_derivation.name,
                         )
+                        continue
+                    join_spec = parent_class_deriv.joins[nested_source]
+                    join_key = join_spec.join_on or join_spec.source_key or ""
+                    effective_obj = self._merge_rows(
+                        source_obj,
+                        joined_row,
+                        join_key,
+                        parent_source,
+                        nested_source,
+                    )
                 else:
                     # No join spec for this nested source — cross-table reference can't be resolved.
                     # Re-derive the candidate set so the diagnostic tells the user *why* synthesis
