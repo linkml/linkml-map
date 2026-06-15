@@ -254,27 +254,27 @@ def _pre_flight_validate(
 ) -> None:
     """Surface static spec checks before performing a CLI action.
 
-    Runs deprecation checks and reference resolution against the loaded
-    specification, printing all findings to stderr. **Does not gate** —
-    even error-severity findings are informational only; the runtime
-    remains the authoritative arbiter of whether a transformation can
-    actually execute. Users who want fail-fast behavior should run
-    ``validate-spec --strict`` separately.
+    Replays pre-normalize scan messages captured at spec-load time and runs
+    reference resolution, printing all findings to stderr. **Does not gate** —
+    findings are informational only; the runtime remains the authoritative
+    arbiter of whether a transformation can actually execute. Users who want
+    fail-fast behavior should run ``validate-spec --strict`` separately.
 
-    Validates the merged ``tr.specification`` (after multi-file loading
-    is complete) so cross-file issues surface where users would see
-    them via ``validate-spec --merge``. Reuses ``tr.source_schemaview``
-    and ``tr.target_schemaview`` when set, avoiding a duplicate load
-    of large or remote schemas.
+    Reading scan messages from ``tr.spec_messages`` rather than re-scanning
+    the post-migration spec means deprecations whose source fields were
+    cleared by normalization (e.g., ``object_derivations``, PV ``sources``)
+    are still surfaced here. Reuses ``tr.source_schemaview`` and
+    ``tr.target_schemaview`` when set, avoiding a duplicate load of large
+    or remote schemas.
     """
-    from linkml_map.validator import check_deprecated_fields, validate_spec_semantics
+    from linkml_map.validator import validate_spec_semantics
 
     if tr.specification is None:
         return
 
     spec_dict = tr.specification.model_dump(exclude_none=True)
 
-    messages = list(check_deprecated_fields(spec_dict))
+    messages = list(tr.spec_messages)
     messages.extend(
         validate_spec_semantics(
             spec_dict,

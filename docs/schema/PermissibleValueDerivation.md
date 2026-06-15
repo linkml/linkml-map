@@ -152,7 +152,7 @@ URI: [linkmlmap:PermissibleValueDerivation](https://w3id.org/linkml/transformer/
 | ---  | --- | --- | --- |
 | [name](name.md) | 1 <br/> [String](String.md) | Target permissible value text | direct |
 | [expr](expr.md) | 0..1 <br/> [String](String.md) | An expression evaluated on the source object to derive this permissible value | direct |
-| [populated_from](populated_from.md) | 0..1 <br/> [String](String.md) | Source permissible value that maps to this target permissible value | direct |
+| [populated_from](populated_from.md) | * <br/> [String](String.md) | Source permissible value(s) that map to this target permissible value | direct |
 | [sources](sources.md) | * <br/> [String](String.md) | Deprecated | direct |
 | [hide](hide.md) | 0..1 <br/> [Boolean](Boolean.md) | True if this is suppressed | direct |
 | [copy_directives](copy_directives.md) | * <br/> [CopyDirective](CopyDirective.md) | Directives controlling which sub-elements of the source element are copied in... | [ElementDerivation](ElementDerivation.md) |
@@ -259,7 +259,9 @@ attributes:
     range: string
   populated_from:
     name: populated_from
-    description: Source permissible value that maps to this target permissible value.
+    description: Source permissible value(s) that map to this target permissible value.
+      Accepts a single value or a list; scalar input is normalized to a one-element
+      list at load time.
     from_schema: https://w3id.org/linkml/transformer
     domain_of:
     - ClassDerivation
@@ -267,11 +269,13 @@ attributes:
     - EnumDerivation
     - PermissibleValueDerivation
     range: string
+    multivalued: true
   sources:
     name: sources
     description: Deprecated. Use populated_from instead.
-    deprecated: Deprecated. Use populated_from instead. See https://github.com/linkml/linkml-map/issues/193
-      for planned list support in populated_from. Will be removed in a future version.
+    deprecated: Deprecated. Use populated_from instead, which now accepts a list.
+      See https://github.com/linkml/linkml-map/issues/193. Will be removed in a future
+      version.
     from_schema: https://w3id.org/linkml/transformer
     domain_of:
     - ClassDerivation
@@ -332,7 +336,9 @@ attributes:
     range: string
   populated_from:
     name: populated_from
-    description: Source permissible value that maps to this target permissible value.
+    description: Source permissible value(s) that map to this target permissible value.
+      Accepts a single value or a list; scalar input is normalized to a one-element
+      list at load time.
     from_schema: https://w3id.org/linkml/transformer
     owner: PermissibleValueDerivation
     domain_of:
@@ -341,11 +347,13 @@ attributes:
     - EnumDerivation
     - PermissibleValueDerivation
     range: string
+    multivalued: true
   sources:
     name: sources
     description: Deprecated. Use populated_from instead.
-    deprecated: Deprecated. Use populated_from instead. See https://github.com/linkml/linkml-map/issues/193
-      for planned list support in populated_from. Will be removed in a future version.
+    deprecated: Deprecated. Use populated_from instead, which now accepts a list.
+      See https://github.com/linkml/linkml-map/issues/193. Will be removed in a future
+      version.
     from_schema: https://w3id.org/linkml/transformer
     owner: PermissibleValueDerivation
     domain_of:

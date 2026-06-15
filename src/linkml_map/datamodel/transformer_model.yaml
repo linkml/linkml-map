@@ -532,15 +532,18 @@ classes:
         range: string
       populated_from:
         range: string
+        multivalued: true
         description: >-
-          Source permissible value that maps to this target permissible value.
+          Source permissible value(s) that map to this target permissible value.
+          Accepts a single value or a list; scalar input is normalized to a
+          one-element list at load time.
       sources:
         range: string
         multivalued: true
         deprecated: >-
-          Deprecated. Use populated_from instead.
-          See https://github.com/linkml/linkml-map/issues/193 for planned
-          list support in populated_from. Will be removed in a future version.
+          Deprecated. Use populated_from instead, which now accepts a list.
+          See https://github.com/linkml/linkml-map/issues/193. Will be removed
+          in a future version.
         description: >-
           Deprecated. Use populated_from instead.
       hide:

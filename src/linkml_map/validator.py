@@ -144,25 +144,43 @@ def normalize_spec_dict(obj: dict[str, Any]) -> dict[str, Any]:
 
     Applies the same full normalization pipeline that the transformer engine
     uses (compact-key expansion, dict→list conversion via ReferenceValidator,
-    nested ObjectDerivation fixup), plus YAML type coercion for fields that
-    are commonly mis-parsed.
+    nested ObjectDerivation fixup, deprecated-field migration), plus YAML
+    type coercion for fields that are commonly mis-parsed.
 
     If normalization itself fails (e.g. due to malformed data), the original
     dict is returned with only YAML type coercion applied so that JSON Schema
     validation can still report structural errors.
 
+    Use :func:`_normalize_and_collect_messages` instead when you also need
+    the pre-normalize scan's findings (deprecation warnings, conflict errors).
+
     :param obj: Raw YAML-loaded dict.
     :returns: A new dict suitable for JSON Schema validation.
     """
+    obj, _ = _normalize_and_collect_messages(obj)
+    return obj
+
+
+def _normalize_and_collect_messages(
+    obj: dict[str, Any],
+) -> tuple[dict[str, Any], list[ValidationMessage]]:
+    """Normalize and return both the dict and the pre-normalize scan messages.
+
+    Internal helper used by :func:`validate_spec`. Calls the transformer's
+    normalization in silent mode so scan findings are returned as
+    ``ValidationMessage`` records rather than emitted as Python warnings or
+    raised as ``SpecificationError``.
+    """
     obj = dict(obj)
+    messages: list[ValidationMessage] = []
     try:
-        Transformer._normalize_spec_dict(obj)
+        messages = Transformer._normalize_spec_dict(obj, silent=True) or []
     except Exception:
         logger.debug("Normalization failed; falling back to raw dict", exc_info=True)
     for field in _COERCE_FIELDS:
         if field in obj:
             obj[field] = _coerce_yaml_types(obj[field])
-    return obj
+    return obj, messages
 
 
 def _validate_structural(
@@ -406,9 +424,9 @@ def _resolve_schemaview(
 def _iter_derivation_dicts(raw: Any) -> list[dict[str, Any]]:
     """Normalize a derivations section (dict or list) to a list of dicts.
 
-    After ``normalize_spec_dict``, derivation sections may be either a list of
-    dicts (with ``name`` keys) or a dict keyed by name.  This helper
-    normalizes to a consistent list-of-dicts form for iteration.
+    Assumes the SHAPE phase of ``Transformer._normalize_spec_dict`` has
+    already canonicalized compact-key list items, so callers only need to
+    handle dict-keyed and explicit-name list forms here.
     """
     if isinstance(raw, list):
         return [item for item in raw if isinstance(item, dict)]
@@ -423,25 +441,40 @@ def _iter_derivation_dicts(raw: Any) -> list[dict[str, Any]]:
 
 
 def check_deprecated_fields(data: dict[str, Any]) -> list[ValidationMessage]:
-    """Check a normalized spec dict for use of deprecated fields.
+    """Scan a spec dict for deprecated-field usage and ambiguous combinations.
 
-    Currently flags two deprecations:
+    Runs in the SCAN phase of ``Transformer._normalize_spec_dict`` — after
+    SHAPE (which runs ``ReferenceValidator.normalize()`` and the local
+    compact-key pre-expansion) and before MIGRATE (which flattens
+    ``object_derivations``, inherits ``populated_from``, and rewrites PV
+    ``sources``). So the dict the scan sees is structurally canonical
+    (dict-keyed or explicit-name list, no compact-key items) but the
+    deprecated field values are still as the user wrote them.
+
+    Flags:
 
     * ``sources`` on ``ClassDerivation`` / ``SlotDerivation`` /
       ``EnumDerivation`` / ``PermissibleValueDerivation`` — replaced by
-      ``populated_from``.
+      ``populated_from``. Severity: warning, category: deprecated.
     * ``derived_from`` on ``SlotDerivation`` — ignored by the runtime
-      and removable.
+      and removable. Severity: warning, category: deprecated.
+    * ``object_derivations`` on ``SlotDerivation`` — flattened into
+      ``class_derivations`` at load time. Severity: warning, category:
+      deprecated.
+    * ``populated_from`` **and** ``sources`` both set on the same
+      ``PermissibleValueDerivation`` — ambiguous, the user almost
+      certainly didn't mean both. Severity: error.
+    * ``object_derivations`` **and** ``class_derivations`` both set on
+      the same ``SlotDerivation`` — ambiguous. Severity: error.
 
-    Findings are collapsed to one message per (deprecation, derivation
-    type) pair to keep output readable on large specs.
+    ``sources`` deprecation findings are collapsed to one message per
+    (deprecation, derivation type) pair to keep output readable on
+    large specs; per-entry messages are emitted for the other categories.
 
-    Other deprecations (``object_derivations`` flattening) are surfaced
-    during normalization in ``Transformer._normalize_slot_class_derivations``
-    and do not need to be re-emitted here.
-
-    :param data: A **normalized** spec dict (post ``normalize_spec_dict``).
-    :returns: A list of warning messages with ``category="deprecated"``.
+    :param data: A spec dict post-SHAPE, pre-MIGRATE. Derivation sections
+        are dict-keyed or explicit-name list (no compact-key items).
+    :returns: A list of validation messages — warnings for deprecations,
+        errors for ambiguous combinations.
     """
     messages: list[ValidationMessage] = []
     sources_counts: dict[str, list[str]] = {
@@ -451,6 +484,7 @@ def check_deprecated_fields(data: dict[str, Any]) -> list[ValidationMessage]:
         "PermissibleValueDerivation": [],
     }
     derived_from_names: list[str] = []
+    object_derivation_names: list[str] = []
 
     for cd in _iter_derivation_dicts(data.get("class_derivations")):
         cd_name = cd.get("name", "<unnamed>")
@@ -462,6 +496,20 @@ def check_deprecated_fields(data: dict[str, Any]) -> list[ValidationMessage]:
                 sources_counts["SlotDerivation"].append(sd_name)
             if sd.get("derived_from"):
                 derived_from_names.append(sd_name)
+            if sd.get("object_derivations"):
+                object_derivation_names.append(sd_name)
+                if sd.get("class_derivations"):
+                    messages.append(
+                        ValidationMessage(
+                            severity="error",
+                            path=f"$.class_derivations[{cd_name}].slot_derivations[{sd_name}]",
+                            message=(
+                                f"SlotDerivation '{sd_name}' sets both 'object_derivations' "
+                                f"and 'class_derivations'. Remove 'object_derivations' and "
+                                f"use 'class_derivations' only."
+                            ),
+                        )
+                    )
 
     for ed in _iter_derivation_dicts(data.get("enum_derivations")):
         ed_name = ed.get("name", "<unnamed>")
@@ -471,6 +519,19 @@ def check_deprecated_fields(data: dict[str, Any]) -> list[ValidationMessage]:
             pvd_name = pvd.get("name", "<unnamed>")
             if pvd.get("sources"):
                 sources_counts["PermissibleValueDerivation"].append(pvd_name)
+                if pvd.get("populated_from"):
+                    messages.append(
+                        ValidationMessage(
+                            severity="error",
+                            path=(f"$.enum_derivations[{ed_name}].permissible_value_derivations[{pvd_name}]"),
+                            message=(
+                                f"PermissibleValueDerivation '{pvd_name}' sets both "
+                                f"'populated_from' and 'sources'. These are alternative "
+                                f"spellings of the same field; set only 'populated_from' "
+                                f"(which now accepts a list)."
+                            ),
+                        )
+                    )
 
     for deriv_type, names in sources_counts.items():
         if names:
@@ -488,6 +549,24 @@ def check_deprecated_fields(data: dict[str, Any]) -> list[ValidationMessage]:
                     ),
                 )
             )
+
+    if object_derivation_names:
+        preview = ", ".join(object_derivation_names[:5])
+        suffix = f" (and {len(object_derivation_names) - 5} more)" if len(object_derivation_names) > 5 else ""
+        messages.append(
+            ValidationMessage(
+                severity="warning",
+                category="deprecated",
+                path="$.SlotDerivation",
+                message=(
+                    f"{len(object_derivation_names)} SlotDerivation(s) use 'object_derivations', "
+                    f"which is deprecated and flattened into 'class_derivations' at load time: "
+                    f"{preview}{suffix}. Use list-based 'class_derivations' instead. "
+                    f"'object_derivations' will be removed in a future version. "
+                    f"See https://github.com/linkml/linkml-map/issues/112"
+                ),
+            )
+        )
 
     if derived_from_names:
         preview = ", ".join(derived_from_names[:5])
@@ -1152,10 +1231,10 @@ def validate_spec(
         >>> validate_spec(data)
         []
     """
-    normalized = normalize_spec_dict(data)
+    normalized, scan_messages = _normalize_and_collect_messages(data)
     messages = _validate_structural(normalized, schema_path=schema_path)
     if not messages:
-        messages.extend(check_deprecated_fields(normalized))
+        messages.extend(scan_messages)
         messages.extend(
             validate_spec_semantics(
                 normalized,
