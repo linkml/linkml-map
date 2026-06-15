@@ -397,6 +397,17 @@ classes:
         range: Any
         description: >-
           A constant value to assign to the target slot.
+      missing_values:
+        range: Any
+        multivalued: true
+        description: >-
+          Source values that represent a missing observation and should be emitted as
+          null instead of the literal value. Useful for sentinel/missing-value codes
+          common in survey and clinical data (e.g. an age of -9, or codes like 99, 999,
+          -1000 meaning "not collected"). Matching is by string equality against the
+          source value, so listing -9 nulls -9 but not 99. Applied to the value resolved
+          from populated_from/value/sources before any mappings, offset, or range
+          coercion; it does not apply to nested class_derivations.
       range:
         slot_uri: linkml:range
         range: string

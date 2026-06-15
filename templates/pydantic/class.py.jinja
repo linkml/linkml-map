@@ -40,3 +40,13 @@ class {{ name }}({% if bases is string %}{{ bases }}{% else %}{{ bases | join(',
             return result
         return v
     {% endif %}
+    {% if name == 'SlotDerivation' %}
+
+    @field_validator('missing_values', mode='before')
+    @classmethod
+    def coerce_missing_values(cls, v):
+        """Accept a single scalar as shorthand for a one-element list."""
+        if v is None or isinstance(v, list):
+            return v
+        return [v]
+    {% endif %}

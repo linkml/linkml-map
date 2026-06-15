@@ -53,6 +53,7 @@ URI: [linkml:Any](https://w3id.org/linkml/Any)
 | [ClassDerivation](ClassDerivation.md) | [overrides](overrides.md) | range | [Any](Any.md) |
 | [ObjectDerivation](ObjectDerivation.md) | [overrides](overrides.md) | range | [Any](Any.md) |
 | [SlotDerivation](SlotDerivation.md) | [value](value.md) | range | [Any](Any.md) |
+| [SlotDerivation](SlotDerivation.md) | [missing_values](missing_values.md) | range | [Any](Any.md) |
 | [SlotDerivation](SlotDerivation.md) | [target_definition](target_definition.md) | range | [Any](Any.md) |
 | [SlotDerivation](SlotDerivation.md) | [overrides](overrides.md) | range | [Any](Any.md) |
 | [EnumDerivation](EnumDerivation.md) | [overrides](overrides.md) | range | [Any](Any.md) |

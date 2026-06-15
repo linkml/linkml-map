@@ -403,6 +403,7 @@ class SlotDerivation(ElementDerivation):
                        'EnumDerivation',
                        'PermissibleValueDerivation']} })
     value: Optional[Any] = Field(default=None, description="""A constant value to assign to the target slot.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation', 'KeyVal']} })
+    missing_values: Optional[list[Any]] = Field(default_factory=list, description="""Source values that represent a missing observation and should be emitted as null instead of the literal value. Useful for sentinel/missing-value codes common in survey and clinical data (e.g. an age of -9, or codes like 99, 999, -1000 meaning \"not collected\"). Matching is by string equality against the source value, so listing -9 nulls -9 but not 99. Applied to the value resolved from populated_from/value/sources before any mappings, offset, or range coercion; it does not apply to nested class_derivations.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation']} })
     range: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation'], 'slot_uri': 'linkml:range'} })
     unit_conversion: Optional[UnitConversionConfiguration] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation']} })
     inverse_of: Optional[Inverse] = Field(default=None, description="""Used to specify a class-slot tuple that is the inverse of the derived/target slot. This is used primarily for mapping to relational databases or formalisms that do not allow multiple values. The class representing the repeated element has a foreign key slot inserted in that 'back references' the original multivalued slot.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SlotDerivation']} })
@@ -432,6 +433,14 @@ class SlotDerivation(ElementDerivation):
     description: Optional[str] = Field(default=None, description="""description of the specification component""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent'], 'slot_uri': 'dcterms:description'} })
     implements: Optional[list[str]] = Field(default_factory=list, description="""A reference to a specification that this component implements.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent']} })
     comments: Optional[list[str]] = Field(default_factory=list, description="""A list of comments about this component. Comments are free text, and may be used to provide additional information about the component, including instructions for its use.""", json_schema_extra = { "linkml_meta": {'domain_of': ['SpecificationComponent'], 'slot_uri': 'rdfs:comment'} })
+
+    @field_validator('missing_values', mode='before')
+    @classmethod
+    def coerce_missing_values(cls, v):
+        """Accept a single scalar as shorthand for a one-element list."""
+        if v is None or isinstance(v, list):
+            return v
+        return [v]
 
 
 class EnumDerivation(ElementDerivation):
