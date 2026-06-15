@@ -44,6 +44,7 @@
           {title: "Transformer", url: "#transformer", children: [
               {title: "derived_specification", url: "#linkml_map.transformer.transformer.Transformer.derived_specification" },
               {title: "source_schemaview", url: "#linkml_map.transformer.transformer.Transformer.source_schemaview" },
+              {title: "spec_messages", url: "#linkml_map.transformer.transformer.Transformer.spec_messages" },
               {title: "specification", url: "#linkml_map.transformer.transformer.Transformer.specification" },
               {title: "strict", url: "#linkml_map.transformer.transformer.Transformer.strict" },
               {title: "target_schemaview", url: "#linkml_map.transformer.transformer.Transformer.target_schemaview" },
@@ -589,26 +590,7 @@ subclass this.</p>
 
               <details class="quote">
                 <summary>Source code in <code>src/linkml_map/transformer/transformer.py</code></summary>
-                <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 38</span>
-<span class="normal"> 39</span>
-<span class="normal"> 40</span>
-<span class="normal"> 41</span>
-<span class="normal"> 42</span>
-<span class="normal"> 43</span>
-<span class="normal"> 44</span>
-<span class="normal"> 45</span>
-<span class="normal"> 46</span>
-<span class="normal"> 47</span>
-<span class="normal"> 48</span>
-<span class="normal"> 49</span>
-<span class="normal"> 50</span>
-<span class="normal"> 51</span>
-<span class="normal"> 52</span>
-<span class="normal"> 53</span>
-<span class="normal"> 54</span>
-<span class="normal"> 55</span>
-<span class="normal"> 56</span>
-<span class="normal"> 57</span>
+                <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 57</span>
 <span class="normal"> 58</span>
 <span class="normal"> 59</span>
 <span class="normal"> 60</span>
@@ -1086,7 +1068,255 @@ subclass this.</p>
 <span class="normal">532</span>
 <span class="normal">533</span>
 <span class="normal">534</span>
-<span class="normal">535</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="normal">535</span>
+<span class="normal">536</span>
+<span class="normal">537</span>
+<span class="normal">538</span>
+<span class="normal">539</span>
+<span class="normal">540</span>
+<span class="normal">541</span>
+<span class="normal">542</span>
+<span class="normal">543</span>
+<span class="normal">544</span>
+<span class="normal">545</span>
+<span class="normal">546</span>
+<span class="normal">547</span>
+<span class="normal">548</span>
+<span class="normal">549</span>
+<span class="normal">550</span>
+<span class="normal">551</span>
+<span class="normal">552</span>
+<span class="normal">553</span>
+<span class="normal">554</span>
+<span class="normal">555</span>
+<span class="normal">556</span>
+<span class="normal">557</span>
+<span class="normal">558</span>
+<span class="normal">559</span>
+<span class="normal">560</span>
+<span class="normal">561</span>
+<span class="normal">562</span>
+<span class="normal">563</span>
+<span class="normal">564</span>
+<span class="normal">565</span>
+<span class="normal">566</span>
+<span class="normal">567</span>
+<span class="normal">568</span>
+<span class="normal">569</span>
+<span class="normal">570</span>
+<span class="normal">571</span>
+<span class="normal">572</span>
+<span class="normal">573</span>
+<span class="normal">574</span>
+<span class="normal">575</span>
+<span class="normal">576</span>
+<span class="normal">577</span>
+<span class="normal">578</span>
+<span class="normal">579</span>
+<span class="normal">580</span>
+<span class="normal">581</span>
+<span class="normal">582</span>
+<span class="normal">583</span>
+<span class="normal">584</span>
+<span class="normal">585</span>
+<span class="normal">586</span>
+<span class="normal">587</span>
+<span class="normal">588</span>
+<span class="normal">589</span>
+<span class="normal">590</span>
+<span class="normal">591</span>
+<span class="normal">592</span>
+<span class="normal">593</span>
+<span class="normal">594</span>
+<span class="normal">595</span>
+<span class="normal">596</span>
+<span class="normal">597</span>
+<span class="normal">598</span>
+<span class="normal">599</span>
+<span class="normal">600</span>
+<span class="normal">601</span>
+<span class="normal">602</span>
+<span class="normal">603</span>
+<span class="normal">604</span>
+<span class="normal">605</span>
+<span class="normal">606</span>
+<span class="normal">607</span>
+<span class="normal">608</span>
+<span class="normal">609</span>
+<span class="normal">610</span>
+<span class="normal">611</span>
+<span class="normal">612</span>
+<span class="normal">613</span>
+<span class="normal">614</span>
+<span class="normal">615</span>
+<span class="normal">616</span>
+<span class="normal">617</span>
+<span class="normal">618</span>
+<span class="normal">619</span>
+<span class="normal">620</span>
+<span class="normal">621</span>
+<span class="normal">622</span>
+<span class="normal">623</span>
+<span class="normal">624</span>
+<span class="normal">625</span>
+<span class="normal">626</span>
+<span class="normal">627</span>
+<span class="normal">628</span>
+<span class="normal">629</span>
+<span class="normal">630</span>
+<span class="normal">631</span>
+<span class="normal">632</span>
+<span class="normal">633</span>
+<span class="normal">634</span>
+<span class="normal">635</span>
+<span class="normal">636</span>
+<span class="normal">637</span>
+<span class="normal">638</span>
+<span class="normal">639</span>
+<span class="normal">640</span>
+<span class="normal">641</span>
+<span class="normal">642</span>
+<span class="normal">643</span>
+<span class="normal">644</span>
+<span class="normal">645</span>
+<span class="normal">646</span>
+<span class="normal">647</span>
+<span class="normal">648</span>
+<span class="normal">649</span>
+<span class="normal">650</span>
+<span class="normal">651</span>
+<span class="normal">652</span>
+<span class="normal">653</span>
+<span class="normal">654</span>
+<span class="normal">655</span>
+<span class="normal">656</span>
+<span class="normal">657</span>
+<span class="normal">658</span>
+<span class="normal">659</span>
+<span class="normal">660</span>
+<span class="normal">661</span>
+<span class="normal">662</span>
+<span class="normal">663</span>
+<span class="normal">664</span>
+<span class="normal">665</span>
+<span class="normal">666</span>
+<span class="normal">667</span>
+<span class="normal">668</span>
+<span class="normal">669</span>
+<span class="normal">670</span>
+<span class="normal">671</span>
+<span class="normal">672</span>
+<span class="normal">673</span>
+<span class="normal">674</span>
+<span class="normal">675</span>
+<span class="normal">676</span>
+<span class="normal">677</span>
+<span class="normal">678</span>
+<span class="normal">679</span>
+<span class="normal">680</span>
+<span class="normal">681</span>
+<span class="normal">682</span>
+<span class="normal">683</span>
+<span class="normal">684</span>
+<span class="normal">685</span>
+<span class="normal">686</span>
+<span class="normal">687</span>
+<span class="normal">688</span>
+<span class="normal">689</span>
+<span class="normal">690</span>
+<span class="normal">691</span>
+<span class="normal">692</span>
+<span class="normal">693</span>
+<span class="normal">694</span>
+<span class="normal">695</span>
+<span class="normal">696</span>
+<span class="normal">697</span>
+<span class="normal">698</span>
+<span class="normal">699</span>
+<span class="normal">700</span>
+<span class="normal">701</span>
+<span class="normal">702</span>
+<span class="normal">703</span>
+<span class="normal">704</span>
+<span class="normal">705</span>
+<span class="normal">706</span>
+<span class="normal">707</span>
+<span class="normal">708</span>
+<span class="normal">709</span>
+<span class="normal">710</span>
+<span class="normal">711</span>
+<span class="normal">712</span>
+<span class="normal">713</span>
+<span class="normal">714</span>
+<span class="normal">715</span>
+<span class="normal">716</span>
+<span class="normal">717</span>
+<span class="normal">718</span>
+<span class="normal">719</span>
+<span class="normal">720</span>
+<span class="normal">721</span>
+<span class="normal">722</span>
+<span class="normal">723</span>
+<span class="normal">724</span>
+<span class="normal">725</span>
+<span class="normal">726</span>
+<span class="normal">727</span>
+<span class="normal">728</span>
+<span class="normal">729</span>
+<span class="normal">730</span>
+<span class="normal">731</span>
+<span class="normal">732</span>
+<span class="normal">733</span>
+<span class="normal">734</span>
+<span class="normal">735</span>
+<span class="normal">736</span>
+<span class="normal">737</span>
+<span class="normal">738</span>
+<span class="normal">739</span>
+<span class="normal">740</span>
+<span class="normal">741</span>
+<span class="normal">742</span>
+<span class="normal">743</span>
+<span class="normal">744</span>
+<span class="normal">745</span>
+<span class="normal">746</span>
+<span class="normal">747</span>
+<span class="normal">748</span>
+<span class="normal">749</span>
+<span class="normal">750</span>
+<span class="normal">751</span>
+<span class="normal">752</span>
+<span class="normal">753</span>
+<span class="normal">754</span>
+<span class="normal">755</span>
+<span class="normal">756</span>
+<span class="normal">757</span>
+<span class="normal">758</span>
+<span class="normal">759</span>
+<span class="normal">760</span>
+<span class="normal">761</span>
+<span class="normal">762</span>
+<span class="normal">763</span>
+<span class="normal">764</span>
+<span class="normal">765</span>
+<span class="normal">766</span>
+<span class="normal">767</span>
+<span class="normal">768</span>
+<span class="normal">769</span>
+<span class="normal">770</span>
+<span class="normal">771</span>
+<span class="normal">772</span>
+<span class="normal">773</span>
+<span class="normal">774</span>
+<span class="normal">775</span>
+<span class="normal">776</span>
+<span class="normal">777</span>
+<span class="normal">778</span>
+<span class="normal">779</span>
+<span class="normal">780</span>
+<span class="normal">781</span>
+<span class="normal">782</span>
+<span class="normal">783</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Transformer</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class for all transformers.</span>
@@ -1144,6 +1374,17 @@ subclass this.</p>
 
     <span class="n">_curie_converter</span><span class="p">:</span> <span class="n">Converter</span> <span class="o">=</span> <span class="kc">None</span>
 
+    <span class="n">spec_messages</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Scan messages captured at spec-load time.</span>
+
+<span class="sd">    Populated by the three load methods (``load_transformer_specification``,</span>
+<span class="sd">    ``load_transformer_specifications``, ``create_transformer_specification``)</span>
+<span class="sd">    with the ``ValidationMessage`` list returned by ``_normalize_spec_dict``.</span>
+<span class="sd">    Pre-flight validation reads these instead of re-scanning the post-migration</span>
+<span class="sd">    spec, so deprecations whose source fields were cleared by normalization</span>
+<span class="sd">    (e.g., ``object_derivations``, PV ``sources``) are still surfaced.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">map_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">OBJECT_TYPE</span><span class="p">,</span> <span class="n">source_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OBJECT_TYPE</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Transform source object into an instance of the target class.</span>
@@ -1186,7 +1427,7 @@ subclass this.</p>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">obj</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_spec_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spec_messages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_spec_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">specification</span> <span class="o">=</span> <span class="n">TransformationSpecification</span><span class="p">(</span><span class="o">**</span><span class="n">obj</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">load_transformer_specifications</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">paths</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -1202,12 +1443,18 @@ subclass this.</p>
         <span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.utils.spec_merge</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_and_merge_specs</span>
 
         <span class="n">obj</span> <span class="o">=</span> <span class="n">load_and_merge_specs</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_spec_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spec_messages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_spec_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">specification</span> <span class="o">=</span> <span class="n">TransformationSpecification</span><span class="p">(</span><span class="o">**</span><span class="n">obj</span><span class="p">)</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">normalize_transform_spec</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">normalizer</span><span class="p">:</span> <span class="n">ReferenceValidator</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Recursively normalize class_derivations and flatten object_derivations.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Shape-canonicalize class_derivations recursively.</span>
+
+<span class="sd">        Pure shape work — no field migrations. ``object_derivations``</span>
+<span class="sd">        flattening and ``populated_from`` inheritance happen in the MIGRATE</span>
+<span class="sd">        phase of :meth:`_normalize_spec_dict` so the SCAN phase between</span>
+<span class="sd">        them sees the user&#39;s original field values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">obj</span> <span class="o">=</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
 
         <span class="n">class_derivations</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_derivations&quot;</span><span class="p">,</span> <span class="p">[])</span>
@@ -1218,12 +1465,11 @@ subclass this.</p>
         <span class="k">for</span> <span class="n">class_spec</span> <span class="ow">in</span> <span class="n">cd_iter</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">class_spec</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
                 <span class="k">continue</span>
-            <span class="n">parent_source</span> <span class="o">=</span> <span class="n">class_spec</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;populated_from&quot;</span><span class="p">)</span>
             <span class="n">slot_derivations</span> <span class="o">=</span> <span class="n">class_spec</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;slot_derivations&quot;</span><span class="p">,</span> <span class="p">{})</span>
             <span class="k">for</span> <span class="n">slot_name</span><span class="p">,</span> <span class="n">slot_spec</span> <span class="ow">in</span> <span class="n">slot_derivations</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">slot_spec</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">slot_spec</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;range&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">slot_spec</span><span class="p">[</span><span class="s2">&quot;range&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;string&quot;</span>
-                <span class="bp">cls</span><span class="o">.</span><span class="n">_normalize_slot_class_derivations</span><span class="p">(</span><span class="n">slot_name</span><span class="p">,</span> <span class="n">slot_spec</span><span class="p">,</span> <span class="n">normalizer</span><span class="p">,</span> <span class="n">parent_source</span><span class="p">)</span>
+                <span class="bp">cls</span><span class="o">.</span><span class="n">_normalize_slot_class_derivations</span><span class="p">(</span><span class="n">slot_name</span><span class="p">,</span> <span class="n">slot_spec</span><span class="p">,</span> <span class="n">normalizer</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">obj</span>
 
     <span class="nd">@classmethod</span>
@@ -1232,52 +1478,22 @@ subclass this.</p>
         <span class="n">slot_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">slot_spec</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
         <span class="n">normalizer</span><span class="p">:</span> <span class="n">ReferenceValidator</span><span class="p">,</span>
-        <span class="n">parent_populated_from</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Flatten object_derivations and normalize class_derivations on a slot.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Shape-canonicalize the ``class_derivations`` on a slot, recursively.</span>
 
-<span class="sd">        Four steps, applied recursively to nested slots:</span>
-<span class="sd">        1. Flatten ``object_derivations`` into ``class_derivations`` (with</span>
-<span class="sd">           deprecation warning; error if both are present).</span>
-<span class="sd">        2. Expand compact-key entries (``- Condition: {...}`` → ``{name: Condition, ...}``).</span>
-<span class="sd">        3. Inherit ``populated_from`` from the parent class derivation when absent.</span>
-<span class="sd">        4. Run the normalizer on each class derivation entry so that nested</span>
-<span class="sd">           dict-keyed ``slot_derivations`` get ``name`` injected.</span>
+<span class="sd">        Two steps, applied recursively to nested slots:</span>
+
+<span class="sd">        1. Expand compact-key entries (``- Condition: {...}`` →</span>
+<span class="sd">           ``{name: Condition, ...}``).</span>
+<span class="sd">        2. Run the normalizer on each class derivation entry so dict-keyed</span>
+<span class="sd">           ``slot_derivations`` get ``name`` injected and other shape</span>
+<span class="sd">           canonicalization happens.</span>
+
+<span class="sd">        Pure shape — no field semantics. ``object_derivations`` flattening</span>
+<span class="sd">        and ``populated_from`` inheritance live in the MIGRATE phase of</span>
+<span class="sd">        :meth:`_normalize_spec_dict`, not here, so the SCAN phase sees the</span>
+<span class="sd">        user&#39;s original field values.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Step 1: flatten object_derivations → class_derivations</span>
-        <span class="n">object_derivations</span> <span class="o">=</span> <span class="n">slot_spec</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;object_derivations&quot;</span><span class="p">,</span> <span class="p">[])</span>
-        <span class="k">if</span> <span class="n">object_derivations</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">slot_spec</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_derivations&quot;</span><span class="p">):</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;SlotDerivation &#39;</span><span class="si">{</span><span class="n">slot_name</span><span class="si">}</span><span class="s2">&#39; has both &#39;object_derivations&#39; and &quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;&#39;class_derivations&#39;. Remove &#39;object_derivations&#39; and use &quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;&#39;class_derivations&#39; only.&quot;</span>
-                <span class="p">)</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;SlotDerivation &#39;</span><span class="si">{</span><span class="n">slot_name</span><span class="si">}</span><span class="s2">&#39; uses &#39;object_derivations&#39;, which is &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;deprecated. Use list-based class_derivations instead. &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;&#39;object_derivations&#39; will be removed in a future version. &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;See https://github.com/linkml/linkml-map/issues/112&quot;</span><span class="p">,</span>
-                <span class="ne">DeprecationWarning</span><span class="p">,</span>
-                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-            <span class="p">)</span>
-
-            <span class="n">flattened</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">od</span> <span class="ow">in</span> <span class="n">object_derivations</span><span class="p">:</span>
-                <span class="n">od_cd</span> <span class="o">=</span> <span class="n">od</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_derivations&quot;</span><span class="p">,</span> <span class="p">{})</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">od_cd</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">body</span> <span class="ow">in</span> <span class="n">od_cd</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                        <span class="n">entry</span> <span class="o">=</span> <span class="n">body</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="p">{}</span>
-                        <span class="n">entry</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-                        <span class="n">flattened</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
-                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">od_cd</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-                    <span class="n">flattened</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">od_cd</span><span class="p">)</span>
-            <span class="n">slot_spec</span><span class="p">[</span><span class="s2">&quot;class_derivations&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">flattened</span>
-            <span class="k">del</span> <span class="n">slot_spec</span><span class="p">[</span><span class="s2">&quot;object_derivations&quot;</span><span class="p">]</span>
-
-        <span class="c1"># Steps 2-4: expand compact keys, inherit populated_from, normalize, and recurse</span>
         <span class="n">slot_cd</span> <span class="o">=</span> <span class="n">slot_spec</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_derivations&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">slot_cd</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="k">return</span>
@@ -1287,32 +1503,275 @@ subclass this.</p>
         <span class="k">for</span> <span class="n">cd_entry</span> <span class="ow">in</span> <span class="n">slot_cd</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cd_entry</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
                 <span class="k">continue</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">cd_entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;populated_from&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">parent_populated_from</span><span class="p">:</span>
-                <span class="n">cd_entry</span><span class="p">[</span><span class="s2">&quot;populated_from&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">parent_populated_from</span>
             <span class="n">normalized</span> <span class="o">=</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">cd_entry</span><span class="p">)</span>
             <span class="n">cd_entry</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
             <span class="n">cd_entry</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">normalized</span><span class="p">)</span>
-            <span class="n">child_source</span> <span class="o">=</span> <span class="n">cd_entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;populated_from&quot;</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">nested_name</span><span class="p">,</span> <span class="n">nested_sd</span> <span class="ow">in</span> <span class="n">cd_entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;slot_derivations&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nested_sd</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                    <span class="bp">cls</span><span class="o">.</span><span class="n">_normalize_slot_class_derivations</span><span class="p">(</span><span class="n">nested_name</span><span class="p">,</span> <span class="n">nested_sd</span><span class="p">,</span> <span class="n">normalizer</span><span class="p">,</span> <span class="n">child_source</span><span class="p">)</span>
+                    <span class="bp">cls</span><span class="o">.</span><span class="n">_normalize_slot_class_derivations</span><span class="p">(</span><span class="n">nested_name</span><span class="p">,</span> <span class="n">nested_sd</span><span class="p">,</span> <span class="n">normalizer</span><span class="p">)</span>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">_normalize_spec_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Normalize a raw specification dict in place.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_normalize_spec_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">silent</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Normalize a raw specification dict in place. Return scan messages.</span>
 
-<span class="sd">        Bundles _preprocess_class_derivations, ReferenceValidator normalization,</span>
-<span class="sd">        and nested ObjectDerivation fixup into a single entry point. Mutates</span>
-<span class="sd">        ``obj`` by replacing its contents with the normalized result.</span>
+<span class="sd">        Three clean phases, ordered so the SCAN sees a canonical shape with</span>
+<span class="sd">        the user&#39;s original field values:</span>
+
+<span class="sd">        1. **SHAPE** — pure structural canonicalization, no field semantics.</span>
+<span class="sd">           Expands compact-key list forms everywhere they can appear</span>
+<span class="sd">           (top-level class/enum derivations, nested class_derivations in</span>
+<span class="sd">           slots, OD-inner class_derivations, PV-level lists), then runs</span>
+<span class="sd">           ``ReferenceValidator`` for dict↔list canonicalization and name</span>
+<span class="sd">           injection.</span>
+<span class="sd">        2. **SCAN** — :func:`linkml_map.validator.check_deprecated_fields`</span>
+<span class="sd">           walks the canonical shape, returning ``ValidationMessage``</span>
+<span class="sd">           records for deprecated-field usage and ambiguous combinations.</span>
+<span class="sd">           Unless ``silent``, deprecation warnings fire as Python</span>
+<span class="sd">           ``DeprecationWarning`` and conflict errors raise</span>
+<span class="sd">           :class:`~linkml_map.transformer.errors.SpecificationError`.</span>
+<span class="sd">        3. **MIGRATE** — all field semantics in one pass:</span>
+<span class="sd">           ``object_derivations`` flatten, ``populated_from`` inheritance</span>
+<span class="sd">           from parent class, PV scalar → list, PV explicit-``None`` strip,</span>
+<span class="sd">           PV ``sources`` → ``populated_from`` (clearing ``sources``).</span>
+
+<span class="sd">        After this method, ``sources`` no longer appears on any</span>
+<span class="sd">        ``PermissibleValueDerivation`` — the runtime can rely on</span>
+<span class="sd">        ``populated_from`` as the single source of truth.</span>
 
 <span class="sd">        :param obj: Raw specification dict (e.g. from YAML or user code).</span>
+<span class="sd">        :param silent: When ``True``, neither emit warnings nor raise on</span>
+<span class="sd">            errors — return them in the message list instead. Used by the</span>
+<span class="sd">            validator path so it can surface findings as</span>
+<span class="sd">            ``ValidationMessage`` records.</span>
+<span class="sd">        :returns: A list of :class:`ValidationMessage` records from the scan.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">_preprocess_class_derivations</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.transformer.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpecificationError</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.validator</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_deprecated_fields</span>
+
+        <span class="c1"># SHAPE</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_shape_normalize</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+        <span class="c1"># SCAN</span>
+        <span class="n">messages</span> <span class="o">=</span> <span class="n">check_deprecated_fields</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">silent</span><span class="p">:</span>
+            <span class="n">errors</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">messages</span> <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">severity</span> <span class="o">==</span> <span class="s2">&quot;error&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">errors</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">SpecificationError</span><span class="p">(</span><span class="s2">&quot;; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">message</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">errors</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">messages</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">category</span> <span class="o">==</span> <span class="s2">&quot;deprecated&quot;</span><span class="p">:</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">message</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+        <span class="c1"># MIGRATE</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_flatten_object_derivations</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_inherit_populated_from</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_coerce_pv_populated_from_to_list</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_migrate_pv_sources_to_populated_from</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">messages</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_shape_normalize</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Canonicalize the structural shape of every derivation section.</span>
+
+<span class="sd">        Expands compact-key list forms in every derivation-section location</span>
+<span class="sd">        (including OD-inner class_derivations and PV-level lists, which</span>
+<span class="sd">        ``ReferenceValidator`` doesn&#39;t canonicalize correctly), then runs</span>
+<span class="sd">        ``ReferenceValidator`` for dict↔list canonicalization and name</span>
+<span class="sd">        injection. No field semantics are mutated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_pre_shape_expand_compact_keys</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
         <span class="n">normalizer</span> <span class="o">=</span> <span class="n">ReferenceValidator</span><span class="p">(</span><span class="n">package_schemaview</span><span class="p">(</span><span class="s2">&quot;linkml_map.datamodel.transformer_model&quot;</span><span class="p">))</span>
         <span class="n">normalizer</span><span class="o">.</span><span class="n">expand_all</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">normalized</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">normalize_transform_spec</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">normalizer</span><span class="p">)</span>
         <span class="n">obj</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
         <span class="n">obj</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">normalized</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_pre_shape_expand_compact_keys</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Recursively expand compact-key list forms before ReferenceValidator.</span>
+
+<span class="sd">        Compact-key list form (``[{Name: {body}}]``) is a linkml-map convention,</span>
+<span class="sd">        not a documented LinkML collection form. ``ReferenceValidator``</span>
+<span class="sd">        therefore doesn&#39;t canonicalize it consistently — list-typed fields</span>
+<span class="sd">        (top-level class_derivations) are left as-is, and dict-typed fields</span>
+<span class="sd">        (permissible_value_derivations) get mangled to ``{None: ...}``. This</span>
+<span class="sd">        pre-pass converts compact-key items to explicit-name form everywhere</span>
+<span class="sd">        the linkml-map schema accepts a derivation section, so RV sees only</span>
+<span class="sd">        LinkML-canonical input.</span>
+
+<span class="sd">        See https://github.com/linkml/linkml/issues/3529 for the upstream</span>
+<span class="sd">        behavior. The local pre-expansion makes us independent of how (or</span>
+<span class="sd">        whether) that gets resolved.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_preprocess_class_derivations</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_preprocess_enum_derivations</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">_iter_values_or_list</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_derivations&quot;</span><span class="p">)):</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_expand_compact_keys_in_class_deriv</span><span class="p">(</span><span class="n">cd</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_expand_compact_keys_in_class_deriv</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">cd</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Expand compact-key list forms in a class derivation, recursively.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">sd</span> <span class="ow">in</span> <span class="n">_iter_values_or_list</span><span class="p">(</span><span class="n">cd</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;slot_derivations&quot;</span><span class="p">)):</span>
+            <span class="c1"># Slot&#39;s own nested class_derivations (list-with-compact-keys form)</span>
+            <span class="n">nested_cds</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_derivations&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nested_cds</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="bp">cls</span><span class="o">.</span><span class="n">_expand_compact_keys</span><span class="p">(</span><span class="n">nested_cds</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">ncd</span> <span class="ow">in</span> <span class="n">_iter_values_or_list</span><span class="p">(</span><span class="n">nested_cds</span><span class="p">):</span>
+                <span class="bp">cls</span><span class="o">.</span><span class="n">_expand_compact_keys_in_class_deriv</span><span class="p">(</span><span class="n">ncd</span><span class="p">)</span>
+            <span class="c1"># OD-inner class_derivations (deprecated form; flattened in MIGRATE)</span>
+            <span class="n">ods</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;object_derivations&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ods</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">od</span> <span class="ow">in</span> <span class="n">ods</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">od</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                        <span class="k">continue</span>
+                    <span class="n">od_cds</span> <span class="o">=</span> <span class="n">od</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_derivations&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">od_cds</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                        <span class="bp">cls</span><span class="o">.</span><span class="n">_expand_compact_keys</span><span class="p">(</span><span class="n">od_cds</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">ncd</span> <span class="ow">in</span> <span class="n">_iter_values_or_list</span><span class="p">(</span><span class="n">od_cds</span><span class="p">):</span>
+                        <span class="bp">cls</span><span class="o">.</span><span class="n">_expand_compact_keys_in_class_deriv</span><span class="p">(</span><span class="n">ncd</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_preprocess_enum_derivations</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pre-process top-level enum_derivations and their PV sections.</span>
+
+<span class="sd">        Handles two compact-key cases ReferenceValidator doesn&#39;t:</span>
+<span class="sd">        list-form enum_derivations with ``{Name: {...}}`` items, and</span>
+<span class="sd">        list-form permissible_value_derivations with the same shape (which</span>
+<span class="sd">        RV otherwise mangles into ``{None: ...}``).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">eds</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;enum_derivations&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">eds</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">eds</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">eds</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">eds</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">Transformer</span><span class="o">.</span><span class="n">_expand_compact_keys</span><span class="p">(</span><span class="n">eds</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ed</span> <span class="ow">in</span> <span class="n">_iter_values_or_list</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;enum_derivations&quot;</span><span class="p">)):</span>
+            <span class="n">pvs</span> <span class="o">=</span> <span class="n">ed</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;permissible_value_derivations&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pvs</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">Transformer</span><span class="o">.</span><span class="n">_expand_compact_keys</span><span class="p">(</span><span class="n">pvs</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_flatten_object_derivations</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Flatten ``object_derivations`` into ``class_derivations`` on every slot.</span>
+
+<span class="sd">        Conflicting specs (both ``object_derivations`` and ``class_derivations``</span>
+<span class="sd">        set) are caught upstream by the SCAN phase as ``severity=&quot;error&quot;``,</span>
+<span class="sd">        so this method assumes a non-conflicting input.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">_iter_values_or_list</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_derivations&quot;</span><span class="p">)):</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_flatten_ods_in_class_deriv</span><span class="p">(</span><span class="n">cd</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_flatten_ods_in_class_deriv</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">cd</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Recursively walk a class derivation, flattening OD on each slot.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">sd</span> <span class="ow">in</span> <span class="n">_iter_values_or_list</span><span class="p">(</span><span class="n">cd</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;slot_derivations&quot;</span><span class="p">)):</span>
+            <span class="n">ods</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;object_derivations&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ods</span><span class="p">:</span>
+                <span class="n">flattened</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">od</span> <span class="ow">in</span> <span class="n">ods</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">od</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                        <span class="k">continue</span>
+                    <span class="n">od_cd</span> <span class="o">=</span> <span class="n">od</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_derivations&quot;</span><span class="p">,</span> <span class="p">{})</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">od_cd</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">body</span> <span class="ow">in</span> <span class="n">od_cd</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                            <span class="n">entry</span> <span class="o">=</span> <span class="n">body</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="p">{}</span>
+                            <span class="n">entry</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+                            <span class="n">flattened</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">od_cd</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                        <span class="n">flattened</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">od_cd</span><span class="p">)</span>
+                <span class="n">sd</span><span class="p">[</span><span class="s2">&quot;class_derivations&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">flattened</span>
+                <span class="k">del</span> <span class="n">sd</span><span class="p">[</span><span class="s2">&quot;object_derivations&quot;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">ncd</span> <span class="ow">in</span> <span class="n">_iter_values_or_list</span><span class="p">(</span><span class="n">sd</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_derivations&quot;</span><span class="p">)):</span>
+                <span class="bp">cls</span><span class="o">.</span><span class="n">_flatten_ods_in_class_deriv</span><span class="p">(</span><span class="n">ncd</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_inherit_populated_from</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Propagate ``populated_from`` from parent class down to nested CDs.</span>
+
+<span class="sd">        Walks each class_derivation&#39;s slot_derivations.class_derivations; if</span>
+<span class="sd">        a nested CD doesn&#39;t set ``populated_from``, it inherits from the</span>
+<span class="sd">        outer class&#39;s value. Recurses through arbitrarily deep nesting.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">_iter_values_or_list</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_derivations&quot;</span><span class="p">)):</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_inherit_pf_in_slots</span><span class="p">(</span><span class="n">cd</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;slot_derivations&quot;</span><span class="p">),</span> <span class="n">cd</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;populated_from&quot;</span><span class="p">))</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_inherit_pf_in_slots</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">slots</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">parent_pf</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Recursively inherit populated_from into nested class_derivations.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">sd</span> <span class="ow">in</span> <span class="n">_iter_values_or_list</span><span class="p">(</span><span class="n">slots</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">ncd</span> <span class="ow">in</span> <span class="n">_iter_values_or_list</span><span class="p">(</span><span class="n">sd</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_derivations&quot;</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">ncd</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;populated_from&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">parent_pf</span><span class="p">:</span>
+                    <span class="n">ncd</span><span class="p">[</span><span class="s2">&quot;populated_from&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">parent_pf</span>
+                <span class="bp">cls</span><span class="o">.</span><span class="n">_inherit_pf_in_slots</span><span class="p">(</span><span class="n">ncd</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;slot_derivations&quot;</span><span class="p">),</span> <span class="n">ncd</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;populated_from&quot;</span><span class="p">))</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_iter_pv_derivations</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Yield each PermissibleValueDerivation dict in ``obj`` for in-place mutation.&quot;&quot;&quot;</span>
+        <span class="n">eds</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;enum_derivations&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">eds</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">ed_iter</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">eds</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">eds</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">ed_iter</span> <span class="o">=</span> <span class="n">eds</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">for</span> <span class="n">ed</span> <span class="ow">in</span> <span class="n">ed_iter</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ed</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">pvds</span> <span class="o">=</span> <span class="n">ed</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;permissible_value_derivations&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pvds</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="n">pvd_iter</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">pvds</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pvds</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">pvd_iter</span> <span class="o">=</span> <span class="n">pvds</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">for</span> <span class="n">pvd</span> <span class="ow">in</span> <span class="n">pvd_iter</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pvd</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                    <span class="k">yield</span> <span class="n">pvd</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_coerce_pv_populated_from_to_list</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Coerce ``populated_from`` to a list on each PV deriv.</span>
+
+<span class="sd">        Input shapes handled:</span>
+
+<span class="sd">        * Scalar string: wrapped to a one-element list (user convenience that</span>
+<span class="sd">          pydantic would otherwise reject for a multivalued field).</span>
+<span class="sd">        * Explicit ``None`` or a list whose every element is ``None``</span>
+<span class="sd">          (``populated_from:`` with no YAML value, possibly already wrapped to</span>
+<span class="sd">          ``[None]`` by ``ReferenceValidator``): the key is removed so pydantic</span>
+<span class="sd">          uses the ``default_factory=list`` default — treats &quot;explicitly set to</span>
+<span class="sd">          nothing&quot; as &quot;unset&quot;. Empty strings and other falsy-but-not-None</span>
+<span class="sd">          values are kept (a user may legitimately map to the empty-string PV).</span>
+<span class="sd">        * List: left as-is.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">pvd</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_iter_pv_derivations</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+            <span class="k">if</span> <span class="s2">&quot;populated_from&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">pvd</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">pf</span> <span class="o">=</span> <span class="n">pvd</span><span class="p">[</span><span class="s2">&quot;populated_from&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">pf</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">pf</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pf</span><span class="p">)):</span>
+                <span class="k">del</span> <span class="n">pvd</span><span class="p">[</span><span class="s2">&quot;populated_from&quot;</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pf</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">pvd</span><span class="p">[</span><span class="s2">&quot;populated_from&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">pf</span><span class="p">]</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_migrate_pv_sources_to_populated_from</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Move deprecated ``sources`` into ``populated_from`` on PV derivs.</span>
+
+<span class="sd">        Applied after the pre-normalize scan has already detected and reported</span>
+<span class="sd">        any ``sources`` usage and any ``sources`` + ``populated_from`` conflicts.</span>
+<span class="sd">        For each PV deriv with ``sources`` set, copies into ``populated_from``</span>
+<span class="sd">        (if not already set) and clears the ``sources`` key. A scalar string</span>
+<span class="sd">        is wrapped to a one-element list rather than exploded into characters</span>
+<span class="sd">        (defends against ``sources: &quot;light_red&quot;`` typos). Post-condition: no</span>
+<span class="sd">        PV has ``sources`` set. The runtime can therefore rely on</span>
+<span class="sd">        ``populated_from`` as the single source of truth and ignore ``sources``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">pvd</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_iter_pv_derivations</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+            <span class="n">srcs</span> <span class="o">=</span> <span class="n">pvd</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;sources&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">srcs</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">pvd</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;populated_from&quot;</span><span class="p">):</span>
+                <span class="n">pvd</span><span class="p">[</span><span class="s2">&quot;populated_from&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">srcs</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">srcs</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">srcs</span><span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_expand_compact_keys</span><span class="p">(</span><span class="n">items</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -1356,7 +1815,7 @@ subclass this.</p>
 <span class="sd">        :param path:</span>
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_spec_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spec_messages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_spec_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">specification</span> <span class="o">=</span> <span class="n">TransformationSpecification</span><span class="p">(</span><span class="o">**</span><span class="n">obj</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_apply_source_schema_patches</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -1652,6 +2111,35 @@ the full two-phase pipeline.</p>
 
 
 
+<h2 id="linkml_map.transformer.transformer.Transformer.spec_messages" class="doc doc-heading">
+            <code class=" language-python"><span class="n">spec_messages</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Scan messages captured at spec-load time.</p>
+<p>Populated by the three load methods (<code>load_transformer_specification</code>,
+<code>load_transformer_specifications</code>, <code>create_transformer_specification</code>)
+with the <code>ValidationMessage</code> list returned by <code>_normalize_spec_dict</code>.
+Pre-flight validation reads these instead of re-scanning the post-migration
+spec, so deprecations whose source fields were cleared by normalization
+(e.g., <code>object_derivations</code>, PV <code>sources</code>) are still surfaced.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
 <h2 id="linkml_map.transformer.transformer.Transformer.specification" class="doc doc-heading">
             <code class=" language-python"><span class="n">specification</span> <span class="o">=</span> <span class="kc">None</span></code>
 
@@ -1768,17 +2256,17 @@ would otherwise produce silent nulls in the output.</p>
 
             <details class="quote">
               <summary>Source code in <code>src/linkml_map/transformer/transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">299</span>
-<span class="normal">300</span>
-<span class="normal">301</span>
-<span class="normal">302</span>
-<span class="normal">303</span>
-<span class="normal">304</span>
-<span class="normal">305</span>
-<span class="normal">306</span>
-<span class="normal">307</span>
-<span class="normal">308</span>
-<span class="normal">309</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">create_transformer_specification</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">547</span>
+<span class="normal">548</span>
+<span class="normal">549</span>
+<span class="normal">550</span>
+<span class="normal">551</span>
+<span class="normal">552</span>
+<span class="normal">553</span>
+<span class="normal">554</span>
+<span class="normal">555</span>
+<span class="normal">556</span>
+<span class="normal">557</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">create_transformer_specification</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create specification from a dict.</span>
 
@@ -1787,7 +2275,7 @@ would otherwise produce silent nulls in the output.</p>
 <span class="sd">    :param path:</span>
 <span class="sd">    :return:</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_spec_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">spec_messages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_spec_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">specification</span> <span class="o">=</span> <span class="n">TransformationSpecification</span><span class="p">(</span><span class="o">**</span><span class="n">obj</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -1812,15 +2300,15 @@ would otherwise produce silent nulls in the output.</p>
 
             <details class="quote">
               <summary>Source code in <code>src/linkml_map/transformer/transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">119</span>
-<span class="normal">120</span>
-<span class="normal">121</span>
-<span class="normal">122</span>
-<span class="normal">123</span>
-<span class="normal">124</span>
-<span class="normal">125</span>
-<span class="normal">126</span>
-<span class="normal">127</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_source_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_source_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Set source_schemaview from a schema path.</span>
 
@@ -1853,17 +2341,17 @@ would otherwise produce silent nulls in the output.</p>
 
             <details class="quote">
               <summary>Source code in <code>src/linkml_map/transformer/transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">129</span>
-<span class="normal">130</span>
-<span class="normal">131</span>
-<span class="normal">132</span>
-<span class="normal">133</span>
-<span class="normal">134</span>
-<span class="normal">135</span>
-<span class="normal">136</span>
-<span class="normal">137</span>
-<span class="normal">138</span>
-<span class="normal">139</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_transformer_specification</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_transformer_specification</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Set specification from a schema path.</span>
 
@@ -1872,7 +2360,7 @@ would otherwise produce silent nulls in the output.</p>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">obj</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_spec_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spec_messages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_spec_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">specification</span> <span class="o">=</span> <span class="n">TransformationSpecification</span><span class="p">(</span><span class="o">**</span><span class="n">obj</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -1901,21 +2389,21 @@ set as <code>self.specification</code>.</p>
 
             <details class="quote">
               <summary>Source code in <code>src/linkml_map/transformer/transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">141</span>
-<span class="normal">142</span>
-<span class="normal">143</span>
-<span class="normal">144</span>
-<span class="normal">145</span>
-<span class="normal">146</span>
-<span class="normal">147</span>
-<span class="normal">148</span>
-<span class="normal">149</span>
-<span class="normal">150</span>
-<span class="normal">151</span>
-<span class="normal">152</span>
-<span class="normal">153</span>
-<span class="normal">154</span>
-<span class="normal">155</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_transformer_specifications</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">paths</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_transformer_specifications</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">paths</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load and merge multiple transformation spec files into a single specification.</span>
 
 <span class="sd">    Accepts file paths and/or directories.  Directories are recursively</span>
@@ -1928,7 +2416,7 @@ set as <code>self.specification</code>.</p>
     <span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.utils.spec_merge</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_and_merge_specs</span>
 
     <span class="n">obj</span> <span class="o">=</span> <span class="n">load_and_merge_specs</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_spec_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">spec_messages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_spec_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">specification</span> <span class="o">=</span> <span class="n">TransformationSpecification</span><span class="p">(</span><span class="o">**</span><span class="n">obj</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -1956,18 +2444,18 @@ set as <code>self.specification</code>.</p>
 
             <details class="quote">
               <summary>Source code in <code>src/linkml_map/transformer/transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">106</span>
-<span class="normal">107</span>
-<span class="normal">108</span>
-<span class="normal">109</span>
-<span class="normal">110</span>
-<span class="normal">111</span>
-<span class="normal">112</span>
-<span class="normal">113</span>
-<span class="normal">114</span>
-<span class="normal">115</span>
-<span class="normal">116</span>
-<span class="normal">117</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">map_database</span><span class="p">(</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">map_database</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span> <span class="n">source_database</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">target_database</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OBJECT_TYPE</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -2004,15 +2492,15 @@ set as <code>self.specification</code>.</p>
 
             <details class="quote">
               <summary>Source code in <code>src/linkml_map/transformer/transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 96</span>
-<span class="normal"> 97</span>
-<span class="normal"> 98</span>
-<span class="normal"> 99</span>
-<span class="normal">100</span>
-<span class="normal">101</span>
-<span class="normal">102</span>
-<span class="normal">103</span>
-<span class="normal">104</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">map_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">OBJECT_TYPE</span><span class="p">,</span> <span class="n">source_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OBJECT_TYPE</span><span class="p">:</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">map_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">OBJECT_TYPE</span><span class="p">,</span> <span class="n">source_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OBJECT_TYPE</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Transform source object into an instance of the target class.</span>
 
@@ -2042,33 +2530,48 @@ set as <code>self.specification</code>.</p>
 
     <div class="doc doc-contents ">
 
-        <p>Recursively normalize class_derivations and flatten object_derivations.</p>
+        <p>Shape-canonicalize class_derivations recursively.</p>
+<p>Pure shape work — no field migrations. <code>object_derivations</code>
+flattening and <code>populated_from</code> inheritance happen in the MIGRATE
+phase of :meth:<code>_normalize_spec_dict</code> so the SCAN phase between
+them sees the user's original field values.</p>
 
 
             <details class="quote">
               <summary>Source code in <code>src/linkml_map/transformer/transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">157</span>
-<span class="normal">158</span>
-<span class="normal">159</span>
-<span class="normal">160</span>
-<span class="normal">161</span>
-<span class="normal">162</span>
-<span class="normal">163</span>
-<span class="normal">164</span>
-<span class="normal">165</span>
-<span class="normal">166</span>
-<span class="normal">167</span>
-<span class="normal">168</span>
-<span class="normal">169</span>
-<span class="normal">170</span>
-<span class="normal">171</span>
-<span class="normal">172</span>
-<span class="normal">173</span>
-<span class="normal">174</span>
-<span class="normal">175</span>
-<span class="normal">176</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">normalize_transform_spec</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">normalizer</span><span class="p">:</span> <span class="n">ReferenceValidator</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Recursively normalize class_derivations and flatten object_derivations.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Shape-canonicalize class_derivations recursively.</span>
+
+<span class="sd">    Pure shape work — no field migrations. ``object_derivations``</span>
+<span class="sd">    flattening and ``populated_from`` inheritance happen in the MIGRATE</span>
+<span class="sd">    phase of :meth:`_normalize_spec_dict` so the SCAN phase between</span>
+<span class="sd">    them sees the user&#39;s original field values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">obj</span> <span class="o">=</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
 
     <span class="n">class_derivations</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_derivations&quot;</span><span class="p">,</span> <span class="p">[])</span>
@@ -2079,12 +2582,11 @@ set as <code>self.specification</code>.</p>
     <span class="k">for</span> <span class="n">class_spec</span> <span class="ow">in</span> <span class="n">cd_iter</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">class_spec</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
             <span class="k">continue</span>
-        <span class="n">parent_source</span> <span class="o">=</span> <span class="n">class_spec</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;populated_from&quot;</span><span class="p">)</span>
         <span class="n">slot_derivations</span> <span class="o">=</span> <span class="n">class_spec</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;slot_derivations&quot;</span><span class="p">,</span> <span class="p">{})</span>
         <span class="k">for</span> <span class="n">slot_name</span><span class="p">,</span> <span class="n">slot_spec</span> <span class="ow">in</span> <span class="n">slot_derivations</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">slot_spec</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">slot_spec</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;range&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">slot_spec</span><span class="p">[</span><span class="s2">&quot;range&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;string&quot;</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">_normalize_slot_class_derivations</span><span class="p">(</span><span class="n">slot_name</span><span class="p">,</span> <span class="n">slot_spec</span><span class="p">,</span> <span class="n">normalizer</span><span class="p">,</span> <span class="n">parent_source</span><span class="p">)</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_normalize_slot_class_derivations</span><span class="p">(</span><span class="n">slot_name</span><span class="p">,</span> <span class="n">slot_spec</span><span class="p">,</span> <span class="n">normalizer</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">obj</span>
 </code></pre></div></td></tr></table></div>
             </details>

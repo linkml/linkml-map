@@ -143,7 +143,29 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
 
             <details class="quote">
               <summary>Source code in <code>src/linkml_map/inference/inference.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">31</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span>
+<span class="normal">14</span>
+<span class="normal">15</span>
+<span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span>
+<span class="normal">19</span>
+<span class="normal">20</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
 <span class="normal">32</span>
 <span class="normal">33</span>
 <span class="normal">34</span>
@@ -179,30 +201,7 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
 <span class="normal">64</span>
 <span class="normal">65</span>
 <span class="normal">66</span>
-<span class="normal">67</span>
-<span class="normal">68</span>
-<span class="normal">69</span>
-<span class="normal">70</span>
-<span class="normal">71</span>
-<span class="normal">72</span>
-<span class="normal">73</span>
-<span class="normal">74</span>
-<span class="normal">75</span>
-<span class="normal">76</span>
-<span class="normal">77</span>
-<span class="normal">78</span>
-<span class="normal">79</span>
-<span class="normal">80</span>
-<span class="normal">81</span>
-<span class="normal">82</span>
-<span class="normal">83</span>
-<span class="normal">84</span>
-<span class="normal">85</span>
-<span class="normal">86</span>
-<span class="normal">87</span>
-<span class="normal">88</span>
-<span class="normal">89</span>
-<span class="normal">90</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">induce_missing_values</span><span class="p">(</span><span class="n">specification</span><span class="p">:</span> <span class="n">TransformationSpecification</span><span class="p">,</span> <span class="n">source_schemaview</span><span class="p">:</span> <span class="n">SchemaView</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">67</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">induce_missing_values</span><span class="p">(</span><span class="n">specification</span><span class="p">:</span> <span class="n">TransformationSpecification</span><span class="p">,</span> <span class="n">source_schemaview</span><span class="p">:</span> <span class="n">SchemaView</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Infer missing values in a specification.</span>
 
@@ -215,7 +214,6 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
     <span class="k">for</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">specification</span><span class="o">.</span><span class="n">class_derivations</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">cd</span><span class="o">.</span><span class="n">populated_from</span><span class="p">:</span>
             <span class="n">cd</span><span class="o">.</span><span class="n">populated_from</span> <span class="o">=</span> <span class="n">cd</span><span class="o">.</span><span class="n">name</span>
-    <span class="n">_warn_deprecated_fields</span><span class="p">(</span><span class="n">specification</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">specification</span><span class="o">.</span><span class="n">class_derivations</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">sd</span> <span class="ow">in</span> <span class="n">cd</span><span class="o">.</span><span class="n">slot_derivations</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
@@ -509,7 +507,16 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
 <span class="normal">166</span>
 <span class="normal">167</span>
 <span class="normal">168</span>
-<span class="normal">169</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">TransformationSpecificationInverter</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Invert a transformation specification.</span>
@@ -578,9 +585,18 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
             <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;TODO: invert enum derivation with expression&quot;</span>
             <span class="k">raise</span> <span class="n">NonInvertibleSpecificationError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">pv_deriv</span> <span class="ow">in</span> <span class="n">ed</span><span class="o">.</span><span class="n">permissible_value_derivations</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">sources</span> <span class="o">=</span> <span class="n">pv_deriv</span><span class="o">.</span><span class="n">populated_from</span> <span class="ow">or</span> <span class="p">[</span><span class="n">pv_deriv</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Cannot invert PermissibleValueDerivation &#39;</span><span class="si">{</span><span class="n">pv_deriv</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;: &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;populated_from has multiple source values </span><span class="si">{</span><span class="n">sources</span><span class="si">}</span><span class="s2">, &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;which is not a one-to-one mapping.&quot;</span>
+                <span class="p">)</span>
+                <span class="k">raise</span> <span class="n">NonInvertibleSpecificationError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="n">inverted_name</span> <span class="o">=</span> <span class="n">sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">inverted_pv_deriv</span> <span class="o">=</span> <span class="n">PermissibleValueDerivation</span><span class="p">(</span>
-                <span class="n">name</span><span class="o">=</span><span class="n">pv_deriv</span><span class="o">.</span><span class="n">populated_from</span> <span class="k">if</span> <span class="n">pv_deriv</span><span class="o">.</span><span class="n">populated_from</span> <span class="k">else</span> <span class="n">pv_deriv</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                <span class="n">populated_from</span><span class="o">=</span><span class="n">pv_deriv</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">inverted_name</span><span class="p">,</span>
+                <span class="n">populated_from</span><span class="o">=</span><span class="p">[</span><span class="n">pv_deriv</span><span class="o">.</span><span class="n">name</span><span class="p">],</span>
             <span class="p">)</span>
             <span class="n">inverted_ed</span><span class="o">.</span><span class="n">permissible_value_derivations</span><span class="p">[</span><span class="n">inverted_pv_deriv</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">inverted_pv_deriv</span>
         <span class="k">return</span> <span class="n">inverted_ed</span>
@@ -874,7 +890,16 @@ Note this becomes the source schema for the generated inverse transformation.</p
 <span class="normal"> 98</span>
 <span class="normal"> 99</span>
 <span class="normal">100</span>
-<span class="normal">101</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">invert_enum_derivation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ed</span><span class="p">:</span> <span class="n">EnumDerivation</span><span class="p">,</span> <span class="n">spec</span><span class="p">:</span> <span class="n">TransformationSpecification</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EnumDerivation</span><span class="p">:</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">invert_enum_derivation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ed</span><span class="p">:</span> <span class="n">EnumDerivation</span><span class="p">,</span> <span class="n">spec</span><span class="p">:</span> <span class="n">TransformationSpecification</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EnumDerivation</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Invert an enum derivation.</span>
 
@@ -887,9 +912,18 @@ Note this becomes the source schema for the generated inverse transformation.</p
         <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;TODO: invert enum derivation with expression&quot;</span>
         <span class="k">raise</span> <span class="n">NonInvertibleSpecificationError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">pv_deriv</span> <span class="ow">in</span> <span class="n">ed</span><span class="o">.</span><span class="n">permissible_value_derivations</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">sources</span> <span class="o">=</span> <span class="n">pv_deriv</span><span class="o">.</span><span class="n">populated_from</span> <span class="ow">or</span> <span class="p">[</span><span class="n">pv_deriv</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Cannot invert PermissibleValueDerivation &#39;</span><span class="si">{</span><span class="n">pv_deriv</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;populated_from has multiple source values </span><span class="si">{</span><span class="n">sources</span><span class="si">}</span><span class="s2">, &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;which is not a one-to-one mapping.&quot;</span>
+            <span class="p">)</span>
+            <span class="k">raise</span> <span class="n">NonInvertibleSpecificationError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">inverted_name</span> <span class="o">=</span> <span class="n">sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">inverted_pv_deriv</span> <span class="o">=</span> <span class="n">PermissibleValueDerivation</span><span class="p">(</span>
-            <span class="n">name</span><span class="o">=</span><span class="n">pv_deriv</span><span class="o">.</span><span class="n">populated_from</span> <span class="k">if</span> <span class="n">pv_deriv</span><span class="o">.</span><span class="n">populated_from</span> <span class="k">else</span> <span class="n">pv_deriv</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-            <span class="n">populated_from</span><span class="o">=</span><span class="n">pv_deriv</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">inverted_name</span><span class="p">,</span>
+            <span class="n">populated_from</span><span class="o">=</span><span class="p">[</span><span class="n">pv_deriv</span><span class="o">.</span><span class="n">name</span><span class="p">],</span>
         <span class="p">)</span>
         <span class="n">inverted_ed</span><span class="o">.</span><span class="n">permissible_value_derivations</span><span class="p">[</span><span class="n">inverted_pv_deriv</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">inverted_pv_deriv</span>
     <span class="k">return</span> <span class="n">inverted_ed</span>
@@ -919,16 +953,7 @@ Note this becomes the source schema for the generated inverse transformation.</p
 
             <details class="quote">
               <summary>Source code in <code>src/linkml_map/inference/inverter.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">103</span>
-<span class="normal">104</span>
-<span class="normal">105</span>
-<span class="normal">106</span>
-<span class="normal">107</span>
-<span class="normal">108</span>
-<span class="normal">109</span>
-<span class="normal">110</span>
-<span class="normal">111</span>
-<span class="normal">112</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">112</span>
 <span class="normal">113</span>
 <span class="normal">114</span>
 <span class="normal">115</span>
@@ -985,7 +1010,16 @@ Note this becomes the source schema for the generated inverse transformation.</p
 <span class="normal">166</span>
 <span class="normal">167</span>
 <span class="normal">168</span>
-<span class="normal">169</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">invert_slot_derivation</span><span class="p">(</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">invert_slot_derivation</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span> <span class="n">sd</span><span class="p">:</span> <span class="n">SlotDerivation</span><span class="p">,</span> <span class="n">cd</span><span class="p">:</span> <span class="n">ClassDerivation</span><span class="p">,</span> <span class="n">spec</span><span class="p">:</span> <span class="n">TransformationSpecification</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SlotDerivation</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -1473,10 +1507,7 @@ Note this becomes the source schema for the generated inverse transformation.</p
 <span class="normal">414</span>
 <span class="normal">415</span>
 <span class="normal">416</span>
-<span class="normal">417</span>
-<span class="normal">418</span>
-<span class="normal">419</span>
-<span class="normal">420</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="normal">417</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">SchemaMapper</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Translates a source schema and transformation specification into a target schema.</span>
@@ -1752,16 +1783,13 @@ Note this becomes the source schema for the generated inverse transformation.</p
             <span class="n">target_enum</span><span class="o">.</span><span class="n">attributes</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="n">target_enum</span><span class="o">.</span><span class="n">slot_usage</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">pv_derivation</span> <span class="ow">in</span> <span class="n">enum_derivation</span><span class="o">.</span><span class="n">permissible_value_derivations</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">pv_derivation</span><span class="o">.</span><span class="n">populated_from</span><span class="p">:</span>
-                <span class="n">pv</span> <span class="o">=</span> <span class="n">PermissibleValue</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">pv_derivation</span><span class="o">.</span><span class="n">populated_from</span><span class="p">)</span>
-                <span class="n">target_enum</span><span class="o">.</span><span class="n">permissible_values</span><span class="p">[</span><span class="n">pv</span><span class="o">.</span><span class="n">text</span><span class="p">]</span> <span class="o">=</span> <span class="n">pv</span>
-            <span class="k">elif</span> <span class="n">pv_derivation</span><span class="o">.</span><span class="n">sources</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">pv_derivation</span><span class="o">.</span><span class="n">sources</span><span class="p">:</span>
-                    <span class="n">pv</span> <span class="o">=</span> <span class="n">PermissibleValue</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">source</span><span class="p">)</span>
-                    <span class="n">target_enum</span><span class="o">.</span><span class="n">permissible_values</span><span class="p">[</span><span class="n">pv</span><span class="o">.</span><span class="n">text</span><span class="p">]</span> <span class="o">=</span> <span class="n">pv</span>
-            <span class="k">else</span><span class="p">:</span>
+            <span class="n">sources</span> <span class="o">=</span> <span class="n">pv_derivation</span><span class="o">.</span><span class="n">populated_from</span> <span class="ow">or</span> <span class="n">pv_derivation</span><span class="o">.</span><span class="n">sources</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">sources</span><span class="p">:</span>
                 <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Missing populated_from or sources for </span><span class="si">{</span><span class="n">pv_derivation</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">:</span>
+                <span class="n">pv</span> <span class="o">=</span> <span class="n">PermissibleValue</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">source</span><span class="p">)</span>
+                <span class="n">target_enum</span><span class="o">.</span><span class="n">permissible_values</span><span class="p">[</span><span class="n">pv</span><span class="o">.</span><span class="n">text</span><span class="p">]</span> <span class="o">=</span> <span class="n">pv</span>
         <span class="k">if</span> <span class="n">enum_derivation</span><span class="o">.</span><span class="n">mirror_source</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">pv</span> <span class="ow">in</span> <span class="n">source_enum</span><span class="o">.</span><span class="n">permissible_values</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">pv</span><span class="o">.</span><span class="n">text</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">target_enum</span><span class="o">.</span><span class="n">permissible_values</span><span class="p">:</span>
@@ -1894,7 +1922,10 @@ Note this becomes the source schema for the generated inverse transformation.</p
 
             <details class="quote">
               <summary>Source code in <code>src/linkml_map/inference/schema_mapper.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">397</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">394</span>
+<span class="normal">395</span>
+<span class="normal">396</span>
+<span class="normal">397</span>
 <span class="normal">398</span>
 <span class="normal">399</span>
 <span class="normal">400</span>
@@ -1914,10 +1945,7 @@ Note this becomes the source schema for the generated inverse transformation.</p
 <span class="normal">414</span>
 <span class="normal">415</span>
 <span class="normal">416</span>
-<span class="normal">417</span>
-<span class="normal">418</span>
-<span class="normal">419</span>
-<span class="normal">420</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">copy_attributes</span><span class="p">(</span>
+<span class="normal">417</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">copy_attributes</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">target_element</span><span class="p">:</span> <span class="n">Element</span><span class="p">,</span>
     <span class="n">source_element</span><span class="p">:</span> <span class="n">Element</span><span class="p">,</span>

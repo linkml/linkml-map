@@ -196,7 +196,7 @@ URI: [linkmlmap:PermissibleValueDerivation](https://w3id.org/linkml/transformer/
 | ---  | --- | --- | --- |
 | [name](name.md) | 1 <br/> [String](String.md) | Target permissible value text | direct |
 | [expr](expr.md) | 0..1 <br/> [String](String.md) | An expression evaluated on the source object to derive this permissible value | direct |
-| [populated_from](populated_from.md) | 0..1 <br/> [String](String.md) | Source permissible value that maps to this target permissible value | direct |
+| [populated_from](populated_from.md) | * <br/> [String](String.md) | Source permissible value(s) that map to this target permissible value | direct |
 | [sources](sources.md) | * <br/> [String](String.md) | Deprecated | direct |
 | [hide](hide.md) | 0..1 <br/> [Boolean](Boolean.md) | True if this is suppressed | direct |
 | [copy_directives](copy_directives.md) | * <br/> [CopyDirective](CopyDirective.md) | Directives controlling which sub-elements of the source element are copied in... | [ElementDerivation](ElementDerivation.md) |
@@ -302,7 +302,9 @@ URI: [linkmlmap:PermissibleValueDerivation](https://w3id.org/linkml/transformer/
 <span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 <span class="w">  </span><span class="nt">populated_from</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">populated_from</span>
-<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Source permissible value that maps to this target permissible value.</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Source permissible value(s) that map to this target permissible value.</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">Accepts a single value or a list; scalar input is normalized to a one-element</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">list at load time.</span>
 <span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
 <span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ClassDerivation</span>
@@ -310,11 +312,13 @@ URI: [linkmlmap:PermissibleValueDerivation](https://w3id.org/linkml/transformer/
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">EnumDerivation</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PermissibleValueDerivation</span>
 <span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<span class="w">    </span><span class="nt">multivalued</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">  </span><span class="nt">sources</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sources</span>
 <span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deprecated. Use populated_from instead.</span>
-<span class="w">    </span><span class="nt">deprecated</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deprecated. Use populated_from instead. See https://github.com/linkml/linkml-map/issues/193</span>
-<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">for planned list support in populated_from. Will be removed in a future version.</span>
+<span class="w">    </span><span class="nt">deprecated</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deprecated. Use populated_from instead, which now accepts a list.</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">See https://github.com/linkml/linkml-map/issues/193. Will be removed in a future</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">version.</span>
 <span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
 <span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ClassDerivation</span>
@@ -373,7 +377,9 @@ URI: [linkmlmap:PermissibleValueDerivation](https://w3id.org/linkml/transformer/
 <span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 <span class="w">  </span><span class="nt">populated_from</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">populated_from</span>
-<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Source permissible value that maps to this target permissible value.</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Source permissible value(s) that map to this target permissible value.</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">Accepts a single value or a list; scalar input is normalized to a one-element</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">list at load time.</span>
 <span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
 <span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PermissibleValueDerivation</span>
 <span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
@@ -382,11 +388,13 @@ URI: [linkmlmap:PermissibleValueDerivation](https://w3id.org/linkml/transformer/
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">EnumDerivation</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PermissibleValueDerivation</span>
 <span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<span class="w">    </span><span class="nt">multivalued</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">  </span><span class="nt">sources</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sources</span>
 <span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deprecated. Use populated_from instead.</span>
-<span class="w">    </span><span class="nt">deprecated</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deprecated. Use populated_from instead. See https://github.com/linkml/linkml-map/issues/193</span>
-<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">for planned list support in populated_from. Will be removed in a future version.</span>
+<span class="w">    </span><span class="nt">deprecated</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deprecated. Use populated_from instead, which now accepts a list.</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">See https://github.com/linkml/linkml-map/issues/193. Will be removed in a future</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">version.</span>
 <span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
 <span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PermissibleValueDerivation</span>
 <span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
