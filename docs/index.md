@@ -265,6 +265,27 @@ This requires:
 1. The source schema defines `org_id` with `range: Organization`
 2. The transformer has an `ObjectIndex` created via `transformer.index(container_data, "Container")`
 
+### Inlined Nested Data
+
+The same dot notation also traverses *inlined* nested objects (tree-shaped sources such
+as XML, JSON Schema, OWL, or EML), walking directly into the nested structure:
+
+```yaml
+class_derivations:
+  SchemaDefinition:
+    populated_from: EMLDocument
+    slot_derivations:
+      title:
+        populated_from: dataset.title  # 'title' inside the inlined 'dataset' object
+```
+
+A segment is treated as inline traversal when the source slot is declared `inlined` /
+`inlined_as_list`, or when the value is a nested object at runtime. No `ObjectIndex` is
+needed — the nested data is already present. Mapping each item of a multivalued inline
+list through a sibling class derivation is not yet supported
+([#265](https://github.com/linkml/linkml-map/issues/265)); such a path raises an error
+naming the multivalued segment.
+
 ### Schema Patches for Auto-Generated Schemas
 
 If your source schema doesn't define FK relationships (common with auto-generated schemas),

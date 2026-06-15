@@ -651,6 +651,8 @@ class ObjectTransformer(Transformer):
             (used for dot-notation without a matching join).
         :returns: Tuple of (resolved value, source slot definition or None).
         """
+        if "." in populated_from and self._is_inline_path(populated_from, context):
+            return self._resolve_inline_path(populated_from, slot_derivation, context)
         fk_resolution = resolve_fk_path(context.sv, context.source_type, populated_from)
         if fk_resolution:
             fk_value = context.source_obj.get(fk_resolution.fk_slot_name)
@@ -670,6 +672,96 @@ class ObjectTransformer(Transformer):
             )
         source_class_slot = context.sv.induced_slot(populated_from, context.source_type)
         return v, source_class_slot
+
+    def _is_inline_path(self, populated_from: str, context: DerivationContext) -> bool:
+        """Decide whether a dot-path traverses inlined nested data rather than an FK.
+
+        Detection is declarative first, with a runtime fallback (issue #247):
+
+        * **Declarative:** the first path segment's source slot has a class range
+          and is marked ``inlined`` / ``inlined_as_list``.
+        * **Runtime fallback:** the value at the first segment is actually a nested
+          object (dict) or list, even when the schema doesn't declare ``inlined``.
+
+        Foreign keys (class range, scalar identifier value, not inlined) fall
+        through to :func:`resolve_fk_path` as before.
+
+        :param populated_from: The dotted ``populated_from`` path.
+        :param context: Current derivation context.
+        :returns: True if the path should be walked structurally through inline data.
+        """
+        first_segment = populated_from.split(".", 1)[0]
+        try:
+            slot = context.sv.induced_slot(first_segment, context.source_type)
+        except Exception:
+            slot = None
+        if slot and slot.range in context.sv.all_classes() and (slot.inlined or slot.inlined_as_list):
+            return True
+        value = context.source_obj.get(first_segment) if isinstance(context.source_obj, dict) else None
+        return isinstance(value, dict | list)
+
+    def _resolve_inline_path(
+        self,
+        populated_from: str,
+        slot_derivation: SlotDerivation,
+        context: DerivationContext,
+    ) -> tuple[Any, SlotDefinition | None]:
+        """Walk a dot-path structurally through inlined nested objects (issue #247).
+
+        Descends into the nested dict(s) one segment at a time and returns the
+        leaf value together with its source slot (for range mapping). A segment
+        that is legitimately absent yields ``None`` rather than an error.
+
+        :param populated_from: The dotted ``populated_from`` path.
+        :param slot_derivation: The active slot derivation (for diagnostics).
+        :param context: Current derivation context.
+        :returns: Tuple of (leaf value, final source slot or None).
+        :raises TransformationError: if a segment holds a list (multivalued inline
+            fan-out, tracked in #265) or a non-dict value is encountered mid-path.
+        """
+        segments = populated_from.split(".")
+        current_val: Any = context.source_obj
+        current_class: str | None = context.source_type
+        final_slot: SlotDefinition | None = None
+
+        for i, segment in enumerate(segments):
+            if not isinstance(current_val, dict):
+                msg = (
+                    f"Cannot traverse inlined path {populated_from!r}: segment {segment!r} "
+                    f"expected a nested object but found {type(current_val).__name__}"
+                )
+                raise TransformationError(
+                    message=msg,
+                    slot_derivation_name=slot_derivation.name,
+                    slot_populated_from=populated_from,
+                )
+            slot = None
+            if current_class:
+                try:
+                    slot = context.sv.induced_slot(segment, current_class)
+                except Exception:
+                    slot = None
+            current_val = current_val.get(segment)
+            if isinstance(current_val, list):
+                msg = (
+                    f"Inlined path {populated_from!r} reaches a multivalued segment {segment!r}; "
+                    f"per-item fan-out to a matching class_derivation is not yet supported (see #265)"
+                )
+                raise TransformationError(
+                    message=msg,
+                    slot_derivation_name=slot_derivation.name,
+                    slot_populated_from=populated_from,
+                )
+            if i == len(segments) - 1:
+                final_slot = slot
+            elif slot and slot.range in context.sv.all_classes():
+                current_class = slot.range
+            else:
+                current_class = slot.range if slot else None
+            if current_val is None:
+                break
+
+        return current_val, final_slot
 
     def _resolve_joined_row(
         self,
