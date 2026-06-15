@@ -25,7 +25,7 @@ URI: [linkmlmap:id_slots](https://w3id.org/linkml/transformer/id_slots)
 
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
-| [PivotOperation](PivotOperation.md) |  |  no  |
+| [PivotOperation](PivotOperation.md) | An operation that reshapes data between wide and long (EAV) representations, ... |  no  |
 
 
 

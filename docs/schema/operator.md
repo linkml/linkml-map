@@ -5,6 +5,11 @@ search:
 
 # Slot: operator 
 
+
+_The aggregation function to apply (for example SUM, AVERAGE, COUNT)._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -20,7 +25,7 @@ URI: [linkmlmap:operator](https://w3id.org/linkml/transformer/operator)
 
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
-| [AggregationOperation](AggregationOperation.md) |  |  no  |
+| [AggregationOperation](AggregationOperation.md) | An operation that reduces multiple input values to a single value using an ag... |  no  |
 
 
 
@@ -87,6 +92,7 @@ URI: [linkmlmap:operator](https://w3id.org/linkml/transformer/operator)
 <details>
 ```yaml
 name: operator
+description: The aggregation function to apply (for example SUM, AVERAGE, COUNT).
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 owner: AggregationOperation

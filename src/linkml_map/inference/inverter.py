@@ -93,9 +93,18 @@ class TransformationSpecificationInverter:
             msg = "TODO: invert enum derivation with expression"
             raise NonInvertibleSpecificationError(msg)
         for pv_deriv in ed.permissible_value_derivations.values():
+            sources = pv_deriv.populated_from or [pv_deriv.name]
+            if len(sources) > 1:
+                msg = (
+                    f"Cannot invert PermissibleValueDerivation '{pv_deriv.name}': "
+                    f"populated_from has multiple source values {sources}, "
+                    f"which is not a one-to-one mapping."
+                )
+                raise NonInvertibleSpecificationError(msg)
+            inverted_name = sources[0]
             inverted_pv_deriv = PermissibleValueDerivation(
-                name=pv_deriv.populated_from if pv_deriv.populated_from else pv_deriv.name,
-                populated_from=pv_deriv.name,
+                name=inverted_name,
+                populated_from=[pv_deriv.name],
             )
             inverted_ed.permissible_value_derivations[inverted_pv_deriv.name] = inverted_pv_deriv
         return inverted_ed

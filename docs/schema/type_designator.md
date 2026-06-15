@@ -5,6 +5,11 @@ search:
 
 # Slot: type_designator 
 
+
+_True if this target slot designates the type (class) of the instance, analogous to LinkML's designates_type._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -86,6 +91,8 @@ URI: [linkmlmap:type_designator](https://w3id.org/linkml/transformer/type_design
 <details>
 ```yaml
 name: type_designator
+description: True if this target slot designates the type (class) of the instance,
+  analogous to LinkML's designates_type.
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 owner: SlotDerivation

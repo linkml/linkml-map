@@ -299,27 +299,27 @@ URI: [linkmlmap:SlotDerivation](https://w3id.org/linkml/transformer/SlotDerivati
 | [expr](expr.md) | 0..1 <br/> [String](String.md) | An expression to be evaluated on the source object to derive the target slot | direct |
 | [value](value.md) | 0..1 <br/> [Any](Any.md) | A constant value to assign to the target slot | direct |
 | [missing_values](missing_values.md) | * <br/> [Any](Any.md) | Source values that represent a missing observation and should be emitted as n... | direct |
-| [range](range.md) | 0..1 <br/> [String](String.md) |  | direct |
-| [unit_conversion](unit_conversion.md) | 0..1 <br/> [UnitConversionConfiguration](UnitConversionConfiguration.md) |  | direct |
+| [range](range.md) | 0..1 <br/> [String](String.md) | The range (value type) to assign to the derived target slot, overriding the r... | direct |
+| [unit_conversion](unit_conversion.md) | 0..1 <br/> [UnitConversionConfiguration](UnitConversionConfiguration.md) | Configuration for converting the source value's unit of measure when deriving... | direct |
 | [inverse_of](inverse_of.md) | 0..1 <br/> [Inverse](Inverse.md) | Used to specify a class-slot tuple that is the inverse of the derived/target ... | direct |
 | [hide](hide.md) | 0..1 <br/> [Boolean](Boolean.md) | True if this is suppressed | direct |
-| [type_designator](type_designator.md) | 0..1 <br/> [Boolean](Boolean.md) |  | direct |
+| [type_designator](type_designator.md) | 0..1 <br/> [Boolean](Boolean.md) | True if this target slot designates the type (class) of the instance, analogo... | direct |
 | [target_definition](target_definition.md) | 0..1 <br/> [Any](Any.md) | LinkML definition object for this slot | direct |
-| [cast_collection_as](cast_collection_as.md) | 0..1 <br/> [CollectionType](CollectionType.md) |  | direct |
-| [dictionary_key](dictionary_key.md) | 0..1 <br/> [String](String.md) |  | direct |
-| [stringification](stringification.md) | 0..1 <br/> [StringificationConfiguration](StringificationConfiguration.md) |  | direct |
-| [aggregation_operation](aggregation_operation.md) | 0..1 <br/> [AggregationOperation](AggregationOperation.md) |  | direct |
+| [cast_collection_as](cast_collection_as.md) | 0..1 <br/> [CollectionType](CollectionType.md) | Coerce the derived slot's collection form (for example single-valued, list, o... | direct |
+| [dictionary_key](dictionary_key.md) | 0..1 <br/> [String](String.md) | When the derived value is a list of objects, the slot whose value is used as ... | direct |
+| [stringification](stringification.md) | 0..1 <br/> [StringificationConfiguration](StringificationConfiguration.md) | Configuration for combining multiple values into a single string value | direct |
+| [aggregation_operation](aggregation_operation.md) | 0..1 <br/> [AggregationOperation](AggregationOperation.md) | An aggregation operation that reduces multiple source values into this slot's... | direct |
 | [pivot_operation](pivot_operation.md) | 0..1 <br/> [PivotOperation](PivotOperation.md) | Configuration for pivot (melt) operations producing this slot | direct |
 | [offset](offset.md) | 0..1 <br/> [Offset](Offset.md) | Configuration for calculating a value by applying an offset to a baseline val... | direct |
-| [copy_directives](copy_directives.md) | * <br/> [CopyDirective](CopyDirective.md) |  | [ElementDerivation](ElementDerivation.md) |
+| [copy_directives](copy_directives.md) | * <br/> [CopyDirective](CopyDirective.md) | Directives controlling which sub-elements of the source element are copied in... | [ElementDerivation](ElementDerivation.md) |
 | [overrides](overrides.md) | 0..1 <br/> [Any](Any.md) | overrides source schema slots | [ElementDerivation](ElementDerivation.md) |
-| [is_a](is_a.md) | 0..1 <br/> [ElementDerivation](ElementDerivation.md) |  | [ElementDerivation](ElementDerivation.md) |
-| [mixins](mixins.md) | * <br/> [ElementDerivation](ElementDerivation.md) |  | [ElementDerivation](ElementDerivation.md) |
+| [is_a](is_a.md) | 0..1 <br/> [ElementDerivation](ElementDerivation.md) | The parent element that the derived target element inherits from | [ElementDerivation](ElementDerivation.md) |
+| [mixins](mixins.md) | * <br/> [ElementDerivation](ElementDerivation.md) | Mixin elements applied to the derived target element | [ElementDerivation](ElementDerivation.md) |
 | [value_mappings](value_mappings.md) | * <br/> [KeyVal](KeyVal.md) | A mapping table that is applied directly to mappings, in order of precedence | [ElementDerivation](ElementDerivation.md) |
 | [expression_mappings](expression_mappings.md) | * <br/> [KeyVal](KeyVal.md) | A mapping table where the values are expressions evaluated against source bin... | [ElementDerivation](ElementDerivation.md) |
 | [expression_to_value_mappings](expression_to_value_mappings.md) | * <br/> [KeyVal](KeyVal.md) | A mapping table in which the keys are boolean expressions and the values are ... | [ElementDerivation](ElementDerivation.md) |
 | [expression_to_expression_mappings](expression_to_expression_mappings.md) | * <br/> [KeyVal](KeyVal.md) | A mapping table in which the keys and values are expressions | [ElementDerivation](ElementDerivation.md) |
-| [mirror_source](mirror_source.md) | 0..1 <br/> [Boolean](Boolean.md) |  | [ElementDerivation](ElementDerivation.md) |
+| [mirror_source](mirror_source.md) | 0..1 <br/> [Boolean](Boolean.md) | If true, pass the source value through unchanged instead of transforming it | [ElementDerivation](ElementDerivation.md) |
 | [description](description.md) | 0..1 <br/> [String](String.md) | description of the specification component | [SpecificationComponent](SpecificationComponent.md) |
 | [implements](implements.md) | * <br/> [Uriorcurie](Uriorcurie.md) | A reference to a specification that this component implements | [SpecificationComponent](SpecificationComponent.md) |
 | [comments](comments.md) | * <br/> [String](String.md) | A list of comments about this component | [SpecificationComponent](SpecificationComponent.md) |
@@ -502,6 +502,8 @@ attributes:
     multivalued: true
   range:
     name: range
+    description: The range (value type) to assign to the derived target slot, overriding
+      the range inferred from the source.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     slot_uri: linkml:range
@@ -510,6 +512,8 @@ attributes:
     range: string
   unit_conversion:
     name: unit_conversion
+    description: Configuration for converting the source value's unit of measure when
+      deriving this slot.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     domain_of:
@@ -539,6 +543,8 @@ attributes:
     range: boolean
   type_designator:
     name: type_designator
+    description: True if this target slot designates the type (class) of the instance,
+      analogous to LinkML's designates_type.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     domain_of:
@@ -556,6 +562,8 @@ attributes:
     range: Any
   cast_collection_as:
     name: cast_collection_as
+    description: Coerce the derived slot's collection form (for example single-valued,
+      list, or dictionary).
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     domain_of:
@@ -563,6 +571,8 @@ attributes:
     range: CollectionType
   dictionary_key:
     name: dictionary_key
+    description: When the derived value is a list of objects, the slot whose value
+      is used as the key to index them into a dictionary.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     domain_of:
@@ -570,6 +580,8 @@ attributes:
     range: string
   stringification:
     name: stringification
+    description: Configuration for combining multiple values into a single string
+      value.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     domain_of:
@@ -577,6 +589,8 @@ attributes:
     range: StringificationConfiguration
   aggregation_operation:
     name: aggregation_operation
+    description: An aggregation operation that reduces multiple source values into
+      this slot's value.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     domain_of:
@@ -742,6 +756,8 @@ attributes:
     multivalued: true
   range:
     name: range
+    description: The range (value type) to assign to the derived target slot, overriding
+      the range inferred from the source.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     slot_uri: linkml:range
@@ -751,6 +767,8 @@ attributes:
     range: string
   unit_conversion:
     name: unit_conversion
+    description: Configuration for converting the source value's unit of measure when
+      deriving this slot.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     owner: SlotDerivation
@@ -783,6 +801,8 @@ attributes:
     range: boolean
   type_designator:
     name: type_designator
+    description: True if this target slot designates the type (class) of the instance,
+      analogous to LinkML's designates_type.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     owner: SlotDerivation
@@ -802,6 +822,8 @@ attributes:
     range: Any
   cast_collection_as:
     name: cast_collection_as
+    description: Coerce the derived slot's collection form (for example single-valued,
+      list, or dictionary).
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     owner: SlotDerivation
@@ -810,6 +832,8 @@ attributes:
     range: CollectionType
   dictionary_key:
     name: dictionary_key
+    description: When the derived value is a list of objects, the slot whose value
+      is used as the key to index them into a dictionary.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     owner: SlotDerivation
@@ -818,6 +842,8 @@ attributes:
     range: string
   stringification:
     name: stringification
+    description: Configuration for combining multiple values into a single string
+      value.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     owner: SlotDerivation
@@ -826,6 +852,8 @@ attributes:
     range: StringificationConfiguration
   aggregation_operation:
     name: aggregation_operation
+    description: An aggregation operation that reduces multiple source values into
+      this slot's value.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     owner: SlotDerivation
@@ -856,6 +884,8 @@ attributes:
     range: Offset
   copy_directives:
     name: copy_directives
+    description: Directives controlling which sub-elements of the source element are
+      copied into the derived target element.
     from_schema: https://w3id.org/linkml/transformer
     owner: SlotDerivation
     domain_of:
@@ -875,6 +905,7 @@ attributes:
     range: Any
   is_a:
     name: is_a
+    description: The parent element that the derived target element inherits from.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     slot_uri: linkml:is_a
@@ -884,6 +915,7 @@ attributes:
     range: ElementDerivation
   mixins:
     name: mixins
+    description: Mixin elements applied to the derived target element.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     slot_uri: linkml:mixins
@@ -951,6 +983,8 @@ attributes:
     inlined: true
   mirror_source:
     name: mirror_source
+    description: If true, pass the source value through unchanged instead of transforming
+      it.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     owner: SlotDerivation

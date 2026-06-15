@@ -5,6 +5,11 @@ search:
 
 # Class: AggregationOperation 
 
+
+_An operation that reduces multiple input values to a single value using an aggregation function such as sum, average, or count._
+
+
+
 <div data-search-exclude markdown="1">
 
 
@@ -71,9 +76,9 @@ URI: [linkmlmap:AggregationOperation](https://w3id.org/linkml/transformer/Aggreg
 
 | Name | Cardinality and Range | Description | Inheritance |
 | ---  | --- | --- | --- |
-| [operator](operator.md) | 1 <br/> [AggregationType](AggregationType.md) |  | direct |
-| [null_handling](null_handling.md) | 0..1 <br/> [InvalidValueHandlingStrategy](InvalidValueHandlingStrategy.md) |  | direct |
-| [invalid_value_handling](invalid_value_handling.md) | 0..1 <br/> [InvalidValueHandlingStrategy](InvalidValueHandlingStrategy.md) |  | direct |
+| [operator](operator.md) | 1 <br/> [AggregationType](AggregationType.md) | The aggregation function to apply (for example SUM, AVERAGE, COUNT) | direct |
+| [null_handling](null_handling.md) | 0..1 <br/> [InvalidValueHandlingStrategy](InvalidValueHandlingStrategy.md) | How to handle null values encountered during aggregation | direct |
+| [invalid_value_handling](invalid_value_handling.md) | 0..1 <br/> [InvalidValueHandlingStrategy](InvalidValueHandlingStrategy.md) | How to handle values that cannot be interpreted as valid input to the aggrega... | direct |
 
 
 
@@ -131,11 +136,14 @@ URI: [linkmlmap:AggregationOperation](https://w3id.org/linkml/transformer/Aggreg
 <details>
 ```yaml
 name: AggregationOperation
+description: An operation that reduces multiple input values to a single value using
+  an aggregation function such as sum, average, or count.
 from_schema: https://w3id.org/linkml/transformer
 is_a: TransformationOperation
 attributes:
   operator:
     name: operator
+    description: The aggregation function to apply (for example SUM, AVERAGE, COUNT).
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     domain_of:
@@ -144,6 +152,7 @@ attributes:
     required: true
   null_handling:
     name: null_handling
+    description: How to handle null values encountered during aggregation.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     domain_of:
@@ -152,6 +161,8 @@ attributes:
     range: InvalidValueHandlingStrategy
   invalid_value_handling:
     name: invalid_value_handling
+    description: How to handle values that cannot be interpreted as valid input to
+      the aggregation.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     domain_of:
@@ -166,11 +177,14 @@ attributes:
 <details>
 ```yaml
 name: AggregationOperation
+description: An operation that reduces multiple input values to a single value using
+  an aggregation function such as sum, average, or count.
 from_schema: https://w3id.org/linkml/transformer
 is_a: TransformationOperation
 attributes:
   operator:
     name: operator
+    description: The aggregation function to apply (for example SUM, AVERAGE, COUNT).
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     owner: AggregationOperation
@@ -180,6 +194,7 @@ attributes:
     required: true
   null_handling:
     name: null_handling
+    description: How to handle null values encountered during aggregation.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     owner: AggregationOperation
@@ -189,6 +204,8 @@ attributes:
     range: InvalidValueHandlingStrategy
   invalid_value_handling:
     name: invalid_value_handling
+    description: How to handle values that cannot be interpreted as valid input to
+      the aggregation.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     owner: AggregationOperation

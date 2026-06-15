@@ -34,6 +34,7 @@ from linkml_runtime import SchemaView
 from linkml_map.datamodel import TR_SCHEMA
 from linkml_map.transformer.transformer import Transformer
 from linkml_map.utils.eval_utils import FUNCTIONS
+from linkml_map.utils.join_utils import find_common_columns, pick_join_key
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +72,7 @@ class ValidationMessage:
     added in the future.
     """
 
-    severity: Literal["error", "warning"]
+    severity: Literal["error", "warning", "info"]
     path: str
     message: str
     category: str | None = None
@@ -143,25 +144,43 @@ def normalize_spec_dict(obj: dict[str, Any]) -> dict[str, Any]:
 
     Applies the same full normalization pipeline that the transformer engine
     uses (compact-key expansion, dict→list conversion via ReferenceValidator,
-    nested ObjectDerivation fixup), plus YAML type coercion for fields that
-    are commonly mis-parsed.
+    nested ObjectDerivation fixup, deprecated-field migration), plus YAML
+    type coercion for fields that are commonly mis-parsed.
 
     If normalization itself fails (e.g. due to malformed data), the original
     dict is returned with only YAML type coercion applied so that JSON Schema
     validation can still report structural errors.
 
+    Use :func:`_normalize_and_collect_messages` instead when you also need
+    the pre-normalize scan's findings (deprecation warnings, conflict errors).
+
     :param obj: Raw YAML-loaded dict.
     :returns: A new dict suitable for JSON Schema validation.
     """
+    obj, _ = _normalize_and_collect_messages(obj)
+    return obj
+
+
+def _normalize_and_collect_messages(
+    obj: dict[str, Any],
+) -> tuple[dict[str, Any], list[ValidationMessage]]:
+    """Normalize and return both the dict and the pre-normalize scan messages.
+
+    Internal helper used by :func:`validate_spec`. Calls the transformer's
+    normalization in silent mode so scan findings are returned as
+    ``ValidationMessage`` records rather than emitted as Python warnings or
+    raised as ``SpecificationError``.
+    """
     obj = dict(obj)
+    messages: list[ValidationMessage] = []
     try:
-        Transformer._normalize_spec_dict(obj)
+        messages = Transformer._normalize_spec_dict(obj, silent=True) or []
     except Exception:
         logger.debug("Normalization failed; falling back to raw dict", exc_info=True)
     for field in _COERCE_FIELDS:
         if field in obj:
             obj[field] = _coerce_yaml_types(obj[field])
-    return obj
+    return obj, messages
 
 
 def _validate_structural(
@@ -238,6 +257,45 @@ def extract_expr_slot_references(expr: str) -> set[str]:
             bound.add(node.target.id)
 
     return names - _EXPR_SAFE_NAMES - bound
+
+
+def extract_expr_attribute_references(expr: str) -> dict[str, set[str]]:
+    """Extract ``base.attr`` accesses from a LinkML expression.
+
+    Used to validate cross-table references like ``{joined_table.field}``
+    against the joined class's slot list. The ``src.attr`` form is excluded
+    because :func:`extract_expr_slot_references` already treats it as a bare
+    slot reference on the source class.
+
+    :param expr: A LinkML expression string.
+    :returns: Mapping of base name to the set of attributes accessed on it.
+
+    Example::
+
+        >>> result = extract_expr_attribute_references("{demographics.age}")
+        >>> sorted(result["demographics"])
+        ['age']
+        >>> extract_expr_attribute_references("plain_var")
+        {}
+        >>> extract_expr_attribute_references("src.foo")
+        {}
+    """
+    try:
+        tree = ast.parse(expr, mode="eval")
+    except SyntaxError:
+        try:
+            tree = ast.parse(expr, mode="exec")
+        except SyntaxError:
+            return {}
+
+    result: dict[str, set[str]] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
+            base = node.value.id
+            if base == "src" or base in _EXPR_SAFE_NAMES:
+                continue
+            result.setdefault(base, set()).add(node.attr)
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -321,12 +379,54 @@ def _resolve_schema_path(
     return None, False
 
 
+def _resolve_schemaview(
+    preloaded: SchemaView | None,
+    spec_value: dict | None,
+    explicit: str | Path | None,
+    base_path: Path | None,
+    label: str,
+    messages: list[ValidationMessage],
+) -> SchemaView | None:
+    """Resolve a single (source or target) schema view, loading it if needed.
+
+    Returns ``preloaded`` unchanged when a SchemaView was already supplied.
+    Otherwise resolves a path via :func:`_resolve_schema_path` and loads it,
+    appending a message to ``messages`` on failure (``error`` when the path
+    was explicitly provided by the user, ``warning`` when auto-detected).
+
+    :param preloaded: A pre-loaded SchemaView, or ``None`` to resolve a path.
+    :param spec_value: The ``source_schema``/``target_schema`` spec field.
+    :param explicit: An explicitly provided schema path (overrides the spec).
+    :param base_path: Directory for resolving relative paths.
+    :param label: ``"source_schema"`` or ``"target_schema"`` — used as the
+        message path and in the failure text.
+    :param messages: List to append a load-failure message to.
+    :returns: The resolved SchemaView, or ``None`` if none was available.
+    """
+    if preloaded is not None:
+        return preloaded
+    path, explicit_provided = _resolve_schema_path(spec_value, explicit, base_path)
+    if not path:
+        return None
+    try:
+        return _load_schemaview_with_timeout(path)
+    except Exception as exc:
+        messages.append(
+            ValidationMessage(
+                severity="error" if explicit_provided else "warning",
+                path=label,
+                message=f"Could not load {label.replace('_', ' ')} '{path}': {exc}",
+            )
+        )
+        return None
+
+
 def _iter_derivation_dicts(raw: Any) -> list[dict[str, Any]]:
     """Normalize a derivations section (dict or list) to a list of dicts.
 
-    After ``normalize_spec_dict``, derivation sections may be either a list of
-    dicts (with ``name`` keys) or a dict keyed by name.  This helper
-    normalizes to a consistent list-of-dicts form for iteration.
+    Assumes the SHAPE phase of ``Transformer._normalize_spec_dict`` has
+    already canonicalized compact-key list items, so callers only need to
+    handle dict-keyed and explicit-name list forms here.
     """
     if isinstance(raw, list):
         return [item for item in raw if isinstance(item, dict)]
@@ -341,25 +441,40 @@ def _iter_derivation_dicts(raw: Any) -> list[dict[str, Any]]:
 
 
 def check_deprecated_fields(data: dict[str, Any]) -> list[ValidationMessage]:
-    """Check a normalized spec dict for use of deprecated fields.
+    """Scan a spec dict for deprecated-field usage and ambiguous combinations.
 
-    Currently flags two deprecations:
+    Runs in the SCAN phase of ``Transformer._normalize_spec_dict`` — after
+    SHAPE (which runs ``ReferenceValidator.normalize()`` and the local
+    compact-key pre-expansion) and before MIGRATE (which flattens
+    ``object_derivations``, inherits ``populated_from``, and rewrites PV
+    ``sources``). So the dict the scan sees is structurally canonical
+    (dict-keyed or explicit-name list, no compact-key items) but the
+    deprecated field values are still as the user wrote them.
+
+    Flags:
 
     * ``sources`` on ``ClassDerivation`` / ``SlotDerivation`` /
       ``EnumDerivation`` / ``PermissibleValueDerivation`` — replaced by
-      ``populated_from``.
+      ``populated_from``. Severity: warning, category: deprecated.
     * ``derived_from`` on ``SlotDerivation`` — ignored by the runtime
-      and removable.
+      and removable. Severity: warning, category: deprecated.
+    * ``object_derivations`` on ``SlotDerivation`` — flattened into
+      ``class_derivations`` at load time. Severity: warning, category:
+      deprecated.
+    * ``populated_from`` **and** ``sources`` both set on the same
+      ``PermissibleValueDerivation`` — ambiguous, the user almost
+      certainly didn't mean both. Severity: error.
+    * ``object_derivations`` **and** ``class_derivations`` both set on
+      the same ``SlotDerivation`` — ambiguous. Severity: error.
 
-    Findings are collapsed to one message per (deprecation, derivation
-    type) pair to keep output readable on large specs.
+    ``sources`` deprecation findings are collapsed to one message per
+    (deprecation, derivation type) pair to keep output readable on
+    large specs; per-entry messages are emitted for the other categories.
 
-    Other deprecations (``object_derivations`` flattening) are surfaced
-    during normalization in ``Transformer._normalize_slot_class_derivations``
-    and do not need to be re-emitted here.
-
-    :param data: A **normalized** spec dict (post ``normalize_spec_dict``).
-    :returns: A list of warning messages with ``category="deprecated"``.
+    :param data: A spec dict post-SHAPE, pre-MIGRATE. Derivation sections
+        are dict-keyed or explicit-name list (no compact-key items).
+    :returns: A list of validation messages — warnings for deprecations,
+        errors for ambiguous combinations.
     """
     messages: list[ValidationMessage] = []
     sources_counts: dict[str, list[str]] = {
@@ -369,6 +484,7 @@ def check_deprecated_fields(data: dict[str, Any]) -> list[ValidationMessage]:
         "PermissibleValueDerivation": [],
     }
     derived_from_names: list[str] = []
+    object_derivation_names: list[str] = []
 
     for cd in _iter_derivation_dicts(data.get("class_derivations")):
         cd_name = cd.get("name", "<unnamed>")
@@ -380,6 +496,20 @@ def check_deprecated_fields(data: dict[str, Any]) -> list[ValidationMessage]:
                 sources_counts["SlotDerivation"].append(sd_name)
             if sd.get("derived_from"):
                 derived_from_names.append(sd_name)
+            if sd.get("object_derivations"):
+                object_derivation_names.append(sd_name)
+                if sd.get("class_derivations"):
+                    messages.append(
+                        ValidationMessage(
+                            severity="error",
+                            path=f"$.class_derivations[{cd_name}].slot_derivations[{sd_name}]",
+                            message=(
+                                f"SlotDerivation '{sd_name}' sets both 'object_derivations' "
+                                f"and 'class_derivations'. Remove 'object_derivations' and "
+                                f"use 'class_derivations' only."
+                            ),
+                        )
+                    )
 
     for ed in _iter_derivation_dicts(data.get("enum_derivations")):
         ed_name = ed.get("name", "<unnamed>")
@@ -389,6 +519,19 @@ def check_deprecated_fields(data: dict[str, Any]) -> list[ValidationMessage]:
             pvd_name = pvd.get("name", "<unnamed>")
             if pvd.get("sources"):
                 sources_counts["PermissibleValueDerivation"].append(pvd_name)
+                if pvd.get("populated_from"):
+                    messages.append(
+                        ValidationMessage(
+                            severity="error",
+                            path=(f"$.enum_derivations[{ed_name}].permissible_value_derivations[{pvd_name}]"),
+                            message=(
+                                f"PermissibleValueDerivation '{pvd_name}' sets both "
+                                f"'populated_from' and 'sources'. These are alternative "
+                                f"spellings of the same field; set only 'populated_from' "
+                                f"(which now accepts a list)."
+                            ),
+                        )
+                    )
 
     for deriv_type, names in sources_counts.items():
         if names:
@@ -406,6 +549,24 @@ def check_deprecated_fields(data: dict[str, Any]) -> list[ValidationMessage]:
                     ),
                 )
             )
+
+    if object_derivation_names:
+        preview = ", ".join(object_derivation_names[:5])
+        suffix = f" (and {len(object_derivation_names) - 5} more)" if len(object_derivation_names) > 5 else ""
+        messages.append(
+            ValidationMessage(
+                severity="warning",
+                category="deprecated",
+                path="$.SlotDerivation",
+                message=(
+                    f"{len(object_derivation_names)} SlotDerivation(s) use 'object_derivations', "
+                    f"which is deprecated and flattened into 'class_derivations' at load time: "
+                    f"{preview}{suffix}. Use list-based 'class_derivations' instead. "
+                    f"'object_derivations' will be removed in a future version. "
+                    f"See https://github.com/linkml/linkml-map/issues/112"
+                ),
+            )
+        )
 
     if derived_from_names:
         preview = ", ".join(derived_from_names[:5])
@@ -465,43 +626,40 @@ def validate_spec_semantics(
     """
     messages: list[ValidationMessage] = []
 
-    source_sv: SchemaView | None = source_schemaview
-    target_sv: SchemaView | None = target_schemaview
-
-    if source_sv is None:
-        source_path, source_explicit = _resolve_schema_path(data.get("source_schema"), source_schema, spec_base_path)
-        if source_path:
-            try:
-                source_sv = _load_schemaview_with_timeout(source_path)
-            except Exception as exc:
-                messages.append(
-                    ValidationMessage(
-                        severity="error" if source_explicit else "warning",
-                        path="source_schema",
-                        message=f"Could not load source schema '{source_path}': {exc}",
-                    )
-                )
-
-    if target_sv is None:
-        target_path, target_explicit = _resolve_schema_path(data.get("target_schema"), target_schema, spec_base_path)
-        if target_path:
-            try:
-                target_sv = _load_schemaview_with_timeout(target_path)
-            except Exception as exc:
-                messages.append(
-                    ValidationMessage(
-                        severity="error" if target_explicit else "warning",
-                        path="target_schema",
-                        message=f"Could not load target schema '{target_path}': {exc}",
-                    )
-                )
+    source_sv = _resolve_schemaview(
+        source_schemaview, data.get("source_schema"), source_schema, spec_base_path, "source_schema", messages
+    )
+    target_sv = _resolve_schemaview(
+        target_schemaview, data.get("target_schema"), target_schema, spec_base_path, "target_schema", messages
+    )
 
     if source_sv is None and target_sv is None:
         return messages
 
-    # Validate class_derivations
+    # Top-level class_derivation name pool — used to resolve is_a / mixins
+    # references against spec-internal derivations (#219). Matches the
+    # runtime's _find_class_derivation_by_name which only inspects the
+    # top-level CD list.
+    derivation_pool = _collect_class_derivation_pool(data)
+
+    # Precompute once and thread through the recursion: every nested CD
+    # would otherwise rebuild these in _build_joined_class_map,
+    # _check_cross_table_join, and _check_class_inheritance_refs.
+    source_all_classes = set(source_sv.all_classes()) if source_sv is not None else set()
+    target_all_classes = set(target_sv.all_classes()) if target_sv is not None else set()
+
+    # Validate class_derivations (recurses into nested CDs internally)
     for cd in _iter_derivation_dicts(data.get("class_derivations", [])):
-        _validate_class_derivation(cd, source_sv, target_sv, strict, messages)
+        _validate_class_derivation(
+            cd,
+            source_sv,
+            target_sv,
+            strict,
+            messages,
+            derivation_pool=derivation_pool,
+            source_all_classes=source_all_classes,
+            target_all_classes=target_all_classes,
+        )
 
     # Validate enum_derivations
     for ed in _iter_derivation_dicts(data.get("enum_derivations", [])):
@@ -510,22 +668,71 @@ def validate_spec_semantics(
     return messages
 
 
+def _collect_class_derivation_pool(data: dict[str, Any]) -> set[str]:
+    """Names of all top-level class_derivations in the spec.
+
+    This is the pool used to resolve ``is_a`` and ``mixins`` references
+    against spec-internal derivations (#219). Only top-level CDs are
+    included, matching the runtime's
+    :meth:`~linkml_map.transformer.transformer.Transformer._find_class_derivation_by_name`
+    which raises ``KeyError`` for anything not at the top level.
+    """
+    return {cd.get("name") for cd in _iter_derivation_dicts(data.get("class_derivations", [])) if cd.get("name")}
+
+
 def _validate_class_derivation(
     cd: dict[str, Any],
     source_sv: SchemaView | None,
     target_sv: SchemaView | None,
     strict: bool,
     messages: list[ValidationMessage],
+    parent_class_deriv: dict[str, Any] | None = None,
+    parent_path: str = "",
+    derivation_pool: set[str] | None = None,
+    source_all_classes: set[str] | None = None,
+    target_all_classes: set[str] | None = None,
 ) -> None:
-    """Validate a single class derivation against schemas."""
+    """Validate a single class derivation against schemas.
+
+    Recurses into nested ``class_derivations`` declared under any slot
+    derivation, threading the parent CD through so cross-table references
+    (#211) can be diagnosed.
+
+    :param parent_class_deriv: For nested CDs, the enclosing class
+        derivation's dict. ``None`` for top-level CDs.
+    :param parent_path: Path prefix for nested validation messages
+        (e.g. ``class_derivations[Outer].slot_derivations[inner]``).
+        Empty string for top-level CDs.
+    :param derivation_pool: Names of all top-level class_derivations in
+        the spec. Used to resolve ``is_a``/``mixins`` (#219). ``None``
+        skips the check.
+    :param source_all_classes: Precomputed ``set(source_sv.all_classes())``,
+        shared across recursion so each nested CD doesn't rebuild it.
+        ``None`` triggers a local computation (callers outside the
+        public entrypoint).
+    :param target_all_classes: Precomputed ``set(target_sv.all_classes())``,
+        same rationale as ``source_all_classes``.
+    """
+    if source_all_classes is None:
+        source_all_classes = set(source_sv.all_classes()) if source_sv is not None else set()
+    if target_all_classes is None:
+        target_all_classes = set(target_sv.all_classes()) if target_sv is not None else set()
     cd_name = cd.get("name", "?")
-    cd_path = f"class_derivations[{cd_name}]"
+    cd_path = f"{parent_path}.class_derivations[{cd_name}]" if parent_path else f"class_derivations[{cd_name}]"
+
+    # Cross-table check for nested CDs (closes #211): does the nested CD's
+    # populated_from differ from its parent's, and can the join be resolved?
+    if parent_class_deriv is not None:
+        _check_cross_table_join(cd, parent_class_deriv, source_sv, cd_path, messages, source_all_classes)
+
+    # is_a / mixins resolution check (closes #219).
+    if derivation_pool is not None:
+        _check_class_inheritance_refs(cd, cd_path, derivation_pool, target_sv, messages, target_all_classes)
 
     # Target: class name should exist
     target_class_slots: set[str] | None = None
     if target_sv is not None:
-        target_classes = set(target_sv.all_classes())
-        if cd_name not in target_classes:
+        if cd_name not in target_all_classes:
             messages.append(
                 ValidationMessage(
                     severity="error",
@@ -540,8 +747,7 @@ def _validate_class_derivation(
     source_class = cd.get("populated_from")
     source_class_slots: set[str] | None = None
     if source_sv is not None and source_class is not None:
-        source_classes = set(source_sv.all_classes())
-        if source_class not in source_classes:
+        if source_class not in source_all_classes:
             messages.append(
                 ValidationMessage(
                     severity="error",
@@ -552,31 +758,55 @@ def _validate_class_derivation(
         else:
             source_class_slots = {s.name for s in source_sv.class_induced_slots(source_class)}
 
-    # If source_sv provided but no populated_from, try identity (class name = source class)
+    # If source_sv provided but no populated_from, fall back to match the runtime:
+    # - Nested CDs without populated_from inherit the parent's effective source
+    #   (see ObjectTransformer._derive_nested_objects, which feeds the parent's
+    #   row through when the nested CD has no populated_from).
+    # - Top-level CDs fall back to the identity case (cd_name == source class).
     if source_sv is not None and source_class is None and source_class_slots is None:
-        if cd_name in source_sv.all_classes():
-            source_class_slots = {s.name for s in source_sv.class_induced_slots(cd_name)}
+        if parent_class_deriv is not None:
+            fallback_class = parent_class_deriv.get("populated_from") or parent_class_deriv.get("name")
+        else:
+            fallback_class = cd_name
+        if fallback_class and fallback_class in source_all_classes:
+            source_class_slots = {s.name for s in source_sv.class_induced_slots(fallback_class)}
 
     # Validate slot_derivations (may be list or dict after normalization)
     slot_derivation_dicts = _iter_derivation_dicts(cd.get("slot_derivations", []))
 
-    # Join aliases — names like "demographics" in {demographics.age} that
-    # reference a joined table, not a slot on the source class. Excluded
-    # from expression-reference validation to avoid false-positive warnings.
-    joins = cd.get("joins") or {}
-    joined_aliases: set[str] = set(joins.keys()) if isinstance(joins, dict) else set()
+    # Build alias -> slot-set map for cross-table expression reference checks.
+    # Covers both explicit `joins:` aliases and the nested-CD populated_from
+    # targets that #212's normalization will synthesize joins for.
+    joined_class_slots = _build_joined_class_map(cd, source_sv, slot_derivation_dicts, source_all_classes)
 
     for sd in slot_derivation_dicts:
+        sd_name = sd.get("name", "?")
+        sd_path = f"{cd_path}.slot_derivations[{sd_name}]"
         _validate_slot_derivation(
             sd,
             cd_name,
             cd_path,
             source_class_slots,
             target_class_slots,
-            joined_aliases,
+            joined_class_slots,
             strict,
             messages,
         )
+
+        # Recurse into nested class_derivations declared on this slot.
+        for nested_cd in _iter_derivation_dicts(sd.get("class_derivations", [])):
+            _validate_class_derivation(
+                nested_cd,
+                source_sv,
+                target_sv,
+                strict,
+                messages,
+                parent_class_deriv=cd,
+                parent_path=sd_path,
+                derivation_pool=derivation_pool,
+                source_all_classes=source_all_classes,
+                target_all_classes=target_all_classes,
+            )
 
     # Warning: target class has required slots with no derivation
     if target_sv is not None and target_class_slots is not None:
@@ -592,22 +822,269 @@ def _validate_class_derivation(
                 )
 
 
+def _build_joined_class_map(
+    cd: dict[str, Any],
+    source_sv: SchemaView | None,
+    slot_derivation_dicts: list[dict[str, Any]],
+    source_all_classes: set[str],
+) -> dict[str, tuple[str, set[str] | None]]:
+    """Map alias names to the resolved joined-class name and its slot set.
+
+    Combines two sources of "joined tables" visible from this CD's
+    expressions:
+
+    1. Explicit ``joins:`` aliases on this CD. The joined class is
+       ``joins[alias].class_named`` if set, otherwise the alias name.
+    2. Implicit join targets — nested ``class_derivations`` whose
+       ``populated_from`` differs from this CD's, which the engine's
+       normalization pass (#212) will auto-resolve.
+
+    :param cd: This class derivation dict.
+    :param source_sv: Source schema view, or ``None``.
+    :param slot_derivation_dicts: Pre-iterated slot derivations (avoids
+        re-walking).
+    :param source_all_classes: Precomputed ``set(source_sv.all_classes())``
+        threaded from the validation entrypoint.
+    :returns: Mapping of alias name to a ``(joined_class_name, slot_set)``
+        tuple. ``slot_set`` is ``None`` when the joined class can't be
+        resolved in the source schema (or when no source schema is
+        available). The class name is tracked separately so error
+        messages can distinguish alias from class for explicit
+        ``class_named`` joins.
+    """
+    result: dict[str, tuple[str, set[str] | None]] = {}
+
+    joins = cd.get("joins") or {}
+    if isinstance(joins, dict):
+        for alias, spec in joins.items():
+            joined_class: str
+            if isinstance(spec, dict):
+                joined_class = spec.get("class_named") or alias
+            else:
+                joined_class = alias
+            if source_sv is not None and joined_class in source_all_classes:
+                slots = {s.name for s in source_sv.class_induced_slots(joined_class)}
+                result[alias] = (joined_class, slots)
+            else:
+                result[alias] = (joined_class, None)
+
+    # Identity case: when populated_from is omitted, the runtime treats the
+    # CD's own name as the parent source. Match that behavior here so nested
+    # CDs reachable from an identity-CD still get cross-table validation.
+    parent_source = cd.get("populated_from") or cd.get("name")
+    if source_sv is not None and parent_source:
+        for sd in slot_derivation_dicts:
+            for nested in _iter_derivation_dicts(sd.get("class_derivations", [])):
+                nested_source = nested.get("populated_from")
+                if nested_source and nested_source != parent_source and nested_source not in result:
+                    if nested_source in source_all_classes:
+                        slots = {s.name for s in source_sv.class_induced_slots(nested_source)}
+                        result[nested_source] = (nested_source, slots)
+                    else:
+                        result[nested_source] = (nested_source, None)
+
+    return result
+
+
+def _check_cross_table_join(
+    nested_cd: dict[str, Any],
+    parent_cd: dict[str, Any],
+    source_sv: SchemaView | None,
+    nested_path: str,
+    messages: list[ValidationMessage],
+    source_all_classes: set[str],
+) -> None:
+    """Diagnose nested CDs that reference a different source table than their parent.
+
+    Closes #211 at validate-spec time. Mirrors the runtime synthesis logic
+    in :class:`~linkml_map.transformer.transformer.Transformer`:
+
+    - Explicit ``joins:`` covers the nested source → no message.
+    - No explicit join, :func:`~linkml_map.utils.join_utils.pick_join_key`
+      returns a column → ``info`` (#212 will auto-synthesize at runtime).
+    - No explicit join, no implicit join can be synthesized → ``warning``
+      with the same diagnostic the runtime would raise.
+    """
+    nested_source = nested_cd.get("populated_from")
+    # Identity case for the parent: fall back to its name when populated_from
+    # is omitted (matches _derive_nested_objects in the runtime).
+    parent_source = parent_cd.get("populated_from") or parent_cd.get("name")
+    if not nested_source or not parent_source or nested_source == parent_source:
+        return
+
+    parent_joins = parent_cd.get("joins") or {}
+    if isinstance(parent_joins, dict) and nested_source in parent_joins:
+        # Explicit join is present — verify the spec carries enough keys to
+        # actually resolve a row, mirroring the runtime check in
+        # ``_resolve_joined_row``. A structurally-valid-but-empty entry like
+        # ``joins: {Reading: {}}`` would otherwise pass validation but blow
+        # up at transform time with ``ValueError: Join spec ... must
+        # specify 'join_on' or both 'source_key' and 'lookup_key'``.
+        spec = parent_joins[nested_source]
+        spec_dict = spec if isinstance(spec, dict) else {}
+        join_on = spec_dict.get("join_on")
+        source_key = spec_dict.get("source_key")
+        lookup_key = spec_dict.get("lookup_key")
+        if not join_on and not (source_key and lookup_key):
+            messages.append(
+                ValidationMessage(
+                    severity="warning",
+                    path=nested_path,
+                    message=(
+                        f"Join spec for '{nested_source}' is missing keys: "
+                        f"must specify 'join_on' or both 'source_key' and "
+                        f"'lookup_key'. Runtime will raise ValueError."
+                    ),
+                )
+            )
+        elif source_sv is not None and parent_source in source_all_classes and nested_source in source_all_classes:
+            # Keys are declared — verify they exist on the respective source
+            # classes. A typo'd key passes the structural check but produces
+            # silent nulls at runtime: ``source_obj.get(missing_key)`` returns
+            # None, the join match fails, cross-table values resolve to null.
+            parent_slots = {s.name for s in source_sv.class_induced_slots(parent_source)}
+            nested_slots = {s.name for s in source_sv.class_induced_slots(nested_source)}
+            if join_on:
+                key_checks = [(join_on, parent_slots, parent_source), (join_on, nested_slots, nested_source)]
+                key_label = "join_on"
+            else:
+                key_checks = [(source_key, parent_slots, parent_source), (lookup_key, nested_slots, nested_source)]
+            for i, (key_value, slot_set, class_name) in enumerate(key_checks):
+                if key_value in slot_set:
+                    continue
+                if not join_on:
+                    key_label = "source_key" if i == 0 else "lookup_key"
+                messages.append(
+                    ValidationMessage(
+                        severity="warning",
+                        path=nested_path,
+                        message=(
+                            f"Join spec for '{nested_source}': "
+                            f"'{key_label}={key_value}' is not a slot on source class "
+                            f"'{class_name}'. Runtime will silently resolve cross-table "
+                            f"values to null."
+                        ),
+                    )
+                )
+        return
+
+    if source_sv is None:
+        return
+
+    if parent_source not in source_all_classes or nested_source not in source_all_classes:
+        # Missing-class errors are emitted elsewhere; can't predict joinability.
+        return
+
+    key = pick_join_key(source_sv, parent_source, nested_source)
+    if key is not None:
+        messages.append(
+            ValidationMessage(
+                severity="info",
+                path=nested_path,
+                message=(
+                    f"Nested 'populated_from={nested_source}' differs from parent "
+                    f"'populated_from={parent_source}'. No explicit join entry for "
+                    f"'{nested_source}'; implicit join will be synthesized on column "
+                    f"'{key}'. Consider declaring the join explicitly."
+                ),
+            )
+        )
+        return
+
+    common = find_common_columns(source_sv, parent_source, nested_source)
+    if not common:
+        reason = f"no columns are shared between '{parent_source}' and '{nested_source}'"
+    else:
+        candidates = ", ".join(f"'{c}'" for c in sorted(common))
+        reason = (
+            f"multiple candidate join columns are shared between '{parent_source}' "
+            f"and '{nested_source}' ({candidates}); cannot pick automatically"
+        )
+    messages.append(
+        ValidationMessage(
+            severity="warning",
+            path=nested_path,
+            message=(
+                f"Nested 'populated_from={nested_source}' differs from parent "
+                f"'populated_from={parent_source}', but no implicit join can be "
+                f"synthesized: {reason}. Add an explicit join entry for "
+                f"'{nested_source}' — cross-table values will otherwise resolve to null."
+            ),
+        )
+    )
+
+
+def _check_class_inheritance_refs(
+    cd: dict[str, Any],
+    cd_path: str,
+    derivation_pool: set[str],
+    target_sv: SchemaView | None,
+    messages: list[ValidationMessage],
+    target_all_classes: set[str],
+) -> None:
+    """Resolve ``is_a`` and ``mixins`` string references (closes #219).
+
+    Each reference must resolve to either:
+
+    1. A top-level ``class_derivation`` in this spec (matches the runtime's
+       ``_find_class_derivation_by_name`` behavior), or
+    2. A class in the target schema (matches LinkML's ``is_a`` convention
+       on plain schemas).
+
+    A reference that resolves to neither emits an ``error`` — but only when
+    ``target_sv`` is available. Without the target schema, half the pool is
+    unknown, so a miss against the spec pool alone is ambiguous (it could
+    still be a valid target schema reference) and is left unchecked rather
+    than risk a false positive.
+    """
+    parents: list[tuple[str, str]] = []
+    is_a = cd.get("is_a")
+    if isinstance(is_a, str):
+        parents.append(("is_a", is_a))
+    mixins = cd.get("mixins")
+    if isinstance(mixins, list):
+        parents.extend(("mixins", m) for m in mixins if isinstance(m, str))
+
+    if not parents or target_sv is None:
+        return
+
+    for field_label, parent_name in parents:
+        if parent_name in derivation_pool:
+            continue
+        if parent_name in target_all_classes:
+            continue
+        messages.append(
+            ValidationMessage(
+                severity="error",
+                path=cd_path,
+                message=(
+                    f"'{field_label}: {parent_name}' does not resolve to a "
+                    f"class_derivation in this spec or a class in the target schema"
+                ),
+            )
+        )
+
+
 def _validate_slot_derivation(
     sd: dict[str, Any],
     parent_class_name: str,
     parent_path: str,
     source_class_slots: set[str] | None,
     target_class_slots: set[str] | None,
-    joined_aliases: set[str],
+    joined_class_slots: dict[str, tuple[str, set[str] | None]],
     strict: bool,
     messages: list[ValidationMessage],
 ) -> None:
     """Validate a single slot derivation against schemas.
 
-    :param joined_aliases: Names declared in the parent class derivation's
-        ``joins`` mapping. Expression references to these names (e.g.
-        ``{demographics.age}``) are skipped — they refer to joined tables,
-        not source-class slots.
+    :param joined_class_slots: Mapping of alias name (from explicit
+        ``joins:`` or an implicit-join target) to a tuple of
+        ``(joined_class_name, slot_set)``. Expression bare-name
+        references to these aliases are excluded from source-class
+        checks, and attribute references like ``{alias.field}`` are
+        validated against the joined class's slot set. A ``slot_set``
+        of ``None`` means the joined class couldn't be resolved — the
+        bare alias is still tolerated, but attribute access is skipped.
     """
     sd_name = sd.get("name", "?")
     sd_path = f"{parent_path}.slot_derivations[{sd_name}]"
@@ -634,18 +1111,50 @@ def _validate_slot_derivation(
                 )
             )
 
-    # Expression slot references — skip join aliases, they reference joined
-    # tables (validated against the joined class is a separate enhancement).
     expr = sd.get("expr")
-    if expr is not None and source_class_slots is not None:
-        refs = extract_expr_slot_references(expr) - joined_aliases
-        for ref in sorted(refs):
-            if ref not in source_class_slots:
+    if expr is None or source_class_slots is None:
+        return
+
+    joined_aliases = set(joined_class_slots.keys())
+
+    # Bare-name expression refs — exclude join aliases (they're a "base", not
+    # a slot on the source class).
+    refs = extract_expr_slot_references(expr) - joined_aliases
+    for ref in sorted(refs):
+        if ref not in source_class_slots:
+            messages.append(
+                ValidationMessage(
+                    severity="error" if strict else "warning",
+                    path=sd_path,
+                    message=f"Expression references '{ref}' which is not a slot on the source class",
+                )
+            )
+
+    # Cross-table attribute refs — partial #213 coverage: {alias.field}
+    # validated against the joined class's slots when known.
+    attr_refs = extract_expr_attribute_references(expr)
+    for base, attrs in attr_refs.items():
+        if base not in joined_class_slots:
+            continue
+        joined_class, joined_slots = joined_class_slots[base]
+        if joined_slots is None:
+            continue
+        # When the alias differs from the resolved class name (explicit
+        # ``class_named``), surface both so the user knows which schema
+        # class was actually checked.
+        if joined_class == base:
+            class_descriptor = f"joined class '{joined_class}'"
+        else:
+            class_descriptor = f"joined class '{joined_class}' (alias '{base}')"
+        for attr in sorted(attrs):
+            if attr not in joined_slots:
                 messages.append(
                     ValidationMessage(
                         severity="error" if strict else "warning",
                         path=sd_path,
-                        message=f"Expression references '{ref}' which is not a slot on the source class",
+                        message=(
+                            f"Expression references '{base}.{attr}' but '{attr}' is not a slot on {class_descriptor}"
+                        ),
                     )
                 )
 
@@ -722,10 +1231,10 @@ def validate_spec(
         >>> validate_spec(data)
         []
     """
-    normalized = normalize_spec_dict(data)
+    normalized, scan_messages = _normalize_and_collect_messages(data)
     messages = _validate_structural(normalized, schema_path=schema_path)
     if not messages:
-        messages.extend(check_deprecated_fields(normalized))
+        messages.extend(scan_messages)
         messages.extend(
             validate_spec_semantics(
                 normalized,
