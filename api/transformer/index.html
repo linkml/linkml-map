@@ -3433,7 +3433,27 @@ them sees the user's original field values.</p>
 <span class="normal">1509</span>
 <span class="normal">1510</span>
 <span class="normal">1511</span>
-<span class="normal">1512</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="normal">1512</span>
+<span class="normal">1513</span>
+<span class="normal">1514</span>
+<span class="normal">1515</span>
+<span class="normal">1516</span>
+<span class="normal">1517</span>
+<span class="normal">1518</span>
+<span class="normal">1519</span>
+<span class="normal">1520</span>
+<span class="normal">1521</span>
+<span class="normal">1522</span>
+<span class="normal">1523</span>
+<span class="normal">1524</span>
+<span class="normal">1525</span>
+<span class="normal">1526</span>
+<span class="normal">1527</span>
+<span class="normal">1528</span>
+<span class="normal">1529</span>
+<span class="normal">1530</span>
+<span class="normal">1531</span>
+<span class="normal">1532</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ObjectTransformer</span><span class="p">(</span><span class="n">Transformer</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A Transformer that works on in-memory dict objects.</span>
@@ -3685,6 +3705,8 @@ them sees the user's original field values.</p>
             <span class="k">else</span><span class="p">:</span>
                 <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">source_class_slot</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_fk_or_literal</span><span class="p">(</span><span class="n">populated_from</span><span class="p">,</span> <span class="n">slot_derivation</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
 
+            <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nullify_missing_values</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">slot_derivation</span><span class="p">)</span>
+
             <span class="k">if</span> <span class="p">(</span><span class="n">slot_derivation</span><span class="o">.</span><span class="n">value_mappings</span> <span class="ow">or</span> <span class="n">slot_derivation</span><span class="o">.</span><span class="n">expression_mappings</span><span class="p">)</span> <span class="ow">and</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_mappings</span><span class="p">(</span><span class="n">slot_derivation</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">bindings</span><span class="p">,</span> <span class="n">functions</span><span class="o">=</span><span class="n">expr_functions</span><span class="p">)</span>
 
@@ -3707,6 +3729,7 @@ them sees the user's original field values.</p>
                     <span class="n">class_deriv</span><span class="o">=</span><span class="n">context</span><span class="o">.</span><span class="n">class_deriv</span><span class="p">,</span>
                     <span class="n">slot_derivation</span><span class="o">=</span><span class="n">slot_derivation</span><span class="p">,</span>
                 <span class="p">)</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nullify_missing_values</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">slot_derivation</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">source_class_slot</span> <span class="ow">and</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">slot_derivation</span><span class="o">.</span><span class="n">hide</span><span class="p">:</span>
             <span class="n">target_range</span> <span class="o">=</span> <span class="n">slot_derivation</span><span class="o">.</span><span class="n">range</span>
@@ -3715,6 +3738,23 @@ them sees the user's original field values.</p>
             <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coerce_datatype</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">target_range</span><span class="p">)</span>
             <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reshape_collection</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">slot_derivation</span><span class="p">,</span> <span class="n">source_class_slot</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">v</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_nullify_missing_values</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">slot_derivation</span><span class="p">:</span> <span class="n">SlotDerivation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return ``None`` if ``value`` is a declared missing-value code, else ``value``.</span>
+
+<span class="sd">        Comparison is by string equality against ``slot_derivation.missing_values`` so a</span>
+<span class="sd">        sentinel like ``-9`` nulls only ``-9`` (not ``99``) and matches regardless of</span>
+<span class="sd">        whether the source value arrived as an int or a raw delimited-file string. Applied</span>
+<span class="sd">        at raw-value resolution, before mappings, offset, and range coercion.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">slot_derivation</span><span class="o">.</span><span class="n">missing_values</span>
+            <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">mv</span><span class="p">)</span> <span class="k">for</span> <span class="n">mv</span> <span class="ow">in</span> <span class="n">slot_derivation</span><span class="o">.</span><span class="n">missing_values</span><span class="p">}</span>
+        <span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">value</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_eval_expr</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -4982,27 +5022,7 @@ returns the source value unchanged without trying further enums.</p>
 
             <details class="quote">
               <summary>Source code in <code>src/linkml_map/transformer/object_transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1257</span>
-<span class="normal">1258</span>
-<span class="normal">1259</span>
-<span class="normal">1260</span>
-<span class="normal">1261</span>
-<span class="normal">1262</span>
-<span class="normal">1263</span>
-<span class="normal">1264</span>
-<span class="normal">1265</span>
-<span class="normal">1266</span>
-<span class="normal">1267</span>
-<span class="normal">1268</span>
-<span class="normal">1269</span>
-<span class="normal">1270</span>
-<span class="normal">1271</span>
-<span class="normal">1272</span>
-<span class="normal">1273</span>
-<span class="normal">1274</span>
-<span class="normal">1275</span>
-<span class="normal">1276</span>
-<span class="normal">1277</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1277</span>
 <span class="normal">1278</span>
 <span class="normal">1279</span>
 <span class="normal">1280</span>
@@ -5020,7 +5040,27 @@ returns the source value unchanged without trying further enums.</p>
 <span class="normal">1292</span>
 <span class="normal">1293</span>
 <span class="normal">1294</span>
-<span class="normal">1295</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">transform_enum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_value</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">enum_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">source_obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">1295</span>
+<span class="normal">1296</span>
+<span class="normal">1297</span>
+<span class="normal">1298</span>
+<span class="normal">1299</span>
+<span class="normal">1300</span>
+<span class="normal">1301</span>
+<span class="normal">1302</span>
+<span class="normal">1303</span>
+<span class="normal">1304</span>
+<span class="normal">1305</span>
+<span class="normal">1306</span>
+<span class="normal">1307</span>
+<span class="normal">1308</span>
+<span class="normal">1309</span>
+<span class="normal">1310</span>
+<span class="normal">1311</span>
+<span class="normal">1312</span>
+<span class="normal">1313</span>
+<span class="normal">1314</span>
+<span class="normal">1315</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">transform_enum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_value</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">enum_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">source_obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Transform a source enum value through one or more enum derivations.</span>
 
 <span class="sd">    Iterates *enum_names* in order. For each enum derivation, tries</span>
@@ -5087,27 +5127,7 @@ returns the source value unchanged without trying further enums.</p>
 
             <details class="quote">
               <summary>Source code in <code>src/linkml_map/transformer/object_transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1227</span>
-<span class="normal">1228</span>
-<span class="normal">1229</span>
-<span class="normal">1230</span>
-<span class="normal">1231</span>
-<span class="normal">1232</span>
-<span class="normal">1233</span>
-<span class="normal">1234</span>
-<span class="normal">1235</span>
-<span class="normal">1236</span>
-<span class="normal">1237</span>
-<span class="normal">1238</span>
-<span class="normal">1239</span>
-<span class="normal">1240</span>
-<span class="normal">1241</span>
-<span class="normal">1242</span>
-<span class="normal">1243</span>
-<span class="normal">1244</span>
-<span class="normal">1245</span>
-<span class="normal">1246</span>
-<span class="normal">1247</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1247</span>
 <span class="normal">1248</span>
 <span class="normal">1249</span>
 <span class="normal">1250</span>
@@ -5115,7 +5135,27 @@ returns the source value unchanged without trying further enums.</p>
 <span class="normal">1252</span>
 <span class="normal">1253</span>
 <span class="normal">1254</span>
-<span class="normal">1255</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">transform_object</span><span class="p">(</span>
+<span class="normal">1255</span>
+<span class="normal">1256</span>
+<span class="normal">1257</span>
+<span class="normal">1258</span>
+<span class="normal">1259</span>
+<span class="normal">1260</span>
+<span class="normal">1261</span>
+<span class="normal">1262</span>
+<span class="normal">1263</span>
+<span class="normal">1264</span>
+<span class="normal">1265</span>
+<span class="normal">1266</span>
+<span class="normal">1267</span>
+<span class="normal">1268</span>
+<span class="normal">1269</span>
+<span class="normal">1270</span>
+<span class="normal">1271</span>
+<span class="normal">1272</span>
+<span class="normal">1273</span>
+<span class="normal">1274</span>
+<span class="normal">1275</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">transform_object</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">source_obj</span><span class="p">:</span> <span class="n">YAMLRoot</span> <span class="o">|</span> <span class="n">BaseModel</span><span class="p">,</span>
     <span class="n">target_class</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">YAMLRoot</span><span class="p">]</span> <span class="o">|</span> <span class="nb">type</span><span class="p">[</span><span class="n">BaseModel</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>

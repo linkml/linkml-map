@@ -190,6 +190,17 @@ URI: [linkmlmap:SlotDerivation](https://w3id.org/linkml/transformer/SlotDerivati
 
       SlotDerivation : mirror_source
 
+      SlotDerivation : missing_values
+
+
+
+
+
+        SlotDerivation --&gt; &quot;*&quot; Any : missing_values
+        click Any href &quot;../Any/&quot;
+
+
+
       SlotDerivation : mixins
 
 
@@ -331,6 +342,7 @@ URI: [linkmlmap:SlotDerivation](https://w3id.org/linkml/transformer/SlotDerivati
 | [derived_from](derived_from.md) | * <br/> [SlotReference](SlotReference.md) | Deprecated | direct |
 | [expr](expr.md) | 0..1 <br/> [String](String.md) | An expression to be evaluated on the source object to derive the target slot | direct |
 | [value](value.md) | 0..1 <br/> [Any](Any.md) | A constant value to assign to the target slot | direct |
+| [missing_values](missing_values.md) | * <br/> [Any](Any.md) | Source values to treat as missing and emit as null instead of the literal val... | direct |
 | [range](range.md) | 0..1 <br/> [String](String.md) | The range (value type) to assign to the derived target slot, overriding the r... | direct |
 | [unit_conversion](unit_conversion.md) | 0..1 <br/> [UnitConversionConfiguration](UnitConversionConfiguration.md) | Configuration for converting the source value's unit of measure when deriving... | direct |
 | [inverse_of](inverse_of.md) | 0..1 <br/> [Inverse](Inverse.md) | Used to specify a class-slot tuple that is the inverse of the derived/target ... | direct |
@@ -516,6 +528,17 @@ URI: [linkmlmap:SlotDerivation](https://w3id.org/linkml/transformer/SlotDerivati
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SlotDerivation</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">KeyVal</span>
 <span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Any</span>
+<span class="w">  </span><span class="nt">missing_values</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">missing_values</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Source values to treat as missing and emit as null instead of the</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">literal value — e.g. sentinel codes like -9, 99, or 999 meaning &quot;not collected&quot;.</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">Accepts a single value or a list.</span>
+<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SlotDerivation</span>
+<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Any</span>
+<span class="w">    </span><span class="nt">multivalued</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">  </span><span class="nt">range</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">range</span>
 <span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">The range (value type) to assign to the derived target slot, overriding</span>
@@ -752,6 +775,18 @@ URI: [linkmlmap:SlotDerivation](https://w3id.org/linkml/transformer/SlotDerivati
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SlotDerivation</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">KeyVal</span>
 <span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Any</span>
+<span class="w">  </span><span class="nt">missing_values</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">missing_values</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Source values to treat as missing and emit as null instead of the</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">literal value — e.g. sentinel codes like -9, 99, or 999 meaning &quot;not collected&quot;.</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">Accepts a single value or a list.</span>
+<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SlotDerivation</span>
+<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SlotDerivation</span>
+<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Any</span>
+<span class="w">    </span><span class="nt">multivalued</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">  </span><span class="nt">range</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">range</span>
 <span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">The range (value type) to assign to the derived target slot, overriding</span>
