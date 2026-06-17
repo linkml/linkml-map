@@ -547,6 +547,7 @@ def test_value_mapping_no_match_returns_none(scaffold):
     ("source_value", "expected"),
     [
         (-9, None),  # declared sentinel -> null
+        ("-9", None),  # raw string sentinel (e.g. from a delimited file) -> null
         (99, None),  # declared sentinel -> null
         (-1000, None),  # negative multi-digit sentinel -> null
         (42, 42),  # real value passes through
