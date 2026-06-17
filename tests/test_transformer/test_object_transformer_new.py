@@ -543,6 +543,255 @@ def test_value_mapping_no_match_returns_none(scaffold):
     assert result.get("result") is None
 
 
+@pytest.mark.parametrize(
+    ("source_value", "expected"),
+    [
+        (-9, None),  # declared sentinel -> null
+        ("-9", None),  # raw string sentinel (e.g. from a delimited file) -> null
+        (99, None),  # declared sentinel -> null
+        (-1000, None),  # negative multi-digit sentinel -> null
+        (42, 42),  # real value passes through
+        (9, 9),  # 9 is not a declared sentinel -> not over-matched by -9 or 99
+    ],
+)
+def test_missing_values_nullifies_declared_sentinels(scaffold, source_value, expected):
+    """missing_values maps declared sentinel codes to None and passes other values through."""
+    apply_schema_patch(
+        scaffold["source_schema"],
+        """
+    classes:
+      Person:
+        slots:
+          - age
+    slots:
+      age:
+        range: integer
+""",
+    )
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - age
+    slots:
+      age:
+        range: integer
+""",
+    )
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          age:
+            populated_from: age
+            missing_values: [-9, 99, -1000]
+""",
+    )
+
+    scaffold["input_data"]["age"] = source_value
+    result = run_transformer(scaffold)
+    assert result.get("age") == expected
+
+
+@pytest.mark.parametrize(
+    ("source_age", "expected"),
+    [
+        (-9, None),  # sentinel nulled BEFORE offset, so no bogus computed number leaks
+        (50, 150.0),  # real value still gets the offset applied: 50 + (1 * 100)
+    ],
+)
+def test_missing_values_applied_before_offset(scaffold, source_age, expected):
+    """A sentinel is nulled before offset arithmetic runs (ordering matters)."""
+    apply_schema_patch(
+        scaffold["source_schema"],
+        """
+    classes:
+      Person:
+        slots:
+          - age
+          - days
+    slots:
+      age:
+        range: integer
+      days:
+        range: integer
+""",
+    )
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - age_at_visit
+    slots:
+      age_at_visit:
+        range: float
+""",
+    )
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          age_at_visit:
+            populated_from: age
+            missing_values: [-9]
+            offset:
+              offset_field: days
+              offset_value: 1
+""",
+    )
+
+    scaffold["input_data"]["age"] = source_age
+    scaffold["input_data"]["days"] = 100
+    result = run_transformer(scaffold)
+    assert result.get("age_at_visit") == expected
+
+
+def test_missing_values_on_bare_slot(scaffold):
+    """missing_values applies when a slot is pulled by name without an explicit populated_from."""
+    apply_schema_patch(
+        scaffold["source_schema"],
+        """
+    classes:
+      Person:
+        slots:
+          - score
+    slots:
+      score:
+        range: integer
+""",
+    )
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - score
+    slots:
+      score:
+        range: integer
+""",
+    )
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          score:
+            missing_values: [999]
+""",
+    )
+
+    scaffold["input_data"]["score"] = 999
+    result = run_transformer(scaffold)
+    assert result.get("score") is None
+
+
+def test_missing_values_accepts_scalar_shorthand(scaffold):
+    """A single scalar is accepted as shorthand for a one-element missing_values list."""
+    apply_schema_patch(
+        scaffold["source_schema"],
+        """
+    classes:
+      Person:
+        slots:
+          - age
+    slots:
+      age:
+        range: integer
+""",
+    )
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - age
+    slots:
+      age:
+        range: integer
+""",
+    )
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          age:
+            populated_from: age
+            missing_values: -9
+""",
+    )
+
+    scaffold["input_data"]["age"] = -9
+    result = run_transformer(scaffold)
+    assert result.get("age") is None
+
+
+def test_missing_values_applies_within_nested_class_derivation(scaffold):
+    """missing_values applies to scalar slots inside a nested class_derivation."""
+    apply_schema_patch(
+        scaffold["source_schema"],
+        """
+    classes:
+      Person:
+        slots:
+          - zip
+    slots:
+      zip:
+        range: integer
+""",
+    )
+    apply_schema_patch(
+        scaffold["target_schema"],
+        """
+    classes:
+      Agent:
+        slots:
+          - location
+      Location:
+        slots:
+          - zip
+    slots:
+      location:
+        range: Location
+        inlined: true
+      zip:
+        range: integer
+""",
+    )
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          location:
+            class_derivations:
+              - Location:
+                  slot_derivations:
+                    zip:
+                      populated_from: zip
+                      missing_values: [99999]
+""",
+    )
+
+    scaffold["input_data"]["zip"] = 99999
+    result = run_transformer(scaffold)
+    assert result["location"]["zip"] is None
+
+
 def test_value_mappings_takes_precedence_over_expression_mappings(scaffold):
     """When both value_mappings and expression_mappings have the same key, value_mappings wins."""
 

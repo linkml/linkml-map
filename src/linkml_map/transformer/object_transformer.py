@@ -512,6 +512,8 @@ class ObjectTransformer(Transformer):
             else:
                 (v, source_class_slot) = self._resolve_fk_or_literal(populated_from, slot_derivation, context)
 
+            v = self._nullify_missing_values(v, slot_derivation)
+
             if (slot_derivation.value_mappings or slot_derivation.expression_mappings) and v is not None:
                 v = self._apply_mappings(slot_derivation, v, bindings, functions=expr_functions)
 
@@ -534,6 +536,7 @@ class ObjectTransformer(Transformer):
                     class_deriv=context.class_deriv,
                     slot_derivation=slot_derivation,
                 )
+            v = self._nullify_missing_values(v, slot_derivation)
 
         if source_class_slot and v is not None and not slot_derivation.hide:
             target_range = slot_derivation.range
@@ -542,6 +545,23 @@ class ObjectTransformer(Transformer):
             v = self._coerce_datatype(v, target_range)
             v = self._reshape_collection(v, slot_derivation, source_class_slot)
         return v
+
+    @staticmethod
+    def _nullify_missing_values(value: Any, slot_derivation: SlotDerivation) -> Any:
+        """Return ``None`` if ``value`` is a declared missing-value code, else ``value``.
+
+        Comparison is by string equality against ``slot_derivation.missing_values`` so a
+        sentinel like ``-9`` nulls only ``-9`` (not ``99``) and matches regardless of
+        whether the source value arrived as an int or a raw delimited-file string. Applied
+        at raw-value resolution, before mappings, offset, and range coercion.
+        """
+        if (
+            value is not None
+            and slot_derivation.missing_values
+            and str(value) in {str(mv) for mv in slot_derivation.missing_values}
+        ):
+            return None
+        return value
 
     def _eval_expr(
         self,

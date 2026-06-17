@@ -100,6 +100,7 @@ Name: linkml-map
 | [lookup_key](lookup_key.md) | column in the secondary (joined) table used as the join key |
 | [mapping_method](mapping_method.md) | The method used to create this mapping, e |
 | [mirror_source](mirror_source.md) | If true, pass the source value through unchanged instead of transforming it |
+| [missing_values](missing_values.md) | Source values to treat as missing and emit as null instead of the literal val... |
 | [mixins](mixins.md) | Mixin elements applied to the derived target element |
 | [name](name.md) | The name or identifier of the schema |
 | [none_if_non_numeric](none_if_non_numeric.md) | If true, return None when the source value cannot be coerced to a numeric typ... |

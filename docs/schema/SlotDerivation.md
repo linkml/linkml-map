@@ -142,6 +142,17 @@ URI: [linkmlmap:SlotDerivation](https://w3id.org/linkml/transformer/SlotDerivati
         
       SlotDerivation : mirror_source
         
+      SlotDerivation : missing_values
+        
+          
+    
+        
+        
+        SlotDerivation --> "*" Any : missing_values
+        click Any href "../Any/"
+    
+
+        
       SlotDerivation : mixins
         
           
@@ -287,6 +298,7 @@ URI: [linkmlmap:SlotDerivation](https://w3id.org/linkml/transformer/SlotDerivati
 | [derived_from](derived_from.md) | * <br/> [SlotReference](SlotReference.md) | Deprecated | direct |
 | [expr](expr.md) | 0..1 <br/> [String](String.md) | An expression to be evaluated on the source object to derive the target slot | direct |
 | [value](value.md) | 0..1 <br/> [Any](Any.md) | A constant value to assign to the target slot | direct |
+| [missing_values](missing_values.md) | * <br/> [Any](Any.md) | Source values to treat as missing and emit as null instead of the literal val... | direct |
 | [range](range.md) | 0..1 <br/> [String](String.md) | The range (value type) to assign to the derived target slot, overriding the r... | direct |
 | [unit_conversion](unit_conversion.md) | 0..1 <br/> [UnitConversionConfiguration](UnitConversionConfiguration.md) | Configuration for converting the source value's unit of measure when deriving... | direct |
 | [inverse_of](inverse_of.md) | 0..1 <br/> [Inverse](Inverse.md) | Used to specify a class-slot tuple that is the inverse of the derived/target ... | direct |
@@ -473,6 +485,17 @@ attributes:
     - SlotDerivation
     - KeyVal
     range: Any
+  missing_values:
+    name: missing_values
+    description: Source values to treat as missing and emit as null instead of the
+      literal value — e.g. sentinel codes like -9, 99, or 999 meaning "not collected".
+      Accepts a single value or a list.
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    domain_of:
+    - SlotDerivation
+    range: Any
+    multivalued: true
   range:
     name: range
     description: The range (value type) to assign to the derived target slot, overriding
@@ -711,6 +734,18 @@ attributes:
     - SlotDerivation
     - KeyVal
     range: Any
+  missing_values:
+    name: missing_values
+    description: Source values to treat as missing and emit as null instead of the
+      literal value — e.g. sentinel codes like -9, 99, or 999 meaning "not collected".
+      Accepts a single value or a list.
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    owner: SlotDerivation
+    domain_of:
+    - SlotDerivation
+    range: Any
+    multivalued: true
   range:
     name: range
     description: The range (value type) to assign to the derived target slot, overriding

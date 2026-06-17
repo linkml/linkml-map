@@ -418,6 +418,13 @@ classes:
         range: Any
         description: >-
           A constant value to assign to the target slot.
+      missing_values:
+        range: Any
+        multivalued: true
+        description: >-
+          Source values to treat as missing and emit as null instead of the literal
+          value — e.g. sentinel codes like -9, 99, or 999 meaning "not collected".
+          Accepts a single value or a list.
       range:
         description: >-
           The range (value type) to assign to the derived target slot,
