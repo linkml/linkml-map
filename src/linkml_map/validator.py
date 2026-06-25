@@ -466,6 +466,10 @@ def check_deprecated_fields(data: dict[str, Any]) -> list[ValidationMessage]:
       certainly didn't mean both. Severity: error.
     * ``object_derivations`` **and** ``class_derivations`` both set on
       the same ``SlotDerivation`` — ambiguous. Severity: error.
+    * ``source_schema`` / ``target_schema`` set to a bare string — the
+      original form, now superseded by the ``SchemaReference`` object
+      form (``{name: ...}``). Coerced at load time. Severity: warning,
+      category: deprecated.
 
     ``sources`` deprecation findings are collapsed to one message per
     (deprecation, derivation type) pair to keep output readable on
@@ -585,6 +589,21 @@ def check_deprecated_fields(data: dict[str, Any]) -> list[ValidationMessage]:
                 ),
             )
         )
+
+    for schema_field in ("source_schema", "target_schema"):
+        if isinstance(data.get(schema_field), str):
+            messages.append(
+                ValidationMessage(
+                    severity="warning",
+                    category="deprecated",
+                    path=f"$.{schema_field}",
+                    message=(
+                        f"'{schema_field}' is set to a bare string, which is deprecated. "
+                        f"Use the SchemaReference object form '{schema_field}: {{name: ...}}'. "
+                        f"The string form will be removed in a future version."
+                    ),
+                )
+            )
 
     return messages
 
