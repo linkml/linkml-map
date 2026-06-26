@@ -6,6 +6,8 @@ import logging
 import os
 import re
 import tempfile
+from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -125,21 +127,61 @@ def _validate_identifier(name: str) -> None:
         raise ValueError(msg)
 
 
-def _duckdb_read_expr(fmt: FileFormat) -> str:
-    """Return a DuckDB ``SELECT ... FROM read_*()`` expression for *fmt*.
-
-    The returned SQL contains a single ``?`` placeholder for the file path.
+def _reader_source(fmt: FileFormat) -> str:
+    """Return the DuckDB ``read_*(...)`` table-function for *fmt* (one ``?`` for the path).
 
     :raises NotImplementedError: For formats without DuckDB reader support.
     """
     if fmt == FileFormat.TSV:
-        return "SELECT * FROM read_csv_auto(?, all_varchar=true, delim='\t', null_padding=true)"
+        return "read_csv_auto(?, all_varchar=true, delim='\t', null_padding=true)"
     if fmt == FileFormat.CSV:
-        return "SELECT * FROM read_csv_auto(?, all_varchar=true, delim=',', null_padding=true)"
+        return "read_csv_auto(?, all_varchar=true, delim=',', null_padding=true)"
     if fmt == FileFormat.JSON:
-        return "SELECT CAST(columns(*) AS VARCHAR) FROM read_json_auto(?)"
+        return "read_json_auto(?)"
     msg = f"LookupIndex does not yet support {fmt.value!r} files"
     raise NotImplementedError(msg)
+
+
+def _projected_select(fmt: FileFormat, columns: list[str] | None) -> str:
+    """Return a ``SELECT ... FROM read_*()`` statement, projected to *columns*.
+
+    When *columns* is ``None`` all columns are selected (``SELECT *``). JSON
+    values are cast to VARCHAR (matching the unprojected reader) so that joined
+    values coerce consistently with primary-table values.
+
+    :param fmt: File format.
+    :param columns: Columns to project, or ``None`` for all columns.
+    """
+    source = _reader_source(fmt)
+    if columns is None:
+        all_cols = "CAST(columns(*) AS VARCHAR)" if fmt == FileFormat.JSON else "*"
+        return f"SELECT {all_cols} FROM {source}"
+    if fmt == FileFormat.JSON:
+        projection = ", ".join(f"CAST({c} AS VARCHAR) AS {c}" for c in columns)
+    else:
+        projection = ", ".join(columns)
+    return f"SELECT {projection} FROM {source}"
+
+
+@dataclass
+class _TableState:
+    """Bookkeeping for one registered table.
+
+    :ivar path: Source file path (string form, for DuckDB parameter binding).
+    :ivar fmt: File format, used to rebuild the reader on column accumulation.
+    :ivar key: Indexed key column.
+    :ivar materialized: Columns currently loaded into the DuckDB table.
+    :ivar full: ``True`` when the table was loaded with all columns (no projection);
+        column accumulation is then a no-op.
+    :ivar header: All column names in the source file, lazily read once via ``DESCRIBE``.
+    """
+
+    path: str
+    fmt: FileFormat
+    key: str
+    materialized: set[str]
+    full: bool
+    header: list[str] | None = None
 
 
 class LookupIndex:
@@ -162,7 +204,10 @@ class LookupIndex:
         """
         self._conn = duckdb.connect(":memory:")
         self._configure_connection()
-        self._tables: dict[str, str] = {}  # table_name -> key_column
+        self._tables: dict[str, _TableState] = {}
+        #: Resolves a table name to its data file path. Set by the caller (engine)
+        #: to enable lazy registration on first lookup.
+        self.path_resolver: Callable[[str], Path] | None = None
 
     def _configure_connection(self) -> None:
         """Apply container-aware ``memory_limit``/``threads``/``temp_directory`` settings."""
@@ -171,7 +216,13 @@ class LookupIndex:
             self._conn.execute(f"SET {name}={literal}")  # noqa: S608 - name is a fixed literal, value sanitized
         logger.debug("Configured DuckDB connection: %s", _resolve_duckdb_settings())
 
-    def register_table(self, name: str, file_path: Path | str, key_column: str) -> None:
+    def register_table(
+        self,
+        name: str,
+        file_path: Path | str,
+        key_column: str,
+        columns: list[str] | None = None,
+    ) -> None:
         """
         Load a data file into DuckDB and create an index on *key_column*.
 
@@ -181,20 +232,69 @@ class LookupIndex:
         :param name: Logical table name (must be a valid identifier).
         :param file_path: Path to a data file.
         :param key_column: Column to index for lookups.
+        :param columns: Columns to load (the key is always included). ``None`` loads
+            all columns; an explicit list (possibly empty) enables lazy accumulation
+            via :meth:`ensure_column`.
         :raises NotImplementedError: If the file format is not yet supported (e.g. YAML).
         """
         _validate_identifier(name)
         _validate_identifier(key_column)
         file_path = Path(file_path)
         fmt = FileFormat.from_extension(file_path)
+        if columns is None:
+            materialized, full = {key_column}, True
+        else:
+            materialized = {key_column, *columns}
+            for col in materialized:
+                _validate_identifier(col)
+            full = False
+        self._tables[name] = _TableState(str(file_path), fmt, key_column, materialized, full)
+        self._build(name)
+
+    def _build(self, name: str) -> None:
+        """(Re)create the DuckDB table for *name* from its current materialized columns."""
+        st = self._tables[name]
+        select = _projected_select(st.fmt, None if st.full else sorted(st.materialized))
+        self._conn.execute(f"CREATE OR REPLACE TABLE {name} AS {select}", [st.path])  # noqa: S608
         self._conn.execute(
-            f"CREATE OR REPLACE TABLE {name} AS {_duckdb_read_expr(fmt)}",  # noqa: S608
-            [str(file_path)],
+            f"CREATE INDEX IF NOT EXISTS idx_{name}_{st.key} ON {name} ({st.key})"  # noqa: S608
         )
-        self._conn.execute(
-            f"CREATE INDEX IF NOT EXISTS idx_{name}_{key_column} ON {name} ({key_column})"  # noqa: S608
-        )
-        self._tables[name] = key_column
+
+    def ensure_registered(self, name: str, key_column: str) -> None:
+        """Lazily register *name* (key column only) on first use.
+
+        The file path is resolved via :attr:`path_resolver`; a missing file
+        therefore fails fast here rather than silently producing no matches.
+
+        :raises ValueError: If :attr:`path_resolver` has not been set.
+        """
+        if name in self._tables:
+            return
+        if self.path_resolver is None:
+            msg = "LookupIndex.path_resolver must be set before lazy registration"
+            raise ValueError(msg)
+        self.register_table(name, self.path_resolver(name), key_column, columns=[])
+
+    def ensure_column(self, name: str, column: str) -> None:
+        """Ensure *column* is materialized for *name*, rebuilding the table if needed.
+
+        No-op for tables loaded in full (unprojected) mode or columns already present.
+        """
+        st = self._tables[name]
+        if st.full or column in st.materialized:
+            return
+        _validate_identifier(column)
+        st.materialized.add(column)
+        self._build(name)
+
+    def header(self, name: str) -> list[str]:
+        """Return all column names in *name*'s source file, without loading data."""
+        st = self._tables[name]
+        if st.header is None:
+            select = _projected_select(st.fmt, None)
+            rows = self._conn.execute(f"DESCRIBE {select}", [st.path]).fetchall()  # noqa: S608
+            st.header = [r[0] for r in rows]
+        return st.header
 
     def lookup_row(
         self,
@@ -203,12 +303,15 @@ class LookupIndex:
         key_val: Any,  # noqa: ANN401
     ) -> dict[str, Any] | None:
         """
-        Return the first row matching *key_val* on *key_col*, or ``None``.
+        Return the first row matching *key_val* on *key_col*, or ``None`` if no row matches.
+
+        Only currently-materialized columns are returned; absent columns are
+        loaded on demand by :class:`LazyJoinRow` via :meth:`ensure_column`.
 
         :param table: Previously registered table name.
         :param key_col: Column to match on.
         :param key_val: Value to look up.
-        :returns: Row as a dict, or None if not found.
+        :returns: Row as a dict, or None if no row matches the key.
         """
         _validate_identifier(table)
         _validate_identifier(key_col)

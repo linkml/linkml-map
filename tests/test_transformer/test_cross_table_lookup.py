@@ -15,6 +15,7 @@ from linkml_runtime import SchemaView
 
 from linkml_map.loaders.data_loaders import DataLoader
 from linkml_map.transformer.engine import transform_spec
+from linkml_map.transformer.errors import TransformationError
 from linkml_map.transformer.object_transformer import ObjectTransformer
 
 # ---- fixtures ----
@@ -312,7 +313,11 @@ def test_multiple_joined_tables(data_dir, source_sv, target_sv, tmp_path):
 
 
 def test_join_spec_missing_key_raises(source_sv, target_sv, data_dir):
-    """A join spec with neither `on` nor source_key/lookup_key raises ValueError."""
+    """A join spec with neither `on` nor source_key/lookup_key raises when the join is used.
+
+    Validation is lazy (at first lookup), so the underlying ValueError surfaces
+    wrapped in a TransformationError carrying slot context.
+    """
     spec = textwrap.dedent("""\
         class_derivations:
           MeasurementObservation:
@@ -327,7 +332,7 @@ def test_join_spec_missing_key_raises(source_sv, target_sv, data_dir):
     """)
     tr = _make_transformer(source_sv, target_sv, spec)
     loader = DataLoader(data_dir)
-    with pytest.raises(ValueError, match="must specify"):
+    with pytest.raises(TransformationError, match="must specify"):
         list(transform_spec(tr, loader))
 
 
@@ -393,7 +398,12 @@ def test_populated_from_cross_table_no_match(data_dir, source_sv, target_sv):
 
 
 def test_populated_from_cross_table_missing_field(data_dir, source_sv, target_sv):
-    """When joined row exists but the requested field doesn't, return None."""
+    """Referencing a column absent from the joined table fails hard.
+
+    A column that does not exist in the join table is a spec error (a slot you
+    described isn't there), distinct from a column that exists with a null value.
+    It must raise rather than silently resolve to None.
+    """
     spec = textwrap.dedent("""\
         class_derivations:
           MeasurementObservation:
@@ -409,10 +419,8 @@ def test_populated_from_cross_table_missing_field(data_dir, source_sv, target_sv
     """)
     tr = _make_transformer(source_sv, target_sv, spec)
     loader = DataLoader(data_dir)
-    results = list(transform_spec(tr, loader))
-
-    assert results[0]["sample_id"] == "S001"
-    assert results[0].get("nonexistent") is None
+    with pytest.raises(TransformationError, match="not found in join table"):
+        list(transform_spec(tr, loader))
 
 
 def test_populated_from_with_value_mappings(data_dir, source_sv, target_sv):

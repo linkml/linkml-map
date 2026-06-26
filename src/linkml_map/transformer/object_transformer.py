@@ -65,18 +65,107 @@ class _AmbiguousType:
 _AMBIGUOUS = _AmbiguousType()
 
 
+class LazyJoinRow(Mapping):
+    """A joined-table row that materializes columns on first access.
+
+    Seeded with the columns already loaded for the matched key, so the common
+    case is zero extra queries. Accessing a column not yet loaded triggers a
+    one-time table rebuild (:meth:`LookupIndex.ensure_column`) and a refetch;
+    accessing a column that is not in the table at all raises — a referenced
+    column that does not exist is a spec error, not a null value.
+    """
+
+    def __init__(
+        self,
+        index: Any,  # noqa: ANN401 - LookupIndex, duck-typed to keep duckdb optional
+        table: str,
+        key_col: str,
+        key_val: Any,  # noqa: ANN401
+        seed: dict,
+    ) -> None:
+        self._index = index
+        self._table = table
+        self._key_col = key_col
+        self._key_val = key_val
+        self._row = dict(seed)
+
+    def __getitem__(self, col: str) -> Any:  # noqa: ANN401
+        if col in self._row:
+            return self._row[col]  # present — value may be a legitimate None
+        if col in self._index.header(self._table):
+            self._index.ensure_column(self._table, col)
+            self._row = self._index.lookup_row(self._table, self._key_col, self._key_val) or {}
+            return self._row.get(col)
+        msg = (
+            f"Column {col!r} not found in join table {self._table!r}; "
+            f"available columns: {sorted(self._index.header(self._table))}."
+        )
+        raise TransformationError(message=msg)
+
+    def __iter__(self) -> Iterator:
+        return iter(self._index.header(self._table))
+
+    def __len__(self) -> int:
+        return len(self._index.header(self._table))
+
+    @property
+    def header(self) -> list[str]:
+        """All column names in the joined table (names only, no data load)."""
+        return self._index.header(self._table)
+
+
+class _LazyAttrView:
+    """Attribute-access wrapper over a :class:`LazyJoinRow` for ``expr`` bindings.
+
+    ``{Reading.score}`` reaches a joined column via attribute access; this
+    delegates ``.score`` to ``lazy['score']`` so resolution stays lazy. Dunder
+    names raise ``AttributeError`` so evaluator internals are never treated as
+    columns.
+    """
+
+    def __init__(self, lazy: LazyJoinRow) -> None:
+        object.__setattr__(self, "_lazy", lazy)
+
+    def __getattr__(self, name: str) -> Any:  # noqa: ANN401
+        if name.startswith("_"):
+            raise AttributeError(name)
+        return object.__getattribute__(self, "_lazy")[name]
+
+
 class MergedRow(dict):
     """A dict that remembers the original un-merged rows from an implicit join.
 
-    Behaves identically to a regular dict for all normal operations.
-    The original rows are accessible via :attr:`rows_by_table` so that
-    dot-notation disambiguation (e.g., ``Reading.id``) can resolve
-    ambiguous columns to table-specific values.
+    Behaves like a regular dict for parent columns, and resolves joined columns
+    lazily via :attr:`_lazy_joined` (so only accessed columns are loaded). The
+    original rows are accessible via :attr:`rows_by_table` so that dot-notation
+    disambiguation (e.g., ``Reading.id``) can resolve ambiguous columns to
+    table-specific values.
     """
 
-    def __init__(self, merged: dict, rows_by_table: dict[str, dict]) -> None:
+    def __init__(
+        self,
+        merged: dict,
+        rows_by_table: dict[str, dict],
+        lazy_joined: LazyJoinRow | None = None,
+    ) -> None:
         super().__init__(merged)
         self.rows_by_table = rows_by_table
+        self._lazy_joined = lazy_joined
+
+    def __missing__(self, key: str) -> Any:  # noqa: ANN401
+        """Resolve a joined column not present among the merged parent columns."""
+        if self._lazy_joined is not None and key in self._lazy_joined.header:
+            return self._lazy_joined[key]
+        raise KeyError(key)
+
+    def __contains__(self, key: object) -> bool:
+        return super().__contains__(key) or (self._lazy_joined is not None and key in self._lazy_joined.header)
+
+    def get(self, key: str, default: Any = None) -> Any:  # noqa: ANN401
+        try:
+            return self[key]
+        except KeyError:
+            return default
 
 
 def _raise_ambiguous_column(
@@ -219,7 +308,10 @@ class Bindings(Mapping):
             elif name in self.source_obj and self.source_obj[name] is _AMBIGUOUS:
                 _raise_ambiguous_column(name, class_deriv=self.class_deriv)
             elif isinstance(self.source_obj, MergedRow) and name in self.source_obj.rows_by_table:
-                self.bindings[name] = DynObj(**self.source_obj.rows_by_table[name])
+                entry = self.source_obj.rows_by_table[name]
+                # The joined entry is a LazyJoinRow — wrap for attribute access rather
+                # than DynObj(**entry), which would iterate and materialize every column.
+                self.bindings[name] = _LazyAttrView(entry) if isinstance(entry, LazyJoinRow) else DynObj(**entry)
             elif name == self.source_type and name not in self.source_obj:
                 # Self-reference: {Reading.score} when source_type is Reading (non-merge context)
                 self.bindings[name] = DynObj(**self.source_obj)
@@ -236,12 +328,12 @@ class Bindings(Mapping):
 
         return self.bindings.get(name)
 
-    def _resolve_join(self, table_name: str) -> DynObj | None:
-        """Resolve a cross-table lookup, returning a DynObj or None."""
+    def _resolve_join(self, table_name: str) -> _LazyAttrView | None:
+        """Resolve a cross-table lookup, returning a lazy attribute view or None."""
         row = self.object_transformer._resolve_joined_row(table_name, self.source_obj, self.class_deriv)
         if row is None:
             return None
-        return DynObj(**row)
+        return _LazyAttrView(row)
 
     def __setitem__(self, name: Any, value: Any) -> None:
         del name, value
@@ -270,6 +362,12 @@ class ObjectTransformer(Transformer):
 
     object_index: ObjectIndex = None
     lookup_index: Any = None  # Optional[LookupIndex] — lazy import to avoid hard duckdb dep
+
+    join_miss_counts: dict[str, int] = field(default_factory=dict)
+    """Per-join count of source rows with no matching joined row, for the current block.
+
+    Incremented on each sparse-join miss and summarized at INFO by ``transform_spec``
+    at the end of each block, then cleared. See :func:`~linkml_map.transformer.engine.transform_spec`."""
 
     extension_functions: dict[str, Callable] = field(default_factory=dict)
     """Custom safe functions to merge into the expression eval namespace.
@@ -788,17 +886,23 @@ class ObjectTransformer(Transformer):
         table_name: str,
         source_obj: DICT_OBJ,
         class_deriv: ClassDerivation,
-    ) -> dict | None:
+    ) -> LazyJoinRow | None:
         """Resolve a row from a joined table using LookupIndex.
 
         This is the single source of truth for cross-table join resolution.
         Both ``Bindings._resolve_join`` (for ``expr:``) and
         ``_perform_join_resolution`` (for ``populated_from:``) delegate here.
 
+        The table is registered lazily on first use (a missing data file fails
+        fast). ``None`` is returned only when the source key is null or no row in
+        the joined table matches — both legitimate sparse-join conditions (#217),
+        distinct from referencing a column that does not exist (which raises when
+        that column is later accessed on the returned :class:`LazyJoinRow`).
+
         :param table_name: Join name (key in ``class_deriv.joins``).
         :param source_obj: Current primary-table row.
         :param class_deriv: The active ClassDerivation (carries join specs).
-        :returns: Matched row as a dict, or ``None`` if no match found.
+        :returns: A :class:`LazyJoinRow` for the matched row, or ``None`` on a sparse miss.
         :raises ValueError: If join spec is missing keys or lookup_index is not initialized.
         """
         spec = class_deriv.joins[table_name]
@@ -813,7 +917,11 @@ class ObjectTransformer(Transformer):
         if self.lookup_index is None:
             msg = f"Join configured for {table_name!r} but lookup_index has not been initialized"
             raise ValueError(msg)
-        return self.lookup_index.lookup_row(table_name, lookup_key, key_val)
+        self.lookup_index.ensure_registered(table_name, lookup_key)
+        seed = self.lookup_index.lookup_row(table_name, lookup_key, key_val)
+        if seed is None:
+            return None
+        return LazyJoinRow(self.lookup_index, table_name, lookup_key, key_val, seed)
 
     def _perform_join_resolution(
         self,
@@ -829,7 +937,9 @@ class ObjectTransformer(Transformer):
         :returns: Tuple of (resolved value, source slot definition or None).
         """
         row = self._resolve_joined_row(table_name, context.source_obj, context.class_deriv)
-        v = row.get(field_path) if row else None
+        # row[field_path] raises if the column does not exist (spec error) and returns
+        # None for a genuine null; a sparse miss (row is None) yields None.
+        v = row[field_path] if row is not None else None
         joined_class = context.class_deriv.joins[table_name].class_named or table_name
         source_class_slot = None
         if joined_class in context.sv.all_classes():
@@ -840,32 +950,32 @@ class ObjectTransformer(Transformer):
     @staticmethod
     def _merge_rows(
         parent_row: DICT_OBJ,
-        joined_row: DICT_OBJ,
+        joined_row: LazyJoinRow,
         join_key: str,
         parent_source: str,
         nested_source: str,
     ) -> MergedRow:
         """Merge parent and joined rows, marking ambiguous columns.
 
-        Columns present in both rows (except the join key) are set to the
-        ``_AMBIGUOUS`` sentinel so that slot resolution raises a clear error
-        instead of silently picking one. The original rows are preserved in
-        the returned :class:`MergedRow` for dot-notation disambiguation.
+        Ambiguity is computed from the joined table's column *names* (its header),
+        so it is independent of which columns are lazily materialized — a column
+        present in both tables (except the join key) is set to the ``_AMBIGUOUS``
+        sentinel so that slot resolution raises a clear error instead of silently
+        picking one. Joined column *values* stay lazy: the returned
+        :class:`MergedRow` resolves them on access via ``joined_row``.
 
         :param parent_row: Row from the parent table.
-        :param joined_row: Row from the joined table.
+        :param joined_row: Lazy row from the joined table.
         :param join_key: The column used to join (kept from parent).
         :param parent_source: Parent table name (for logging).
         :param nested_source: Joined table name (for logging).
-        :returns: MergedRow with ambiguous markers and original rows.
+        :returns: MergedRow with ambiguous markers, parent values, and the lazy joined row.
         """
-        ambiguous = {k for k in parent_row if k in joined_row and k != join_key}
+        joined_cols = joined_row.header
+        ambiguous = {k for k in parent_row if k in joined_cols and k != join_key}
         merged = {}
         for k, v in parent_row.items():
             merged[k] = _AMBIGUOUS if k in ambiguous else v
-        for k, v in joined_row.items():
-            if k not in merged:
-                merged[k] = v
 
         if ambiguous:
             logger.debug(
@@ -875,7 +985,11 @@ class ObjectTransformer(Transformer):
                 nested_source,
             )
 
-        return MergedRow(merged, rows_by_table={parent_source: parent_row, nested_source: joined_row})
+        return MergedRow(
+            merged,
+            rows_by_table={parent_source: parent_row, nested_source: joined_row},
+            lazy_joined=joined_row,
+        )
 
     def _apply_offset(self, value: Any, slot_derivation: SlotDerivation, source_obj: DICT_OBJ) -> Any:
         """Apply an offset calculation using a value from another source field."""
@@ -964,6 +1078,7 @@ class ObjectTransformer(Transformer):
                             parent_source,
                             cls_derivation.name,
                         )
+                        self.join_miss_counts[nested_source] = self.join_miss_counts.get(nested_source, 0) + 1
                         continue
                     join_spec = parent_class_deriv.joins[nested_source]
                     join_key = join_spec.join_on or join_spec.source_key or ""
