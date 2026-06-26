@@ -170,10 +170,14 @@ class _TableState:
     :ivar path: Source file path (string form, for DuckDB parameter binding).
     :ivar fmt: File format, used to rebuild the reader on column accumulation.
     :ivar key: Indexed key column.
-    :ivar materialized: Columns currently loaded into the DuckDB table.
+    :ivar materialized: Columns projected into the DuckDB table when ``full`` is
+        ``False``. When ``full`` is ``True`` the table holds *all* source columns
+        and this set is not authoritative (it only carries the key); column
+        accumulation is a no-op in that mode.
     :ivar full: ``True`` when the table was loaded with all columns (no projection);
         column accumulation is then a no-op.
     :ivar header: All column names in the source file, lazily read once via ``DESCRIBE``.
+    :ivar header_set: Cached ``set`` of :ivar:`header` for O(1) membership checks.
     """
 
     path: str
@@ -182,6 +186,7 @@ class _TableState:
     materialized: set[str]
     full: bool
     header: list[str] | None = None
+    header_set: set[str] | None = None
 
 
 class LookupIndex:
@@ -211,10 +216,11 @@ class LookupIndex:
 
     def _configure_connection(self) -> None:
         """Apply container-aware ``memory_limit``/``threads``/``temp_directory`` settings."""
-        for name, value in _resolve_duckdb_settings().items():
+        settings = _resolve_duckdb_settings()
+        for name, value in settings.items():
             literal = value if isinstance(value, int) else "'" + str(value).replace("'", "''") + "'"
             self._conn.execute(f"SET {name}={literal}")  # noqa: S608 - name is a fixed literal, value sanitized
-        logger.debug("Configured DuckDB connection: %s", _resolve_duckdb_settings())
+        logger.debug("Configured DuckDB connection: %s", settings)
 
     def register_table(
         self,
@@ -295,6 +301,13 @@ class LookupIndex:
             rows = self._conn.execute(f"DESCRIBE {select}", [st.path]).fetchall()  # noqa: S608
             st.header = [r[0] for r in rows]
         return st.header
+
+    def header_set(self, name: str) -> set[str]:
+        """Return :meth:`header` as a ``set`` for O(1) membership checks."""
+        st = self._tables[name]
+        if st.header_set is None:
+            st.header_set = set(self.header(name))
+        return st.header_set
 
     def lookup_row(
         self,

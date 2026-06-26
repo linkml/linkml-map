@@ -65,7 +65,7 @@ class _AmbiguousType:
 _AMBIGUOUS = _AmbiguousType()
 
 
-class LazyJoinRow(Mapping):
+class LazyJoinRow:
     """A joined-table row that materializes columns on first access.
 
     Seeded with the columns already loaded for the matched key, so the common
@@ -73,6 +73,13 @@ class LazyJoinRow(Mapping):
     one-time table rebuild (:meth:`LookupIndex.ensure_column`) and a refetch;
     accessing a column that is not in the table at all raises — a referenced
     column that does not exist is a spec error, not a null value.
+
+    This is the *single read path* for joined data. It is deliberately **not** a
+    ``Mapping`` and is intentionally not iterable: iterating or splatting it
+    (``dict(row)``, ``**row``) would touch every column and silently materialize
+    the entire table, defeating lazy loading. Such uses raise instead. Consumers
+    access columns by key (``row[col]`` / ``row.get(col)``) or check names via
+    :attr:`header` / :attr:`header_set`.
     """
 
     def __init__(
@@ -92,7 +99,7 @@ class LazyJoinRow(Mapping):
     def __getitem__(self, col: str) -> Any:  # noqa: ANN401
         if col in self._row:
             return self._row[col]  # present — value may be a legitimate None
-        if col in self._index.header(self._table):
+        if col in self._index.header_set(self._table):
             self._index.ensure_column(self._table, col)
             self._row = self._index.lookup_row(self._table, self._key_col, self._key_val) or {}
             return self._row.get(col)
@@ -102,16 +109,30 @@ class LazyJoinRow(Mapping):
         )
         raise TransformationError(message=msg)
 
-    def __iter__(self) -> Iterator:
-        return iter(self._index.header(self._table))
+    def get(self, col: str, default: Any = None) -> Any:  # noqa: ANN401
+        """Return ``self[col]``; ``default`` substitutes only a genuine null, never a missing column."""
+        value = self[col]  # raises if the column does not exist
+        return default if value is None else value
 
-    def __len__(self) -> int:
-        return len(self._index.header(self._table))
+    def __contains__(self, col: object) -> bool:
+        return isinstance(col, str) and col in self._index.header_set(self._table)
+
+    def __iter__(self) -> Any:  # noqa: ANN401
+        msg = (
+            "LazyJoinRow is not iterable; access columns by key. Iterating or "
+            "splatting it would materialize the entire joined table."
+        )
+        raise TypeError(msg)
 
     @property
     def header(self) -> list[str]:
         """All column names in the joined table (names only, no data load)."""
         return self._index.header(self._table)
+
+    @property
+    def header_set(self) -> set[str]:
+        """All column names as a ``set`` for O(1) membership checks."""
+        return self._index.header_set(self._table)
 
 
 class _LazyAttrView:
@@ -154,12 +175,14 @@ class MergedRow(dict):
 
     def __missing__(self, key: str) -> Any:  # noqa: ANN401
         """Resolve a joined column not present among the merged parent columns."""
-        if self._lazy_joined is not None and key in self._lazy_joined.header:
+        if isinstance(key, str) and self._lazy_joined is not None and key in self._lazy_joined.header_set:
             return self._lazy_joined[key]
         raise KeyError(key)
 
     def __contains__(self, key: object) -> bool:
-        return super().__contains__(key) or (self._lazy_joined is not None and key in self._lazy_joined.header)
+        return super().__contains__(key) or (
+            isinstance(key, str) and self._lazy_joined is not None and key in self._lazy_joined.header_set
+        )
 
     def get(self, key: str, default: Any = None) -> Any:  # noqa: ANN401
         try:

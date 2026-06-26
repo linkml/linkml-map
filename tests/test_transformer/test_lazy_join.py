@@ -146,6 +146,37 @@ def test_sparse_miss_logs_info_summary(tmp_path, caplog):
     assert "Reading" in summaries[0]
 
 
+def test_lazy_join_row_not_splattable(tmp_path):
+    """Iterating/splatting a LazyJoinRow fails loudly instead of materializing every column.
+
+    A LazyJoinRow is intentionally not a Mapping: ``dict(row)`` / ``**row`` / iteration
+    would touch every column and silently load the whole table, defeating lazy loading.
+    """
+    from linkml_map.transformer.object_transformer import LazyJoinRow
+
+    _write_measurement(tmp_path, ["S0"])
+    _write_wide_reading(tmp_path, ["S0"], n_extra=5)
+    idx = LookupIndex()
+    idx.path_resolver = lambda _name: tmp_path / "Reading.tsv"
+    idx.ensure_registered("Reading", "subject_id")
+    row = LazyJoinRow(idx, "Reading", "subject_id", "S0", idx.lookup_row("Reading", "subject_id", "S0"))
+
+    # Key/name access works and stays lazy.
+    assert row["subject_id"] == "S0"
+    assert "score" in row
+    assert "nonexistent" not in row
+    assert idx._tables["Reading"].materialized == {"subject_id"}  # nothing extra materialized
+
+    # Iteration / splat / dict-coercion must raise, not silently materialize.
+    with pytest.raises(TypeError):
+        list(row)
+    with pytest.raises(TypeError):
+        dict(row)
+    with pytest.raises(TypeError):
+        {**row}  # noqa: B018
+    idx.close()
+
+
 def test_absent_join_file_fails_hard(tmp_path):
     """A join that references a table with no data file fails fast at first use."""
     _write_measurement(tmp_path, ["S0", "S1"])
