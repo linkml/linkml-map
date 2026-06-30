@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from linkml_runtime import SchemaView
 
 #: Consistently-named subject-id columns preferred as the join key when present
@@ -71,6 +73,62 @@ def pick_join_key(sv: SchemaView, class_a: str, class_b: str) -> str | None:
     return None
 
 
+@dataclass(frozen=True)
+class JoinResolution:
+    """Outcome of resolving an implicit join between two source classes.
+
+    Exactly one of *key*/*reason* is set: a successful resolution carries the
+    join column in *key* (and ``reason is None``); a failure carries a
+    human-readable *reason* (and ``key is None``).
+    """
+
+    key: str | None
+    reason: str | None
+
+
+def resolve_join(
+    sv: SchemaView,
+    class_a: str,
+    class_b: str,
+    subject_keys: tuple[str, ...] = SUBJECT_KEY_CANDIDATES,
+) -> JoinResolution:
+    """Resolve the implicit join key between two source classes, or explain why not.
+
+    Single source of truth for join-key inference. Prefers a consistently-named
+    subject-id column (:data:`SUBJECT_KEY_CANDIDATES`) present in both classes —
+    real dbGaP joins are subject-keyed, and the subject id is named consistently
+    even when other identifier columns differ across tables, which the structural
+    heuristic cannot match. Falls back to :func:`pick_join_key`. When no key can
+    be determined, returns a :class:`JoinResolution` whose *reason* explains
+    whether the classes share no columns or share too many to disambiguate.
+
+    Synthesis, validation, and runtime diagnostics all call this so they agree on
+    both the chosen key and the failure explanation.
+
+    :param sv: Source schema view.
+    :param class_a: First source class name.
+    :param class_b: Second source class name.
+    :param subject_keys: Preferred subject-id column names, in order.
+    :returns: A :class:`JoinResolution` with either *key* or *reason* set.
+    """
+    common = find_common_columns(sv, class_a, class_b)
+    for candidate in subject_keys:
+        if candidate in common:
+            return JoinResolution(key=candidate, reason=None)
+    key = pick_join_key(sv, class_a, class_b)
+    if key is not None:
+        return JoinResolution(key=key, reason=None)
+    if not common:
+        reason = f"no columns are shared between {class_a!r} and {class_b!r}"
+    else:
+        candidates = ", ".join(sorted(common))
+        reason = (
+            f"multiple candidate join columns are shared between {class_a!r} and "
+            f"{class_b!r} ({candidates}); cannot pick automatically"
+        )
+    return JoinResolution(key=None, reason=reason)
+
+
 def infer_join_key(
     sv: SchemaView,
     class_a: str,
@@ -79,11 +137,7 @@ def infer_join_key(
 ) -> str | None:
     """Infer the join key between two source classes.
 
-    Prefers a consistently-named subject-id column (:data:`SUBJECT_KEY_CANDIDATES`)
-    present in both classes — real dbGaP joins are subject-keyed, and the subject
-    id is named consistently even when other identifier columns differ across
-    tables, which the structural heuristic cannot match. Falls back to
-    :func:`pick_join_key`.
+    Thin wrapper over :func:`resolve_join` for callers that only need the key.
 
     :param sv: Source schema view.
     :param class_a: First source class name.
@@ -91,8 +145,4 @@ def infer_join_key(
     :param subject_keys: Preferred subject-id column names, in order.
     :returns: The join key column name, or None if none can be determined.
     """
-    common = find_common_columns(sv, class_a, class_b)
-    for candidate in subject_keys:
-        if candidate in common:
-            return candidate
-    return pick_join_key(sv, class_a, class_b)
+    return resolve_join(sv, class_a, class_b, subject_keys).key

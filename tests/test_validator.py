@@ -977,6 +977,45 @@ def test_nested_cd_implicit_join_emits_info():
     assert _nested_path_segment(infos[0].path)
 
 
+def test_derived_spec_synthesized_join_is_observed_not_predicted():
+    """Validating the *derived* spec observes the synthesized join instead of predicting it.
+
+    Against the raw spec the validator emits an INFO predicting synthesis; against
+    the post-synthesis (derived) spec the join is already explicit, so the
+    prediction must not fire (it would be a misleading pre-synthesis warning).
+    """
+    import yaml
+
+    from linkml_map.session import Session
+
+    spec_yaml = {
+        "id": "t",
+        "title": "t",
+        "class_derivations": {
+            "Outer": {
+                "populated_from": "Measurement",
+                "slot_derivations": {
+                    "observation": {
+                        "class_derivations": [
+                            {"Inner": {"populated_from": "Reading", "slot_derivations": {"score": None}}}
+                        ]
+                    }
+                },
+            }
+        },
+    }
+    session = Session()
+    session.set_source_schema(yaml.safe_load(JOINABLE_SCHEMA))
+    session.set_object_transformer(spec_yaml)
+    tr = session.object_transformer
+    tr.source_schemaview = session.source_schemaview
+
+    derived = tr.derived_specification.model_dump(exclude_none=True)
+    msgs = validate_spec_semantics(derived, source_schemaview=session.source_schemaview)
+    predictions = [m for m in msgs if "will be synthesized" in m.message]
+    assert predictions == []
+
+
 def test_nested_cd_no_overlap_emits_warning():
     """No shared columns between parent and nested tables emits a WARNING (closes #211)."""
     sv = SchemaView(NO_OVERLAP_SCHEMA)
