@@ -15,6 +15,7 @@ import pytest
 from linkml_map.utils.lookup_index import (
     _CGROUP_UNLIMITED,
     _ENV_MEMORY_LIMIT,
+    _ENV_TEMP_DIR,
     _ENV_THREADS,
     LookupIndex,
     _detect_cgroup_memory_bytes,
@@ -86,6 +87,14 @@ def test_invalid_memory_limit_raises(monkeypatch):
         _resolve_duckdb_settings()
 
 
+@pytest.mark.parametrize("bad", ["lots", "0", "-2"])
+def test_invalid_threads_raises(monkeypatch, bad):
+    """A non-positive or non-integer thread count fails fast with a clear error."""
+    monkeypatch.setenv(_ENV_THREADS, bad)
+    with pytest.raises(ValueError, match="Invalid DuckDB thread count"):
+        _resolve_duckdb_settings()
+
+
 def test_threads_default_to_affinity(monkeypatch):
     """Without an override, threads default to the CPU affinity count (respects cpuset)."""
     monkeypatch.delenv(_ENV_THREADS, raising=False)
@@ -95,7 +104,7 @@ def test_threads_default_to_affinity(monkeypatch):
 
 def test_temp_directory_always_set(monkeypatch):
     """A concrete temp_directory is always provided so spilling has a target."""
-    monkeypatch.delenv("LINKML_MAP_DUCKDB_TEMP_DIR", raising=False)
+    monkeypatch.delenv(_ENV_TEMP_DIR, raising=False)
     assert _resolve_duckdb_settings()["temp_directory"]
 
 
