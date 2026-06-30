@@ -224,6 +224,76 @@ def test_object_derivations_and_class_derivations_conflict():
         tr.create_transformer_specification(spec)
 
 
+@pytest.mark.parametrize("schema_field", ["source_schema", "target_schema"])
+def test_string_schema_ref_coerced_and_loads(schema_field):
+    """A bare-string source_schema/target_schema (the original form) still loads.
+
+    Regression for the SchemaReference change, which made the field range over an
+    object and silently broke every pre-existing string-form spec.
+    """
+    tr = ObjectTransformer()
+    spec = {
+        schema_field: "my_schema.yaml",
+        "class_derivations": {
+            "Person": {
+                "populated_from": "Person",
+                "slot_derivations": {"name": {"populated_from": "name"}},
+            },
+        },
+    }
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        tr.create_transformer_specification(spec)
+
+    ref = getattr(tr.specification, schema_field)
+    assert ref is not None
+    assert ref.name == "my_schema.yaml"
+
+
+@pytest.mark.parametrize("schema_field", ["source_schema", "target_schema"])
+def test_string_schema_ref_emits_deprecation_warning(schema_field):
+    """A bare-string source_schema/target_schema emits a DeprecationWarning at load time."""
+    tr = ObjectTransformer()
+    spec = {
+        schema_field: "my_schema.yaml",
+        "class_derivations": {
+            "Person": {
+                "populated_from": "Person",
+                "slot_derivations": {"name": {"populated_from": "name"}},
+            },
+        },
+    }
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always", DeprecationWarning)
+        tr.create_transformer_specification(spec)
+
+    deprecation_warnings = [w for w in caught if issubclass(w.category, DeprecationWarning)]
+    schema_warnings = [w for w in deprecation_warnings if schema_field in str(w.message)]
+    assert len(schema_warnings) == 1
+    assert "bare string" in str(schema_warnings[0].message)
+
+
+def test_object_form_schema_ref_emits_no_warning():
+    """The SchemaReference object form for source_schema/target_schema is not deprecated."""
+    tr = ObjectTransformer()
+    spec = {
+        "source_schema": {"name": "src.yaml"},
+        "target_schema": {"name": "tgt.yaml"},
+        "class_derivations": {
+            "Person": {
+                "populated_from": "Person",
+                "slot_derivations": {"name": {"populated_from": "name"}},
+            },
+        },
+    }
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always", DeprecationWarning)
+        tr.create_transformer_specification(spec)
+
+    deprecation_warnings = [w for w in caught if issubclass(w.category, DeprecationWarning)]
+    assert len(deprecation_warnings) == 0
+
+
 def test_no_warning_without_deprecated_fields():
     """No deprecation warning when no deprecated fields are used."""
     tr = ObjectTransformer()
