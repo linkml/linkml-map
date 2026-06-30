@@ -101,7 +101,7 @@ def _resolve_duckdb_settings() -> dict[str, str | int]:
     elif os.cpu_count():
         settings["threads"] = os.cpu_count()
 
-    settings["temp_directory"] = os.environ.get(_ENV_TEMP_DIR) or tempfile.gettempdir()
+    settings["temp_directory"] = os.environ.get(_ENV_TEMP_DIR, "").strip() or tempfile.gettempdir()
 
     return settings
 

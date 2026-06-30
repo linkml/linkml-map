@@ -129,6 +129,12 @@ def test_temp_directory_always_set(monkeypatch):
     assert _resolve_duckdb_settings()["temp_directory"]
 
 
+def test_temp_directory_whitespace_override_falls_back(monkeypatch):
+    """A whitespace-only override is ignored in favor of the system temp dir."""
+    monkeypatch.setenv(_ENV_TEMP_DIR, "   ")
+    assert _resolve_duckdb_settings()["temp_directory"].strip()
+
+
 # --- end-to-end: settings actually land on the connection ---
 
 
