@@ -801,6 +801,12 @@ class ObjectTransformer(Transformer):
         :returns: Matched row as a dict, or ``None`` if no match found.
         :raises ValueError: If join spec is missing keys or lookup_index is not initialized.
         """
+        # Pre-joined fast path: when the joined row is already supplied inline via a
+        # MergedRow (the set-based DuckDB join engine, or an earlier merge of the same
+        # table), resolve from it directly instead of a per-row lookup.
+        if isinstance(source_obj, MergedRow) and table_name in source_obj.rows_by_table:
+            return source_obj.rows_by_table[table_name]
+
         spec = class_deriv.joins[table_name]
         source_key = spec.source_key or spec.join_on
         lookup_key = spec.lookup_key or spec.join_on
@@ -875,7 +881,12 @@ class ObjectTransformer(Transformer):
                 nested_source,
             )
 
-        return MergedRow(merged, rows_by_table={parent_source: parent_row, nested_source: joined_row})
+        # Carry ancestor tables forward so dot-notation (and the pre-joined fast
+        # path) keep resolving at arbitrary nesting depth — e.g.
+        # MeasurementObservationSet -> MeasurementObservation -> Quantity, where the
+        # deepest level still needs every star-joined table available.
+        inherited = parent_row.rows_by_table if isinstance(parent_row, MergedRow) else {parent_source: parent_row}
+        return MergedRow(merged, rows_by_table={**inherited, nested_source: joined_row})
 
     def _apply_offset(self, value: Any, slot_derivation: SlotDerivation, source_obj: DICT_OBJ) -> Any:
         """Apply an offset calculation using a value from another source field."""
