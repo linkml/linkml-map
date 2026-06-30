@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 from linkml_runtime import SchemaView
 
 import linkml_map
@@ -21,8 +22,11 @@ from linkml_map.datamodel.transformer_model import (
 from linkml_map.utils.expression_locations import (
     MAPPING_EXPR_FIELDS,
     SELF_EXPR_FIELDS,
+    extract_table_references,
     iter_expressions,
 )
+
+TABLES = {"Reading", "Measurement", "pht003099"}
 
 MODEL_PATH = Path(linkml_map.__file__).parent / "datamodel" / "transformer_model.yaml"
 
@@ -77,6 +81,36 @@ def test_all_fields_combined():
 
 def test_empty_derivation_yields_nothing():
     assert list(iter_expressions(SlotDerivation(name="x"))) == []
+
+
+# --- extract_table_references ---
+
+
+def test_extract_dotted_table_reference():
+    assert extract_table_references("{Reading.score}", TABLES) == {"Reading"}
+
+
+def test_extract_ignores_bare_column():
+    assert extract_table_references("{score}", TABLES) == set()
+
+
+def test_extract_ignores_attribute_on_non_table():
+    assert extract_table_references("{notatable.x}", TABLES) == set()
+
+
+def test_extract_multiple_tables_in_one_expression():
+    expr = '{Reading.id} + "_" + {Measurement.id}'
+    assert extract_table_references(expr, TABLES) == {"Reading", "Measurement"}
+
+
+def test_extract_from_realistic_case_expression():
+    expr = "case(({phv00254011} == 1, {pht003099.phv00177946} * 365), (True, 0))"
+    assert extract_table_references(expr, TABLES) == {"pht003099"}
+
+
+def test_extract_malformed_expression_raises():
+    with pytest.raises(SyntaxError):
+        extract_table_references("{Reading.", TABLES)
 
 
 # --- completeness guard: model introspection ---

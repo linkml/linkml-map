@@ -26,7 +26,8 @@ from linkml_map.datamodel.transformer_model import (
     TransformationSpecification,
 )
 from linkml_map.inference.inference import induce_missing_values
-from linkml_map.utils.join_utils import pick_join_key
+from linkml_map.utils.expression_locations import extract_table_references, iter_expressions
+from linkml_map.utils.join_utils import infer_join_key
 from linkml_map.utils.schema_patch import apply_schema_patch
 
 logger = logging.getLogger(__name__)
@@ -589,12 +590,17 @@ class Transformer(ABC):
         return self._derived_specification
 
     def _synthesize_implicit_joins(self, spec: TransformationSpecification) -> None:
-        """Add explicit join specs for nested class_derivations with cross-table references.
+        """Add explicit join specs for every implicit cross-table reference.
 
-        Walks all nested class_derivations. When a nested CD has a different
-        ``populated_from`` than its parent and no explicit ``joins:`` block,
-        synthesizes an ``AliasedClass`` join entry on the parent CD using
-        :func:`pick_join_key` to determine the join column.
+        Two kinds of implicit reference are normalized into explicit
+        ``AliasedClass`` joins on the enclosing ClassDerivation (the only place
+        ``joins:`` can live):
+
+        - a nested class_derivation whose ``populated_from`` is a different table;
+        - a ``{Table.col}`` reference in *any* expression on a class derivation or
+          its slot derivations (``expr``, ``expression_mappings``, etc.). This
+          second case was previously unhandled, which is why an expr-only implicit
+          join silently resolved to ``None``.
 
         Mutates *spec* in place.
 
@@ -604,49 +610,90 @@ class Transformer(ABC):
         if sv is None:
             return
 
+        table_names = set(sv.all_classes())
         for cd in spec.class_derivations:
             parent_source = cd.populated_from or cd.name
-            self._walk_and_synthesize_joins(cd, parent_source, sv)
+            self._walk_and_synthesize_joins(cd, parent_source, sv, table_names, {parent_source})
 
     def _walk_and_synthesize_joins(
         self,
         class_deriv: ClassDerivation,
         parent_source: str,
         sv: SchemaView,
+        table_names: set[str],
+        available: set[str],
     ) -> None:
-        """Recursively walk slot_derivations and synthesize joins on parent CDs.
+        """Recursively synthesize joins for cross-table references under *class_deriv*.
 
-        :param class_deriv: The parent ClassDerivation to add joins to.
-        :param parent_source: The parent's populated_from.
+        :param class_deriv: The ClassDerivation that will host synthesized joins.
+        :param parent_source: This derivation's ``populated_from``.
         :param sv: Source schema view.
+        :param table_names: All source-schema class names (table candidates).
+        :param available: Tables already in scope here (the ancestor source chain
+            plus this source) — a reference to one of these is the parent/own row,
+            not a new join.
         """
+        # Expressions on the class derivation itself and on each slot derivation
+        # are hosted on this class derivation.
+        self._synthesize_joins_for_expressions(class_deriv, parent_source, class_deriv, sv, table_names, available)
         for sd in class_deriv.slot_derivations.values():
+            self._synthesize_joins_for_expressions(class_deriv, parent_source, sd, sv, table_names, available)
+
             if not sd.class_derivations:
                 continue
             for nested_cd in sd.class_derivations:
                 nested_source = nested_cd.populated_from or parent_source
-
-                # Synthesize a join when the nested CD references a different table
                 if nested_source != parent_source:
-                    join_key = pick_join_key(sv, parent_source, nested_source)
-                    if join_key is not None:
-                        if class_deriv.joins is None:
-                            class_deriv.joins = {}
-                        if nested_source not in class_deriv.joins:
-                            class_deriv.joins[nested_source] = AliasedClass(
-                                alias=nested_source,
-                                join_on=join_key,
-                            )
-                            logger.info(
-                                "Synthesized implicit join: %s.joins[%r] on column %r",
-                                class_deriv.name,
-                                nested_source,
-                                join_key,
-                            )
-
-                # Always recurse into nested CD's own slots
+                    self._synthesize_join(class_deriv, parent_source, nested_source, sv)
                 if nested_cd.slot_derivations:
-                    self._walk_and_synthesize_joins(nested_cd, nested_source, sv)
+                    self._walk_and_synthesize_joins(
+                        nested_cd, nested_source, sv, table_names, available | {nested_source}
+                    )
+
+    def _synthesize_joins_for_expressions(
+        self,
+        host_cd: ClassDerivation,
+        parent_source: str,
+        derivation: Any,
+        sv: SchemaView,
+        table_names: set[str],
+        available: set[str],
+    ) -> None:
+        """Synthesize joins on *host_cd* for every ``{Table.col}`` in *derivation*'s expressions.
+
+        Tables already in scope (``available``) are the parent/own row and need no join.
+        """
+        for expression in iter_expressions(derivation):
+            for table in extract_table_references(expression, table_names):
+                if table not in available:
+                    self._synthesize_join(host_cd, parent_source, table, sv)
+
+    def _synthesize_join(
+        self,
+        class_deriv: ClassDerivation,
+        parent_source: str,
+        table: str,
+        sv: SchemaView,
+    ) -> None:
+        """Add an explicit ``AliasedClass`` join for *table* on *class_deriv*, if it can be keyed.
+
+        No-op when the join is already declared/synthesized, or when no join key
+        can be inferred (left for an explicit ``joins:`` block — unchanged behavior).
+        """
+        if class_deriv.joins and table in class_deriv.joins:
+            return
+        join_key = infer_join_key(sv, parent_source, table)
+        if join_key is None:
+            return
+        if class_deriv.joins is None:
+            class_deriv.joins = {}
+        class_deriv.joins[table] = AliasedClass(alias=table, join_on=join_key)
+        logger.info(
+            "Synthesized implicit join: %s.joins[%r] on column %r",
+            class_deriv.name,
+            table,
+            join_key,
+        )
 
     def _get_class_derivation(self, target_class_name: str) -> ClassDerivation:
         spec = self.derived_specification

@@ -13,7 +13,8 @@ so the normalizer can never silently miss a join again.
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+import ast
+from collections.abc import Iterable, Iterator
 from typing import Any
 
 #: Fields whose value *is* an expression string (model range: ``string``).
@@ -55,3 +56,29 @@ def iter_expressions(derivation: Any) -> Iterator[str]:  # noqa: ANN401 - any *D
                 entry_value = getattr(entry, "value", None)
                 if entry_value:
                     yield entry_value
+
+
+def extract_table_references(expression: str, table_names: Iterable[str]) -> set[str]:
+    """Return the tables referenced as ``{Table.col}`` in an expression.
+
+    The LinkML expression language is parsed with Python's ``ast``, so
+    ``{Table.col}`` appears as attribute access ``Table.col``. A reference counts
+    only when the attribute's root is a bare name matching a known table (a
+    source-schema class); bare column names (``{col}``) and attribute access on
+    non-tables are ignored. Parsing uses ``exec`` mode because the expression
+    language permits statements (assignments, comprehensions) that ``eval`` mode
+    rejects.
+
+    :param expression: a LinkML expression string.
+    :param table_names: names that denote tables (source-schema classes).
+    :returns: the set of referenced table names.
+    :raises SyntaxError: if *expression* is not parseable (a malformed expr that
+        would also fail at evaluation — surfaced here rather than masked).
+    """
+    tables = set(table_names)
+    refs: set[str] = set()
+    tree = ast.parse(expression, mode="exec")
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name) and node.value.id in tables:
+            refs.add(node.value.id)
+    return refs
