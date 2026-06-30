@@ -95,6 +95,27 @@ def test_invalid_threads_raises(monkeypatch, bad):
         _resolve_duckdb_settings()
 
 
+def test_memory_limit_derived_from_cgroup(monkeypatch):
+    """Without an env override, memory_limit is _MEMORY_FRACTION of the cgroup limit, in MiB."""
+    monkeypatch.delenv(_ENV_MEMORY_LIMIT, raising=False)
+    monkeypatch.setattr(
+        "linkml_map.utils.lookup_index._detect_cgroup_memory_bytes",
+        lambda: 4 * 1024 * 1024 * 1024,  # 4 GiB
+    )
+    # 4096 MiB * 0.8 = 3276 MiB (truncated)
+    assert _resolve_duckdb_settings()["memory_limit"] == "3276MiB"
+
+
+def test_memory_limit_derived_clamped_to_1mib(monkeypatch):
+    """A tiny cgroup limit that truncates to 0 MiB is clamped up to a valid 1MiB."""
+    monkeypatch.delenv(_ENV_MEMORY_LIMIT, raising=False)
+    monkeypatch.setattr(
+        "linkml_map.utils.lookup_index._detect_cgroup_memory_bytes",
+        lambda: 1000,  # 1000 bytes * 0.8 // 1 MiB == 0
+    )
+    assert _resolve_duckdb_settings()["memory_limit"] == "1MiB"
+
+
 def test_threads_default_to_affinity(monkeypatch):
     """Without an override, threads default to the CPU affinity count (respects cpuset)."""
     monkeypatch.delenv(_ENV_THREADS, raising=False)

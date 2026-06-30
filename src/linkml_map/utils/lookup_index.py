@@ -89,7 +89,7 @@ def _resolve_duckdb_settings() -> dict[str, str | int]:
             raise ValueError(msg)
         settings["memory_limit"] = memory_limit.strip()
 
-    threads = os.environ.get(_ENV_THREADS)
+    threads = os.environ.get(_ENV_THREADS, "").strip()
     if threads:
         value = int(threads) if threads.lstrip("-").isdigit() else None
         if value is None or value < 1:
