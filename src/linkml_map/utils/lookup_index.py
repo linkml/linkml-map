@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import logging
+import os
 import re
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -10,8 +13,97 @@ import duckdb
 
 from linkml_map.loaders.data_loaders import FileFormat
 
+logger = logging.getLogger(__name__)
+
 _IDENTIFIER_RE = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
 _HAS_DIGIT_RE = re.compile(r"[0-9]")
+
+# DuckDB sizes its memory_limit (~80% of RAM) and thread pool from the *physical
+# host*, ignoring container cgroup limits. In a memory-capped container that lets
+# it allocate past the cap, so the kernel OOM-killer SIGKILLs the process (an
+# exit-less crash, no traceback) or it thrashes into an apparent hang. We detect
+# the cgroup limit and configure DuckDB to respect it, turning a silent OOM-kill
+# into a catchable OutOfMemoryException. See join-performance investigation.
+_MEMORY_FRACTION = 0.8  # leave headroom for the Python process / OS
+_CGROUP_V2_MEMORY = "/sys/fs/cgroup/memory.max"
+_CGROUP_V1_MEMORY = "/sys/fs/cgroup/memory/memory.limit_in_bytes"
+_CGROUP_UNLIMITED = 1 << 62  # cgroup v1 "unlimited" sentinel is a near-max int
+_MEMORY_LIMIT_RE = re.compile(r"^\d+(\.\d+)?\s*([KMGT]i?B|%)?$", re.IGNORECASE)
+
+_ENV_MEMORY_LIMIT = "LINKML_MAP_DUCKDB_MEMORY_LIMIT"
+_ENV_THREADS = "LINKML_MAP_DUCKDB_THREADS"
+_ENV_TEMP_DIR = "LINKML_MAP_DUCKDB_TEMP_DIR"
+
+
+def _detect_cgroup_memory_bytes(paths: tuple[str, ...] = (_CGROUP_V2_MEMORY, _CGROUP_V1_MEMORY)) -> int | None:
+    """Return the container memory limit in bytes, or ``None`` if unlimited/undetectable.
+
+    Reads the cgroup v2 (``memory.max``) then v1 (``memory.limit_in_bytes``)
+    interfaces. A literal ``max`` (v2) or near-max sentinel (v1) means no limit.
+
+    :param paths: cgroup interface files to try, in order. Parameterized for testing.
+    """
+    for path in paths:
+        try:
+            raw = Path(path).read_text().strip()
+        except OSError:
+            continue
+        if raw == "max":
+            return None
+        try:
+            value = int(raw)
+        except ValueError:
+            continue
+        if value >= _CGROUP_UNLIMITED:
+            return None
+        return value
+    return None
+
+
+def _resolve_duckdb_settings() -> dict[str, str | int]:
+    """Resolve DuckDB connection settings honoring the container and env overrides.
+
+    Precedence for each setting: explicit ``LINKML_MAP_DUCKDB_*`` env var, then a
+    value derived from the cgroup limit, then DuckDB's own default (omitted here).
+
+    - ``memory_limit``: ``_MEMORY_FRACTION`` of the detected cgroup limit, leaving
+      headroom for the rest of the process. Omitted when no limit is detected.
+    - ``threads``: the CPU affinity count (respects cpuset), so we don't spin a
+      host-sized thread pool on a few container vCPUs.
+    - ``temp_directory``: a concrete writable path so spillable operators have
+      somewhere to go (DuckDB's default can be a relative path).
+
+    :returns: Mapping of DuckDB setting name to value, ready to ``SET``.
+    """
+    settings: dict[str, str | int] = {}
+
+    memory_limit = os.environ.get(_ENV_MEMORY_LIMIT)
+    if not memory_limit:
+        cgroup_bytes = _detect_cgroup_memory_bytes()
+        if cgroup_bytes:
+            budget_mib = max(1, int(cgroup_bytes * _MEMORY_FRACTION) // (1024 * 1024))
+            memory_limit = f"{budget_mib}MiB"
+    if memory_limit:
+        if not _MEMORY_LIMIT_RE.match(memory_limit.strip()):
+            msg = f"Invalid DuckDB memory limit {memory_limit!r} (expected e.g. '2GB', '512MiB', '80%')"
+            raise ValueError(msg)
+        settings["memory_limit"] = memory_limit.strip()
+
+    threads = os.environ.get(_ENV_THREADS, "").strip()
+    if threads:
+        value = int(threads) if threads.lstrip("-").isdigit() else None
+        if value is None or value < 1:
+            msg = f"Invalid DuckDB thread count {threads!r} (expected a positive integer)"
+            raise ValueError(msg)
+        settings["threads"] = value
+    elif hasattr(os, "sched_getaffinity"):
+        settings["threads"] = len(os.sched_getaffinity(0))
+    elif os.cpu_count():
+        settings["threads"] = os.cpu_count()
+
+    settings["temp_directory"] = os.environ.get(_ENV_TEMP_DIR, "").strip() or tempfile.gettempdir()
+
+    return settings
 
 
 def _parse_numeric(value: str) -> int | float | str:
@@ -69,9 +161,23 @@ class LookupIndex:
     """
 
     def __init__(self) -> None:
-        """Initialize an empty lookup index with an in-memory DuckDB connection."""
+        """Initialize an empty lookup index with an in-memory DuckDB connection.
+
+        The connection is configured to respect container cgroup limits (memory
+        and CPU) rather than DuckDB's host-derived defaults, so a memory-capped
+        container fails with a catchable error instead of being OOM-killed.
+        """
         self._conn = duckdb.connect(":memory:")
+        self._configure_connection()
         self._tables: dict[str, str] = {}  # table_name -> key_column
+
+    def _configure_connection(self) -> None:
+        """Apply container-aware ``memory_limit``/``threads``/``temp_directory`` settings."""
+        settings = _resolve_duckdb_settings()
+        for name, value in settings.items():
+            literal = value if isinstance(value, int) else "'" + str(value).replace("'", "''") + "'"
+            self._conn.execute(f"SET {name}={literal}")  # noqa: S608 - name is a fixed literal, value sanitized
+        logger.debug("Configured DuckDB connection: %s", settings)
 
     def register_table(self, name: str, file_path: Path | str, key_column: str) -> None:
         """
