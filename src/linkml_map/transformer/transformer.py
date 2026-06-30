@@ -712,15 +712,21 @@ class Transformer(ABC):
         """Fail loud on a qualified ``{Name.col}`` whose root resolves to nothing.
 
         ``Name`` is resolvable when it is a source table, an in-scope source
-        (``available``), a slot on *parent_source* (a same-row or inlined-object
-        reference), or a known expression function. Anything else — a typo or a
-        renamed/missing table — would silently resolve to ``None`` at runtime, so
-        surface it at normalization time instead.
+        (``available``), a declared join alias on *host_cd* (which may differ
+        from its ``class_named`` schema class), a slot on *parent_source* (a
+        same-row or inlined-object reference), or a known expression function.
+        Anything else — a typo or a renamed/missing table — would silently
+        resolve to ``None`` at runtime, so surface it at normalization time.
 
         :raises ValueError: if any qualified root is unresolvable.
         """
         known = (
-            table_names | available | self._source_slot_names(sv, parent_source) | set(FUNCTIONS) | INJECTED_EVAL_NAMES
+            table_names
+            | available
+            | set(host_cd.joins or {})
+            | self._source_slot_names(sv, parent_source)
+            | set(FUNCTIONS)
+            | INJECTED_EVAL_NAMES
         )
         unknown = roots - known
         if unknown:

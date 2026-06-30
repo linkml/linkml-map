@@ -219,6 +219,32 @@ def test_expr_same_row_qualified_root_is_allowed():
     assert tr.derived_specification is not None
 
 
+def test_expr_declared_join_alias_is_allowed():
+    """A reference rooted in a declared join alias (alias != schema class) is not flagged.
+
+    Runtime resolves any key in ``class_derivation.joins``; the synthesis guard
+    must mirror that and not raise on ``{alias.col}`` for an aliased explicit join.
+    """
+    tr = _transformer(
+        textwrap.dedent("""\
+        id: t
+        title: declared join alias
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            joins:
+              myreading:
+                class_named: Reading
+                join_on: subject_id
+            slot_derivations:
+              s:
+                expr: '{myreading.score}'
+        """)
+    )
+    # myreading is a declared join alias → resolvable, no raise.
+    assert tr.derived_specification is not None
+
+
 def test_enum_derivation_same_row_reference_is_allowed():
     """A bare (same-row) reference in an enum derivation must not fail — only cross-table does."""
     tr = _transformer(

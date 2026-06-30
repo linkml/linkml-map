@@ -659,10 +659,10 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
                 # warn-and-null override in ``_eval_name``.
                 obj = super()._eval_name(node.value)
             except NameNotDefined:
+                ref = f"{node.value.id}.{node.attr}"
                 msg = (
-                    f"Expression references unknown {node.value.id!r} in "
-                    f"{node.value.id + '.' + node.attr!r}: no such source class, join, or slot. "
-                    f"Typo or stale reference?"
+                    f"Expression references unknown {node.value.id!r} in {ref!r}: "
+                    f"no such source class, join, or slot. Typo or stale reference?"
                 )
                 raise NameError(msg) from None
         else:
