@@ -614,6 +614,10 @@ class Transformer(ABC):
         for cd in spec.class_derivations:
             parent_source = cd.populated_from or cd.name
             self._walk_and_synthesize_joins(cd, parent_source, sv, table_names, {parent_source})
+        # Cross-table refs in derivations with no enclosing class_derivation
+        # (top-level enum/permissible-value/slot derivations) have nowhere to host
+        # a join — fail fast rather than silently resolve to None.
+        self._reject_unhostable_cross_table_refs(spec, table_names)
 
     def _walk_and_synthesize_joins(
         self,
@@ -639,9 +643,9 @@ class Transformer(ABC):
         for sd in class_deriv.slot_derivations.values():
             self._synthesize_joins_for_expressions(class_deriv, parent_source, sd, sv, table_names, available)
 
-            if not sd.class_derivations:
-                continue
-            for nested_cd in sd.class_derivations:
+            # object_derivations are flattened into class_derivations at spec-load
+            # time (deprecated), so synthesis only needs to walk class_derivations.
+            for nested_cd in sd.class_derivations or []:
                 nested_source = nested_cd.populated_from or parent_source
                 if nested_source != parent_source:
                     self._synthesize_join(class_deriv, parent_source, nested_source, sv)
@@ -694,6 +698,44 @@ class Transformer(ABC):
             table,
             join_key,
         )
+
+    def _reject_unhostable_cross_table_refs(self, spec: TransformationSpecification, table_names: set[str]) -> None:
+        """Fail fast on a cross-table reference that has no class_derivation to host its join.
+
+        Enum, permissible-value, and top-level slot derivations are not nested
+        under a ClassDerivation, so a ``{Table.col}`` reference in one of them
+        cannot be turned into a ``joins:`` entry. Rather than let it silently
+        resolve to ``None`` at runtime, surface it here.
+
+        :raises ValueError: if such a reference is found.
+        """
+
+        def check(kind: str, name: str | None, derivation: Any) -> None:  # noqa: ANN401
+            for expression in iter_expressions(derivation):
+                refs = extract_table_references(expression, table_names)
+                if refs:
+                    msg = (
+                        f"Cross-table reference(s) {sorted(refs)} in {kind} {name!r} cannot be "
+                        f"joined: only class_derivations can host joins. Move the derivation under "
+                        f"a class_derivation, or reference only same-row columns."
+                    )
+                    raise ValueError(msg)
+
+        for enum_derivation in self._values(spec.enum_derivations):
+            check("enum_derivation", enum_derivation.name, enum_derivation)
+            for pv_derivation in self._values(enum_derivation.permissible_value_derivations):
+                check("permissible_value_derivation", pv_derivation.name, pv_derivation)
+        for slot_derivation in self._values(spec.slot_derivations):
+            check("top-level slot_derivation", slot_derivation.name, slot_derivation)
+
+    @staticmethod
+    def _values(collection: Any) -> list:  # noqa: ANN401 - dict- or list-form linkml collection
+        """Return the members of a linkml multivalued collection, whether dict- or list-form."""
+        if not collection:
+            return []
+        if hasattr(collection, "values"):
+            return list(collection.values())
+        return list(collection)
 
     def _get_class_derivation(self, target_class_name: str) -> ClassDerivation:
         spec = self.derived_specification
