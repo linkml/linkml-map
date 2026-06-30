@@ -15,7 +15,7 @@ from linkml_runtime import SchemaView
 from linkml_map.loaders.data_loaders import DataLoader
 from linkml_map.session import Session
 from linkml_map.transformer.engine import transform_spec
-from linkml_map.transformer.join_engine import transform_via_join
+from linkml_map.transformer.join_engine import can_use_join_engine, transform_via_join
 
 
 def _write(tmp_path, tables: dict[str, tuple[list[str], list[list]]]) -> None:
@@ -209,3 +209,102 @@ def test_multivalued_via_multiple_class_derivations(tmp_path):
     per_row, engine = _both(tmp_path, SRC, spec, target, "Measurement", dict([MEAS, READING, other]))
     assert per_row == engine
     assert len(engine[0]["observations"]) == 2
+
+
+# --- dispatch capability + to-many dedup ---
+
+FK_SRC = yaml.safe_load(
+    textwrap.dedent("""\
+    id: https://example.org/fk
+    name: fk
+    prefixes: {linkml: https://w3id.org/linkml/}
+    default_prefix: fk
+    default_range: string
+    imports: [linkml:types]
+    classes:
+      Measurement:
+        attributes:
+          id: {identifier: true}
+          subject_id: {range: string}
+          org: {range: Org}
+      Org: {attributes: {org_id: {identifier: true}, name: {range: string}}}
+      Reading: {attributes: {subject_id: {identifier: true}, score: {range: float}}}
+    """)
+)
+
+TARGET_VAL = textwrap.dedent("""\
+    id: https://example.org/t
+    name: t
+    prefixes: {linkml: https://w3id.org/linkml/}
+    default_prefix: t
+    default_range: string
+    imports: [linkml:types]
+    classes:
+      Result: {attributes: {id: {identifier: true}, value: {range: string}}}
+""")
+
+
+def _cd(source_schema, spec):
+    session = Session()
+    session.set_source_schema(source_schema)
+    session.set_object_transformer(spec)
+    tr = session.object_transformer
+    tr.source_schemaview = session.source_schemaview
+    return tr
+
+
+def test_simple_subject_join_is_engine_capable(tmp_path):
+    _write(tmp_path, dict([MEAS, READING]))
+    spec = yaml.safe_load(
+        "id: t\ntitle: t\nclass_derivations:\n  Result:\n    populated_from: Measurement\n"
+        "    slot_derivations:\n      id:\n      value: {expr: '{Reading.score}'}\n"
+    )
+    tr = _cd(FK_SRC, spec)
+    dl = DataLoader(tmp_path, schemaview=tr.source_schemaview)
+    cd = tr.derived_specification.class_derivations[0]
+    assert can_use_join_engine(cd, dl, tr.source_schemaview) is True
+
+
+def test_fk_chain_is_not_engine_capable(tmp_path):
+    """A dotted populated_from to a non-joined table (FK chain) must fall back to per-row."""
+    _write(tmp_path, dict([MEAS, READING]))
+    spec = yaml.safe_load(
+        "id: t\ntitle: t\nclass_derivations:\n  Result:\n    populated_from: Measurement\n"
+        "    slot_derivations:\n      id:\n      value: {populated_from: org.name}\n"
+    )
+    tr = _cd(FK_SRC, spec)
+    dl = DataLoader(tmp_path, schemaview=tr.source_schemaview)
+    cd = tr.derived_specification.class_derivations[0]
+    assert can_use_join_engine(cd, dl, tr.source_schemaview) is False
+
+
+def test_to_many_join_does_not_explode_rows(tmp_path):
+    """A to-many join table must not duplicate primary rows (deduped to one per key)."""
+    target = textwrap.dedent("""\
+        id: https://example.org/t
+        name: t
+        prefixes: {linkml: https://w3id.org/linkml/}
+        default_prefix: t
+        default_range: string
+        imports: [linkml:types]
+        classes:
+          Result: {attributes: {id: {identifier: true}, reading_score: {range: float}}}
+    """)
+    spec = yaml.safe_load(
+        textwrap.dedent("""\
+        id: t
+        title: t
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              id:
+              reading_score: {expr: '{Reading.score}'}
+    """)
+    )
+    # Two Reading rows for S1 (to-many on the key)
+    reading_many = ("Reading", (["subject_id", "score", "visit"], [["S1", "95.5", "1"], ["S1", "10.0", "2"]]))
+    measurements = ("Measurement", (["id", "subject_id", "method"], [["M1", "S1", "x"]]))
+    _, engine = _both(tmp_path, SRC, spec, target, "Measurement", dict([measurements, reading_many]))
+    # Exactly one output row per Measurement — no cartesian explosion.
+    assert len(engine) == 1
