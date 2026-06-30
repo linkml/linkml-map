@@ -4,6 +4,13 @@ from __future__ import annotations
 
 from linkml_runtime import SchemaView
 
+#: Consistently-named subject-id columns preferred as the join key when present
+#: in both tables, before the structural heuristic. Real dbGaP joins are
+#: subject-keyed, and the subject id (``dbGaP_Subject_ID``) is named consistently
+#: across prepared tables even when other identifier columns differ. Overridable
+#: by a future key registry.
+SUBJECT_KEY_CANDIDATES: tuple[str, ...] = ("dbGaP_Subject_ID",)
+
 
 def _is_identifier_in_either(sv: SchemaView, col: str, class_a: str, class_b: str) -> bool:
     """Check if a column is an identifier in either of two classes.
@@ -62,3 +69,30 @@ def pick_join_key(sv: SchemaView, class_a: str, class_b: str) -> str | None:
         return next(iter(common))
     # Multiple non-id common columns — can't pick automatically
     return None
+
+
+def infer_join_key(
+    sv: SchemaView,
+    class_a: str,
+    class_b: str,
+    subject_keys: tuple[str, ...] = SUBJECT_KEY_CANDIDATES,
+) -> str | None:
+    """Infer the join key between two source classes.
+
+    Prefers a consistently-named subject-id column (:data:`SUBJECT_KEY_CANDIDATES`)
+    present in both classes — real dbGaP joins are subject-keyed, and the subject
+    id is named consistently even when other identifier columns differ across
+    tables, which the structural heuristic cannot match. Falls back to
+    :func:`pick_join_key`.
+
+    :param sv: Source schema view.
+    :param class_a: First source class name.
+    :param class_b: Second source class name.
+    :param subject_keys: Preferred subject-id column names, in order.
+    :returns: The join key column name, or None if none can be determined.
+    """
+    common = find_common_columns(sv, class_a, class_b)
+    for candidate in subject_keys:
+        if candidate in common:
+            return candidate
+    return pick_join_key(sv, class_a, class_b)
