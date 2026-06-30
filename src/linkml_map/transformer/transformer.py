@@ -26,7 +26,12 @@ from linkml_map.datamodel.transformer_model import (
     TransformationSpecification,
 )
 from linkml_map.inference.inference import induce_missing_values
-from linkml_map.utils.expression_locations import extract_table_references, iter_expressions
+from linkml_map.utils.eval_utils import FUNCTIONS, INJECTED_EVAL_NAMES
+from linkml_map.utils.expression_locations import (
+    extract_braced_reference_roots,
+    extract_table_references,
+    iter_expressions,
+)
 from linkml_map.utils.join_utils import infer_join_key
 from linkml_map.utils.schema_patch import apply_schema_patch
 
@@ -599,9 +604,13 @@ class Transformer(ABC):
             if self.specification is None:
                 return None
             self._apply_source_schema_patches()
-            self._derived_specification = deepcopy(self.specification)
-            induce_missing_values(self._derived_specification, self.source_schemaview)
-            self._synthesize_implicit_joins(self._derived_specification)
+            # Build into a local and only cache on full success: synthesis can
+            # fail loud (e.g. an un-keyable cross-table reference), and caching a
+            # half-synthesized spec would poison every later access.
+            derived = deepcopy(self.specification)
+            induce_missing_values(derived, self.source_schemaview)
+            self._synthesize_implicit_joins(derived)
+            self._derived_specification = derived
         return self._derived_specification
 
     def _synthesize_implicit_joins(self, spec: TransformationSpecification) -> None:
@@ -681,11 +690,59 @@ class Transformer(ABC):
         """Synthesize joins on *host_cd* for every ``{Table.col}`` in *derivation*'s expressions.
 
         Tables already in scope (``available``) are the parent/own row and need no join.
+        A qualified ``{Name.col}`` whose root is neither a table, an in-scope source, a
+        slot on this source, nor a function is an unresolvable reference and fails loud.
         """
         for expression in iter_expressions(derivation):
             for table in extract_table_references(expression, table_names):
                 if table not in available:
-                    self._synthesize_join(host_cd, parent_source, table, sv)
+                    self._synthesize_join(host_cd, parent_source, table, sv, required=True)
+            roots = extract_braced_reference_roots(expression)
+            self._reject_unknown_qualified_roots(host_cd, parent_source, roots, sv, table_names, available)
+
+    def _reject_unknown_qualified_roots(
+        self,
+        host_cd: ClassDerivation,
+        parent_source: str,
+        roots: set[str],
+        sv: SchemaView,
+        table_names: set[str],
+        available: set[str],
+    ) -> None:
+        """Fail loud on a qualified ``{Name.col}`` whose root resolves to nothing.
+
+        ``Name`` is resolvable when it is a source table, an in-scope source
+        (``available``), a declared join alias on *host_cd* (which may differ
+        from its ``class_named`` schema class), a slot on *parent_source* (a
+        same-row or inlined-object reference), or a known expression function.
+        Anything else — a typo or a renamed/missing table — would silently
+        resolve to ``None`` at runtime, so surface it at normalization time.
+
+        :raises ValueError: if any qualified root is unresolvable.
+        """
+        known = (
+            table_names
+            | available
+            | set(host_cd.joins or {})
+            | self._source_slot_names(sv, parent_source)
+            | set(FUNCTIONS)
+            | INJECTED_EVAL_NAMES
+        )
+        unknown = roots - known
+        if unknown:
+            msg = (
+                f"Expression reference(s) {sorted(unknown)} on class_derivation {host_cd.name!r} "
+                f"cannot be resolved: each root must be a source table, a slot on {parent_source!r}, "
+                f"or a function. Fix the reference or correct the source schema."
+            )
+            raise ValueError(msg)
+
+    @staticmethod
+    def _source_slot_names(sv: SchemaView, source: str) -> set[str]:
+        """Return the induced slot names of *source*, or empty if it is not a class."""
+        if source not in sv.all_classes():
+            return set()
+        return {s.name for s in sv.class_induced_slots(source)}
 
     def _synthesize_join(
         self,
@@ -693,16 +750,35 @@ class Transformer(ABC):
         parent_source: str,
         table: str,
         sv: SchemaView,
+        *,
+        required: bool = False,
     ) -> None:
-        """Add an explicit ``AliasedClass`` join for *table* on *class_deriv*, if it can be keyed.
+        """Add an explicit ``AliasedClass`` join for *table* on *class_deriv*.
 
-        No-op when the join is already declared/synthesized, or when no join key
-        can be inferred (left for an explicit ``joins:`` block — unchanged behavior).
+        No-op when the join is already declared/synthesized. When no join key can
+        be inferred, behavior depends on *required*:
+
+        - ``required=True`` (an expression ``{table.col}`` reference): fail loud.
+          An expression reference has no runtime safety net — it silently
+          resolves to ``None`` — so an un-keyable one must surface here.
+        - ``required=False`` (a structural ``populated_from`` join): return
+          quietly. The engine reports an un-keyable structural join loudly at
+          runtime with a more specific diagnostic (shared/candidate columns).
+
+        :param required: whether an un-keyable reference is a hard error.
+        :raises ValueError: if *required* and *table* cannot be keyed.
         """
         if class_deriv.joins and table in class_deriv.joins:
             return
         join_key = infer_join_key(sv, parent_source, table)
         if join_key is None:
+            if required:
+                msg = (
+                    f"Cross-table reference to {table!r} from {parent_source!r} on class_derivation "
+                    f"{class_deriv.name!r} cannot be joined: no shared join key could be inferred. "
+                    f"Declare an explicit 'joins:' entry with 'join_on' (or 'source_key'/'lookup_key')."
+                )
+                raise ValueError(msg)
             return
         if class_deriv.joins is None:
             class_deriv.joins = {}

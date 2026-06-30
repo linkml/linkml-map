@@ -133,6 +133,118 @@ def test_top_level_slot_derivation_cross_table_ref_fails_loud():
         _ = tr.derived_specification
 
 
+def test_expr_cross_table_ref_unkeyable_fails_loud():
+    """An expr ref to a table with no inferable join key fails loud, not silent None.
+
+    An expression reference has no runtime safety net (it silently resolves to
+    None), so an un-keyable one must surface at normalization time.
+    """
+    source_no_common = yaml.safe_load(
+        textwrap.dedent("""\
+        id: https://example.org/no-common
+        name: no_common
+        prefixes: {linkml: https://w3id.org/linkml/}
+        default_prefix: no_common
+        default_range: string
+        imports: [linkml:types]
+        classes:
+          Measurement:
+            attributes:
+              id: {identifier: true}
+              method: {range: string}
+          Reading:
+            attributes:
+              reading_id: {identifier: true}
+              score: {range: float}
+        """)
+    )
+    session = Session()
+    session.set_source_schema(source_no_common)
+    session.set_object_transformer(
+        yaml.safe_load(
+            textwrap.dedent("""\
+            id: t
+            title: expr unkeyable
+            class_derivations:
+              Result:
+                populated_from: Measurement
+                slot_derivations:
+                  score:
+                    expr: '{Reading.score}'
+            """)
+        )
+    )
+    tr = session.object_transformer
+    tr.source_schemaview = session.source_schemaview
+    with pytest.raises(ValueError, match="cannot be joined"):
+        _ = tr.derived_specification
+
+
+def test_expr_unknown_qualified_root_fails_loud():
+    """A braced ``{Unknown.col}`` whose root is no known table/slot fails at synthesis.
+
+    A same-row slot reference (``{subject_id.x}``) and a bare reference must not.
+    """
+    tr = _transformer(
+        textwrap.dedent("""\
+        id: t
+        title: unknown qualified root
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              x:
+                expr: '{Nonexistent.col}'
+        """)
+    )
+    with pytest.raises(ValueError, match="cannot be resolved"):
+        _ = tr.derived_specification
+
+
+def test_expr_same_row_qualified_root_is_allowed():
+    """A qualified reference rooted in a source slot (same-row/inlined) is not flagged."""
+    tr = _transformer(
+        textwrap.dedent("""\
+        id: t
+        title: same-row qualified root
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              x:
+                expr: '{subject_id.upper}'
+        """)
+    )
+    # subject_id is a slot on Measurement → resolvable, no raise.
+    assert tr.derived_specification is not None
+
+
+def test_expr_declared_join_alias_is_allowed():
+    """A reference rooted in a declared join alias (alias != schema class) is not flagged.
+
+    Runtime resolves any key in ``class_derivation.joins``; the synthesis guard
+    must mirror that and not raise on ``{alias.col}`` for an aliased explicit join.
+    """
+    tr = _transformer(
+        textwrap.dedent("""\
+        id: t
+        title: declared join alias
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            joins:
+              myreading:
+                class_named: Reading
+                join_on: subject_id
+            slot_derivations:
+              s:
+                expr: '{myreading.score}'
+        """)
+    )
+    # myreading is a declared join alias → resolvable, no raise.
+    assert tr.derived_specification is not None
+
+
 def test_enum_derivation_same_row_reference_is_allowed():
     """A bare (same-row) reference in an enum derivation must not fail — only cross-table does."""
     tr = _transformer(

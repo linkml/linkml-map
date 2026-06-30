@@ -267,14 +267,29 @@ def _pre_flight_validate(
     ``tr.target_schemaview`` when set, avoiding a duplicate load of large
     or remote schemas.
     """
-    from linkml_map.validator import validate_spec_semantics
+    from linkml_map.validator import ValidationMessage, validate_spec_semantics
 
     if tr.specification is None:
         return
 
-    spec_dict = tr.specification.model_dump(exclude_none=True)
-
     messages = list(tr.spec_messages)
+
+    # Validate the *derived* spec when a source schema is available, so the
+    # semantic checks observe synthesized joins rather than predicting them.
+    # Synthesis can fail loud (e.g. an un-keyable cross-table reference); surface
+    # that as a finding instead of crashing pre-flight, and fall back to the raw
+    # spec for the remaining checks.
+    spec = tr.specification
+    if tr.source_schemaview is not None:
+        try:
+            derived = tr.derived_specification
+        except ValueError as err:
+            messages.append(ValidationMessage(severity="error", path="", message=str(err)))
+            derived = None
+        if derived is not None:
+            spec = derived
+
+    spec_dict = spec.model_dump(exclude_none=True)
     messages.extend(
         validate_spec_semantics(
             spec_dict,
@@ -306,6 +321,9 @@ def _filter_spec_to_entity(tr: ObjectTransformer, entity: str | None) -> None:
         msg = f"--entity {entity!r} did not match any class_derivation. Available: {names}"
         raise click.ClickException(msg)
     tr.specification.class_derivations = matched
+    # Mutating the spec invalidates any derived spec already computed (e.g. by
+    # pre-flight validation), so it is rebuilt from the filtered spec on next access.
+    tr._derived_specification = None
 
 
 def _emit_spec_to_file(tr: ObjectTransformer, emit_spec: str) -> None:

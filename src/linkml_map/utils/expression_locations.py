@@ -58,6 +58,33 @@ def iter_expressions(derivation: Any) -> Iterator[str]:  # noqa: ANN401 - any *D
                     yield entry_value
 
 
+def extract_braced_reference_roots(expression: str) -> set[str]:
+    """Return the bare-name roots of braced ``{Name.attr}`` references.
+
+    Only braced references (``ast.Set`` single-element displays — the LinkML
+    expression reference syntax, mirroring ``_eval_set``) are inspected, so
+    lambda parameters, comprehension targets, and raw-Python attribute access in
+    unrestricted expressions are *not* treated as references. Each braced
+    ``{x.y}`` contributes its root ``x``; a bare ``{col}`` contributes nothing.
+
+    Used to spot a reference whose root is neither a known table, an in-scope
+    source, a source slot, nor a function — an unresolvable ``{Unknown.col}``
+    that would otherwise silently null at runtime.
+
+    :param expression: a LinkML expression string.
+    :returns: the set of braced-reference attribute roots.
+    :raises SyntaxError: if *expression* is not parseable.
+    """
+    roots: set[str] = set()
+    tree = ast.parse(expression, mode="exec")
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Set):
+            for elt in node.elts:
+                if isinstance(elt, ast.Attribute) and isinstance(elt.value, ast.Name):
+                    roots.add(elt.value.id)
+    return roots
+
+
 def extract_table_references(expression: str, table_names: Iterable[str]) -> set[str]:
     """Return the tables referenced as ``{Table.col}`` in an expression.
 
