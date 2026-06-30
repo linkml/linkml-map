@@ -21,7 +21,7 @@ _HAS_DIGIT_RE = re.compile(r"[0-9]")
 # DuckDB sizes its memory_limit (~80% of RAM) and thread pool from the *physical
 # host*, ignoring container cgroup limits. In a memory-capped container that lets
 # it allocate past the cap, so the kernel OOM-killer SIGKILLs the process (an
-# exit-less crash, no traceback) or it thrashes into a apparent hang. We detect
+# exit-less crash, no traceback) or it thrashes into an apparent hang. We detect
 # the cgroup limit and configure DuckDB to respect it, turning a silent OOM-kill
 # into a catchable OutOfMemoryException. See join-performance investigation.
 _MEMORY_FRACTION = 0.8  # leave headroom for the Python process / OS
@@ -50,7 +50,10 @@ def _detect_cgroup_memory_bytes(paths: tuple[str, ...] = (_CGROUP_V2_MEMORY, _CG
             continue
         if raw == "max":
             return None
-        value = int(raw)
+        try:
+            value = int(raw)
+        except ValueError:
+            continue
         if value >= _CGROUP_UNLIMITED:
             return None
         return value
@@ -78,7 +81,7 @@ def _resolve_duckdb_settings() -> dict[str, str | int]:
     if not memory_limit:
         cgroup_bytes = _detect_cgroup_memory_bytes()
         if cgroup_bytes:
-            budget_mib = int(cgroup_bytes * _MEMORY_FRACTION) // (1024 * 1024)
+            budget_mib = max(1, int(cgroup_bytes * _MEMORY_FRACTION) // (1024 * 1024))
             memory_limit = f"{budget_mib}MiB"
     if memory_limit:
         if not _MEMORY_LIMIT_RE.match(memory_limit.strip()):
@@ -86,15 +89,19 @@ def _resolve_duckdb_settings() -> dict[str, str | int]:
             raise ValueError(msg)
         settings["memory_limit"] = memory_limit.strip()
 
-    threads = os.environ.get(_ENV_THREADS)
+    threads = os.environ.get(_ENV_THREADS, "").strip()
     if threads:
-        settings["threads"] = int(threads)
+        value = int(threads) if threads.lstrip("-").isdigit() else None
+        if value is None or value < 1:
+            msg = f"Invalid DuckDB thread count {threads!r} (expected a positive integer)"
+            raise ValueError(msg)
+        settings["threads"] = value
     elif hasattr(os, "sched_getaffinity"):
         settings["threads"] = len(os.sched_getaffinity(0))
     elif os.cpu_count():
         settings["threads"] = os.cpu_count()
 
-    settings["temp_directory"] = os.environ.get(_ENV_TEMP_DIR) or tempfile.gettempdir()
+    settings["temp_directory"] = os.environ.get(_ENV_TEMP_DIR, "").strip() or tempfile.gettempdir()
 
     return settings
 
@@ -166,10 +173,11 @@ class LookupIndex:
 
     def _configure_connection(self) -> None:
         """Apply container-aware ``memory_limit``/``threads``/``temp_directory`` settings."""
-        for name, value in _resolve_duckdb_settings().items():
+        settings = _resolve_duckdb_settings()
+        for name, value in settings.items():
             literal = value if isinstance(value, int) else "'" + str(value).replace("'", "''") + "'"
             self._conn.execute(f"SET {name}={literal}")  # noqa: S608 - name is a fixed literal, value sanitized
-        logger.debug("Configured DuckDB connection: %s", _resolve_duckdb_settings())
+        logger.debug("Configured DuckDB connection: %s", settings)
 
     def register_table(self, name: str, file_path: Path | str, key_column: str) -> None:
         """
