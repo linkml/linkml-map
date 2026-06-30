@@ -308,3 +308,17 @@ def test_to_many_join_does_not_explode_rows(tmp_path):
     _, engine = _both(tmp_path, SRC, spec, target, "Measurement", dict([measurements, reading_many]))
     # Exactly one output row per Measurement — no cartesian explosion.
     assert len(engine) == 1
+
+
+def test_yaml_backed_table_is_not_engine_capable(tmp_path):
+    """A YAML-backed table can't be read by the DuckDB join, so the block falls back to per-row."""
+    _write(tmp_path, dict([MEAS]))  # Measurement as TSV
+    (tmp_path / "Reading.yaml").write_text("- subject_id: S1\n  score: 95.5\n  visit: 1\n")
+    spec = yaml.safe_load(
+        "id: t\ntitle: t\nclass_derivations:\n  Result:\n    populated_from: Measurement\n"
+        "    slot_derivations:\n      id:\n      value: {expr: '{Reading.score}'}\n"
+    )
+    tr = _cd(SRC, spec)
+    dl = DataLoader(tmp_path, schemaview=tr.source_schemaview)
+    cd = tr.derived_specification.class_derivations[0]
+    assert can_use_join_engine(cd, dl, tr.source_schemaview) is False

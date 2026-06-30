@@ -77,27 +77,39 @@ def can_use_join_engine(class_deriv: ClassDerivation, data_loader: DataLoader, s
     Conservative — returns ``False`` (fall back to the per-row path) unless every
     condition holds, so the engine is never used where it could diverge:
 
-    - the primary and all joined tables are file-loadable;
+    - the primary and all joined tables are file-loadable in a DuckDB-readable
+      format (CSV/TSV/JSON — not YAML, which ``_duckdb_read_expr`` can't read);
     - the block has joins (otherwise the per-row path is already lookup-free);
     - every join keys on a column present in the primary (a subject-keyed star
       join, not a multi-hop chain);
     - no dotted ``populated_from`` references an FK chain or a non-available table.
     """
     primary = class_deriv.populated_from or class_deriv.name
-    if primary not in data_loader:
+    if primary not in data_loader or not _duckdb_readable(data_loader, primary):
         return False
     joins = _collect_joins(class_deriv, {})
     if not joins:
         return False
     primary_cols = {s.name for s in sv.class_induced_slots(primary)}
     for table, join in joins.items():
-        if table not in data_loader:
+        if table not in data_loader or not _duckdb_readable(data_loader, table):
             return False
         source_key = join.source_key or join.join_on
         if not source_key or source_key not in primary_cols:
             return False
     available = {primary, *joins}
     return _refs_engine_safe(class_deriv, available)
+
+
+#: File formats the DuckDB join can read (matches :func:`_duckdb_read_expr`).
+_DUCKDB_READABLE_FORMATS = frozenset({FileFormat.TSV, FileFormat.CSV, FileFormat.JSON})
+
+
+def _duckdb_readable(data_loader: DataLoader, table: str) -> bool:
+    """Whether *table*'s file can be read by the DuckDB join (CSV/TSV/JSON, not YAML)."""
+    # get_path raises in single-file mode; use the single file's path directly there.
+    path = data_loader.base_path if data_loader.is_single_file else data_loader.get_path(table)
+    return FileFormat.from_extension(path) in _DUCKDB_READABLE_FORMATS
 
 
 def make_connection() -> duckdb.DuckDBPyConnection:
