@@ -305,8 +305,23 @@ class Transformer(ABC):
         cls._inherit_populated_from(obj)
         cls._coerce_pv_populated_from_to_list(obj)
         cls._migrate_pv_sources_to_populated_from(obj)
+        cls._coerce_schema_refs(obj)
 
         return messages
+
+    @staticmethod
+    def _coerce_schema_refs(obj: dict[str, Any]) -> None:
+        """Coerce bare-string ``source_schema``/``target_schema`` to object form.
+
+        The original spec form was a bare string (e.g. ``source_schema: my.yaml``);
+        the field now ranges over ``SchemaReference``. For backward compatibility
+        a string is rewritten to ``{"name": <string>}`` so legacy specs keep
+        loading. The pre-normalize scan reports the string form as deprecated.
+        """
+        for schema_field in ("source_schema", "target_schema"):
+            val = obj.get(schema_field)
+            if isinstance(val, str):
+                obj[schema_field] = {"name": val}
 
     @classmethod
     def _shape_normalize(cls, obj: dict[str, Any]) -> None:
