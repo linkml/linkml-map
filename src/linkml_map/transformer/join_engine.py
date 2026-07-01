@@ -114,11 +114,27 @@ _DUCKDB_READABLE_FORMATS = frozenset({FileFormat.TSV, FileFormat.CSV, FileFormat
 _JOIN_STRUCT_PREFIX = "__join__"
 
 
+def _table_path(data_loader: DataLoader, table: str) -> str:
+    """Resolve *table*'s file path (``get_path`` raises in single-file mode, so use ``base_path`` there)."""
+    return str(data_loader.base_path if data_loader.is_single_file else data_loader.get_path(table))
+
+
 def _duckdb_readable(data_loader: DataLoader, table: str) -> bool:
     """Whether *table*'s file can be read by the DuckDB join (CSV/TSV/JSON, not YAML)."""
-    # get_path raises in single-file mode; use the single file's path directly there.
-    path = data_loader.base_path if data_loader.is_single_file else data_loader.get_path(table)
-    return FileFormat.from_extension(path) in _DUCKDB_READABLE_FORMATS
+    return FileFormat.from_extension(_table_path(data_loader, table)) in _DUCKDB_READABLE_FORMATS
+
+
+def _readable_columns(con: duckdb.DuckDBPyConnection, path: str, fmt: FileFormat) -> set[str]:
+    """Column names DuckDB actually exposes for the file at *path*.
+
+    A 0-byte (headerless) file makes ``read_csv_auto`` return a single dummy
+    ``column0`` rather than the schema's columns, so the join's ``lookup_key`` is
+    absent. Probing here lets the caller degrade such a join to an all-miss null
+    STRUCT instead of emitting SQL that binds a non-existent column (which raises
+    ``BinderException`` and aborts the whole block, #276).
+    """
+    rows = con.execute(f"DESCRIBE {_duckdb_read_expr(fmt)}", [path]).fetchall()
+    return {r[0] for r in rows}
 
 
 def make_connection() -> duckdb.DuckDBPyConnection:
@@ -134,6 +150,7 @@ def _build_join_sql(
     primary: str,
     joins: dict[str, AliasedClass],
     data_loader: DataLoader,
+    con: duckdb.DuckDBPyConnection,
 ) -> tuple[str, list[str]]:
     """Build a star ``LEFT JOIN`` query and its path parameters (in FROM order).
 
@@ -143,13 +160,16 @@ def _build_join_sql(
     ``LIMIT 1`` and avoid row explosion on a to-many table, becomes a ``STRUCT``
     column named after the table, and a miss yields ``NULL`` so the nested object
     is suppressed (#217).
+
+    A joined file whose ``lookup_key`` column is absent (e.g. a 0-byte, headerless
+    file — see :func:`_readable_columns`) is degraded to a literal ``NULL`` STRUCT,
+    the same all-miss result a header-only file already produces, rather than
+    joining on a non-existent column (#276).
     """
     params: list[str] = []
 
     def reader(table: str, alias: str, dedup_key: str | None = None) -> str:
-        # Resolve the path the same way _duckdb_readable does (get_path raises in
-        # single-file mode), so path resolution is consistent across the engine.
-        path = str(data_loader.base_path if data_loader.is_single_file else data_loader.get_path(table))
+        path = _table_path(data_loader, table)
         params.append(path)  # one '?' per reader, bound in FROM order
         select = _duckdb_read_expr(FileFormat.from_extension(path))
         if dedup_key is not None:
@@ -165,6 +185,12 @@ def _build_join_sql(
         alias = f"j{i}"
         source_key = join.source_key or join.join_on
         lookup_key = join.lookup_key or join.join_on
+        path = _table_path(data_loader, table)
+        if lookup_key not in _readable_columns(con, path, FileFormat.from_extension(path)):
+            # Empty/headerless joined file: no key column to bind on. Emit an
+            # all-miss null STRUCT so the nested object is suppressed (#217/#276).
+            struct_select.append(f'NULL AS "{_JOIN_STRUCT_PREFIX}{table}"')
+            continue
         from_parts.append(
             f'LEFT JOIN {reader(table, alias, dedup_key=lookup_key)} ON m."{source_key}" = {alias}."{lookup_key}"'
         )
@@ -191,7 +217,7 @@ def transform_block_via_join(
     # missing table therefore fails loud in _build_join_sql rather than silently
     # dropping the join.
     joins = _collect_joins(class_deriv, {})
-    sql, params = _build_join_sql(primary, joins, data_loader)
+    sql, params = _build_join_sql(primary, joins, data_loader, con)
 
     cursor = con.execute(sql, params)
     names = [d[0] for d in cursor.description]

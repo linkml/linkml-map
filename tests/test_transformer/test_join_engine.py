@@ -9,6 +9,7 @@ from __future__ import annotations
 import csv
 import textwrap
 
+import pytest
 import yaml
 from linkml_runtime import SchemaView
 
@@ -169,6 +170,45 @@ def test_sparse_miss_suppresses_object(tmp_path):
     assert per_row == engine
     miss = next(r for r in engine if r["id"] == "M2")
     assert miss["observation"] is None
+
+
+@pytest.mark.parametrize(
+    "reading_content",
+    ["", "subject_id\tscore\tvisit\n"],
+    ids=["zero_byte", "header_only"],
+)
+def test_empty_joined_file_degrades_to_null(tmp_path, reading_content):
+    """A 0-byte/headerless joined file must degrade to null, not crash the block (#276 regression)."""
+    target = textwrap.dedent("""\
+        id: https://example.org/t
+        name: t
+        prefixes: {linkml: https://w3id.org/linkml/}
+        default_prefix: t
+        default_range: string
+        imports: [linkml:types]
+        classes:
+          Result: {attributes: {id: {identifier: true}, method: {range: string}, reading_score: {range: float}}}
+    """)
+    spec = yaml.safe_load(
+        textwrap.dedent("""\
+        id: t
+        title: empty-join
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              id:
+              method:
+              reading_score: {expr: '{Reading.score}'}
+    """)
+    )
+    _write(tmp_path, dict([MEAS]))
+    (tmp_path / "Reading.tsv").write_text(reading_content)  # 0-byte or header-only
+    tr = _transformer(SRC, spec, target)
+    dl = DataLoader(tmp_path, schemaview=tr.source_schemaview)
+    engine = list(transform_via_join(tr, dl, source_type="Measurement"))
+    assert len(engine) == 2  # every primary row survives
+    assert all(r.get("reading_score") is None for r in engine)  # join degraded to null, no crash
 
 
 def test_multivalued_via_multiple_class_derivations(tmp_path):
