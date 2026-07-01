@@ -14,10 +14,11 @@ instead of a lookup. Nesting works to arbitrary depth because the merge carries
 every joined table forward.
 
 Scope (see :func:`can_use_join_engine`): file-loadable tables joined to-one on a
-key present in the primary. One-to-many *row aggregation* is not handled (the join
-is deduped to one row per key to match the per-row ``LIMIT 1`` and avoid row
-explosion); FK chains (``object_index``) and multi-hop dot paths fall back to the
-per-row path.
+key present in the primary. One-to-many *row aggregation* is not handled: the plain
+join streams and its row explosion is collapsed in Python to one output per primary
+row (matching the per-row ``LIMIT 1``), so the large joined table is never
+materialized to dedup it. FK chains (``object_index``) and multi-hop dot paths fall
+back to the per-row path.
 """
 
 from __future__ import annotations
@@ -130,19 +131,19 @@ def _build_join_sql(
 
     Columns are read as VARCHAR and coerced in Python with ``_parse_numeric`` (the
     same coercion the per-row lookup path uses), so typing matches exactly. Each
-    joined table is deduped to one row per key (``QUALIFY``) to match the per-row
-    ``LIMIT 1`` and avoid row explosion on a to-many table, becomes a ``STRUCT``
-    column named after the table, and a miss yields ``NULL`` so the nested object
-    is suppressed (#217).
+    joined table becomes a ``STRUCT`` column named after the table, and a miss
+    yields ``NULL`` so the nested object is suppressed (#217). The join is *plain*
+    (no in-SQL dedup): a ``QUALIFY``/``DISTINCT ON`` window would materialize the
+    whole joined table to dedup it, which is fatal for million-row tables. Instead
+    the join streams and its to-many row explosion is collapsed to one row per
+    primary in :func:`transform_block_via_join`, so only the small side is held.
     """
     params: list[str] = []
 
-    def reader(table: str, alias: str, dedup_key: str | None = None) -> str:
+    def reader(table: str, alias: str) -> str:
         path = str(data_loader.get_path(table))
         params.append(path)  # one '?' per reader, bound in FROM order
         select = _duckdb_read_expr(FileFormat.from_extension(path))
-        if dedup_key is not None:
-            select = f'{select} QUALIFY row_number() OVER (PARTITION BY "{dedup_key}") = 1'
         return f"({select}) {alias}"
 
     from_parts = [reader(primary, "m")]
@@ -154,9 +155,7 @@ def _build_join_sql(
         alias = f"j{i}"
         source_key = join.source_key or join.join_on
         lookup_key = join.lookup_key or join.join_on
-        from_parts.append(
-            f'LEFT JOIN {reader(table, alias, dedup_key=lookup_key)} ON m."{source_key}" = {alias}."{lookup_key}"'
-        )
+        from_parts.append(f'LEFT JOIN {reader(table, alias)} ON m."{source_key}" = {alias}."{lookup_key}"')
         struct_select.append(f'CASE WHEN {alias}."{lookup_key}" IS NULL THEN NULL ELSE {alias} END AS "{table}"')
 
     projection = "m.*" + ("".join(f", {s}" for s in struct_select))
@@ -177,15 +176,27 @@ def transform_block_via_join(
     joins = {t: j for t, j in _collect_joins(class_deriv, {}).items() if t in data_loader}
     sql, params = _build_join_sql(primary, joins, data_loader)
 
+    sv = transformer.source_schemaview
+    primary_id = next((s.name for s in sv.class_induced_slots(primary) if s.identifier), None)
+
     cursor = con.execute(sql, params)
     names = [d[0] for d in cursor.description]
     primary_cols = [n for n in names if n not in joins]  # everything that isn't a join struct
+    # A plain to-many join emits one row per (primary, joined-match) pair; collapse
+    # back to one output per primary row to match the per-row path's LIMIT 1. Keyed
+    # on the primary identifier when present, else the whole primary row. The set is
+    # bounded by the primary row count (ids only), so the joined table still streams.
+    seen: set[Any] = set()
     row_idx = 0
     while batch := cursor.fetchmany(10000):
         for row in batch:
             record = dict(zip(names, row))
             # Coerce VARCHAR values exactly as the per-row lookup path does.
             primary_row = {c: _parse_numeric(record[c]) for c in primary_cols}
+            collapse_key = primary_row[primary_id] if primary_id in primary_row else tuple(primary_row.values())
+            if collapse_key in seen:
+                continue
+            seen.add(collapse_key)
             rows_by_table = {primary: primary_row}
             for table in joins:
                 struct = record[table]  # STRUCT dict, or None on a miss

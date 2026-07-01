@@ -305,9 +305,59 @@ def test_to_many_join_does_not_explode_rows(tmp_path):
     # Two Reading rows for S1 (to-many on the key)
     reading_many = ("Reading", (["subject_id", "score", "visit"], [["S1", "95.5", "1"], ["S1", "10.0", "2"]]))
     measurements = ("Measurement", (["id", "subject_id", "method"], [["M1", "S1", "x"]]))
-    _, engine = _both(tmp_path, SRC, spec, target, "Measurement", dict([measurements, reading_many]))
-    # Exactly one output row per Measurement — no cartesian explosion.
+    per_row, engine = _both(tmp_path, SRC, spec, target, "Measurement", dict([measurements, reading_many]))
+    # Exactly one output row per Measurement — no cartesian explosion — and it
+    # keeps the first match, identical to the per-row path's LIMIT 1.
     assert len(engine) == 1
+    assert per_row == engine
+    assert engine[0]["reading_score"] == 95.5
+
+
+def test_to_many_collapse_without_primary_identifier(tmp_path):
+    """Collapse still holds when the primary class has no identifier (tuple fallback)."""
+    source = yaml.safe_load(
+        textwrap.dedent("""\
+        id: https://example.org/noid
+        name: noid
+        prefixes: {linkml: https://w3id.org/linkml/}
+        default_prefix: noid
+        default_range: string
+        imports: [linkml:types]
+        classes:
+          Measurement: {attributes: {subject_id: {range: string}, method: {range: string}}}
+          Reading: {attributes: {subject_id: {identifier: true}, score: {range: float}}}
+        """)
+    )
+    target = textwrap.dedent("""\
+        id: https://example.org/t
+        name: t
+        prefixes: {linkml: https://w3id.org/linkml/}
+        default_prefix: t
+        default_range: string
+        imports: [linkml:types]
+        classes:
+          Result: {attributes: {method: {range: string}, reading_score: {range: float}}}
+    """)
+    spec = yaml.safe_load(
+        textwrap.dedent("""\
+        id: t
+        title: t
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              method:
+              reading_score: {expr: '{Reading.score}'}
+    """)
+    )
+    # Two distinct primary rows, each matching two Reading rows on subject_id.
+    reading_many = ("Reading", (["subject_id", "score", "visit"], [["S1", "95.5", "1"], ["S1", "10.0", "2"]]))
+    measurements = ("Measurement", (["subject_id", "method"], [["S1", "a"], ["S1", "b"]]))
+    per_row, engine = _both(tmp_path, source, spec, target, "Measurement", dict([measurements, reading_many]))
+    # One output per distinct primary row (2), not the 4-row cartesian product.
+    assert len(engine) == 2
+    assert sorted(r["method"] for r in engine) == ["a", "b"]
+    assert per_row == engine
 
 
 def test_yaml_backed_table_is_not_engine_capable(tmp_path):

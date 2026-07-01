@@ -109,6 +109,11 @@ TARGET_SCHEMA_YAML = textwrap.dedent("""\
             identifier: true
           name: {}
           site_name: {}
+      SiteReport:
+        attributes:
+          sample_id:
+            identifier: true
+          name: {}
 """)
 
 
@@ -269,9 +274,12 @@ def test_transform_spec_closes_owned_index_on_exception(tmp_path):
     iteration exits exceptionally. A regression that moves the close out of the
     finally would silently break this without dedicated coverage.
     """
-    # Two rows: first succeeds, second triggers an IndexError via string
-    # indexing past the end of the name. The first successful yield gives the
-    # test a chance to capture tr.lookup_index before the cleanup finally runs.
+    # Two class_derivations: the first (a clean join block) yields, giving the
+    # test a chance to capture tr.lookup_index; the second triggers an IndexError
+    # via string indexing past the end of a short name. Block order is
+    # deterministic (the engine drains each block before the next), so the yield
+    # reliably precedes the raise even though row order *within* a join block is
+    # not file order.
     (tmp_path / "samples.tsv").write_text("sample_id\tname\tsite_code\nS001\tAlpha\tSITE_A\nS002\tBo\tSITE_A\n")
     (tmp_path / "sites.tsv").write_text("site_code\tsite_name\nSITE_A\tBoston Medical\n")
 
@@ -287,6 +295,11 @@ def test_transform_spec_closes_owned_index_on_exception(tmp_path):
                 populated_from: sample_id
               site_name:
                 expr: "{sites.site_name}"
+          SiteReport:
+            populated_from: samples
+            slot_derivations:
+              sample_id:
+                populated_from: sample_id
               name:
                 expr: "{name}[3]"
     """)
