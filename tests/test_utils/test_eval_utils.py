@@ -8,7 +8,13 @@ from typing import Any, Optional
 
 import pytest
 
-from linkml_map.utils.eval_utils import _uuid5, eval_expr
+from linkml_map.utils.eval_utils import (
+    _evaluator_pool,
+    _parse_cached,
+    _uuid5,
+    eval_expr,
+    eval_expr_with_mapping,
+)
 
 # -- helpers for path / attribute tests --
 
@@ -1303,3 +1309,55 @@ def test_case_converters_distribute_and_propagate_none() -> None:
         "SnakeCase",
         "HttpResponse",
     ]
+
+
+# -- caching / evaluator-reuse regression tests (issue #277) --
+
+
+@pytest.fixture
+def _reset_eval_caches() -> None:
+    """Clear the parse cache and per-thread evaluator pool for isolated observation."""
+    _parse_cached.cache_clear()
+    if hasattr(_evaluator_pool, "by_strict"):
+        _evaluator_pool.by_strict.clear()
+
+
+def test_repeated_expr_parsed_once(_reset_eval_caches: None) -> None:
+    """A repeated expression is parsed once, not once per row (issue #277)."""
+    rows = 50
+    for i in range(rows):
+        eval_expr_with_mapping("a + b", {"a": i, "b": 1})
+    info = _parse_cached.cache_info()
+    assert info.misses == 1
+    assert info.hits == rows - 1
+
+
+def test_evaluator_reused_across_rows(_reset_eval_caches: None) -> None:
+    """The evaluator is built once and reused, not reconstructed per row (issue #277)."""
+    eval_expr_with_mapping("a + b", {"a": 1, "b": 2})
+    first = _evaluator_pool.by_strict[False]
+    for i in range(50):
+        eval_expr_with_mapping("a + b", {"a": i, "b": 2})
+    assert _evaluator_pool.by_strict[False] is first
+
+
+def test_reused_evaluator_swaps_bindings_per_row(_reset_eval_caches: None) -> None:
+    """Reusing the evaluator still binds each row's values independently."""
+    results = [eval_expr_with_mapping("a * 2", {"a": i}) for i in range(5)]
+    assert results == [0, 2, 4, 6, 8]
+
+
+def test_strict_and_nonstrict_use_separate_evaluators(_reset_eval_caches: None) -> None:
+    """strict and non-strict share the pool key by ``strict`` and don't collide."""
+    eval_expr_with_mapping("a + 1", {"a": 1}, strict=False)
+    eval_expr_with_mapping("a + 1", {"a": 1}, strict=True)
+    assert _evaluator_pool.by_strict[False] is not _evaluator_pool.by_strict[True]
+    assert _evaluator_pool.by_strict[False].strict is False
+    assert _evaluator_pool.by_strict[True].strict is True
+
+
+def test_reused_evaluator_applies_per_call_functions(_reset_eval_caches: None) -> None:
+    """Per-call functions (e.g. a row-specific ``slot`` closure) are applied on reuse."""
+    assert eval_expr_with_mapping("f(2)", {}, functions={"f": lambda x: x + 10}) == 12
+    # A subsequent call with a different closure must see the new function, not a stale one.
+    assert eval_expr_with_mapping("f(2)", {}, functions={"f": lambda x: x * 10}) == 20
