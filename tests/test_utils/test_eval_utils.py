@@ -1303,3 +1303,19 @@ def test_case_converters_distribute_and_propagate_none() -> None:
         "SnakeCase",
         "HttpResponse",
     ]
+
+
+def test_qualified_unknown_root_fails_loud() -> None:
+    """A qualified ``{Unknown.col}`` whose root is unbound raises, even non-strict.
+
+    Distinct from a bare ``{missing}`` (legitimate SQL null) and a known-but-None
+    root (sparse-join miss), both of which stay null.
+    """
+    with pytest.raises(NameError, match="unknown 'Nope'"):
+        eval_expr("{Nope.col}", a=1)
+
+
+def test_bare_absent_and_known_none_stay_null() -> None:
+    """Bare absent names and known-but-None roots null out rather than raising."""
+    assert eval_expr("{missing}", a=1) is None
+    assert eval_expr("{a.b}", a=None) is None

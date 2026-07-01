@@ -976,22 +976,12 @@ class ObjectTransformer(Transformer):
                     )
                 else:
                     # No join spec for this nested source — cross-table reference can't be resolved.
-                    # Re-derive the candidate set so the diagnostic tells the user *why* synthesis
-                    # failed (no overlap vs. multiple non-identifier candidates), recovering the
-                    # detail lost when the per-row resolution path was consolidated into
-                    # normalization-time synthesis.
-                    from linkml_map.utils.join_utils import find_common_columns
+                    # Re-derive the reason via the shared resolver so the diagnostic tells the user
+                    # *why* synthesis failed (no overlap vs. multiple non-identifier candidates),
+                    # using the same logic synthesis used rather than a parallel implementation.
+                    from linkml_map.utils.join_utils import resolve_join
 
-                    common = find_common_columns(self.source_schemaview, parent_source, nested_source)
-                    if not common:
-                        reason = f"no columns are shared between {parent_source!r} and {nested_source!r}"
-                    else:
-                        candidates = ", ".join(sorted(common))
-                        reason = (
-                            f"multiple candidate join columns are shared between "
-                            f"{parent_source!r} and {nested_source!r} ({candidates}); "
-                            f"specify which to use"
-                        )
+                    reason = resolve_join(self.source_schemaview, parent_source, nested_source).reason
                     raise TransformationError(
                         message=(
                             f"Nested class {cls_derivation.name!r} has "

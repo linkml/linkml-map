@@ -394,6 +394,13 @@ FUNCTIONS: dict[str, Any] = {
     "is_numeric": _is_numeric,
 }
 
+#: Names injected into the unrestricted-eval namespace by ``ObjectTransformer``
+#: that are neither source slots nor tables. The restricted evaluator does not
+#: bind them, so a qualified ``{src.x}`` must not be flagged as an unknown
+#: reference — it resolves in the unrestricted fallback (or warns/nulls in
+#: restricted mode). Shared with normalization-time reference checking.
+INJECTED_EVAL_NAMES: frozenset[str] = frozenset({"src", "target", "uuid5"})
+
 
 def _maybe_coerce_numeric(left: Any, right: Any) -> tuple[Any, Any]:  # noqa: ANN401
     """
@@ -637,8 +644,29 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
 
         If the object is a list, ``obj.attr`` returns ``[item.attr for item in obj]``.
         If the object is a dict, it distributes over values.
+
+        A qualified reference ``{Name.attr}`` whose *root* name is genuinely
+        unknown (no such source slot, join alias, or function) is a broken
+        reference — a typo or a missing/renamed table — and fails loud even in
+        non-strict mode. This is distinct from a *bare* ``{col}`` absent from a
+        row (legitimate SQL null) and from a root that resolves to ``None`` (a
+        sparse-join miss or an absent schema slot), both of which stay null.
         """
-        obj = self._eval(node.value)
+        if isinstance(node.value, ast.Name) and node.value.id not in INJECTED_EVAL_NAMES:
+            try:
+                # Resolve the root via the base evaluator so an unknown name
+                # surfaces as NameNotDefined instead of being swallowed by the
+                # warn-and-null override in ``_eval_name``.
+                obj = super()._eval_name(node.value)
+            except NameNotDefined:
+                ref = f"{node.value.id}.{node.attr}"
+                msg = (
+                    f"Expression references unknown {node.value.id!r} in {ref!r}: "
+                    f"no such source class, join, or slot. Typo or stale reference?"
+                )
+                raise NameError(msg) from None
+        else:
+            obj = self._eval(node.value)
         return _distributed_getattr(obj, node.attr)
 
 
