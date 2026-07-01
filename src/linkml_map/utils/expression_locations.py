@@ -85,42 +85,8 @@ def extract_braced_reference_roots(expression: str) -> set[str]:
     return roots
 
 
-def extract_braced_bare_names(expression: str) -> set[str]:
-    """Return the bare-name references ``{name}`` in an expression.
-
-    A braced single-``ast.Name`` display (``{score}``) is a same-row/source-column
-    reference in the LinkML expression language (mirroring ``_eval_set``); it names
-    a column of the expression's source table. Qualified ``{Table.col}`` displays
-    and lambda/comprehension names are not bare references and are ignored.
-
-    Used by the join engine to project the source columns a nested derivation reads
-    via bare references. Callers intersect the result with the table's real columns,
-    so an over-broad name (a typo, or a primary column referenced from a
-    joined-source derivation) is harmless — it simply isn't projected, exactly as
-    the whole-row struct would have resolved it to ``None``.
-
-    :param expression: a LinkML expression string.
-    :returns: the set of bare braced names.
-    :raises SyntaxError: if *expression* is not parseable.
-    """
-    names: set[str] = set()
-    tree = ast.parse(expression, mode="exec")
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Set):
-            for elt in node.elts:
-                if isinstance(elt, ast.Name):
-                    names.add(elt.id)
-    return names
-
-
-def extract_table_column_references(expression: str, table_names: Iterable[str]) -> dict[str, set[str]]:
-    """Return the columns referenced per table as ``{Table.col}`` in an expression.
-
-    Like :func:`extract_table_references`, but keeps the attribute (column) name:
-    each ``{Table.col}`` contributes ``col`` to the set for ``Table``. The join
-    engine uses this to project only the referenced columns of a joined table (a
-    narrow ``STRUCT`` instead of the whole row), so it inherits the same
-    completeness guarantee the normalizer relies on.
+def extract_table_references(expression: str, table_names: Iterable[str]) -> set[str]:
+    """Return the tables referenced as ``{Table.col}`` in an expression.
 
     The LinkML expression language is parsed with Python's ``ast``, so
     ``{Table.col}`` appears as attribute access ``Table.col``. A reference counts
@@ -132,29 +98,14 @@ def extract_table_column_references(expression: str, table_names: Iterable[str])
 
     :param expression: a LinkML expression string.
     :param table_names: names that denote tables (source-schema classes).
-    :returns: a mapping of referenced table name to the set of its referenced columns.
-    :raises SyntaxError: if *expression* is not parseable (a malformed expr that
-        would also fail at evaluation — surfaced here rather than masked).
-    """
-    tables = set(table_names)
-    refs: dict[str, set[str]] = {}
-    tree = ast.parse(expression, mode="exec")
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name) and node.value.id in tables:
-            refs.setdefault(node.value.id, set()).add(node.attr)
-    return refs
-
-
-def extract_table_references(expression: str, table_names: Iterable[str]) -> set[str]:
-    """Return the tables referenced as ``{Table.col}`` in an expression.
-
-    The table-only view of :func:`extract_table_column_references` (its keys); see
-    that function for how references are recognized.
-
-    :param expression: a LinkML expression string.
-    :param table_names: names that denote tables (source-schema classes).
     :returns: the set of referenced table names.
     :raises SyntaxError: if *expression* is not parseable (a malformed expr that
         would also fail at evaluation — surfaced here rather than masked).
     """
-    return set(extract_table_column_references(expression, table_names))
+    tables = set(table_names)
+    refs: set[str] = set()
+    tree = ast.parse(expression, mode="exec")
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name) and node.value.id in tables:
+            refs.add(node.value.id)
+    return refs
