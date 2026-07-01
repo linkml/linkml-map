@@ -71,7 +71,7 @@ def _refs_engine_safe(class_deriv: ClassDerivation, available: set[str]) -> bool
     return True
 
 
-def can_use_join_engine(class_deriv: ClassDerivation, data_loader: DataLoader, sv: SchemaView) -> bool:
+def can_use_join_engine(class_deriv: ClassDerivation, data_loader: DataLoader, sv: SchemaView | None) -> bool:
     """Whether a class_derivation block can be transformed by the set-based join engine.
 
     Conservative — returns ``False`` (fall back to the per-row path) unless every
@@ -147,7 +147,9 @@ def _build_join_sql(
     params: list[str] = []
 
     def reader(table: str, alias: str, dedup_key: str | None = None) -> str:
-        path = str(data_loader.get_path(table))
+        # Resolve the path the same way _duckdb_readable does (get_path raises in
+        # single-file mode), so path resolution is consistent across the engine.
+        path = str(data_loader.base_path if data_loader.is_single_file else data_loader.get_path(table))
         params.append(path)  # one '?' per reader, bound in FROM order
         select = _duckdb_read_expr(FileFormat.from_extension(path))
         if dedup_key is not None:
