@@ -637,31 +637,56 @@ class Transformer(ABC):
         """
         for sd in class_deriv.slot_derivations.values():
             if not sd.class_derivations:
+                # Flat slot referencing a joined table column: populated_from: 'Table.col'.
+                # When Table names a different source class, synthesize the join so the
+                # runtime can resolve the dotted ref without an explicit joins: block (#279).
+                if sd.populated_from and "." in sd.populated_from:
+                    table_name = sd.populated_from.split(".", 1)[0]
+                    if table_name != parent_source and table_name in sv.all_classes():
+                        self._synthesize_join(class_deriv, parent_source, table_name, sv)
                 continue
             for nested_cd in sd.class_derivations:
                 nested_source = nested_cd.populated_from or parent_source
 
                 # Synthesize a join when the nested CD references a different table
                 if nested_source != parent_source:
-                    join_key = pick_join_key(sv, parent_source, nested_source)
-                    if join_key is not None:
-                        if class_deriv.joins is None:
-                            class_deriv.joins = {}
-                        if nested_source not in class_deriv.joins:
-                            class_deriv.joins[nested_source] = AliasedClass(
-                                alias=nested_source,
-                                join_on=join_key,
-                            )
-                            logger.info(
-                                "Synthesized implicit join: %s.joins[%r] on column %r",
-                                class_deriv.name,
-                                nested_source,
-                                join_key,
-                            )
+                    self._synthesize_join(class_deriv, parent_source, nested_source, sv)
 
                 # Always recurse into nested CD's own slots
                 if nested_cd.slot_derivations:
                     self._walk_and_synthesize_joins(nested_cd, nested_source, sv)
+
+    def _synthesize_join(
+        self,
+        class_deriv: ClassDerivation,
+        parent_source: str,
+        target_source: str,
+        sv: SchemaView,
+    ) -> None:
+        """Add an implicit join from *parent_source* to *target_source* on the parent CD.
+
+        Uses :func:`pick_join_key` to find the shared column. No-ops when no join key
+        can be determined or when a join for *target_source* already exists.
+
+        :param class_deriv: The ClassDerivation to add the join to.
+        :param parent_source: The parent's populated_from (join left-hand side).
+        :param target_source: The joined source class name (join right-hand side).
+        :param sv: Source schema view.
+        """
+        if class_deriv.joins and target_source in class_deriv.joins:
+            return
+        join_key = pick_join_key(sv, parent_source, target_source)
+        if join_key is None:
+            return
+        if class_deriv.joins is None:
+            class_deriv.joins = {}
+        class_deriv.joins[target_source] = AliasedClass(alias=target_source, join_on=join_key)
+        logger.info(
+            "Synthesized implicit join: %s.joins[%r] on column %r",
+            class_deriv.name,
+            target_source,
+            join_key,
+        )
 
     def _get_class_derivation(self, target_class_name: str) -> ClassDerivation:
         spec = self.derived_specification
