@@ -22,6 +22,8 @@ from linkml_map.datamodel.transformer_model import (
 from linkml_map.utils.expression_locations import (
     MAPPING_EXPR_FIELDS,
     SELF_EXPR_FIELDS,
+    extract_braced_bare_names,
+    extract_table_column_references,
     extract_table_references,
     iter_expressions,
 )
@@ -111,6 +113,49 @@ def test_extract_from_realistic_case_expression():
 def test_extract_malformed_expression_raises():
     with pytest.raises(SyntaxError):
         extract_table_references("{Reading.", TABLES)
+
+
+# --- extract_table_column_references (keeps the column) ---
+
+
+def test_extract_columns_single_reference():
+    assert extract_table_column_references("{Reading.score}", TABLES) == {"Reading": {"score"}}
+
+
+def test_extract_columns_multiple_columns_same_table():
+    expr = '{Reading.score} + "_" + {Reading.visit}'
+    assert extract_table_column_references(expr, TABLES) == {"Reading": {"score", "visit"}}
+
+
+def test_extract_columns_multiple_tables():
+    expr = "{Reading.id} + {Measurement.id}"
+    assert extract_table_column_references(expr, TABLES) == {"Reading": {"id"}, "Measurement": {"id"}}
+
+
+def test_extract_columns_ignores_bare_and_non_table():
+    assert extract_table_column_references("{score} + {notatable.x}", TABLES) == {}
+
+
+def test_extract_references_is_the_keys_of_column_references():
+    """The table-only view must stay exactly the keys of the column view."""
+    expr = "{Reading.score} + {Measurement.id}"
+    assert extract_table_references(expr, TABLES) == set(extract_table_column_references(expr, TABLES))
+
+
+# --- extract_braced_bare_names (same-row {col} references) ---
+
+
+def test_extract_bare_name():
+    assert extract_braced_bare_names("{score}") == {"score"}
+
+
+def test_extract_bare_names_multiple():
+    assert extract_braced_bare_names('{a} + "_" + {b}') == {"a", "b"}
+
+
+def test_extract_bare_names_ignores_qualified_reference():
+    """A qualified ``{Table.col}`` is not a bare name."""
+    assert extract_braced_bare_names("{Reading.score}") == set()
 
 
 # --- completeness guard: model introspection ---

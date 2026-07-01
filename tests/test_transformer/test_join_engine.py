@@ -15,7 +15,13 @@ from linkml_runtime import SchemaView
 from linkml_map.loaders.data_loaders import DataLoader
 from linkml_map.session import Session
 from linkml_map.transformer.engine import transform_spec
-from linkml_map.transformer.join_engine import can_use_join_engine, transform_via_join
+from linkml_map.transformer.join_engine import (
+    _build_join_sql,
+    _collect_joins,
+    _collect_referenced_columns,
+    can_use_join_engine,
+    transform_via_join,
+)
 
 
 def _write(tmp_path, tables: dict[str, tuple[list[str], list[list]]]) -> None:
@@ -358,6 +364,130 @@ def test_to_many_collapse_without_primary_identifier(tmp_path):
     assert len(engine) == 2
     assert sorted(r["method"] for r in engine) == ["a", "b"]
     assert per_row == engine
+
+
+# --- column projection ---
+
+
+def _first_cd(source_schema, spec):
+    tr = _cd(source_schema, spec)
+    cd = tr.derived_specification.class_derivations[0]
+    return cd, _collect_joins(cd, {})
+
+
+def test_collect_referenced_columns_from_expr():
+    """A ``{Table.col}`` expr contributes its column; the join key is not (added later)."""
+    spec = yaml.safe_load(
+        "id: t\ntitle: t\nclass_derivations:\n  Result:\n    populated_from: Measurement\n"
+        "    slot_derivations:\n      id:\n      reading_score: {expr: '{Reading.score}'}\n"
+    )
+    cd, joins = _first_cd(SRC, spec)
+    assert _collect_referenced_columns(cd, cd.populated_from, joins, {}) == {"Reading": {"score"}}
+
+
+def test_collect_referenced_columns_from_nested_populated_from():
+    """Bare ``populated_from`` slots of a nested CD sourced from a joined table are collected."""
+    spec = yaml.safe_load(
+        textwrap.dedent("""\
+        id: t
+        title: t
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              id:
+              observation:
+                class_derivations:
+                  - Observation:
+                      populated_from: Reading
+                      slot_derivations:
+                        value: {populated_from: score}
+                        visit_num: {populated_from: visit}
+        """)
+    )
+    cd, joins = _first_cd(SRC, spec)
+    assert _collect_referenced_columns(cd, cd.populated_from, joins, {}) == {"Reading": {"score", "visit"}}
+
+
+def test_collect_referenced_columns_from_bare_expr_in_nested():
+    """A bare ``{col}`` expr in a nested joined-source CD resolves against that table."""
+    spec = yaml.safe_load(
+        textwrap.dedent("""\
+        id: t
+        title: t
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              id:
+              observation:
+                class_derivations:
+                  - Observation:
+                      populated_from: Reading
+                      slot_derivations:
+                        value: {expr: '{score}'}
+        """)
+    )
+    cd, joins = _first_cd(SRC, spec)
+    assert _collect_referenced_columns(cd, cd.populated_from, joins, {}) == {"Reading": {"score"}}
+
+
+def test_bare_ref_to_missing_column_projects_safely(tmp_path):
+    """An over-broad bare ``{col}`` naming no real column is dropped, not a SQL error.
+
+    It must resolve to ``None`` exactly as the whole-row struct did — identical to
+    the per-row path.
+    """
+    target = textwrap.dedent("""\
+        id: https://example.org/t
+        name: t
+        prefixes: {linkml: https://w3id.org/linkml/}
+        default_prefix: t
+        default_range: string
+        imports: [linkml:types]
+        classes:
+          Result: {attributes: {id: {identifier: true}, observation: {range: Observation, inlined: true}}}
+          Observation: {attributes: {value: {range: float}, ghost: {range: string}}}
+    """)
+    spec = yaml.safe_load(
+        textwrap.dedent("""\
+        id: t
+        title: t
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              id:
+              observation:
+                class_derivations:
+                  - Observation:
+                      populated_from: Reading
+                      slot_derivations:
+                        value: {expr: '{score}'}
+                        ghost: {expr: '{no_such_column}'}
+        """)
+    )
+    per_row, engine = _both(tmp_path, SRC, spec, target, "Measurement", dict([MEAS, READING]))
+    assert per_row == engine
+    obs = engine[0]["observation"]
+    assert obs["value"] == 95.5
+    assert obs.get("ghost") is None  # missing column projected away -> None, no error
+
+
+def test_projection_struct_excludes_unreferenced_columns(tmp_path):
+    """The generated STRUCT names only referenced columns + the key — not the wide rest."""
+    _write(tmp_path, dict([MEAS, READING]))  # Reading has score AND visit
+    spec = yaml.safe_load(
+        "id: t\ntitle: t\nclass_derivations:\n  Result:\n    populated_from: Measurement\n"
+        "    slot_derivations:\n      id:\n      reading_score: {expr: '{Reading.score}'}\n"
+    )
+    cd, joins = _first_cd(SRC, spec)
+    dl = DataLoader(tmp_path, schemaview=_cd(SRC, spec).source_schemaview)
+    referenced = _collect_referenced_columns(cd, cd.populated_from, joins, {})
+    sql, _ = _build_join_sql("Measurement", joins, referenced, dl)
+    assert '"score"' in sql  # referenced column projected
+    assert '"subject_id"' in sql  # join key always included
+    assert '"visit"' not in sql  # unreferenced wide column pruned
 
 
 def test_yaml_backed_table_is_not_engine_capable(tmp_path):
