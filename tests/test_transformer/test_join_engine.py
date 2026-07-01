@@ -350,6 +350,45 @@ def test_to_many_join_does_not_explode_rows(tmp_path):
     assert len(engine) == 1
 
 
+def test_repeated_primary_keys_are_not_collapsed_by_join(tmp_path):
+    """Distinct primary rows sharing a join key must all survive (no dedup on the primary).
+
+    Regression guard: a to-many *join* is deduped to one row per key, but the
+    *primary* must not be — 3 subjects x 3 measurements = 9 primary rows joined
+    to a subject-keyed table must yield 9 outputs, not 3 (the streaming collapse
+    reverted in 5806939 keyed dedup on the subject id and dropped 6).
+    """
+    target = textwrap.dedent("""\
+        id: https://example.org/t
+        name: t
+        prefixes: {linkml: https://w3id.org/linkml/}
+        default_prefix: t
+        default_range: string
+        imports: [linkml:types]
+        classes:
+          Result: {attributes: {id: {identifier: true}, reading_score: {range: float}}}
+    """)
+    spec = yaml.safe_load(
+        textwrap.dedent("""\
+        id: t
+        title: t
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              id:
+              reading_score: {expr: '{Reading.score}'}
+    """)
+    )
+    # 3 subjects x 3 distinct measurements = 9 primary rows sharing subject keys.
+    meas_rows = [[f"{s}-{m}", s, m] for s in ("S1", "S2", "S3") for m in ("a", "b", "c")]
+    measurements = ("Measurement", (["id", "subject_id", "method"], meas_rows))
+    reading = ("Reading", (["subject_id", "score", "visit"], [[s, "9.9", "1"] for s in ("S1", "S2", "S3")]))
+    per_row, engine = _both(tmp_path, SRC, spec, target, "Measurement", dict([measurements, reading]))
+    assert per_row == engine
+    assert len(engine) == 9  # every distinct primary row survives, not collapsed to one per subject
+
+
 def test_yaml_backed_table_is_not_engine_capable(tmp_path):
     """A YAML-backed table can't be read by the DuckDB join, so the block falls back to per-row."""
     _write(tmp_path, dict([MEAS]))  # Measurement as TSV
