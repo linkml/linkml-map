@@ -322,3 +322,81 @@ def test_yaml_backed_table_is_not_engine_capable(tmp_path):
     dl = DataLoader(tmp_path, schemaview=tr.source_schemaview)
     cd = tr.derived_specification.class_derivations[0]
     assert can_use_join_engine(cd, dl, tr.source_schemaview) is False
+
+
+def test_missing_or_non_class_primary_is_not_engine_capable(tmp_path):
+    """No source schema, or a primary that isn't a source class, must fall back (not crash)."""
+    _write(tmp_path, dict([MEAS, READING]))
+    spec = yaml.safe_load(
+        "id: t\ntitle: t\nclass_derivations:\n  Result:\n    populated_from: Measurement\n"
+        "    slot_derivations:\n      id:\n      value: {expr: '{Reading.score}'}\n"
+    )
+    tr = _cd(FK_SRC, spec)
+    dl = DataLoader(tmp_path, schemaview=tr.source_schemaview)
+    cd = tr.derived_specification.class_derivations[0]
+    # No schema at all -> conservative False, not an AttributeError on None.
+    assert can_use_join_engine(cd, dl, None) is False
+    # A schema that doesn't contain the primary class -> conservative False.
+    other_sv = SchemaView(
+        textwrap.dedent("""\
+        id: https://example.org/other
+        name: other
+        prefixes: {linkml: https://w3id.org/linkml/}
+        default_prefix: other
+        default_range: string
+        imports: [linkml:types]
+        classes:
+          Reading: {attributes: {subject_id: {identifier: true}, score: {range: float}}}
+    """)
+    )
+    assert can_use_join_engine(cd, dl, other_sv) is False
+
+
+def test_primary_column_named_like_join_alias_is_preserved(tmp_path):
+    """A real primary column sharing a joined table's name must survive, not be dropped as a struct."""
+    source = yaml.safe_load(
+        textwrap.dedent("""\
+        id: https://example.org/collide
+        name: collide
+        prefixes: {linkml: https://w3id.org/linkml/}
+        default_prefix: collide
+        default_range: string
+        imports: [linkml:types]
+        classes:
+          Measurement:
+            attributes:
+              id: {identifier: true}
+              subject_id: {range: string}
+              Reading: {range: string}
+          Reading: {attributes: {subject_id: {identifier: true}, score: {range: float}}}
+    """)
+    )
+    target = textwrap.dedent("""\
+        id: https://example.org/t
+        name: t
+        prefixes: {linkml: https://w3id.org/linkml/}
+        default_prefix: t
+        default_range: string
+        imports: [linkml:types]
+        classes:
+          Result: {attributes: {id: {identifier: true}, tag: {range: string}, score: {range: float}}}
+    """)
+    spec = yaml.safe_load(
+        textwrap.dedent("""\
+        id: t
+        title: t
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              id:
+              tag: {populated_from: Reading}
+              score: {expr: '{Reading.score}'}
+    """)
+    )
+    meas = ("Measurement", (["id", "subject_id", "Reading"], [["M1", "S1", "hello"]]))
+    reading = ("Reading", (["subject_id", "score"], [["S1", "95.5"]]))
+    per_row, engine = _both(tmp_path, source, spec, target, "Measurement", dict([meas, reading]))
+    assert per_row == engine
+    assert engine[0]["tag"] == "hello"  # primary column preserved despite the name collision
+    assert engine[0]["score"] == 95.5  # joined table's column still resolved

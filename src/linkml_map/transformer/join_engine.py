@@ -77,6 +77,8 @@ def can_use_join_engine(class_deriv: ClassDerivation, data_loader: DataLoader, s
     Conservative — returns ``False`` (fall back to the per-row path) unless every
     condition holds, so the engine is never used where it could diverge:
 
+    - a source schema is available and the primary is one of its classes (needed
+      to read the primary's columns; otherwise fall back rather than crash);
     - the primary and all joined tables are file-loadable in a DuckDB-readable
       format (CSV/TSV/JSON — not YAML, which ``_duckdb_read_expr`` can't read);
     - the block has joins (otherwise the per-row path is already lookup-free);
@@ -86,6 +88,8 @@ def can_use_join_engine(class_deriv: ClassDerivation, data_loader: DataLoader, s
     """
     primary = class_deriv.populated_from or class_deriv.name
     if primary not in data_loader or not _duckdb_readable(data_loader, primary):
+        return False
+    if sv is None or primary not in sv.all_classes():
         return False
     joins = _collect_joins(class_deriv, {})
     if not joins:
@@ -103,6 +107,11 @@ def can_use_join_engine(class_deriv: ClassDerivation, data_loader: DataLoader, s
 
 #: File formats the DuckDB join can read (matches :func:`_duckdb_read_expr`).
 _DUCKDB_READABLE_FORMATS = frozenset({FileFormat.TSV, FileFormat.CSV, FileFormat.JSON})
+
+#: Prefix for the per-join STRUCT columns in the star query. Namespacing them keeps
+#: a real primary column from colliding with a joined table/alias name (which would
+#: otherwise drop that primary column from the row).
+_JOIN_STRUCT_PREFIX = "__join__"
 
 
 def _duckdb_readable(data_loader: DataLoader, table: str) -> bool:
@@ -157,7 +166,9 @@ def _build_join_sql(
         from_parts.append(
             f'LEFT JOIN {reader(table, alias, dedup_key=lookup_key)} ON m."{source_key}" = {alias}."{lookup_key}"'
         )
-        struct_select.append(f'CASE WHEN {alias}."{lookup_key}" IS NULL THEN NULL ELSE {alias} END AS "{table}"')
+        struct_select.append(
+            f'CASE WHEN {alias}."{lookup_key}" IS NULL THEN NULL ELSE {alias} END AS "{_JOIN_STRUCT_PREFIX}{table}"'
+        )
 
     projection = "m.*" + ("".join(f", {s}" for s in struct_select))
     sql = f"SELECT {projection} FROM {' '.join(from_parts)}"  # noqa: S608 - identifiers from schema/spec
@@ -174,12 +185,17 @@ def transform_block_via_join(
 ) -> Iterator[dict[str, Any]]:
     """Transform one class_derivation block with a single set-based join query."""
     primary = class_deriv.populated_from or class_deriv.name
-    joins = {t: j for t, j in _collect_joins(class_deriv, {}).items() if t in data_loader}
+    # Every join is guaranteed loadable here (can_use_join_engine gates on it); a
+    # missing table therefore fails loud in _build_join_sql rather than silently
+    # dropping the join.
+    joins = _collect_joins(class_deriv, {})
     sql, params = _build_join_sql(primary, joins, data_loader)
 
     cursor = con.execute(sql, params)
     names = [d[0] for d in cursor.description]
-    primary_cols = [n for n in names if n not in joins]  # everything that isn't a join struct
+    # Join STRUCTs are namespaced (_JOIN_STRUCT_PREFIX); everything else is a real
+    # primary column, so a primary column sharing a joined table's name is kept.
+    primary_cols = [n for n in names if not n.startswith(_JOIN_STRUCT_PREFIX)]
     row_idx = 0
     while batch := cursor.fetchmany(10000):
         for row in batch:
@@ -188,7 +204,7 @@ def transform_block_via_join(
             primary_row = {c: _parse_numeric(record[c]) for c in primary_cols}
             rows_by_table = {primary: primary_row}
             for table in joins:
-                struct = record[table]  # STRUCT dict, or None on a miss
+                struct = record[f"{_JOIN_STRUCT_PREFIX}{table}"]  # STRUCT dict, or None on a miss
                 rows_by_table[table] = {k: _parse_numeric(v) for k, v in struct.items()} if struct else struct
             merged = MergedRow(primary_row, rows_by_table=rows_by_table)
             try:
@@ -212,7 +228,15 @@ def transform_via_join(
     data_loader: DataLoader,
     source_type: str | None = None,
 ) -> Iterator[dict[str, Any]]:
-    """Transform every class_derivation block with the set-based join engine (all blocks)."""
+    """Transform every class_derivation block with the set-based join engine (all blocks).
+
+    An explicit *force-engine* helper: it routes every block through the engine
+    without a per-block capability check, so callers must ensure the spec is
+    engine-capable (see :func:`can_use_join_engine`). Production dispatch lives in
+    :func:`~linkml_map.transformer.engine.transform_spec`, which gates each block
+    and falls back to the per-row path; this helper exists mainly for parity
+    testing against that path.
+    """
     spec = transformer.derived_specification
     if spec is None:
         return
