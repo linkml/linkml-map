@@ -804,23 +804,35 @@ class Transformer(ABC):
         """Fail fast on a cross-table reference that has no class_derivation to host its join.
 
         Enum, permissible-value, and top-level slot derivations are not nested
-        under a ClassDerivation, so a ``{Table.col}`` reference in one of them
-        cannot be turned into a ``joins:`` entry. Rather than let it silently
-        resolve to ``None`` at runtime, surface it here.
+        under a ClassDerivation, so a cross-table reference in one of them cannot
+        be turned into a ``joins:`` entry. Both reference forms are covered: a
+        ``{Table.col}`` reference in an expression, and a structural
+        ``populated_from: Table.col`` whose root names a source table. Rather than
+        let either silently resolve to ``None`` at runtime, surface it here.
 
         :raises ValueError: if such a reference is found.
         """
 
         def check(kind: str, name: str | None, derivation: Any) -> None:  # noqa: ANN401
+            refs: set[str] = set()
             for expression in iter_expressions(derivation):
-                refs = extract_table_references(expression, table_names)
-                if refs:
-                    msg = (
-                        f"Cross-table reference(s) {sorted(refs)} in {kind} {name!r} cannot be "
-                        f"joined: only class_derivations can host joins. Move the derivation under "
-                        f"a class_derivation, or reference only same-row columns."
-                    )
-                    raise ValueError(msg)
+                refs |= extract_table_references(expression, table_names)
+            # populated_from is a string on slot/enum derivations but list-form on
+            # permissible-value derivations — normalize to a list before splitting.
+            populated_from = getattr(derivation, "populated_from", None)
+            pf_values = populated_from if isinstance(populated_from, list) else [populated_from]
+            for pf in pf_values:
+                if pf and "." in pf:
+                    table = pf.split(".", 1)[0]
+                    if table in table_names:
+                        refs.add(table)
+            if refs:
+                msg = (
+                    f"Cross-table reference(s) {sorted(refs)} in {kind} {name!r} cannot be "
+                    f"joined: only class_derivations can host joins. Move the derivation under "
+                    f"a class_derivation, or reference only same-row columns."
+                )
+                raise ValueError(msg)
 
         for enum_derivation in self._values(spec.enum_derivations):
             check("enum_derivation", enum_derivation.name, enum_derivation)
