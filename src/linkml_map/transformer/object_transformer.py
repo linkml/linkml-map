@@ -32,6 +32,7 @@ from linkml_map.transformer.transformer import OBJECT_TYPE, Transformer
 from linkml_map.utils.dynamic_object import DynObj, dynamic_object
 from linkml_map.utils.eval_utils import _uuid5, eval_expr, eval_expr_with_mapping
 from linkml_map.utils.fk_utils import FKResolution, resolve_fk_path
+from linkml_map.utils.join_utils import join_keys
 
 DICT_OBJ = dict[str, Any]
 
@@ -808,11 +809,7 @@ class ObjectTransformer(Transformer):
             return source_obj.rows_by_table[table_name]
 
         spec = class_deriv.joins[table_name]
-        source_key = spec.source_key or spec.join_on
-        lookup_key = spec.lookup_key or spec.join_on
-        if not source_key or not lookup_key:
-            msg = f"Join spec for {table_name!r} must specify 'join_on' or both 'source_key' and 'lookup_key'"
-            raise ValueError(msg)
+        source_key, lookup_key = join_keys(spec)
         key_val = source_obj.get(source_key)
         if key_val is None:
             return None
@@ -977,7 +974,7 @@ class ObjectTransformer(Transformer):
                         )
                         continue
                     join_spec = parent_class_deriv.joins[nested_source]
-                    join_key = join_spec.join_on or join_spec.source_key or ""
+                    join_key, _ = join_keys(join_spec)  # parent-side key; kept unmarked in the merge
                     effective_obj = self._merge_rows(
                         source_obj,
                         joined_row,

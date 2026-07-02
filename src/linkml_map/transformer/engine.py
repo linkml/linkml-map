@@ -9,10 +9,10 @@ from typing import TYPE_CHECKING, Any
 from linkml_map.transformer.errors import TransformationError
 from linkml_map.transformer.join_engine import (
     can_use_join_engine,
-    make_connection,
     transform_block_via_join,
 )
-from linkml_map.utils.lookup_index import LookupIndex
+from linkml_map.utils.join_utils import join_keys
+from linkml_map.utils.lookup_index import LookupIndex, make_connection
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -38,11 +38,7 @@ def _collect_all_joins(class_deriv: ClassDerivation) -> dict[str, tuple[str, str
     def _collect_from(cd: ClassDerivation) -> None:
         if cd.joins:
             for join_name, join_spec in cd.joins.items():
-                lookup_key = join_spec.lookup_key or join_spec.join_on
-                source_key = join_spec.source_key or join_spec.join_on
-                if not lookup_key or not source_key:
-                    msg = f"Join {join_name!r} must specify 'join_on' or both 'source_key' and 'lookup_key'"
-                    raise ValueError(msg)
+                source_key, lookup_key = join_keys(join_spec)
                 existing = result.get(join_name)
                 if existing and existing != (source_key, lookup_key):
                     msg = f"Conflicting join specs for {join_name!r}: {existing} vs ({source_key!r}, {lookup_key!r})"

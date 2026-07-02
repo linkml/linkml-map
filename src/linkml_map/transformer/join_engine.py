@@ -22,23 +22,31 @@ per-row path.
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, Any
-
-import duckdb
 
 from linkml_map.loaders.data_loaders import FileFormat
 from linkml_map.transformer.errors import TransformationError
 from linkml_map.transformer.object_transformer import MergedRow
-from linkml_map.utils.lookup_index import _duckdb_read_expr, _parse_numeric, _resolve_duckdb_settings
+from linkml_map.utils.join_utils import join_keys
+from linkml_map.utils.lookup_index import (
+    _duckdb_read_expr,
+    _parse_numeric,
+    _validate_identifier,
+    make_connection,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
 
+    import duckdb
     from linkml_runtime import SchemaView
 
     from linkml_map.datamodel.transformer_model import AliasedClass, ClassDerivation
     from linkml_map.loaders.data_loaders import DataLoader
     from linkml_map.transformer.object_transformer import ObjectTransformer
+
+logger = logging.getLogger(__name__)
 
 
 def _collect_joins(class_deriv: ClassDerivation, acc: dict[str, AliasedClass]) -> dict[str, AliasedClass]:
@@ -105,6 +113,8 @@ def can_use_join_engine(class_deriv: ClassDerivation, data_loader: DataLoader, s
     for table, join in joins.items():
         if table not in data_loader or not _duckdb_readable(data_loader, table):
             return False
+        # Inline (not join_keys) on purpose: this is a non-raising capability probe —
+        # a keyless join makes the block ineligible, it must not raise mid-dispatch.
         source_key = join.source_key or join.join_on
         if not source_key or source_key not in primary_cols:
             return False
@@ -144,15 +154,6 @@ def _readable_columns(con: duckdb.DuckDBPyConnection, path: str, fmt: FileFormat
     return {r[0] for r in rows}
 
 
-def make_connection() -> duckdb.DuckDBPyConnection:
-    """Open a DuckDB connection configured to respect container limits (P1)."""
-    con = duckdb.connect(":memory:")
-    for name, value in _resolve_duckdb_settings().items():
-        literal = value if isinstance(value, int) else "'" + str(value).replace("'", "''") + "'"
-        con.execute(f"SET {name}={literal}")  # noqa: S608 - fixed names, sanitized values
-    return con
-
-
 def _build_join_sql(
     primary: str,
     joins: dict[str, AliasedClass],
@@ -168,10 +169,13 @@ def _build_join_sql(
     column named after the table, and a miss yields ``NULL`` so the nested object
     is suppressed (#217).
 
-    A joined file whose ``lookup_key`` column is absent (e.g. a 0-byte, headerless
-    file — see :func:`_readable_columns`) is degraded to a literal ``NULL`` STRUCT,
-    the same all-miss result a header-only file already produces, rather than
-    joining on a non-existent column (#276).
+    A join whose key column is absent from the file it binds on — the joined
+    ``lookup_key`` (e.g. a 0-byte, headerless file, see :func:`_readable_columns`)
+    *or* the primary ``source_key`` (a study-arm/cohort file that shares the model
+    but omits a column) — is degraded to a literal ``NULL`` STRUCT, the same all-miss
+    result a header-only file produces, rather than binding a non-existent column
+    (which raises ``BinderException`` and aborts the whole block, #276). Both files
+    are probed the same way so the primary and joined sides degrade identically.
     """
     params: list[str] = []
 
@@ -183,6 +187,8 @@ def _build_join_sql(
             select = f'{select} QUALIFY row_number() OVER (PARTITION BY "{dedup_key}") = 1'
         return f"({select}) {alias}"
 
+    primary_path = _table_path(data_loader, primary)
+    primary_cols = _readable_columns(con, primary_path, FileFormat.from_extension(primary_path))
     from_parts = [reader(primary, "m")]
     # m.* projects the primary's actual file columns; the bare alias jN projects
     # the whole joined row as a STRUCT (its real file columns, not schema slots —
@@ -190,12 +196,26 @@ def _build_join_sql(
     struct_select = []
     for i, (table, join) in enumerate(joins.items()):
         alias = f"j{i}"
-        source_key = join.source_key or join.join_on
-        lookup_key = join.lookup_key or join.join_on
+        source_key, lookup_key = join_keys(join)
+        for identifier in (table, source_key, lookup_key):
+            _validate_identifier(identifier)
         path = _table_path(data_loader, table)
-        if lookup_key not in _readable_columns(con, path, FileFormat.from_extension(path)):
-            # Empty/headerless joined file: no key column to bind on. Emit an
-            # all-miss null STRUCT so the nested object is suppressed (#217/#276).
+        joined_cols = _readable_columns(con, path, FileFormat.from_extension(path))
+        if source_key not in primary_cols or lookup_key not in joined_cols:
+            # A key column is missing from the file it binds on. Emit an all-miss
+            # null STRUCT (nested object suppressed, #217/#276) instead of binding a
+            # column that isn't there, and surface the misfire for data-quality triage.
+            logger.warning(
+                "Join %r skipped for this input: key column absent "
+                "(source_key %r in primary %r: %s; lookup_key %r in %r: %s); emitting null.",
+                table,
+                source_key,
+                primary,
+                source_key in primary_cols,
+                lookup_key,
+                table,
+                lookup_key in joined_cols,
+            )
             struct_select.append(f'NULL AS "{_JOIN_STRUCT_PREFIX}{table}"')
             continue
         from_parts.append(

@@ -7,6 +7,7 @@ sparse misses (#217), and multivalued nesting via multiple class_derivations.
 from __future__ import annotations
 
 import csv
+import logging
 import textwrap
 
 import pytest
@@ -209,6 +210,49 @@ def test_empty_joined_file_degrades_to_null(tmp_path, reading_content):
     engine = list(transform_via_join(tr, dl, source_type="Measurement"))
     assert len(engine) == 2  # every primary row survives
     assert all(r.get("reading_score") is None for r in engine)  # join degraded to null, no crash
+
+
+def test_primary_missing_source_key_degrades_to_null(tmp_path, caplog):
+    """A primary file that shares the model but omits the join key column must not crash.
+
+    Study-arm/cohort files sometimes drop a column the schema declares. ``can_use_join_engine``
+    gates on the *schema* (which has the column), so the block reaches the engine; the file
+    probe must then degrade the join to null and log, exactly as a missing joined-side key does,
+    rather than binding ``m."subject_id"`` and aborting the block with a BinderException.
+    """
+    target = textwrap.dedent("""\
+        id: https://example.org/t
+        name: t
+        prefixes: {linkml: https://w3id.org/linkml/}
+        default_prefix: t
+        default_range: string
+        imports: [linkml:types]
+        classes:
+          Result: {attributes: {id: {identifier: true}, method: {range: string}, reading_score: {range: float}}}
+    """)
+    spec = yaml.safe_load(
+        textwrap.dedent("""\
+        id: t
+        title: missing-source-key
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              id:
+              method:
+              reading_score: {expr: '{Reading.score}'}
+    """)
+    )
+    # Measurement file omits subject_id (the source_key) though the schema declares it.
+    measurements = ("Measurement", (["id", "method"], [["M1", "spiro"], ["M2", "peak"]]))
+    _write(tmp_path, dict([measurements, READING]))
+    tr = _transformer(SRC, spec, target)
+    dl = DataLoader(tmp_path, schemaview=tr.source_schemaview)
+    with caplog.at_level(logging.WARNING):
+        engine = list(transform_via_join(tr, dl, source_type="Measurement"))
+    assert len(engine) == 2  # every primary row survives
+    assert all(r.get("reading_score") is None for r in engine)  # join degraded to null, no crash
+    assert any("Reading" in r.message and "subject_id" in r.message for r in caplog.records)  # misfire logged
 
 
 def test_multivalued_via_multiple_class_derivations(tmp_path):
