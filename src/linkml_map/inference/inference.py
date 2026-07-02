@@ -58,17 +58,19 @@ def induce_missing_values(specification: TransformationSpecification, source_sch
                         if field_path in induced_names:
                             source_induced_slot = source_schemaview.induced_slot(field_path, joined_class)
                             source_induced_slot_range = source_induced_slot.range
-                    if source_induced_slot_range is None:
-                        # Leave range unset and let the runtime resolve the dotted ref;
-                        # do not fall through to a bare-slot lookup, which would raise
-                        # for a table-qualified name (#279).
-                        continue
-                else:
+
+                if source_induced_slot_range is None:
                     fk_resolution = resolve_fk_path(source_schemaview, cd.populated_from, populated_from_slot)
                     if fk_resolution:
                         if not fk_resolution.final_slot:
                             continue
                         source_induced_slot_range = fk_resolution.final_slot.range
+                    elif "." in populated_from_slot:
+                        # Table-qualified ref that resolved to neither a join/class
+                        # column nor an FK path: skip induction and let the runtime
+                        # resolve the dotted ref, rather than crashing on a bare-slot
+                        # lookup of 'Table.col' (#279).
+                        continue
                     else:
                         source_induced_slot = source_schemaview.induced_slot(populated_from_slot, cd.populated_from)
                         source_induced_slot_range = source_induced_slot.range
