@@ -34,7 +34,7 @@ from linkml_runtime import SchemaView
 from linkml_map.datamodel import TR_SCHEMA
 from linkml_map.transformer.transformer import Transformer
 from linkml_map.utils.eval_utils import FUNCTIONS
-from linkml_map.utils.join_utils import find_common_columns, pick_join_key
+from linkml_map.utils.join_utils import resolve_join
 
 logger = logging.getLogger(__name__)
 
@@ -918,11 +918,15 @@ def _check_cross_table_join(
     Closes #211 at validate-spec time. Mirrors the runtime synthesis logic
     in :class:`~linkml_map.transformer.transformer.Transformer`:
 
-    - Explicit ``joins:`` covers the nested source → no message.
-    - No explicit join, :func:`~linkml_map.utils.join_utils.pick_join_key`
-      returns a column → ``info`` (#212 will auto-synthesize at runtime).
-    - No explicit join, no implicit join can be synthesized → ``warning``
-      with the same diagnostic the runtime would raise.
+    - Explicit ``joins:`` covers the nested source → verify its keys.
+    - No explicit join, :func:`~linkml_map.utils.join_utils.resolve_join`
+      returns a key → ``info`` (will auto-synthesize at runtime).
+    - No explicit join, :func:`~linkml_map.utils.join_utils.resolve_join`
+      returns a reason → ``warning`` with the same diagnostic the runtime
+      would raise.
+
+    When run against the *derived* spec (post-synthesis), synthesized joins are
+    already explicit, so the first branch handles them and no prediction occurs.
     """
     nested_source = nested_cd.get("populated_from")
     # Identity case for the parent: fall back to its name when populated_from
@@ -994,8 +998,8 @@ def _check_cross_table_join(
         # Missing-class errors are emitted elsewhere; can't predict joinability.
         return
 
-    key = pick_join_key(source_sv, parent_source, nested_source)
-    if key is not None:
+    resolution = resolve_join(source_sv, parent_source, nested_source)
+    if resolution.key is not None:
         messages.append(
             ValidationMessage(
                 severity="info",
@@ -1004,21 +1008,13 @@ def _check_cross_table_join(
                     f"Nested 'populated_from={nested_source}' differs from parent "
                     f"'populated_from={parent_source}'. No explicit join entry for "
                     f"'{nested_source}'; implicit join will be synthesized on column "
-                    f"'{key}'. Consider declaring the join explicitly."
+                    f"'{resolution.key}'. Consider declaring the join explicitly."
                 ),
             )
         )
         return
 
-    common = find_common_columns(source_sv, parent_source, nested_source)
-    if not common:
-        reason = f"no columns are shared between '{parent_source}' and '{nested_source}'"
-    else:
-        candidates = ", ".join(f"'{c}'" for c in sorted(common))
-        reason = (
-            f"multiple candidate join columns are shared between '{parent_source}' "
-            f"and '{nested_source}' ({candidates}); cannot pick automatically"
-        )
+    reason = resolution.reason
     messages.append(
         ValidationMessage(
             severity="warning",
