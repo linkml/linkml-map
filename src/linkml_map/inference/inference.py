@@ -41,12 +41,7 @@ def induce_missing_values(specification: TransformationSpecification, source_sch
 
                 source_induced_slot_range = None
                 if "." in populated_from_slot:
-                    # Dotted ref (Table.col): resolve col against the joined or
-                    # directly-named source class, not as a bare slot on the primary
-                    # class. The runtime resolves the actual join; here we only need
-                    # the range for downstream class-derivation mapping. This runs
-                    # before _synthesize_implicit_joins, so cd.joins may be empty even
-                    # when Table names a real source class.
+                    # cd.joins may be empty here (join synthesis runs later).
                     table_name, field_path = populated_from_slot.split(".", 1)
                     joined_class = None
                     if cd.joins and table_name in cd.joins:
@@ -66,10 +61,7 @@ def induce_missing_values(specification: TransformationSpecification, source_sch
                             continue
                         source_induced_slot_range = fk_resolution.final_slot.range
                     elif "." in populated_from_slot:
-                        # Table-qualified ref that resolved to neither a join/class
-                        # column nor an FK path: skip induction and let the runtime
-                        # resolve the dotted ref, rather than crashing on a bare-slot
-                        # lookup of 'Table.col' (#279).
+                        # Unresolvable Table.col: skip (bare-slot lookup would raise, #279).
                         continue
                     else:
                         source_induced_slot = source_schemaview.induced_slot(populated_from_slot, cd.populated_from)

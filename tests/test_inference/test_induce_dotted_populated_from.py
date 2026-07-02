@@ -97,6 +97,5 @@ def test_table_qualified_populated_from_does_not_crash():
     )
     derived = _derived(spec)
     person_out = next(cd for cd in derived.class_derivations if cd.name == "PersonOut")
-    # city's range is a scalar (string) with no matching class derivation, so the
-    # target range stays unset — but normalization must not crash.
+    # Scalar range, no matching class derivation → range unset, but no crash.
     assert _slot_derivation(person_out, "city").range is None

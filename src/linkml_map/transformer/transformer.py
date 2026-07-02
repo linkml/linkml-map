@@ -667,11 +667,6 @@ class Transformer(ABC):
         for sd in class_deriv.slot_derivations.values():
             self._synthesize_joins_for_expressions(class_deriv, parent_source, sd, sv, table_names, available)
 
-            # Flat slot referencing a joined table column: populated_from: 'Table.col'.
-            # When Table names a source class not already in scope, synthesize the join
-            # so the runtime resolves the dotted ref without an explicit joins: block
-            # (#279). Structural (non-required): an un-keyable join defers to the
-            # runtime's more specific diagnostic, unlike an expression {Table.col}.
             if sd.populated_from and "." in sd.populated_from:
                 table_name = sd.populated_from.split(".", 1)[0]
                 if table_name not in available and table_name in table_names:
@@ -805,10 +800,9 @@ class Transformer(ABC):
 
         Enum, permissible-value, and top-level slot derivations are not nested
         under a ClassDerivation, so a cross-table reference in one of them cannot
-        be turned into a ``joins:`` entry. Both reference forms are covered: a
-        ``{Table.col}`` reference in an expression, and a structural
-        ``populated_from: Table.col`` whose root names a source table. Rather than
-        let either silently resolve to ``None`` at runtime, surface it here.
+        be turned into a ``joins:`` entry. Covers both an expression ``{Table.col}``
+        and a structural ``populated_from: Table.col``; surface either rather than
+        letting it silently resolve to ``None`` at runtime.
 
         :raises ValueError: if such a reference is found.
         """
@@ -817,8 +811,7 @@ class Transformer(ABC):
             refs: set[str] = set()
             for expression in iter_expressions(derivation):
                 refs |= extract_table_references(expression, table_names)
-            # populated_from is a string on slot/enum derivations but list-form on
-            # permissible-value derivations — normalize to a list before splitting.
+            # populated_from is list-form on permissible-value derivations.
             populated_from = getattr(derivation, "populated_from", None)
             pf_values = populated_from if isinstance(populated_from, list) else [populated_from]
             for pf in pf_values:
