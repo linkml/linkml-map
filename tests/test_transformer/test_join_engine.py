@@ -479,3 +479,45 @@ def test_primary_column_named_like_join_alias_is_preserved(tmp_path):
     assert per_row == engine
     assert engine[0]["tag"] == "hello"  # primary column preserved despite the name collision
     assert engine[0]["score"] == 95.5  # joined table's column still resolved
+
+
+def test_join_resolves_when_alias_differs_from_join_key(tmp_path):
+    """The engine keys MergedRow by the ``joins`` dict key, not ``join.alias``.
+
+    ``alias`` is the ``key: true`` slot, so it normally equals the joins key, but it
+    can diverge under programmatic construction. ``_resolve_joined_row`` always looks
+    up ``rows_by_table`` by the joins key, so keying the merge by ``alias`` would put
+    the row under a key the runtime never reads, silently breaking the join.
+    """
+    target = textwrap.dedent("""\
+        id: https://example.org/t
+        name: t
+        prefixes: {linkml: https://w3id.org/linkml/}
+        default_prefix: t
+        default_range: string
+        imports: [linkml:types]
+        classes:
+          Result: {attributes: {id: {identifier: true}, reading_score: {range: float}}}
+    """)
+    spec = yaml.safe_load(
+        textwrap.dedent("""\
+        id: t
+        title: t
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              id:
+              reading_score: {expr: '{Reading.score}'}
+    """)
+    )
+    _write(tmp_path, dict([MEAS, READING]))
+    tr = _transformer(SRC, spec, target)
+    cd = tr.derived_specification.class_derivations[0]
+    # Force alias != joins key ("Reading"); the runtime resolves by the key.
+    cd.joins["Reading"].alias = "aliased_reading"
+    out = sorted(
+        transform_via_join(tr, DataLoader(tmp_path, schemaview=tr.source_schemaview), source_type="Measurement"),
+        key=lambda r: r["id"],
+    )
+    assert out[0]["reading_score"] == 95.5

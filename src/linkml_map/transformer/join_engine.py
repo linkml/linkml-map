@@ -42,9 +42,16 @@ if TYPE_CHECKING:
 
 
 def _collect_joins(class_deriv: ClassDerivation, acc: dict[str, AliasedClass]) -> dict[str, AliasedClass]:
-    """Collect every join (this CD's and all nested CDs') keyed by joined table name."""
-    for join in (class_deriv.joins or {}).values():
-        acc.setdefault(join.alias, join)
+    """Collect every join (this CD's and all nested CDs') keyed by the ``joins`` mapping key.
+
+    The key must be the ``joins:`` dict key (the join name), not ``join.alias``: the
+    per-row path and ``_resolve_joined_row`` resolve ``MergedRow.rows_by_table`` by that
+    name, so keying by anything else would populate the merge under a key the runtime
+    never reads. ``alias`` is normally the same value (it's the ``key: true`` slot) but
+    can diverge under programmatic construction.
+    """
+    for join_name, join in (class_deriv.joins or {}).items():
+        acc.setdefault(join_name, join)
     for slot_deriv in class_deriv.slot_derivations.values():
         for nested in slot_deriv.class_derivations or []:
             _collect_joins(nested, acc)
