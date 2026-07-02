@@ -21,12 +21,20 @@ import ast
 import difflib
 import logging
 import math
+import threading
 import uuid
 from collections.abc import Iterable, Mapping
+from functools import lru_cache
 from typing import Any
 
 import inflection
-from simpleeval import EvalWithCompoundTypes, InvalidExpression, NameNotDefined
+from simpleeval import (
+    DISALLOW_FUNCTIONS,
+    EvalWithCompoundTypes,
+    FeatureNotAvailable,
+    InvalidExpression,
+    NameNotDefined,
+)
 from slugify import slugify as _slugify_lib
 
 logger = logging.getLogger(__name__)
@@ -715,6 +723,91 @@ def _make_evaluator(
     )
 
 
+#: Compound-type constructors that ``EvalWithCompoundTypes`` injects into the
+#: function namespace at construction time. Materialized here so the reusable
+#: evaluator's function set can be rebuilt without depending on that init-time
+#: mutation (see :func:`_resolve_functions`).
+_COMPOUND_TYPE_FUNCTIONS: dict[str, Any] = {"list": list, "tuple": tuple, "dict": dict, "set": set}
+
+#: Function namespace for expressions with no caller-supplied functions.
+_DEFAULT_FUNCTIONS: dict[str, Any] = {**FUNCTIONS, **_COMPOUND_TYPE_FUNCTIONS}
+
+
+@lru_cache(maxsize=512)
+def _parse_cached(expr: str) -> ast.stmt:
+    """Parse an expression string into an AST node, cached by expression text.
+
+    Expression strings are static per ``slot_derivation.expr`` but evaluated
+    once per row, so caching the parse collapses N-row re-parses into one.
+    Mirrors :meth:`simpleeval.SimpleEval.parse`; the returned node is reused
+    read-only across rows and evaluators, which is safe because simpleeval's
+    AST walk never mutates nodes.
+    """
+    return LinkMLEvaluator.parse(expr)
+
+
+def _resolve_functions(functions: dict[str, Any] | None) -> dict[str, Any]:
+    """Build the full function namespace for an evaluation.
+
+    Reproduces the layering ``EvalWithCompoundTypes.__init__`` applies:
+    caller functions override the built-ins, and the compound-type
+    constructors override both.
+    """
+    if functions:
+        return {**FUNCTIONS, **functions, **_COMPOUND_TYPE_FUNCTIONS}
+    return _DEFAULT_FUNCTIONS
+
+
+def _assert_functions_allowed(functions: dict[str, Any]) -> None:
+    """Reject caller functions that simpleeval forbids (e.g. ``eval``, ``exec``).
+
+    ``SimpleEval.__init__`` runs this check on construction; the reusable
+    evaluator only builds once, so the check is repeated here on every call to
+    preserve that behavior for caller-supplied functions (the built-ins are
+    known-safe).
+    """
+    for f in functions.values():
+        if f in DISALLOW_FUNCTIONS:
+            msg = f"This function {f} is a really bad idea."
+            raise FeatureNotAvailable(msg)
+
+
+#: Per-thread pool of reusable evaluators, keyed by ``strict``. Thread-local so
+#: concurrent transforms never share mutable ``names`` state.
+_evaluator_pool = threading.local()
+
+
+def _get_reusable_evaluator(
+    names: Any,  # noqa: ANN401
+    functions: dict[str, Any],
+    *,
+    strict: bool,
+    warned_unbound: set[str] | None,
+) -> LinkMLEvaluator:
+    """Return a per-thread evaluator configured for this call.
+
+    The evaluator's expensive-to-build parts (the operator-override dict and
+    node dispatch table) are independent of the row data, the bound names, the
+    function set, and ``strict`` mode, so a single instance is reused across
+    rows and only its mutable attributes are reset per call. This collapses the
+    per-row ``LinkMLEvaluator``/``SimpleEval`` construction cost to one build
+    per ``strict`` value per thread.
+    """
+    cache = getattr(_evaluator_pool, "by_strict", None)
+    if cache is None:
+        cache = _evaluator_pool.by_strict = {}
+    evaluator = cache.get(strict)
+    if evaluator is None:
+        evaluator = cache[strict] = _make_evaluator(
+            names=names, functions=functions, strict=strict, warned_unbound=warned_unbound
+        )
+        return evaluator
+    evaluator.names = names
+    evaluator.functions = functions
+    evaluator._warned_unbound = warned_unbound if warned_unbound is not None else set()
+    return evaluator
+
+
 def eval_expr_with_mapping(
     expr: str,
     mapping: Mapping,
@@ -728,6 +821,11 @@ def eval_expr_with_mapping(
 
     This function is equivalent to eval_expr where ``**kwargs`` has been
     switched to a Mapping (e.g. a dictionary). See eval_expr for details.
+
+    The parsed AST is cached by expression string and the underlying evaluator
+    is reused across calls (per thread, per ``strict`` value), so a repeated
+    expression is neither re-parsed nor re-constructs its evaluator on every
+    call — only the variable bindings change.
 
     :param expr: The expression string to evaluate.
     :param mapping: Variable bindings for the expression.
@@ -743,9 +841,11 @@ def eval_expr_with_mapping(
     """
     if expr == "None":
         return None
-    merged = {**FUNCTIONS, **functions} if functions else None
-    evaluator = _make_evaluator(names=mapping, functions=merged, strict=strict, warned_unbound=warned_unbound)
-    return evaluator.eval(expr)
+    if functions:
+        _assert_functions_allowed(functions)
+    resolved = _resolve_functions(functions)
+    evaluator = _get_reusable_evaluator(names=mapping, functions=resolved, strict=strict, warned_unbound=warned_unbound)
+    return evaluator.eval(expr, previously_parsed=_parse_cached(expr))
 
 
 def eval_expr(expr: str, **kwargs: Any) -> Any:  # noqa: ANN401
