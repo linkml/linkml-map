@@ -667,6 +667,11 @@ class Transformer(ABC):
         for sd in class_deriv.slot_derivations.values():
             self._synthesize_joins_for_expressions(class_deriv, parent_source, sd, sv, table_names, available)
 
+            if sd.populated_from and "." in sd.populated_from:
+                table_name = sd.populated_from.split(".", 1)[0]
+                if table_name not in available and table_name in table_names:
+                    self._synthesize_join(class_deriv, parent_source, table_name, sv)
+
             # object_derivations are flattened into class_derivations at spec-load
             # time (deprecated), so synthesis only needs to walk class_derivations.
             for nested_cd in sd.class_derivations or []:
@@ -794,23 +799,33 @@ class Transformer(ABC):
         """Fail fast on a cross-table reference that has no class_derivation to host its join.
 
         Enum, permissible-value, and top-level slot derivations are not nested
-        under a ClassDerivation, so a ``{Table.col}`` reference in one of them
-        cannot be turned into a ``joins:`` entry. Rather than let it silently
-        resolve to ``None`` at runtime, surface it here.
+        under a ClassDerivation, so a cross-table reference in one of them cannot
+        be turned into a ``joins:`` entry. Covers both an expression ``{Table.col}``
+        and a structural ``populated_from: Table.col``; surface either rather than
+        letting it silently resolve to ``None`` at runtime.
 
         :raises ValueError: if such a reference is found.
         """
 
         def check(kind: str, name: str | None, derivation: Any) -> None:  # noqa: ANN401
+            refs: set[str] = set()
             for expression in iter_expressions(derivation):
-                refs = extract_table_references(expression, table_names)
-                if refs:
-                    msg = (
-                        f"Cross-table reference(s) {sorted(refs)} in {kind} {name!r} cannot be "
-                        f"joined: only class_derivations can host joins. Move the derivation under "
-                        f"a class_derivation, or reference only same-row columns."
-                    )
-                    raise ValueError(msg)
+                refs |= extract_table_references(expression, table_names)
+            # populated_from is list-form on permissible-value derivations.
+            populated_from = getattr(derivation, "populated_from", None)
+            pf_values = populated_from if isinstance(populated_from, list) else [populated_from]
+            for pf in pf_values:
+                if pf and "." in pf:
+                    table = pf.split(".", 1)[0]
+                    if table in table_names:
+                        refs.add(table)
+            if refs:
+                msg = (
+                    f"Cross-table reference(s) {sorted(refs)} in {kind} {name!r} cannot be "
+                    f"joined: only class_derivations can host joins. Move the derivation under "
+                    f"a class_derivation, or reference only same-row columns."
+                )
+                raise ValueError(msg)
 
         for enum_derivation in self._values(spec.enum_derivations):
             check("enum_derivation", enum_derivation.name, enum_derivation)

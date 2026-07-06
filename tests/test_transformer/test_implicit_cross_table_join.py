@@ -862,3 +862,75 @@ def test_ambiguous_sentinel_survives_deepcopy_and_pickle():
     assert pickle.loads(pickle.dumps(_AMBIGUOUS)) is _AMBIGUOUS
     # Constructing a new instance returns the same singleton.
     assert _AmbiguousType() is _AMBIGUOUS
+
+
+TARGET_FLAT_SCORE = textwrap.dedent("""\
+    id: https://example.org/target-flat-score
+    name: target_flat_score
+    prefixes:
+      linkml: https://w3id.org/linkml/
+      xsd: http://www.w3.org/2001/XMLSchema#
+    default_prefix: target_flat_score
+    default_range: string
+    imports:
+      - linkml:types
+    classes:
+      Result:
+        attributes:
+          id:
+            identifier: true
+          method:
+            range: string
+          score:
+            range: float
+""")
+
+FLAT_DOT_TRANSFORM = yaml.safe_load(
+    textwrap.dedent("""\
+    id: flat-dotted-transform
+    title: Flat top-level dotted populated_from
+    class_derivations:
+      Result:
+        populated_from: Measurement
+        slot_derivations:
+          id:
+          method:
+          score:
+            populated_from: Reading.score
+""")
+)
+
+
+def test_flat_dot_notation_normalization_synthesizes_join():
+    """A flat top-level ``populated_from: Reading.score`` must not crash normalization (#279).
+
+    Regression: ``induce_missing_values`` treated the whole ``Reading.score`` string as
+    a bare slot on the primary class ``Measurement`` and raised during normalization,
+    before any runtime path was reached. The implicit-join synthesizer must also cover
+    flat top-level slots (not just nested class_derivations), so accessing
+    ``derived_specification`` both succeeds and adds the join.
+    """
+    tr = _make_transformer(SOURCE_SCHEMA, FLAT_DOT_TRANSFORM, TARGET_FLAT_SCORE)
+
+    derived = tr.derived_specification
+
+    result_cd = derived.class_derivations[0]
+    assert result_cd.joins is not None
+    assert "Reading" in result_cd.joins
+    assert result_cd.joins["Reading"].join_on == "subject_id"
+
+
+def test_flat_dot_notation_resolves_via_engine(data_dir):
+    """Flat top-level ``populated_from: Reading.score`` resolves via the synthesized join (#279).
+
+    The issue's minimal repro has no ``joins:`` block; the join is auto-synthesized on
+    the shared ``subject_id`` column, and the joined table's ``score`` lands on the
+    flat top-level target slot.
+    """
+    tr = _make_transformer(SOURCE_SCHEMA, FLAT_DOT_TRANSFORM, TARGET_FLAT_SCORE)
+    data_loader = DataLoader(data_dir)
+
+    results = list(transform_spec(tr, data_loader, source_type="Measurement"))
+
+    assert results[0]["score"] == 95.5
+    assert results[1]["score"] == 88.0
