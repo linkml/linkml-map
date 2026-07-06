@@ -33,7 +33,6 @@ from linkml_map.utils.lookup_index import (
     _duckdb_read_expr,
     _parse_numeric,
     _validate_identifier,
-    make_connection,
 )
 
 if TYPE_CHECKING:
@@ -201,21 +200,17 @@ def _build_join_sql(
             _validate_identifier(identifier)
         path = _table_path(data_loader, table)
         joined_cols = _readable_columns(con, path, FileFormat.from_extension(path))
-        if source_key not in primary_cols or lookup_key not in joined_cols:
-            # A key column is missing from the file it binds on. Emit an all-miss
+        if source_key not in primary_cols:
+            missing = f"source_key {source_key!r} not in primary {primary!r}"
+        elif lookup_key not in joined_cols:
+            missing = f"lookup_key {lookup_key!r} not in {table!r}"
+        else:
+            missing = None
+        if missing is not None:
+            # The key column is missing from the file it binds on. Emit an all-miss
             # null STRUCT (nested object suppressed, #217/#276) instead of binding a
             # column that isn't there, and surface the misfire for data-quality triage.
-            logger.warning(
-                "Join %r skipped for this input: key column absent "
-                "(source_key %r in primary %r: %s; lookup_key %r in %r: %s); emitting null.",
-                table,
-                source_key,
-                primary,
-                source_key in primary_cols,
-                lookup_key,
-                table,
-                lookup_key in joined_cols,
-            )
+            logger.warning("Join %r skipped for this input: %s; emitting null.", table, missing)
             struct_select.append(f'NULL AS "{_JOIN_STRUCT_PREFIX}{table}"')
             continue
         from_parts.append(
@@ -276,31 +271,3 @@ def transform_block_via_join(
                 err.class_derivation_name = err.class_derivation_name or class_deriv.name
                 on_error(err)
             row_idx += 1
-
-
-def transform_via_join(
-    transformer: ObjectTransformer,
-    data_loader: DataLoader,
-    source_type: str | None = None,
-) -> Iterator[dict[str, Any]]:
-    """Transform every class_derivation block with the set-based join engine (all blocks).
-
-    An explicit *force-engine* helper: it routes every block through the engine
-    without a per-block capability check, so callers must ensure the spec is
-    engine-capable (see :func:`can_use_join_engine`). Production dispatch lives in
-    :func:`~linkml_map.transformer.engine.transform_spec`, which gates each block
-    and falls back to the per-row path; this helper exists mainly for parity
-    testing against that path.
-    """
-    spec = transformer.derived_specification
-    if spec is None:
-        return
-    con = make_connection()
-    try:
-        for class_deriv in spec.class_derivations:
-            primary = class_deriv.populated_from or class_deriv.name
-            if primary not in data_loader:
-                continue
-            yield from transform_block_via_join(transformer, data_loader, class_deriv, source_type, con)
-    finally:
-        con.close()
