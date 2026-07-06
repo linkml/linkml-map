@@ -40,17 +40,19 @@ def induce_missing_values(specification: TransformationSpecification, source_sch
                 populated_from_slot = sd.populated_from
 
                 source_induced_slot_range = None
-                if "." in populated_from_slot and cd.joins:
+                if "." in populated_from_slot:
+                    # cd.joins may be empty here (join synthesis runs later).
                     table_name, field_path = populated_from_slot.split(".", 1)
-                    if table_name in cd.joins:
+                    joined_class = None
+                    if cd.joins and table_name in cd.joins:
                         joined_class = cd.joins[table_name].class_named or table_name
-                        if joined_class not in source_schemaview.all_classes():
-                            continue
-                        if field_path in source_schemaview.class_induced_slots(joined_class):
+                    elif table_name in source_schemaview.all_classes():
+                        joined_class = table_name
+                    if joined_class and joined_class in source_schemaview.all_classes():
+                        induced_names = {s.name for s in source_schemaview.class_induced_slots(joined_class)}
+                        if field_path in induced_names:
                             source_induced_slot = source_schemaview.induced_slot(field_path, joined_class)
                             source_induced_slot_range = source_induced_slot.range
-                        else:
-                            continue
 
                 if source_induced_slot_range is None:
                     fk_resolution = resolve_fk_path(source_schemaview, cd.populated_from, populated_from_slot)
@@ -58,6 +60,9 @@ def induce_missing_values(specification: TransformationSpecification, source_sch
                         if not fk_resolution.final_slot:
                             continue
                         source_induced_slot_range = fk_resolution.final_slot.range
+                    elif "." in populated_from_slot:
+                        # Unresolvable Table.col: skip (bare-slot lookup would raise, #279).
+                        continue
                     else:
                         source_induced_slot = source_schemaview.induced_slot(populated_from_slot, cd.populated_from)
                         source_induced_slot_range = source_induced_slot.range

@@ -263,3 +263,98 @@ def test_enum_derivation_same_row_reference_is_allowed():
     )
     # Computing the derived spec must not raise.
     assert tr.derived_specification is not None
+
+
+def test_enum_derivation_structural_populated_from_fails_loud():
+    """A structural ``populated_from: Table.col`` in an enum derivation fails loud.
+
+    Parity with the expression case: an enum derivation cannot host a join, so a
+    cross-table ``populated_from`` there must surface at normalization rather than
+    silently resolving to None at runtime.
+    """
+    tr = _transformer(
+        textwrap.dedent("""\
+        id: t
+        title: enum structural cross-table
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              id:
+        enum_derivations:
+          MyEnum:
+            populated_from: Reading.score
+        """)
+    )
+    with pytest.raises(ValueError, match="cannot be joined"):
+        _ = tr.derived_specification
+
+
+def test_permissible_value_derivation_structural_populated_from_fails_loud():
+    tr = _transformer(
+        textwrap.dedent("""\
+        id: t
+        title: pv structural cross-table
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              id:
+        enum_derivations:
+          MyEnum:
+            permissible_value_derivations:
+              PV1:
+                populated_from: Reading.score
+        """)
+    )
+    with pytest.raises(ValueError, match="cannot be joined"):
+        _ = tr.derived_specification
+
+
+def test_top_level_slot_derivation_structural_populated_from_fails_loud():
+    """A top-level ``slot_derivation`` with ``populated_from: Table.col`` fails loud.
+
+    This is the structural counterpart to the #279 flat-slot fix: under a
+    class_derivation the join is synthesized, but a top-level slot derivation has
+    nowhere to host it.
+    """
+    tr = _transformer(
+        textwrap.dedent("""\
+        id: t
+        title: top-level slot structural cross-table
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              id:
+        slot_derivations:
+          loose:
+            populated_from: Reading.score
+        """)
+    )
+    with pytest.raises(ValueError, match="cannot be joined"):
+        _ = tr.derived_specification
+
+
+def test_top_level_slot_derivation_fk_path_populated_from_is_allowed():
+    """A dotted ``populated_from`` whose root is a slot (not a table) is not flagged.
+
+    Guards the table-vs-slot discrimination: ``subject_id.x`` is an FK/inline path,
+    not a cross-table reference, so the unhostable-ref check must leave it alone.
+    """
+    tr = _transformer(
+        textwrap.dedent("""\
+        id: t
+        title: top-level slot fk path
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              id:
+        slot_derivations:
+          loose:
+            populated_from: subject_id.x
+        """)
+    )
+    # subject_id is a slot on Measurement, not a source table → not flagged.
+    assert tr.derived_specification is not None
