@@ -17,7 +17,7 @@ from linkml_runtime import SchemaView
 from linkml_map.loaders.data_loaders import DataLoader
 from linkml_map.session import Session
 from linkml_map.transformer.engine import transform_spec
-from linkml_map.transformer.join_engine import can_use_join_engine
+from linkml_map.transformer.join_engine import _collect_joins, can_use_join_engine
 
 
 def _write(tmp_path, tables: dict[str, tuple[list[str], list[list]]]) -> None:
@@ -418,6 +418,64 @@ def test_join_missing_lookup_key_is_not_engine_capable(tmp_path):
     join = cd.joins["Reading"]
     join.source_key, join.lookup_key, join.join_on = "subject_id", None, None
     assert can_use_join_engine(cd, dl, tr.source_schemaview) is False
+
+
+def test_conflicting_join_name_across_nesting_raises():
+    """The same join name resolving to different keys at different nesting levels is a
+    spec contradiction — a flattened star join can't make one name mean two joins — and
+    the per-row path (_collect_all_joins) already raises on it. The engine must too,
+    rather than silently keeping the first via setdefault.
+    """
+    spec = yaml.safe_load(
+        textwrap.dedent("""\
+        id: t
+        title: t
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            joins:
+              Reading: {join_on: subject_id}
+            slot_derivations:
+              id:
+              reading_score: {expr: '{Reading.score}'}
+              nested:
+                class_derivations:
+                  - Observation:
+                      populated_from: Measurement
+                      joins:
+                        Reading: {source_key: method, lookup_key: visit}
+                      slot_derivations:
+                        v: {expr: '{Reading.visit}'}
+        """)
+    )
+    cd = _cd(SRC, spec).derived_specification.class_derivations[0]
+    with pytest.raises(ValueError, match=r"Conflicting join specs for 'Reading'"):
+        _collect_joins(cd, {})
+
+
+def test_distinct_join_names_to_same_table_do_not_conflict():
+    """Joining a table two ways is spelled with distinct join names, which coexist.
+
+    Guards that the conflict check keys on the join *name*, not the table: two names
+    pointing at the same class with different keys is the legitimate multi-join pattern.
+    """
+    spec = yaml.safe_load(
+        textwrap.dedent("""\
+        id: t
+        title: t
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            joins:
+              by_subject: {class_named: Reading, source_key: subject_id, lookup_key: subject_id}
+              by_method: {class_named: Reading, source_key: method, lookup_key: subject_id}
+            slot_derivations:
+              id:
+        """)
+    )
+    cd = _cd(SRC, spec).derived_specification.class_derivations[0]
+    joins = _collect_joins(cd, {})  # must not raise
+    assert {"by_subject", "by_method"} <= set(joins)
 
 
 def test_to_many_join_does_not_explode_rows(tmp_path):

@@ -56,8 +56,28 @@ def _collect_joins(class_deriv: ClassDerivation, acc: dict[str, AliasedClass]) -
     name, so keying by anything else would populate the merge under a key the runtime
     never reads. ``alias`` is normally the same value (it's the ``key: true`` slot) but
     can diverge under programmatic construction.
+
+    Reusing a join name at a different nesting level with *different* keys is a spec
+    contradiction — a single flattened star join can't make one name mean two joins —
+    and the per-row path (:func:`~linkml_map.transformer.engine._collect_all_joins`)
+    already raises on it. Detect it here too so the engine can't silently keep the first
+    via ``setdefault`` and diverge. (Joining a table two ways is spelled with two distinct
+    join names, which don't collide.)
+
+    :raises ValueError: If a join name resolves to conflicting ``(source_key, lookup_key)``
+        pairs across the derivation tree.
     """
     for join_name, join in (class_deriv.joins or {}).items():
+        existing = acc.get(join_name)
+        if existing is not None:
+            existing_keys = (existing.source_key or existing.join_on, existing.lookup_key or existing.join_on)
+            new_keys = (join.source_key or join.join_on, join.lookup_key or join.join_on)
+            if existing_keys != new_keys:
+                msg = (
+                    f"Conflicting join specs for {join_name!r}: {existing_keys} vs {new_keys}. "
+                    f"Use distinct join names to join a table more than one way."
+                )
+                raise ValueError(msg)
         acc.setdefault(join_name, join)
     for slot_deriv in class_deriv.slot_derivations.values():
         for nested in slot_deriv.class_derivations or []:
