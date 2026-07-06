@@ -113,9 +113,11 @@ def can_use_join_engine(class_deriv: ClassDerivation, data_loader: DataLoader, s
         if table not in data_loader or not _duckdb_readable(data_loader, table):
             return False
         # Inline (not join_keys) on purpose: this is a non-raising capability probe —
-        # a keyless join makes the block ineligible, it must not raise mid-dispatch.
+        # a join missing either key makes the block ineligible, it must not raise
+        # mid-dispatch (join_keys would later raise in _build_join_sql otherwise).
         source_key = join.source_key or join.join_on
-        if not source_key or source_key not in primary_cols:
+        lookup_key = join.lookup_key or join.join_on
+        if not source_key or not lookup_key or source_key not in primary_cols:
             return False
     available = {primary, *joins}
     return _refs_engine_safe(class_deriv, available)

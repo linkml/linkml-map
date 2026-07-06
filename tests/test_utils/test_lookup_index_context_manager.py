@@ -70,6 +70,13 @@ def test_context_manager_cleans_up_on_exception(tmp_path):
 
 
 # ---- transform_spec resource cleanup ----
+#
+# These exercise the LookupIndex the *per-row fallback* owns and cleans up. The
+# primary table is written as YAML (``samples.yaml``): YAML isn't DuckDB-readable,
+# so ``can_use_join_engine`` returns False and the block takes the per-row path,
+# which creates and owns the index. The TSV join table stays LookupIndex-compatible.
+# (With a TSV primary the block is engine-capable and no fallback index is created,
+# so these lifecycle assertions wouldn't exercise anything.)
 
 
 SOURCE_SCHEMA_YAML = textwrap.dedent("""\
@@ -127,7 +134,7 @@ def test_transform_spec_closes_lookup_index(tmp_path):
     Asserting only one would let a regression that does the other slip
     through.
     """
-    (tmp_path / "samples.tsv").write_text("sample_id\tname\tsite_code\nS001\tAlpha\tSITE_A\n")
+    (tmp_path / "samples.yaml").write_text("- sample_id: S001\n  name: Alpha\n  site_code: SITE_A\n")
     (tmp_path / "sites.tsv").write_text("site_code\tsite_name\nSITE_A\tBoston Medical\n")
 
     spec_yaml = textwrap.dedent("""\
@@ -178,7 +185,7 @@ def test_transform_spec_can_be_called_twice_on_same_transformer(tmp_path):
     skip reinitialization (``owns_index`` would be False) and try to register
     join tables on a closed connection.
     """
-    (tmp_path / "samples.tsv").write_text("sample_id\tname\tsite_code\nS001\tAlpha\tSITE_A\n")
+    (tmp_path / "samples.yaml").write_text("- sample_id: S001\n  name: Alpha\n  site_code: SITE_A\n")
     (tmp_path / "sites.tsv").write_text("site_code\tsite_name\nSITE_A\tBoston Medical\n")
 
     spec_yaml = textwrap.dedent("""\
@@ -222,7 +229,7 @@ def test_transform_spec_does_not_close_caller_supplied_index(tmp_path):
     transform_spec must not close or detach it — the caller is responsible
     for its lifecycle.
     """
-    (tmp_path / "samples.tsv").write_text("sample_id\tname\tsite_code\nS001\tAlpha\tSITE_A\n")
+    (tmp_path / "samples.yaml").write_text("- sample_id: S001\n  name: Alpha\n  site_code: SITE_A\n")
     (tmp_path / "sites.tsv").write_text("site_code\tsite_name\nSITE_A\tBoston Medical\n")
 
     spec_yaml = textwrap.dedent("""\
@@ -272,7 +279,9 @@ def test_transform_spec_closes_owned_index_on_exception(tmp_path):
     # Two rows: first succeeds, second triggers an IndexError via string
     # indexing past the end of the name. The first successful yield gives the
     # test a chance to capture tr.lookup_index before the cleanup finally runs.
-    (tmp_path / "samples.tsv").write_text("sample_id\tname\tsite_code\nS001\tAlpha\tSITE_A\nS002\tBo\tSITE_A\n")
+    (tmp_path / "samples.yaml").write_text(
+        "- sample_id: S001\n  name: Alpha\n  site_code: SITE_A\n- sample_id: S002\n  name: Bo\n  site_code: SITE_A\n"
+    )
     (tmp_path / "sites.tsv").write_text("site_code\tsite_name\nSITE_A\tBoston Medical\n")
 
     spec_yaml = textwrap.dedent("""\
@@ -321,7 +330,9 @@ def test_transform_spec_closes_owned_index_on_early_iterator_close(tmp_path):
     relies on this — but every other test fully exhausts the iterator,
     so a refactor that broke early-close cleanup would not be caught.
     """
-    (tmp_path / "samples.tsv").write_text("sample_id\tname\tsite_code\nS001\tAlpha\tSITE_A\nS002\tBeta\tSITE_A\n")
+    (tmp_path / "samples.yaml").write_text(
+        "- sample_id: S001\n  name: Alpha\n  site_code: SITE_A\n- sample_id: S002\n  name: Beta\n  site_code: SITE_A\n"
+    )
     (tmp_path / "sites.tsv").write_text("site_code\tsite_name\nSITE_A\tBoston Medical\n")
 
     spec_yaml = textwrap.dedent("""\

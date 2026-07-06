@@ -254,6 +254,45 @@ def test_primary_missing_source_key_degrades_to_null(tmp_path, caplog):
     assert any("Reading" in r.message and "subject_id" in r.message for r in caplog.records)  # misfire logged
 
 
+def test_all_engine_run_creates_no_lookup_index(tmp_path):
+    """An all-engine-capable spec must not open a LookupIndex — the per-row fallback's
+    in-memory DuckDB connection is pure overhead when the engine handles every block.
+    """
+    target = textwrap.dedent("""\
+        id: https://example.org/t
+        name: t
+        prefixes: {linkml: https://w3id.org/linkml/}
+        default_prefix: t
+        default_range: string
+        imports: [linkml:types]
+        classes:
+          Result: {attributes: {id: {identifier: true}, reading_score: {range: float}}}
+    """)
+    spec = yaml.safe_load(
+        textwrap.dedent("""\
+        id: t
+        title: t
+        class_derivations:
+          Result:
+            populated_from: Measurement
+            slot_derivations:
+              id:
+              reading_score: {expr: '{Reading.score}'}
+    """)
+    )
+    _write(tmp_path, dict([MEAS, READING]))
+    tr = _transformer(SRC, spec, target)
+    dl = DataLoader(tmp_path, schemaview=tr.source_schemaview)
+    # Observe mid-run (before the generator's cleanup detaches the index): with eager
+    # creation the index exists here; lazily it stays None because the engine handled
+    # the block. Post-run state can't distinguish the two — the finally detaches either way.
+    gen = transform_spec(tr, dl, source_type="Measurement")
+    first = next(gen)
+    assert first["reading_score"] == 95.5  # engine actually ran
+    assert tr.lookup_index is None  # no LookupIndex opened for an all-engine block
+    assert len(list(gen)) == 1  # exhaust the remaining row so the generator runs its cleanup
+
+
 def test_multivalued_via_multiple_class_derivations(tmp_path):
     target = textwrap.dedent("""\
         id: https://example.org/t
@@ -357,6 +396,27 @@ def test_fk_chain_is_not_engine_capable(tmp_path):
     tr = _cd(FK_SRC, spec)
     dl = DataLoader(tmp_path, schemaview=tr.source_schemaview)
     cd = tr.derived_specification.class_derivations[0]
+    assert can_use_join_engine(cd, dl, tr.source_schemaview) is False
+
+
+def test_join_missing_lookup_key_is_not_engine_capable(tmp_path):
+    """A join resolving a source_key but no lookup_key/join_on must fail the gate, not crash later.
+
+    ``can_use_join_engine`` is a non-raising capability probe. If it ignored ``lookup_key``,
+    such a join would pass the gate and then raise in ``_build_join_sql`` via ``join_keys`` —
+    turning a capability decision into a runtime exception mid-dispatch.
+    """
+    _write(tmp_path, dict([MEAS, READING]))
+    spec = yaml.safe_load(
+        "id: t\ntitle: t\nclass_derivations:\n  Result:\n    populated_from: Measurement\n"
+        "    slot_derivations:\n      id:\n      value: {expr: '{Reading.score}'}\n"
+    )
+    tr = _cd(FK_SRC, spec)
+    dl = DataLoader(tmp_path, schemaview=tr.source_schemaview)
+    cd = tr.derived_specification.class_derivations[0]
+    # Force a join with a source_key but no lookup_key (nor join_on).
+    join = cd.joins["Reading"]
+    join.source_key, join.lookup_key, join.join_on = "subject_id", None, None
     assert can_use_join_engine(cd, dl, tr.source_schemaview) is False
 
 

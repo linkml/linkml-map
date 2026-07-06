@@ -98,9 +98,10 @@ def transform_spec(
         return
 
     sv = transformer.source_schemaview
+    # A LookupIndex opens an in-memory DuckDB connection; create it lazily so an
+    # all-engine-capable spec (the common case) never pays for the per-row fallback's
+    # index. owns_index records that we'd own any index we later create, for cleanup.
     owns_index = transformer.lookup_index is None
-    if owns_index:
-        transformer.lookup_index = LookupIndex()
     engine_con = None
 
     try:
@@ -122,7 +123,10 @@ def transform_spec(
                 )
                 continue
 
-            # Fallback: per-row point-lookup path (uses the owned LookupIndex).
+            # Fallback: per-row point-lookup path. Create the LookupIndex on first use
+            # here, so an all-engine run never opened one.
+            if transformer.lookup_index is None:
+                transformer.lookup_index = LookupIndex()
             joined_tables: list[str] = []
             try:
                 # Register all joined tables (explicit + synthesized from normalization).
@@ -153,7 +157,8 @@ def transform_spec(
         if engine_con is not None:
             engine_con.close()
         # Close and detach a LookupIndex we created, so a later call reinitializes
-        # a fresh one rather than reusing the now-closed connection.
-        if owns_index:
+        # a fresh one rather than reusing the now-closed connection. It may never
+        # have been created if every block used the engine.
+        if owns_index and transformer.lookup_index is not None:
             transformer.lookup_index.close()
             transformer.lookup_index = None
