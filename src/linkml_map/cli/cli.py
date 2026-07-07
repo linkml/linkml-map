@@ -283,7 +283,7 @@ def _pre_flight_validate(
     if tr.source_schemaview is not None:
         try:
             derived = tr.derived_specification
-        except ValueError as err:
+        except (ValueError, SyntaxError) as err:
             messages.append(ValidationMessage(severity="error", path="", message=str(err)))
             derived = None
         if derived is not None:

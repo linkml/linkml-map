@@ -3,8 +3,36 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from linkml_runtime import SchemaView
+
+if TYPE_CHECKING:
+    from linkml_map.datamodel.transformer_model import AliasedClass
+
+
+def join_keys(spec: AliasedClass) -> tuple[str, str]:
+    """Resolve a join spec's ``(source_key, lookup_key)``, applying the ``join_on`` shorthand.
+
+    Each side falls back to ``join_on`` independently: ``source_key`` defaults to
+    ``join_on`` when unset, and ``lookup_key`` likewise. ``join_on`` is shorthand for
+    when both sides share a column name, but a mixed spec (one explicit key plus
+    ``join_on`` for the other) is equally valid. This is the single source of truth
+    for that resolution — every join path (the per-row lookup, the set-based engine,
+    and the normalizer's validation) resolves keys through here so they can never drift.
+
+    :param spec: The join specification.
+    :returns: ``(source_key, lookup_key)`` — the primary-side and joined-side columns.
+    :raises ValueError: If either side is left unresolved (its explicit key unset and no
+        ``join_on`` to fall back to).
+    """
+    source_key = spec.source_key or spec.join_on
+    lookup_key = spec.lookup_key or spec.join_on
+    if not source_key or not lookup_key:
+        msg = f"Join {spec.alias!r} must specify 'join_on' or both 'source_key' and 'lookup_key'"
+        raise ValueError(msg)
+    return source_key, lookup_key
+
 
 #: Consistently-named subject-id columns preferred as the join key when present
 #: in both tables, before the structural heuristic. Real dbGaP joins are

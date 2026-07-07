@@ -7,7 +7,12 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 from linkml_map.transformer.errors import TransformationError
-from linkml_map.utils.lookup_index import LookupIndex
+from linkml_map.transformer.join_engine import (
+    can_use_join_engine,
+    transform_block_via_join,
+)
+from linkml_map.utils.join_utils import join_keys
+from linkml_map.utils.lookup_index import LookupIndex, make_connection
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -33,11 +38,7 @@ def _collect_all_joins(class_deriv: ClassDerivation) -> dict[str, tuple[str, str
     def _collect_from(cd: ClassDerivation) -> None:
         if cd.joins:
             for join_name, join_spec in cd.joins.items():
-                lookup_key = join_spec.lookup_key or join_spec.join_on
-                source_key = join_spec.source_key or join_spec.join_on
-                if not lookup_key or not source_key:
-                    msg = f"Join {join_name!r} must specify 'join_on' or both 'source_key' and 'lookup_key'"
-                    raise ValueError(msg)
+                source_key, lookup_key = join_keys(join_spec)
                 existing = result.get(join_name)
                 if existing and existing != (source_key, lookup_key):
                     msg = f"Conflicting join specs for {join_name!r}: {existing} vs ({source_key!r}, {lookup_key!r})"
@@ -96,9 +97,12 @@ def transform_spec(
     if spec is None:
         return
 
+    sv = transformer.source_schemaview
+    # A LookupIndex opens an in-memory DuckDB connection; create it lazily so an
+    # all-engine-capable spec (the common case) never pays for the per-row fallback's
+    # index. owns_index records that we'd own any index we later create, for cleanup.
     owns_index = transformer.lookup_index is None
-    if owns_index:
-        transformer.lookup_index = LookupIndex()
+    engine_con = None
 
     try:
         for class_deriv in spec.class_derivations:
@@ -107,10 +111,25 @@ def transform_spec(
                 logger.debug("Skipping class_derivation %s: no data found", class_deriv.name)
                 continue
 
+            # Fast path: the set-based join engine, when the block is engine-capable.
+            # The per-row point-lookup path below is the correctness fallback for
+            # everything it can't handle (FK chains, non-file data, multi-hop joins).
+            if can_use_join_engine(class_deriv, data_loader, sv):
+                if engine_con is None:
+                    engine_con = make_connection()
+                logger.debug("Join engine for class_derivation %s", class_deriv.name)
+                yield from transform_block_via_join(
+                    transformer, data_loader, class_deriv, source_type, engine_con, on_error
+                )
+                continue
+
+            # Fallback: per-row point-lookup path. Create the LookupIndex on first use
+            # here, so an all-engine run never opened one.
+            if transformer.lookup_index is None:
+                transformer.lookup_index = LookupIndex()
             joined_tables: list[str] = []
             try:
                 # Register all joined tables (explicit + synthesized from normalization).
-                # _collect_all_joins walks nested derivations and validates each join spec.
                 all_joins = _collect_all_joins(class_deriv)
                 for join_name, (_source_key, lookup_key) in all_joins.items():
                     if join_name in data_loader and not transformer.lookup_index.is_registered(join_name):
@@ -118,7 +137,6 @@ def transform_spec(
                         transformer.lookup_index.register_table(join_name, join_path, lookup_key)
                         joined_tables.append(join_name)
 
-                # Stream primary table rows
                 for row_idx, row in enumerate(data_loader[table_name]):
                     try:
                         yield transformer.map_object(
@@ -136,9 +154,11 @@ def transform_spec(
                 for jt in joined_tables:
                     transformer.lookup_index.drop(jt)
     finally:
-        if owns_index:
-            # Close the index we created and detach it so a second call on the
-            # same transformer reinitializes a fresh one rather than reusing
-            # the now-closed connection.
+        if engine_con is not None:
+            engine_con.close()
+        # Close and detach a LookupIndex we created, so a later call reinitializes
+        # a fresh one rather than reusing the now-closed connection. It may never
+        # have been created if every block used the engine.
+        if owns_index and transformer.lookup_index is not None:
             transformer.lookup_index.close()
             transformer.lookup_index = None

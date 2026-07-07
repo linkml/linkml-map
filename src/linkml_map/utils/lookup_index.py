@@ -149,6 +149,23 @@ def _duckdb_read_expr(fmt: FileFormat) -> str:
     raise NotImplementedError(msg)
 
 
+def make_connection() -> duckdb.DuckDBPyConnection:
+    """Open an in-memory DuckDB connection configured to respect container cgroup limits.
+
+    The connection honors container ``memory_limit``/``threads``/``temp_directory``
+    (see :func:`_resolve_duckdb_settings`) rather than DuckDB's host-derived defaults,
+    so a memory-capped container fails with a catchable error instead of being
+    OOM-killed. Shared by :class:`LookupIndex` and the set-based join engine.
+    """
+    con = duckdb.connect(":memory:")
+    settings = _resolve_duckdb_settings()
+    for name, value in settings.items():
+        literal = value if isinstance(value, int) else "'" + str(value).replace("'", "''") + "'"
+        con.execute(f"SET {name}={literal}")  # noqa: S608 - name is a fixed literal, value sanitized
+    logger.debug("Configured DuckDB connection: %s", settings)
+    return con
+
+
 class LookupIndex:
     """
     In-memory DuckDB index for cross-table lookups.
@@ -167,17 +184,8 @@ class LookupIndex:
         and CPU) rather than DuckDB's host-derived defaults, so a memory-capped
         container fails with a catchable error instead of being OOM-killed.
         """
-        self._conn = duckdb.connect(":memory:")
-        self._configure_connection()
+        self._conn = make_connection()
         self._tables: dict[str, str] = {}  # table_name -> key_column
-
-    def _configure_connection(self) -> None:
-        """Apply container-aware ``memory_limit``/``threads``/``temp_directory`` settings."""
-        settings = _resolve_duckdb_settings()
-        for name, value in settings.items():
-            literal = value if isinstance(value, int) else "'" + str(value).replace("'", "''") + "'"
-            self._conn.execute(f"SET {name}={literal}")  # noqa: S608 - name is a fixed literal, value sanitized
-        logger.debug("Configured DuckDB connection: %s", settings)
 
     def register_table(self, name: str, file_path: Path | str, key_column: str) -> None:
         """
