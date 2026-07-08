@@ -405,6 +405,14 @@ def _map_data_streaming(
     # Create transform iterator and chunk it
     transform_iter = transform_spec(tr, data_loader, source_type, on_error=on_error)
     chunks = chunked(transform_iter, chunk_size)
+    from linkml_map import _probe
+
+    def _counted_chunks(cs):
+        for c in cs:
+            _probe.writer_wrote(len(c))
+            yield c
+
+    chunks = _counted_chunks(chunks)
 
     # Resolve output format
     try:
