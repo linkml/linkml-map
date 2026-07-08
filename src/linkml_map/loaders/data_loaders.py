@@ -1,6 +1,7 @@
 """Generalized data loader for linkml-map supporting multiple file formats."""
 
 import json
+import os as _os
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from enum import Enum
@@ -9,6 +10,32 @@ from typing import Any
 
 import yaml
 from linkml_runtime import SchemaView
+
+# QUICK-FIX TEST (LINKML_MAP_CACHE_SV=1): linkml's delimited loader rebuilds a full
+# SchemaView per file in _get_numeric_slots(); a join-heavy entity (~22 primary tables
+# all named the same) pays that ~22x and gets killed. Cache the SchemaView per schema file.
+if _os.environ.get("LINKML_MAP_CACHE_SV") == "1":
+    import functools as _ft
+
+    import linkml.validator.loaders.delimited_file_loader as _dfl
+    from linkml_runtime import SchemaView as _SV
+
+    @_ft.lru_cache(maxsize=8)
+    def _cached_sv(_p):
+        return _SV(str(_p))
+
+    def _cached_get_numeric_slots(schema_path, target_class):
+        sv = _cached_sv(str(schema_path))
+        ns: set = set()
+        at = sv.all_types()
+        for slot in sv.class_induced_slots(target_class):
+            if slot.range in at and any(a in _dfl._NUMERIC_TYPE_NAMES for a in sv.type_ancestors(slot.range)):
+                ns.add(slot.name)
+                if slot.alias:
+                    ns.add(slot.alias)
+        return ns
+
+    _dfl._get_numeric_slots = _cached_get_numeric_slots
 
 
 class FileFormat(str, Enum):
