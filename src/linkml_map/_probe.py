@@ -17,6 +17,35 @@ from collections import Counter
 
 ON = os.environ.get("LINKML_MAP_PROBE") == "1"
 NO_COERCE = os.environ.get("LINKML_MAP_NO_COERCE") == "1"
+MEMPROBE = os.environ.get("LINKML_MAP_MEMPROBE") == "1"
+
+if MEMPROBE:
+    import tracemalloc
+    tracemalloc.start(5)
+    _PAGE = os.sysconf("SC_PAGE_SIZE")
+
+
+def _rss_mb():
+    try:
+        with open("/proc/self/statm") as f:
+            return int(f.read().split()[1]) * _PAGE // (1024 * 1024)
+    except Exception:  # noqa: BLE001
+        return -1
+
+
+def mem_sample(label):
+    """Log RSS (total, incl. native/DuckDB) vs Python-traced memory; gap = native. Types/lines only."""
+    if not MEMPROBE:
+        return
+    rss = _rss_mb()
+    cur, _peak = tracemalloc.get_traced_memory()
+    py = cur // (1024 * 1024)
+    print(f"[MEM {label}] RSS={rss}MB python_traced={py}MB native_gap={rss - py}MB", file=sys.stderr, flush=True)
+    snap = tracemalloc.take_snapshot()
+    for stat in snap.statistics("lineno")[:4]:
+        fr = stat.traceback[0]
+        print(f"   [MEM {label}] {stat.size // (1024 * 1024)}MB  {fr.filename.split('/')[-1]}:{fr.lineno}",
+              file=sys.stderr, flush=True)
 
 BLOCK_IN = Counter()      # class_derivation -> primary rows streamed from the loader
 BLOCK_OUT = Counter()     # class_derivation -> objects returned by map_object

@@ -121,9 +121,12 @@ def transform_spec(
                         joined_tables.append(join_name)
 
                 # Stream primary table rows
+                _probe.mem_sample(f"block-start {class_deriv.name} {table_name}")
                 for row_idx, row in enumerate(data_loader[table_name]):
                     _probe.block_row(class_deriv.name)
                     _probe.first_row(table_name, row)
+                    if row_idx and row_idx % 1000 == 0:
+                        _probe.mem_sample(f"{class_deriv.name} row{row_idx}")
                     try:
                         _obj = transformer.map_object(
                             row,
