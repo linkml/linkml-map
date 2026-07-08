@@ -226,6 +226,9 @@ class DataLoader:
         :return: ``schema_path``/``target_class`` kwargs, or empty if no schema is
             available (in-memory schemas with no source file degrade to no coercion).
         """
+        from linkml_map import _probe
+        if _probe.NO_COERCE:  # isolation test: revert ONLY ff846709's coercion forwarding
+            return {}
         if self.schemaview is None:
             return {}
         schema_path = self.schemaview.schema.source_file

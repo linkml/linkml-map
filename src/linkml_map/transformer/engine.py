@@ -103,6 +103,8 @@ def transform_spec(
     try:
         for class_deriv in spec.class_derivations:
             table_name = class_deriv.populated_from or class_deriv.name
+            from linkml_map import _probe
+            _probe.skip_check(class_deriv.name, table_name, table_name in data_loader)
             if table_name not in data_loader:
                 logger.debug("Skipping class_derivation %s: no data found", class_deriv.name)
                 continue
@@ -120,13 +122,18 @@ def transform_spec(
 
                 # Stream primary table rows
                 for row_idx, row in enumerate(data_loader[table_name]):
+                    _probe.block_row(class_deriv.name)
+                    _probe.first_row(table_name, row)
                     try:
-                        yield transformer.map_object(
+                        _obj = transformer.map_object(
                             row,
                             source_type=source_type or table_name,
                             class_derivation=class_deriv,
                         )
+                        _probe.block_out(class_deriv.name, _obj)
+                        yield _obj
                     except TransformationError as err:
+                        _probe.block_error(class_deriv.name, err)
                         if on_error is None:
                             raise
                         err.row_index = row_idx
