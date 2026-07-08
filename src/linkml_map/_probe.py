@@ -64,22 +64,38 @@ def writer_wrote(n):
         WRITER["objects"] += n
 
 
+def _dump():
+    p = lambda *a: print(*a, file=sys.stderr, flush=True)  # noqa: E731
+    p(f"\n===PROBE=== NO_COERCE={NO_COERCE}")
+    p("===PROBE=== SKIP (class_derivation -> table, table_in_data_loader):")
+    for k, v in sorted(SKIP.items()):
+        p(f"  {k}: {v}")
+    p("===PROBE=== STAGES (class_derivation: loader_in -> map_out (empty) -> [writer total below]):")
+    for k in sorted(set(BLOCK_IN) | set(BLOCK_OUT)):
+        p(f"  {k}: in={BLOCK_IN.get(k, 0)} map_out={BLOCK_OUT.get(k, 0)} map_empty={BLOCK_OUT_EMPTY.get(k, 0)}")
+    p(f"===PROBE=== WRITER objects handed to stream writer (whole entity): {WRITER.get('objects', 0)}")
+    p("===PROBE=== BLOCK ERRORS (must be empty): ")
+    for k, v in sorted(BLOCK_ERR.items()):
+        p(f"  {k}: {v}")
+    p("===PROBE=== FIRST loaded row column types (table -> {col: type}):")
+    for k, v in sorted(FIRST_ROW.items()):
+        p(f"  {k}: {v}")
+    p("===PROBE=== END")
+
+
 if ON:
-    @atexit.register
-    def _dump():
-        p = lambda *a: print(*a, file=sys.stderr)  # noqa: E731
-        p(f"\n===PROBE=== NO_COERCE={NO_COERCE}")
-        p("===PROBE=== SKIP (class_derivation -> table, table_in_data_loader):")
-        for k, v in sorted(SKIP.items()):
-            p(f"  {k}: {v}")
-        p("===PROBE=== STAGES (class_derivation: loader_in -> map_out (empty) -> [writer total below]):")
-        for k in sorted(set(BLOCK_IN) | set(BLOCK_OUT)):
-            p(f"  {k}: in={BLOCK_IN.get(k, 0)} map_out={BLOCK_OUT.get(k, 0)} map_empty={BLOCK_OUT_EMPTY.get(k, 0)}")
-        p(f"===PROBE=== WRITER objects handed to stream writer (whole entity): {WRITER.get('objects', 0)}")
-        p("===PROBE=== BLOCK ERRORS (must be empty): ")
-        for k, v in sorted(BLOCK_ERR.items()):
-            p(f"  {k}: {v}")
-        p("===PROBE=== FIRST loaded row column types (table -> {col: type}):")
-        for k, v in sorted(FIRST_ROW.items()):
-            p(f"  {k}: {v}")
-        p("===PROBE=== END")
+    import signal as _signal
+
+    atexit.register(_dump)
+
+    def _sig_handler(signum, _frame):  # catches SIGTERM/SIGINT (NOT raw SIGKILL) — flush at kill time
+        print(f"\n===PROBE=== SIGNAL {signum} RECEIVED (partial dump at kill time) ===", file=sys.stderr, flush=True)
+        _dump()
+        _signal.signal(signum, _signal.SIG_DFL)
+        os.kill(os.getpid(), signum)
+
+    for _s in (_signal.SIGTERM, _signal.SIGINT):
+        try:
+            _signal.signal(_s, _sig_handler)
+        except Exception:  # noqa: BLE001
+            pass
