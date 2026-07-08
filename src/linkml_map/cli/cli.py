@@ -449,45 +449,55 @@ def _map_data_streaming(
         msg = f"Unsupported output format: {output_format}"
         raise click.ClickException(msg) from None
 
-    if additional_output:
-        extra_outputs = _build_additional_outputs(additional_output)
+    completed = False
+    try:
+        if additional_output:
+            extra_outputs = _build_additional_outputs(additional_output)
 
-        # Validate no duplicate paths between primary and additional outputs
-        if output:
-            primary_resolved = Path(output).resolve()
-            extra_paths = {p.resolve() for _, p in extra_outputs}
-            if primary_resolved in extra_paths:
-                msg = f"Primary output path duplicated in -O: {output}"
-                raise click.ClickException(msg)
+            # Validate no duplicate paths between primary and additional outputs
+            if output:
+                primary_resolved = Path(output).resolve()
+                extra_paths = {p.resolve() for _, p in extra_outputs}
+                if primary_resolved in extra_paths:
+                    msg = f"Primary output path duplicated in -O: {output}"
+                    raise click.ClickException(msg)
 
-        primary_writer = make_stream_writer(fmt)
-        primary_target = Path(output) if output else sys.stdout
-        all_outputs = [(primary_writer, primary_target), *extra_outputs]
-        MultiStreamWriter(all_outputs).write_all(chunks)
-    else:
-        # Original single-output path (backward compatible)
-        stream_writer = get_stream_writer(fmt)
+            primary_writer = make_stream_writer(fmt)
+            primary_target = Path(output) if output else sys.stdout
+            all_outputs = [(primary_writer, primary_target), *extra_outputs]
+            MultiStreamWriter(all_outputs).write_all(chunks)
+        else:
+            # Original single-output path (backward compatible)
+            stream_writer = get_stream_writer(fmt)
 
-        output_ctx = open(output, "w", encoding="utf-8") if output else nullcontext(sys.stdout)
-        with output_ctx as output_file:
-            for chunk_str in stream_writer(chunks):
-                output_file.write(chunk_str)
+            output_ctx = open(output, "w", encoding="utf-8") if output else nullcontext(sys.stdout)
+            with output_ctx as output_file:
+                for chunk_str in stream_writer(chunks):
+                    output_file.write(chunk_str)
 
-        # Handle header rewrite for tabular output if needed
-        if output and hasattr(stream_writer, "headers"):
-            logger.info("Rewriting output with updated headers")
-            tmp_path = output + ".tmp"
-            with open(output, encoding="utf-8") as src, open(tmp_path, "w", encoding="utf-8") as dst:
-                separator = "\t" if output_format == "tsv" else ","
-                for line in rewrite_header_and_pad(iter(src), stream_writer.headers, separator, chunk_size):
-                    dst.write(line)
-            os.replace(tmp_path, output)
+            # Handle header rewrite for tabular output if needed
+            if output and hasattr(stream_writer, "headers"):
+                logger.info("Rewriting output with updated headers")
+                tmp_path = output + ".tmp"
+                with open(output, encoding="utf-8") as src, open(tmp_path, "w", encoding="utf-8") as dst:
+                    separator = "\t" if output_format == "tsv" else ","
+                    for line in rewrite_header_and_pad(iter(src), stream_writer.headers, separator, chunk_size):
+                        dst.write(line)
+                os.replace(tmp_path, output)
 
-    # Report collected errors
-    if errors:
-        click.echo(f"\n{len(errors)} transformation error(s):", err=True)
-        for err in errors:
-            click.echo(f"  - {err}", err=True)
+        completed = True
+    finally:
+        # Flush collected errors even if output writing crashed mid-stream, so
+        # they aren't lost. Only print here; raising SystemExit inside finally
+        # would replace an in-flight crash and swallow its traceback.
+        if errors:
+            click.echo(f"\n{len(errors)} transformation error(s):", err=True)
+            for err in errors:
+                click.echo(f"  - {err}", err=True)
+
+    # Reached only on clean completion; a mid-stream crash has already
+    # propagated through the finally above with its traceback intact.
+    if completed and errors:
         raise SystemExit(1)
 
 

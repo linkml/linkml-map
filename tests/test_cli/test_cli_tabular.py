@@ -1,6 +1,7 @@
 """Integration tests for CLI with tabular (TSV/CSV) input."""
 
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -767,3 +768,62 @@ class TestContinueOnError:
         assert result.exit_code == 0
         lines = [line for line in result.stdout.strip().split("\n") if line]
         assert len(lines) == 2
+
+    @pytest.mark.skipif(not os.path.exists("/dev/full"), reason="requires /dev/full device")
+    def test_collected_errors_flushed_when_output_crashes(
+        self,
+        runner: CliRunner,
+        sample_schema: Path,
+        tmp_path: Path,
+    ) -> None:
+        """Errors collected before a hard mid-stream crash are still reported, and the crash surfaces.
+
+        Uses /dev/full so the write fails with OSError after a row-level
+        TransformationError has been collected. The accumulated error must be
+        flushed (not lost behind the crash) and the OSError must still propagate.
+        """
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        # Row 1 divides by zero (collected error); row 2 succeeds and gets written.
+        (data_dir / "Person.tsv").write_text(
+            "id\tname\tprimary_email\tage_in_years\tgender\n"
+            "P:001\tAlice\talice@example.com\t0\tcisgender woman\n"
+            "P:002\tBob\tbob@example.com\t25\tcisgender man\n"
+        )
+        transform_path = tmp_path / "ratio_transform.yaml"
+        transform = {
+            "id": "ratio-transform",
+            "class_derivations": {
+                "Agent": {
+                    "populated_from": "Person",
+                    "slot_derivations": {
+                        "id": {},
+                        "ratio": {"expr": "100 / {age_in_years}"},
+                    },
+                }
+            },
+        }
+        transform_path.write_text(yaml.dump(transform))
+
+        result = runner.invoke(
+            main,
+            [
+                "map-data",
+                "-T",
+                str(transform_path),
+                "-s",
+                str(sample_schema),
+                "-f",
+                "jsonl",
+                "--continue-on-error",
+                "-o",
+                "/dev/full",
+                str(data_dir),
+            ],
+        )
+        # The collected error is flushed to stderr...
+        assert "1 transformation error(s)" in result.stderr
+        assert "slot_derivation=ratio" in result.stderr
+        # ...and the hard crash still surfaces rather than being masked.
+        assert result.exit_code != 0
+        assert isinstance(result.exception, OSError)
