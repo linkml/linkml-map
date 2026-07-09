@@ -776,11 +776,11 @@ class TestContinueOnError:
         sample_schema: Path,
         tmp_path: Path,
     ) -> None:
-        """Errors collected before a hard mid-stream crash are still reported, and the crash surfaces.
+        """A row error reported before a hard mid-stream crash survives, and the crash surfaces.
 
         Uses /dev/full so the write fails with OSError after a row-level
-        TransformationError has been collected. The accumulated error must be
-        flushed (not lost behind the crash) and the OSError must still propagate.
+        TransformationError has already been printed. The error must not be lost
+        behind the crash, and the OSError must still propagate.
         """
         data_dir = tmp_path / "data"
         data_dir.mkdir()
