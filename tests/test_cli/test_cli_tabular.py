@@ -821,8 +821,7 @@ class TestContinueOnError:
                 str(data_dir),
             ],
         )
-        # The collected error is flushed to stderr...
-        assert "1 transformation error(s)" in result.stderr
+        # The row error was printed as it occurred, so it survives the crash...
         assert "slot_derivation=ratio" in result.stderr
         # ...and the hard crash still surfaces rather than being masked.
         assert result.exit_code != 0
