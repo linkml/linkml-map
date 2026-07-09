@@ -434,9 +434,16 @@ def _map_data_streaming(
     # Initialize data loader (schema enables type-preserving coercion for TSV/CSV)
     data_loader = DataLoader(input_path, schemaview=tr.source_schemaview)
 
-    # Set up error collection when continue-on-error is enabled
-    errors: list[TransformationError] = []
-    on_error = errors.append if continue_on_error else None
+    # When continue-on-error is enabled, report each row error as it occurs so
+    # nothing is lost if a later write crashes; a count drives the exit code.
+    error_count = 0
+
+    def report_error(err: TransformationError) -> None:
+        nonlocal error_count
+        error_count += 1
+        click.echo(f"  - {err}", err=True)
+
+    on_error = report_error if continue_on_error else None
 
     # Create transform iterator and chunk it
     transform_iter = transform_spec(tr, data_loader, source_type, on_error=on_error)
@@ -483,11 +490,10 @@ def _map_data_streaming(
                     dst.write(line)
             os.replace(tmp_path, output)
 
-    # Report collected errors
-    if errors:
-        click.echo(f"\n{len(errors)} transformation error(s):", err=True)
-        for err in errors:
-            click.echo(f"  - {err}", err=True)
+    # Errors were already printed as they occurred; a mid-stream crash would
+    # have propagated before reaching here. Reached only on clean completion.
+    if error_count:
+        click.echo(f"\n{error_count} transformation error(s)", err=True)
         raise SystemExit(1)
 
 
