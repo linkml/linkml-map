@@ -784,7 +784,8 @@ class TestContinueOnError:
         """
         data_dir = tmp_path / "data"
         data_dir.mkdir()
-        # Row 1 divides by zero (collected error); row 2 succeeds and gets written.
+        # Row 1 divides by zero (reported error); row 2 transforms, and writing it
+        # to /dev/full triggers the OSError (it is not actually persisted).
         (data_dir / "Person.tsv").write_text(
             "id\tname\tprimary_email\tage_in_years\tgender\n"
             "P:001\tAlice\talice@example.com\t0\tcisgender woman\n"

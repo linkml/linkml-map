@@ -435,11 +435,12 @@ def _map_data_streaming(
     data_loader = DataLoader(input_path, schemaview=tr.source_schemaview)
 
     # When continue-on-error is enabled, report each row error as it occurs so
-    # nothing is lost if a later write crashes; the list drives the exit code.
-    errors: list[TransformationError] = []
+    # nothing is lost if a later write crashes; a count drives the exit code.
+    error_count = 0
 
     def report_error(err: TransformationError) -> None:
-        errors.append(err)
+        nonlocal error_count
+        error_count += 1
         click.echo(f"  - {err}", err=True)
 
     on_error = report_error if continue_on_error else None
@@ -491,8 +492,8 @@ def _map_data_streaming(
 
     # Errors were already printed as they occurred; a mid-stream crash would
     # have propagated before reaching here. Reached only on clean completion.
-    if errors:
-        click.echo(f"\n{len(errors)} transformation error(s)", err=True)
+    if error_count:
+        click.echo(f"\n{error_count} transformation error(s)", err=True)
         raise SystemExit(1)
 
 
