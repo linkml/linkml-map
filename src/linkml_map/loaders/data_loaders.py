@@ -36,6 +36,51 @@ class FileFormat(str, Enum):
         return mapping[ext]
 
 
+_NUMERIC_TYPE_NAMES = frozenset({"integer", "float", "double", "decimal"})
+
+
+def _numeric_slots_for(schemaview: SchemaView, target_class: str) -> set[str]:
+    """
+    Return the names of ``target_class`` slots whose range is a numeric type.
+
+    Mirrors the numeric-slot detection in linkml's delimited loader, but operates
+    on an already-built :class:`SchemaView` so the source schema is parsed once for
+    the whole run instead of being rebuilt from disk per file. Rebuilding per file
+    is both slow and leaky on large generated schemas. See linkml/linkml-map#283.
+
+    :param schemaview: Source schema, built once and reused across files.
+    :param target_class: Source class the file's rows conform to.
+    :return: Slot names (and aliases) whose range resolves to a numeric type.
+    """
+    numeric: set[str] = set()
+    all_types = schemaview.all_types()
+    for slot in schemaview.class_induced_slots(target_class):
+        if slot.range in all_types and any(
+            ancestor in _NUMERIC_TYPE_NAMES for ancestor in schemaview.type_ancestors(slot.range)
+        ):
+            numeric.add(slot.name)
+            if slot.alias:
+                numeric.add(slot.alias)
+    return numeric
+
+
+def _apply_numeric_slots(loader: Any, schemaview: SchemaView | None, target_class: str | None) -> None:
+    """
+    Configure schema-aware numeric coercion on a linkml delimited loader.
+
+    Assigns the numeric-slot set (computed from the in-scope, already-built
+    :class:`SchemaView`) to the loader so it coerces only numeric-ranged columns,
+    without linkml rebuilding a ``SchemaView`` per file. When no schema/class is
+    available the loader keeps its default (coerce every numeric-looking value).
+    See linkml/linkml-map#283.
+
+    ``_numeric_slots`` is linkml's own hook for this; the durable fix is upstream
+    support for handing the loader a ready-made ``SchemaView`` (linkml/linkml#3610).
+    """
+    if schemaview is not None and target_class is not None:
+        loader._numeric_slots = _numeric_slots_for(schemaview, target_class)
+
+
 class BaseFileLoader(ABC):
     """Abstract base class for file loaders."""
 
@@ -84,25 +129,21 @@ class TsvFileLoader(BaseFileLoader):
         self,
         source: str | Path,
         skip_empty_rows: bool = True,
-        schema_path: str | Path | None = None,
+        schemaview: SchemaView | None = None,
         target_class: str | None = None,
     ) -> None:
         """Initialize TSV loader."""
         super().__init__(source)
         self.skip_empty_rows = skip_empty_rows
-        self.schema_path = schema_path
+        self.schemaview = schemaview
         self.target_class = target_class
 
     def iter_instances(self) -> Iterator[dict[str, Any]]:
         """Iterate over rows from the TSV file."""
         from linkml.validator.loaders import TsvLoader
 
-        loader = TsvLoader(
-            str(self.source),
-            skip_empty_rows=self.skip_empty_rows,
-            schema_path=self.schema_path,
-            target_class=self.target_class,
-        )
+        loader = TsvLoader(str(self.source), skip_empty_rows=self.skip_empty_rows)
+        _apply_numeric_slots(loader, self.schemaview, self.target_class)
         yield from loader.iter_instances()
 
 
@@ -113,25 +154,21 @@ class CsvFileLoader(BaseFileLoader):
         self,
         source: str | Path,
         skip_empty_rows: bool = True,
-        schema_path: str | Path | None = None,
+        schemaview: SchemaView | None = None,
         target_class: str | None = None,
     ) -> None:
         """Initialize CSV loader."""
         super().__init__(source)
         self.skip_empty_rows = skip_empty_rows
-        self.schema_path = schema_path
+        self.schemaview = schemaview
         self.target_class = target_class
 
     def iter_instances(self) -> Iterator[dict[str, Any]]:
         """Iterate over rows from the CSV file."""
         from linkml.validator.loaders import CsvLoader
 
-        loader = CsvLoader(
-            str(self.source),
-            skip_empty_rows=self.skip_empty_rows,
-            schema_path=self.schema_path,
-            target_class=self.target_class,
-        )
+        loader = CsvLoader(str(self.source), skip_empty_rows=self.skip_empty_rows)
+        _apply_numeric_slots(loader, self.schemaview, self.target_class)
         yield from loader.iter_instances()
 
 
@@ -218,20 +255,18 @@ class DataLoader:
         """
         Build schema-aware kwargs for a TSV/CSV leaf loader.
 
-        linkml's delimited loader currently takes a ``schema_path``, so we bridge
-        the in-scope :class:`SchemaView` to its source file. When that loader gains
-        native ``SchemaView`` support, this is the single spot that changes.
+        Passes the in-scope :class:`SchemaView` (built once) straight through to the
+        leaf loader, so numeric-slot detection reuses it rather than rebuilding a
+        ``SchemaView`` from disk per file (slow and memory-leaky on large generated
+        schemas). See linkml/linkml-map#283.
 
         :param identifier: Names the source class the file's rows conform to.
-        :return: ``schema_path``/``target_class`` kwargs, or empty if no schema is
-            available (in-memory schemas with no source file degrade to no coercion).
+        :return: ``schemaview``/``target_class`` kwargs, or empty if no schema is
+            available (rows then coerce every numeric-looking value, as before).
         """
         if self.schemaview is None:
             return {}
-        schema_path = self.schemaview.schema.source_file
-        if schema_path is None:
-            return {}
-        return {"schema_path": schema_path, "target_class": identifier}
+        return {"schemaview": self.schemaview, "target_class": identifier}
 
     @property
     def is_single_file(self) -> bool:

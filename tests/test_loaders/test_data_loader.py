@@ -390,7 +390,7 @@ class TestSchemaAwareTsvFileLoader:
     """TsvFileLoader preserves string/enum columns when given a schema."""
 
     def test_with_schema(self, schema_aware_tsv: Path, schema_file: Path) -> None:
-        loader = TsvFileLoader(schema_aware_tsv, schema_path=schema_file, target_class="Record")
+        loader = TsvFileLoader(schema_aware_tsv, schemaview=SchemaView(str(schema_file)), target_class="Record")
         row = next(loader.iter_instances())
         _assert_schema_aware_row(row)
 
@@ -405,7 +405,7 @@ class TestSchemaAwareCsvFileLoader:
     """CsvFileLoader preserves string/enum columns when given a schema."""
 
     def test_with_schema(self, schema_aware_csv: Path, schema_file: Path) -> None:
-        loader = CsvFileLoader(schema_aware_csv, schema_path=schema_file, target_class="Record")
+        loader = CsvFileLoader(schema_aware_csv, schemaview=SchemaView(str(schema_file)), target_class="Record")
         row = next(loader.iter_instances())
         _assert_schema_aware_row(row)
 
@@ -422,16 +422,16 @@ class TestSchemaAwareGetFileLoader:
     @pytest.mark.parametrize("fixture_name", ["schema_aware_tsv", "schema_aware_csv"])
     def test_with_schema(self, fixture_name: str, schema_file: Path, request: pytest.FixtureRequest) -> None:
         data_file = request.getfixturevalue(fixture_name)
-        loader = get_file_loader(data_file, schema_path=schema_file, target_class="Record")
+        loader = get_file_loader(data_file, schemaview=SchemaView(str(schema_file)), target_class="Record")
         row = next(loader.iter_instances())
         _assert_schema_aware_row(row)
 
     def test_rejected_for_yaml(self, tmp_path: Path, schema_file: Path) -> None:
-        """schema_path/target_class are not valid kwargs for non-tabular loaders."""
+        """schemaview/target_class are not valid kwargs for non-tabular loaders."""
         yaml_path = tmp_path / "data.yaml"
         yaml_path.write_text(yaml.dump({"id": 1, "zipcode": "90210"}))
         with pytest.raises(TypeError, match="unexpected keyword argument"):
-            get_file_loader(yaml_path, schema_path=schema_file, target_class="Record")
+            get_file_loader(yaml_path, schemaview=SchemaView(str(schema_file)), target_class="Record")
 
 
 class TestSchemaAwareDataLoader:
@@ -491,3 +491,28 @@ class TestSchemaAwareDataLoader:
 
         assert coded["code"] == "007"  # string range preserved
         assert numbered["code"] == 7  # integer range coerced
+
+    def test_reuses_schemaview_without_rebuilding_from_path(self, tmp_path: Path, schema_file: Path) -> None:
+        """Leaf-loader kwargs carry the already-built SchemaView, never a path.
+
+        Forwarding a ``schema_path`` made linkml rebuild a SchemaView per file,
+        which is slow and leaks memory on large generated schemas (see #283). The
+        fix hands the single in-scope SchemaView straight through.
+        """
+        sv = SchemaView(str(schema_file))
+        loader = DataLoader(tmp_path, schemaview=sv)
+        kwargs = loader._schema_loader_kwargs("Record")
+        assert kwargs["schemaview"] is sv  # reused, not rebuilt
+        assert kwargs["target_class"] == "Record"
+        assert "schema_path" not in kwargs  # no path => linkml won't rebuild
+
+    def test_schema_aware_coercion_without_source_file(self, tmp_path: Path, schema_file: Path) -> None:
+        """Coercion is driven by the in-scope SchemaView, so it works even when the
+        schema has no ``source_file`` on disk (previously degraded to coercing
+        every numeric-looking value)."""
+        sv = SchemaView(str(schema_file))
+        sv.schema.source_file = None
+        (tmp_path / "Record.tsv").write_text("id\tzipcode\tscore\tweight\n1\t90210\t2\t3.5\n")
+        loader = DataLoader(tmp_path, schemaview=sv)
+        row = next(loader["Record"])
+        _assert_schema_aware_row(row)
