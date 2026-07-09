@@ -770,7 +770,7 @@ class TestContinueOnError:
         assert len(lines) == 2
 
     @pytest.mark.skipif(not os.path.exists("/dev/full"), reason="requires /dev/full device")
-    def test_collected_errors_flushed_when_output_crashes(
+    def test_reported_error_survives_output_crash(
         self,
         runner: CliRunner,
         sample_schema: Path,
