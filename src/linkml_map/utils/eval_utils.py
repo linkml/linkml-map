@@ -501,7 +501,7 @@ def _maybe_coerce_arithmetic(left: Any, right: Any) -> tuple[Any, Any]:  # noqa:
 
 def _warn_non_numeric(op, left: Any, right: Any) -> None:  # noqa: ANN001, ANN401
     """Log that an operator got a non-numeric operand and is returning None."""
-    logger.warning(f"Non-numeric operand in {op.__name__}: {left!r}, {right!r}; returning None")
+    logger.warning("Non-numeric operand in %s: %r, %r; returning None", op.__name__, left, right)
 
 
 def _null_propagating(op):  # noqa: ANN001, ANN202
