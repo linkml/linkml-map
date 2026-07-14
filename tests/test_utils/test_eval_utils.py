@@ -308,6 +308,9 @@ def test_arithmetic_multiply_numeric_string_is_numeric() -> None:
     assert eval_expr("{col} * 365", col=71) == 25915
     assert eval_expr("({col} * 365) + 1825", col="71") == 27740
     assert eval_expr("{col} * 365", col="3.14") == pytest.approx(1146.1)
+    # int * str is native repetition too, so the RHS path needs the same guard.
+    assert eval_expr("365 * {col}", col="71") == 25915
+    assert eval_expr("365 * {col}", col="3.14") == pytest.approx(1146.1)
 
 
 def test_arithmetic_multiply_string_and_number_preserves_concatenation_and_lists() -> None:
