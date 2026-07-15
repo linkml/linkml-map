@@ -443,6 +443,67 @@ def _maybe_coerce_numeric(left: Any, right: Any) -> tuple[Any, Any]:  # noqa: AN
     return left, right
 
 
+def _coerce_like(s: str, num: int | float) -> int | float | None:  # noqa: ANN401
+    """Convert numeric string ``s`` to ``num``'s type, falling back to float.
+
+    Returns ``None`` when ``s`` is not numeric-looking.
+
+    >>> _coerce_like("71", 365)
+    71
+    >>> _coerce_like("3.14", 2)
+    3.14
+    >>> _coerce_like("abc", 2) is None
+    True
+    """
+    try:
+        return type(num)(s)
+    except (ValueError, TypeError):
+        return _try_numeric(s)
+
+
+def _maybe_coerce_arithmetic(left: Any, right: Any) -> tuple[Any, Any]:  # noqa: ANN401
+    """
+    Coerce a numeric-string operand so an arithmetic operator evaluates numerically.
+
+    Tabular loaders keep genuinely string-typed columns as strings even when the
+    values look numeric (see linkml/linkml-map#285). Without coercion, ``*`` would
+    apply Python's string semantics -- ``"71" * 365`` repeats the string 365 times
+    instead of computing ``25915`` -- silently corrupting output rather than erroring.
+
+    When exactly one operand is a number and the other a numeric-looking string, the
+    string is converted to a number (matching the number's type when it parses
+    cleanly, else ``float``). Two strings (so ``"a" + "b"`` still concatenates) and a
+    number paired with a non-numeric string are returned unchanged.
+
+    >>> _maybe_coerce_arithmetic('71', 365)
+    (71, 365)
+    >>> _maybe_coerce_arithmetic(365, '71')
+    (365, 71)
+    >>> _maybe_coerce_arithmetic('3.14', 2)
+    (3.14, 2)
+    >>> _maybe_coerce_arithmetic('a', 'b')
+    ('a', 'b')
+    >>> _maybe_coerce_arithmetic(2, 'abc')
+    (2, 'abc')
+    >>> _maybe_coerce_arithmetic(True, '1')
+    (True, '1')
+    """
+    if isinstance(left, str) and isinstance(right, int | float) and not isinstance(right, bool):
+        coerced = _coerce_like(left, right)
+        if coerced is not None:
+            return coerced, right
+    elif isinstance(right, str) and isinstance(left, int | float) and not isinstance(left, bool):
+        coerced = _coerce_like(right, left)
+        if coerced is not None:
+            return left, coerced
+    return left, right
+
+
+def _warn_non_numeric(op, left: Any, right: Any) -> None:  # noqa: ANN001, ANN401
+    """Log that an operator got a non-numeric operand and is returning None."""
+    logger.warning("Non-numeric operand in %s: %r, %r; returning None", op.__name__, left, right)
+
+
 def _null_propagating(op):  # noqa: ANN001, ANN202
     """Wrap a binary operator with null propagation and numeric coercion fallback.
 
@@ -465,7 +526,41 @@ def _null_propagating(op):  # noqa: ANN001, ANN202
         except (TypeError, ValueError):
             left_n, right_n = _try_numeric(left), _try_numeric(right)
             if left_n is None or right_n is None:
-                logger.warning(f"Non-numeric operand in {op.__name__}: {left!r}, {right!r}; returning None")
+                _warn_non_numeric(op, left, right)
+                return None
+            return op(left_n, right_n)
+
+    return wrapper
+
+
+def _null_propagating_arithmetic(op):  # noqa: ANN001, ANN202
+    """Wrap an arithmetic operator with null propagation and numeric-string coercion.
+
+    A number paired with a string is always a numeric context: the string is
+    coerced to a number, or the result is None (with a warning) when it is not
+    numeric-looking. Crucially this never falls through to Python's string
+    semantics -- ``"71" * 365`` computes ``25915`` and ``"abc" * 10`` returns
+    None, rather than repeating the string (see linkml/linkml-map#285).
+
+    Two strings keep native semantics, so ``"a" + "b"`` still concatenates; if the
+    native op then fails (e.g. ``"a" - "b"``), numeric coercion is retried.
+    """
+
+    def wrapper(left: Any, right: Any) -> Any:  # noqa: ANN401
+        if left is None or right is None:
+            return None
+        left, right = _maybe_coerce_arithmetic(left, right)
+        # After coercion, a lone string opposite a number is non-numeric: treat it
+        # as a failed numeric op rather than letting ``*`` repeat the string.
+        if isinstance(left, str) != isinstance(right, str):
+            _warn_non_numeric(op, left, right)
+            return None
+        try:
+            return op(left, right)
+        except (TypeError, ValueError):
+            left_n, right_n = _try_numeric(left), _try_numeric(right)
+            if left_n is None or right_n is None:
+                _warn_non_numeric(op, left, right)
                 return None
             return op(left_n, right_n)
 
@@ -566,7 +661,7 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
             ast.BitOr,
             ast.BitAnd,
         ):
-            self.operators[op_type] = _null_propagating(self.operators[op_type])
+            self.operators[op_type] = _null_propagating_arithmetic(self.operators[op_type])
         for op_type in (ast.USub, ast.UAdd, ast.Invert):
             self.operators[op_type] = _null_propagating_unary(self.operators[op_type])
 
