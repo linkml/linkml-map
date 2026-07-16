@@ -1,3 +1,6 @@
+# Run this spec with `linkml-map map-data --unrestricted-eval`. Several Agent
+# derivations use `src.` accessors and comprehensions, which safe mode does not
+# provide; without the flag `src` resolves to None and the derivation fails.
 id: https://w3id.org/linkml/map/example/personinfo-to-agent.transform.yaml
 title: PersonInfo to Agent example transformation
 version: 0.1

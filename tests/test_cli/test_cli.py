@@ -11,11 +11,13 @@ from click.testing import CliRunner, Result
 from linkml_runtime import SchemaView
 
 from linkml_map.cli.cli import dump_output, main
+from linkml_map.transformer.errors import TransformationError
 from tests import (
     DENORM_SPECIFICATION,
     FLATTENING_DATA,
     NORM_SCHEMA,
     PERSONINFO_CONTAINER_DATA,
+    PERSONINFO_CONTAINER_TGT_DATA,
     PERSONINFO_DERIVED,
     PERSONINFO_SRC_SCHEMA,
     PERSONINFO_TR,
@@ -147,21 +149,47 @@ def test_derive_schema(runner: CliRunner, output: str | None, tmp_path: Generato
     assert "Agent" in sv.all_classes()
 
 
-def test_map_data(runner: CliRunner) -> None:
-    cmd = [
+def _map_data_cmd(*extra_args: str) -> list[str]:
+    """Build a ``map-data`` invocation for the personinfo_basic example."""
+    return [
         "map-data",
-        "--unrestricted-eval",
+        *extra_args,
         "-T",
         str(PERSONINFO_TR),
         "-s",
         str(PERSONINFO_SRC_SCHEMA),
         str(PERSONINFO_CONTAINER_DATA),
     ]
-    result = runner.invoke(main, cmd)
+
+
+def _drop_nulls(obj: object) -> object:
+    """Recursively strip ``None``-valued keys, which the CLI omits from its output."""
+    if isinstance(obj, dict):
+        return {k: _drop_nulls(v) for k, v in obj.items() if v is not None}
+    if isinstance(obj, list):
+        return [_drop_nulls(v) for v in obj]
+    return obj
+
+
+def test_map_data(runner: CliRunner) -> None:
+    """``map-data --unrestricted-eval`` reproduces the committed example output."""
+    result = runner.invoke(main, _map_data_cmd("--unrestricted-eval"))
     assert result.exit_code == 0
-    out = result.stdout
-    tr_data = yaml.safe_load(out)
-    assert tr_data["agents"][0]["label"] == "fred bloggs"
+    with PERSONINFO_CONTAINER_TGT_DATA.open() as fh:
+        expected = yaml.safe_load(fh)
+    assert yaml.safe_load(result.stdout) == _drop_nulls(expected)
+
+
+def test_map_data_without_unrestricted_eval_fails(runner: CliRunner) -> None:
+    """The example's ``src.`` expressions need unrestricted eval; safe mode must not
+    silently emit partial data.
+
+    See https://github.com/linkml/linkml-map/issues/270.
+    """
+    result = runner.invoke(main, _map_data_cmd())
+    assert result.exit_code != 0
+    assert isinstance(result.exception, TransformationError)
+    assert "driving_since" in str(result.exception)
 
 
 def _write_typo_spec_fixture(tmp_path: Path) -> tuple[Path, Path, Path]:
