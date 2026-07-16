@@ -896,7 +896,7 @@ def _validate_class_derivation(
         if fallback_class and fallback_class in source_all_classes:
             resolved_source_class = fallback_class
 
-    if resolved_source_class is not None:
+    if source_sv is not None and resolved_source_class is not None:
         induced_source_slots = source_sv.class_induced_slots(resolved_source_class)
         source_class_slots = {s.name for s in induced_source_slots}
         # Single-valued, string-typed slots are the ones the evaluator silently
