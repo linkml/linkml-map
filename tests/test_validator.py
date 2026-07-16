@@ -7,6 +7,7 @@ from linkml_runtime import SchemaView
 
 from linkml_map.validator import (
     ValidationMessage,
+    extract_expr_arithmetic_slots,
     extract_expr_attribute_references,
     extract_expr_slot_references,
     normalize_spec_dict,
@@ -404,6 +405,44 @@ def test_extract_expr_attribute_references_unparsable():
 
 
 # ---------------------------------------------------------------------------
+# Unit tests for extract_expr_arithmetic_slots
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("expr", "expected"),
+    [
+        ("{col} * 365", {"col"}),
+        ("col * 365", {"col"}),
+        ("365 * {col}", {"col"}),
+        ("({days} * 365) + offset", {"days"}),  # + operand (offset) excluded
+        ("{a} - {b}", {"a", "b"}),
+        ("{a} / {b}", {"a", "b"}),
+        ("{base} ** 2", {"base"}),
+        ("{x} % 10", {"x"}),
+        ("src.age * 12", {"age"}),
+        ("str({col}) * 3", set()),  # slot buried in a call is not a direct operand
+        ("{a} + {b}", set()),  # + is concatenation, not flagged
+        ("str({age}) + ' years'", set()),
+        ("[1, 2] * 3", set()),  # no slot operand
+        ("'ab' * 3", set()),
+        ("case((x == 1, {y} * 2), (True, None))", {"y"}),
+        ("{{{{", set()),  # unparsable
+    ],
+    ids=lambda x: repr(x) if isinstance(x, str) else None,
+)
+def test_extract_expr_arithmetic_slots(expr, expected):
+    """Only direct slot operands of non-additive arithmetic are extracted."""
+    assert extract_expr_arithmetic_slots(expr) == expected
+
+
+def test_extract_expr_arithmetic_slots_excludes_bound_names():
+    """Comprehension and assignment variables are not treated as slots."""
+    expr = "[x * 365 for x in src.spans]"
+    assert extract_expr_arithmetic_slots(expr) == set()
+
+
+# ---------------------------------------------------------------------------
 # Unit tests for validate_spec_semantics
 # ---------------------------------------------------------------------------
 
@@ -561,6 +600,97 @@ def test_semantics_valid_expr_reference():
     msgs = validate_spec_semantics(spec, source_schema=str(PERSONINFO_SRC_SCHEMA))
     expr_msgs = [m for m in msgs if "age_in_years" in m.message]
     assert expr_msgs == []
+
+
+# ---------------------------------------------------------------------------
+# Non-numeric slot in arithmetic (#289)
+# ---------------------------------------------------------------------------
+
+
+_ARITH_SCHEMA = textwrap.dedent(
+    """
+    id: https://example.org/arith-test
+    name: arith-test
+    prefixes: {linkml: 'https://w3id.org/linkml/'}
+    imports: [linkml:types]
+    default_range: string
+    classes:
+      Record:
+        attributes:
+          age_days: {range: string}
+          count: {range: integer}
+          tags: {range: string, multivalued: true}
+    """
+)
+
+
+@pytest.fixture
+def arith_source_sv() -> SchemaView:
+    """Source schema with string, numeric, and multivalued-string slots."""
+    return SchemaView(_ARITH_SCHEMA)
+
+
+def _arith_spec(expr: str) -> dict:
+    """A single Record→Record spec whose derived slot uses ``expr``."""
+    return normalize_spec_dict(
+        {
+            "class_derivations": {
+                "Record": {
+                    "populated_from": "Record",
+                    "slot_derivations": {"derived": {"expr": expr}},
+                },
+            },
+        }
+    )
+
+
+def _coercion_msgs(messages: list[ValidationMessage]) -> list[ValidationMessage]:
+    return [m for m in messages if m.category == "type-coercion"]
+
+
+def test_semantics_string_slot_in_arithmetic_warns(arith_source_sv):
+    """A string-typed source slot used in arithmetic is a warning (#289)."""
+    msgs = validate_spec_semantics(_arith_spec("{age_days} * 365"), source_schemaview=arith_source_sv)
+    warnings = _warnings(msgs)
+    assert any("age_days" in w.message and w.category == "type-coercion" for w in warnings)
+    assert _errors(msgs) == []
+
+
+def test_semantics_numeric_slot_in_arithmetic_no_warning(arith_source_sv):
+    """A numeric-typed slot in arithmetic produces no coercion warning."""
+    msgs = validate_spec_semantics(_arith_spec("{count} * 365"), source_schemaview=arith_source_sv)
+    assert _coercion_msgs(msgs) == []
+
+
+def test_semantics_string_slot_arithmetic_strict_error(arith_source_sv):
+    """Under strict, the coercion warning escalates to an error."""
+    msgs = validate_spec_semantics(_arith_spec("{age_days} * 365"), source_schemaview=arith_source_sv, strict=True)
+    assert any("age_days" in e.message for e in _errors(msgs))
+
+
+def test_semantics_string_slot_addition_not_flagged(arith_source_sv):
+    """'+' is concatenation, so a string slot under '+' is left to user QC."""
+    msgs = validate_spec_semantics(_arith_spec("{age_days} + 5"), source_schemaview=arith_source_sv)
+    assert _coercion_msgs(msgs) == []
+
+
+def test_semantics_string_slot_in_call_not_flagged(arith_source_sv):
+    """A string slot wrapped in str() is not a direct arithmetic operand."""
+    msgs = validate_spec_semantics(_arith_spec("str({age_days}) * 3"), source_schemaview=arith_source_sv)
+    assert _coercion_msgs(msgs) == []
+
+
+def test_semantics_multivalued_string_slot_not_flagged(arith_source_sv):
+    """A multivalued string slot's '*' is genuine list repetition; not flagged."""
+    msgs = validate_spec_semantics(_arith_spec("{tags} * 3"), source_schemaview=arith_source_sv)
+    assert _coercion_msgs(msgs) == []
+
+
+def test_semantics_arithmetic_check_silent_without_source_schema():
+    """With no source schema, the coercion check emits nothing — keeping it
+    non-blocking for consumers that call validate_spec without a schema."""
+    msgs = validate_spec_semantics(_arith_spec("{age_days} * 365"))
+    assert _coercion_msgs(msgs) == []
 
 
 def test_semantics_join_alias_in_expr_no_warning():

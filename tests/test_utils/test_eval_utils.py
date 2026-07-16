@@ -297,11 +297,40 @@ def test_arithmetic_coerces_numeric_strings() -> None:
     assert eval_expr("{x} / 100.0 * {y}", x="200", y="50") == 100.0
 
 
+def test_arithmetic_multiply_numeric_string_is_numeric() -> None:
+    """``*`` on a numeric string is arithmetic, not Python string repetition (#285).
+
+    A numeric-looking column typed ``string`` (so the loader leaves it a string)
+    must not turn ``{col} * 365`` into the string repeated 365 times. Coercion
+    preserves the other operand's type, so the result matches the int-typed path.
+    """
+    assert eval_expr("{col} * 365", col="71") == 25915
+    assert eval_expr("{col} * 365", col=71) == 25915
+    assert eval_expr("({col} * 365) + 1825", col="71") == 27740
+    assert eval_expr("{col} * 365", col="3.14") == pytest.approx(1146.1)
+    # int * str is native repetition too, so the RHS path needs the same guard.
+    assert eval_expr("365 * {col}", col="71") == 25915
+    assert eval_expr("365 * {col}", col="3.14") == pytest.approx(1146.1)
+
+
+def test_arithmetic_multiply_string_and_number_preserves_concatenation_and_lists() -> None:
+    """``*`` stays numeric for number/string pairs but keeps genuine string/list semantics."""
+    # Two strings still concatenate with + (documented behavior), not coerced.
+    assert eval_expr("{a} + {b}", a="foo", b="bar") == "foobar"
+    assert eval_expr("{a} + {b}", a="71", b="365") == "71365"
+    # A list times a number is genuine repetition/distribution, left untouched.
+    assert eval_expr("x * 3", x=[1, 2]) == [1, 2, 1, 2, 1, 2]
+
+
 def test_arithmetic_non_numeric_string_returns_none() -> None:
     """Non-numeric strings in arithmetic return None with a warning instead of crashing."""
     assert eval_expr("x / y", x="100", y="abc") is None
     assert eval_expr("x * y", x="abc", y="10") is None
     assert eval_expr("x + y", x="abc", y=10) is None
+    # ``*`` is the trap: str * int succeeds natively as repetition, so a
+    # non-numeric string times a number must be forced to None, not "abcabc...".
+    assert eval_expr("x * y", x="abc", y=10) is None
+    assert eval_expr("x * y", x=10, y="abc") is None
 
 
 def test_null_in_function_call() -> None:

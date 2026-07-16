@@ -24,7 +24,7 @@ from dataclasses import dataclass
 from datetime import date, datetime
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, NamedTuple
 
 import jsonschema
 import yaml
@@ -207,6 +207,97 @@ def _validate_structural(
 # ---------------------------------------------------------------------------
 
 
+class _ExprScan(NamedTuple):
+    """Structural facts collected from a single walk of an expression AST.
+
+    :ivar slot_refs: Bare ``x`` / ``{x}`` / ``src.x`` slot references, with
+        safe and locally bound names removed.
+    :ivar attribute_refs: ``base.attr`` accesses (excluding ``src`` and safe
+        bases), as a mapping of base name to the attribute names accessed.
+    :ivar arithmetic_slots: Slot names used as a direct operand of a
+        non-additive arithmetic operator, with safe and bound names removed.
+    """
+
+    slot_refs: set[str]
+    attribute_refs: dict[str, set[str]]
+    arithmetic_slots: set[str]
+
+
+# Arithmetic operators whose string operands the evaluator silently coerces to
+# numbers (see linkml/linkml-map#285). ``+`` is deliberately excluded: it is
+# also string concatenation, so a string operand there is often intended (#289).
+_ARITHMETIC_BINOPS = (ast.Sub, ast.Mult, ast.Div, ast.FloorDiv, ast.Mod, ast.Pow)
+
+
+def _operand_slot_name(node: ast.expr) -> str | None:
+    """Return the slot name a BinOp operand references directly, else ``None``.
+
+    Recognizes only the three direct-reference forms — bare ``x``, ``{x}``
+    (parsed as an ``ast.Set`` of one ``ast.Name``), and ``src.x`` — so a slot
+    buried in a call like ``str({x})`` is not treated as an arithmetic operand.
+    """
+    if isinstance(node, ast.Name):
+        return node.id
+    if isinstance(node, ast.Set) and len(node.elts) == 1 and isinstance(node.elts[0], ast.Name):
+        return node.elts[0].id
+    if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name) and node.value.id == "src":
+        return node.attr
+    return None
+
+
+def _scan_expr(expr: str) -> _ExprScan:
+    """Collect every expression fact the validator needs in one AST walk.
+
+    The validator needs three different views of the same expression — slot
+    references, attribute references, and arithmetic-operand slots. Collecting
+    them in a single parse-and-walk (rather than one walk per view) keeps the
+    hot path to a single traversal; the public ``extract_expr_*`` helpers are
+    thin wrappers over this.
+
+    :param expr: A LinkML expression string.
+    :returns: An :class:`_ExprScan` of the collected structural facts.
+    """
+    try:
+        tree = ast.parse(expr, mode="eval")
+    except SyntaxError:
+        try:
+            tree = ast.parse(expr, mode="exec")
+        except SyntaxError:
+            return _ExprScan(set(), {}, set())
+
+    names: set[str] = set()
+    bound: set[str] = set()
+    attribute_refs: dict[str, set[str]] = {}
+    arithmetic: set[str] = set()
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Name):
+            if isinstance(node.ctx, ast.Store):
+                bound.add(node.id)
+            else:
+                names.add(node.id)
+        elif isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
+            base = node.value.id
+            if base == "src":
+                names.add(node.attr)
+            elif base not in _EXPR_SAFE_NAMES:
+                attribute_refs.setdefault(base, set()).add(node.attr)
+        elif isinstance(node, ast.comprehension) and isinstance(node.target, ast.Name):
+            bound.add(node.target.id)
+        elif isinstance(node, ast.BinOp) and isinstance(node.op, _ARITHMETIC_BINOPS):
+            for operand in (node.left, node.right):
+                slot = _operand_slot_name(operand)
+                if slot is not None:
+                    arithmetic.add(slot)
+
+    safe_and_bound = _EXPR_SAFE_NAMES | bound
+    return _ExprScan(
+        slot_refs=names - safe_and_bound,
+        attribute_refs=attribute_refs,
+        arithmetic_slots=arithmetic - safe_and_bound,
+    )
+
+
 def extract_expr_slot_references(expr: str) -> set[str]:
     """Extract candidate slot name references from a LinkML expression.
 
@@ -235,28 +326,7 @@ def extract_expr_slot_references(expr: str) -> set[str]:
         >>> extract_expr_slot_references("'hello'")
         set()
     """
-    try:
-        tree = ast.parse(expr, mode="eval")
-    except SyntaxError:
-        try:
-            tree = ast.parse(expr, mode="exec")
-        except SyntaxError:
-            return set()
-
-    names: set[str] = set()
-    bound: set[str] = set()
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Name):
-            if isinstance(node.ctx, ast.Store):
-                bound.add(node.id)
-            else:
-                names.add(node.id)
-        elif isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name) and node.value.id == "src":
-            names.add(node.attr)
-        elif isinstance(node, ast.comprehension) and isinstance(node.target, ast.Name):
-            bound.add(node.target.id)
-
-    return names - _EXPR_SAFE_NAMES - bound
+    return _scan_expr(expr).slot_refs
 
 
 def extract_expr_attribute_references(expr: str) -> dict[str, set[str]]:
@@ -280,22 +350,33 @@ def extract_expr_attribute_references(expr: str) -> dict[str, set[str]]:
         >>> extract_expr_attribute_references("src.foo")
         {}
     """
-    try:
-        tree = ast.parse(expr, mode="eval")
-    except SyntaxError:
-        try:
-            tree = ast.parse(expr, mode="exec")
-        except SyntaxError:
-            return {}
+    return _scan_expr(expr).attribute_refs
 
-    result: dict[str, set[str]] = {}
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
-            base = node.value.id
-            if base == "src" or base in _EXPR_SAFE_NAMES:
-                continue
-            result.setdefault(base, set()).add(node.attr)
-    return result
+
+def extract_expr_arithmetic_slots(expr: str) -> set[str]:
+    """Extract slot names used as a direct operand of an arithmetic operator.
+
+    Only the non-additive operators (``*``, ``-``, ``/``, ``//``, ``%``,
+    ``**``) count, and only direct references (``x``, ``{x}``, ``src.x``) — a
+    slot inside a call such as ``str({x})`` is not an operand. ``+`` is
+    excluded because it doubles as string concatenation. Used to warn when a
+    string-typed slot is silently coerced to a number in arithmetic (#289).
+
+    :param expr: A LinkML expression string.
+    :returns: A set of slot names used directly in non-additive arithmetic.
+
+    Example::
+
+        >>> sorted(extract_expr_arithmetic_slots("{col} * 365"))
+        ['col']
+        >>> sorted(extract_expr_arithmetic_slots("({days} * 365) + offset"))
+        ['days']
+        >>> extract_expr_arithmetic_slots("str({col}) + ' yrs'")
+        set()
+        >>> sorted(extract_expr_arithmetic_slots("{a} - {b}"))
+        ['a', 'b']
+    """
+    return _scan_expr(expr).arithmetic_slots
 
 
 # ---------------------------------------------------------------------------
@@ -699,6 +780,29 @@ def _collect_class_derivation_pool(data: dict[str, Any]) -> set[str]:
     return {cd.get("name") for cd in _iter_derivation_dicts(data.get("class_derivations", [])) if cd.get("name")}
 
 
+def _slot_is_string_typed(sv: SchemaView, range_name: str | None) -> bool:
+    """True if a range resolves to a string-based scalar type.
+
+    These are the ranges the evaluator silently coerces when they meet a
+    number in arithmetic (see linkml/linkml-map#285) — e.g. a column declared
+    ``string`` that holds numeric-looking text. Classes, enums, numeric types,
+    and unresolvable ranges all return ``False``: only string-based *types* are
+    in scope, matching the runtime's ``isinstance(value, str)`` coercion path.
+    Custom types resolve through their ancestors, so ``typeof: string`` counts.
+
+    :param sv: The source schema view.
+    :param range_name: The slot's declared range, or ``None``.
+    :returns: ``True`` if the range is a string-based scalar type.
+    """
+    if range_name is None or range_name not in sv.all_types():
+        return False
+    for ancestor in sv.type_ancestors(range_name):
+        ancestor_type = sv.get_type(ancestor)
+        if ancestor_type is not None and ancestor_type.base == "str":
+            return True
+    return False
+
+
 def _validate_class_derivation(
     cd: dict[str, Any],
     source_sv: SchemaView | None,
@@ -765,6 +869,8 @@ def _validate_class_derivation(
     # Source: populated_from class should exist
     source_class = cd.get("populated_from")
     source_class_slots: set[str] | None = None
+    source_string_scalar_slots: set[str] | None = None
+    resolved_source_class: str | None = None
     if source_sv is not None and source_class is not None:
         if source_class not in source_all_classes:
             messages.append(
@@ -775,20 +881,30 @@ def _validate_class_derivation(
                 )
             )
         else:
-            source_class_slots = {s.name for s in source_sv.class_induced_slots(source_class)}
+            resolved_source_class = source_class
 
     # If source_sv provided but no populated_from, fall back to match the runtime:
     # - Nested CDs without populated_from inherit the parent's effective source
     #   (see ObjectTransformer._derive_nested_objects, which feeds the parent's
     #   row through when the nested CD has no populated_from).
     # - Top-level CDs fall back to the identity case (cd_name == source class).
-    if source_sv is not None and source_class is None and source_class_slots is None:
+    if source_sv is not None and source_class is None and resolved_source_class is None:
         if parent_class_deriv is not None:
             fallback_class = parent_class_deriv.get("populated_from") or parent_class_deriv.get("name")
         else:
             fallback_class = cd_name
         if fallback_class and fallback_class in source_all_classes:
-            source_class_slots = {s.name for s in source_sv.class_induced_slots(fallback_class)}
+            resolved_source_class = fallback_class
+
+    if source_sv is not None and resolved_source_class is not None:
+        induced_source_slots = source_sv.class_induced_slots(resolved_source_class)
+        source_class_slots = {s.name for s in induced_source_slots}
+        # Single-valued, string-typed slots are the ones the evaluator silently
+        # coerces in arithmetic (#285); flag their arithmetic use below. Skip
+        # multivalued slots, whose ``*`` is genuine list repetition.
+        source_string_scalar_slots = {
+            s.name for s in induced_source_slots if not s.multivalued and _slot_is_string_typed(source_sv, s.range)
+        }
 
     # Validate slot_derivations (may be list or dict after normalization)
     slot_derivation_dicts = _iter_derivation_dicts(cd.get("slot_derivations", []))
@@ -806,6 +922,7 @@ def _validate_class_derivation(
             cd_name,
             cd_path,
             source_class_slots,
+            source_string_scalar_slots,
             target_class_slots,
             joined_class_slots,
             strict,
@@ -1085,6 +1202,7 @@ def _validate_slot_derivation(
     parent_class_name: str,
     parent_path: str,
     source_class_slots: set[str] | None,
+    source_string_scalar_slots: set[str] | None,
     target_class_slots: set[str] | None,
     joined_class_slots: dict[str, tuple[str, set[str] | None]],
     strict: bool,
@@ -1092,6 +1210,11 @@ def _validate_slot_derivation(
 ) -> None:
     """Validate a single slot derivation against schemas.
 
+    :param source_string_scalar_slots: Names of single-valued, string-typed
+        slots on the source class. Arithmetic use of these is silently
+        coerced to a number at runtime (#285), so it is surfaced as a
+        warning. ``None`` when no source schema is available, in which case
+        the check is skipped entirely.
     :param joined_class_slots: Mapping of alias name (from explicit
         ``joins:`` or an implicit-join target) to a tuple of
         ``(joined_class_name, slot_set)``. Expression bare-name
@@ -1132,9 +1255,13 @@ def _validate_slot_derivation(
 
     joined_aliases = set(joined_class_slots.keys())
 
+    # One AST walk feeds all three expression checks below (slot refs,
+    # arithmetic operands, and attribute refs).
+    scan = _scan_expr(expr)
+
     # Bare-name expression refs — exclude join aliases (they're a "base", not
     # a slot on the source class).
-    refs = extract_expr_slot_references(expr) - joined_aliases
+    refs = scan.slot_refs - joined_aliases
     for ref in sorted(refs):
         if ref not in source_class_slots:
             messages.append(
@@ -1145,9 +1272,28 @@ def _validate_slot_derivation(
                 )
             )
 
+    # String-typed source slots used directly in arithmetic are silently
+    # coerced to numbers at runtime (#285); surface it so a curator can
+    # re-type the slot. Coercion is always the correct runtime outcome, so
+    # this is a warning unless the caller opted into strict.
+    if source_string_scalar_slots:
+        for slot in sorted(scan.arithmetic_slots & source_string_scalar_slots):
+            messages.append(
+                ValidationMessage(
+                    severity="error" if strict else "warning",
+                    path=sd_path,
+                    message=(
+                        f"Expression uses '{slot}' in arithmetic, but it is declared with a "
+                        f"non-numeric range on the source class; its value is coerced to a number "
+                        f"at runtime. Declare a numeric range to make the intent explicit."
+                    ),
+                    category="type-coercion",
+                )
+            )
+
     # Cross-table attribute refs — partial #213 coverage: {alias.field}
     # validated against the joined class's slots when known.
-    attr_refs = extract_expr_attribute_references(expr)
+    attr_refs = scan.attribute_refs
     for base, attrs in attr_refs.items():
         if base not in joined_class_slots:
             continue
