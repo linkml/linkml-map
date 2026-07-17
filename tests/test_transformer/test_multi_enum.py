@@ -13,6 +13,7 @@ import copy
 import pytest
 from linkml_runtime import SchemaView
 
+from linkml_map.transformer.errors import TransformationError
 from linkml_map.transformer.object_transformer import ObjectTransformer
 
 SOURCE_SCHEMA = """\
@@ -337,6 +338,51 @@ def test_pv_sources_only_is_migrated_to_populated_from():
     assert pvds["red"].populated_from == ["light_red", "dark_red"]
     # sources is cleared after migration — the runtime relies on populated_from alone.
     assert not pvds["red"].sources
+
+
+def _make_transformer_with_enum_expr(expr: str, unrestricted_eval: bool) -> ObjectTransformer:
+    """Build a transformer whose SimplePrimary enum derivation carries *expr*."""
+    tr = ObjectTransformer(unrestricted_eval=unrestricted_eval)
+    tr.source_schemaview = SchemaView(SOURCE_SCHEMA)
+    tr.target_schemaview = SchemaView(TARGET_SCHEMA)
+    spec = copy.deepcopy(TRANSFORM_SPEC)
+    spec["enum_derivations"]["SimplePrimary"]["expr"] = expr
+    tr.create_transformer_specification(spec)
+    return tr
+
+
+def test_enum_expr_restricted_evaluates():
+    """A restricted-syntax enum expr is evaluated against the source object, no opt-in needed."""
+    tr = _make_transformer_with_enum_expr("'EXPR:' + color", unrestricted_eval=False)
+    result = tr.map_object({"id": "light1", "color": "light_red"}, source_type="Light")
+    assert result["color"] == "EXPR:light_red"
+
+
+def test_enum_expr_unrestricted_fallback():
+    """An expression rejected by simpleeval falls back to asteval only when unrestricted_eval is opted in."""
+    tr = _make_transformer_with_enum_expr("target = src['color']", unrestricted_eval=True)
+    result = tr.map_object({"id": "light1", "color": "light_red"}, source_type="Light")
+    assert result["color"] == "light_red"
+
+
+def test_enum_expr_restricted_raises_without_opt_in():
+    """The same asteval-only expr raises rather than silently escalating when not opted in."""
+    tr = _make_transformer_with_enum_expr("target = src['color']", unrestricted_eval=False)
+    with pytest.raises(TransformationError):
+        tr.map_object({"id": "light1", "color": "light_red"}, source_type="Light")
+
+
+@pytest.mark.parametrize("unrestricted_eval", [False, True])
+def test_enum_expr_strict_unknown_name_raises_without_fallback(unrestricted_eval):
+    """A strict-mode typo in an enum expr raises and never escalates to unrestricted eval."""
+    tr = ObjectTransformer(strict=True, unrestricted_eval=unrestricted_eval)
+    tr.source_schemaview = SchemaView(SOURCE_SCHEMA)
+    tr.target_schemaview = SchemaView(TARGET_SCHEMA)
+    spec = copy.deepcopy(TRANSFORM_SPEC)
+    spec["enum_derivations"]["SimplePrimary"]["expr"] = "colorr"
+    tr.create_transformer_specification(spec)
+    with pytest.raises(TransformationError):
+        tr.map_object({"id": "light1", "color": "light_red"}, source_type="Light")
 
 
 def test_explicit_range_any_with_any_of():

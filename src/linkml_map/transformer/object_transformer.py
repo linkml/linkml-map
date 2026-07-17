@@ -30,7 +30,7 @@ from linkml_map.functions.unit_conversion import UnitSystem, convert_units
 from linkml_map.transformer.errors import TransformationError
 from linkml_map.transformer.transformer import OBJECT_TYPE, Transformer
 from linkml_map.utils.dynamic_object import DynObj, dynamic_object
-from linkml_map.utils.eval_utils import _uuid5, eval_expr, eval_expr_with_mapping
+from linkml_map.utils.eval_utils import _uuid5, eval_expr_with_mapping
 from linkml_map.utils.fk_utils import FKResolution, resolve_fk_path
 from linkml_map.utils.join_utils import join_keys
 
@@ -592,12 +592,30 @@ class ObjectTransformer(Transformer):
             if not self.unrestricted_eval:
                 raise
             ctxt_obj, _ = bindings.get_ctxt_obj_and_dict()
-            usersyms = {"src": ctxt_obj, "target": None, "uuid5": _uuid5}
-            if functions:
-                usersyms.update(functions)
-            aeval = Interpreter(usersyms=usersyms)
-            aeval(expr)
-            return aeval.symtable["target"]
+            return self._unrestricted_eval(expr, ctxt_obj, functions=functions)
+
+    def _unrestricted_eval(
+        self,
+        expr: str,
+        src: Any,
+        functions: dict[str, Any] | None = None,
+    ) -> Any:
+        """Evaluate *expr* with the unrestricted asteval interpreter.
+
+        This is the escape hatch reached only when restricted evaluation fails
+        *and* the user opted in via ``unrestricted_eval``. Callers own the gate;
+        this method assumes the opt-in has already been checked.
+
+        :param expr: The expression string to evaluate.
+        :param src: Object exposed to the expression as ``src``.
+        :param functions: Extra functions injected into the interpreter.
+        """
+        usersyms = {"src": src, "target": None, "uuid5": _uuid5}
+        if functions:
+            usersyms.update(functions)
+        aeval = Interpreter(usersyms=usersyms)
+        aeval(expr)
+        return aeval.symtable["target"]
 
     def _apply_mappings(
         self,
@@ -1288,12 +1306,18 @@ class ObjectTransformer(Transformer):
         for enum_name in enum_names:
             enum_deriv = self._get_enum_derivation(enum_name)
             if enum_deriv.expr:
+                mapping = {**source_obj, "NULL": None} if isinstance(source_obj, Mapping) else {"NULL": None}
                 try:
-                    v = eval_expr(enum_deriv.expr, **source_obj, NULL=None)
-                except Exception:
-                    aeval = Interpreter(usersyms={"src": source_obj, "target": None, "uuid5": _uuid5})
-                    aeval(enum_deriv.expr)
-                    v = aeval.symtable["target"]
+                    v = eval_expr_with_mapping(
+                        enum_deriv.expr,
+                        mapping,
+                        strict=self.strict,
+                        warned_unbound=self._warned_unbound_names,
+                    )
+                except (InvalidExpression, TypeError, ValueError):
+                    if not self.unrestricted_eval:
+                        raise
+                    v = self._unrestricted_eval(enum_deriv.expr, source_obj)
                 if v is not None:
                     return v
             for pv_deriv in enum_deriv.permissible_value_derivations.values():
