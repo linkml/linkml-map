@@ -359,7 +359,7 @@ def test_enum_expr_restricted_evaluates():
 
 
 def test_enum_expr_unrestricted_fallback():
-    """An expr simpleeval rejects falls back to asteval only when unrestricted_eval is opted in."""
+    """An expression rejected by simpleeval falls back to asteval only when unrestricted_eval is opted in."""
     tr = _make_transformer_with_enum_expr("target = src['color']", unrestricted_eval=True)
     result = tr.map_object({"id": "light1", "color": "light_red"}, source_type="Light")
     assert result["color"] == "light_red"
@@ -368,6 +368,19 @@ def test_enum_expr_unrestricted_fallback():
 def test_enum_expr_restricted_raises_without_opt_in():
     """The same asteval-only expr raises rather than silently escalating when not opted in."""
     tr = _make_transformer_with_enum_expr("target = src['color']", unrestricted_eval=False)
+    with pytest.raises(TransformationError):
+        tr.map_object({"id": "light1", "color": "light_red"}, source_type="Light")
+
+
+@pytest.mark.parametrize("unrestricted_eval", [False, True])
+def test_enum_expr_strict_unknown_name_raises_without_fallback(unrestricted_eval):
+    """A strict-mode typo in an enum expr raises and never escalates to unrestricted eval."""
+    tr = ObjectTransformer(strict=True, unrestricted_eval=unrestricted_eval)
+    tr.source_schemaview = SchemaView(SOURCE_SCHEMA)
+    tr.target_schemaview = SchemaView(TARGET_SCHEMA)
+    spec = copy.deepcopy(TRANSFORM_SPEC)
+    spec["enum_derivations"]["SimplePrimary"]["expr"] = "colorr"
+    tr.create_transformer_specification(spec)
     with pytest.raises(TransformationError):
         tr.map_object({"id": "light1", "color": "light_red"}, source_type="Light")
 
