@@ -642,6 +642,7 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
         # default dedupes within a single expression eval (mostly a no-op
         # since a given name appears once per expr, but cheap and safe).
         self._warned_unbound: set[str] = warned_unbound if warned_unbound is not None else set()
+        self._comprehension_depth: int = 0
         super().__init__(**kwargs)
         for op_type in (ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE):
             self.operators[op_type] = _coercing(self.operators[op_type])
@@ -741,6 +742,23 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
             raise TypeError(msg)
         return self._eval(e)
 
+    def _eval_comprehension(self, node: ast.ListComp | ast.GeneratorExp | ast.DictComp) -> Any:  # noqa: ANN401
+        """
+        Track comprehension nesting for ``_eval_attribute``'s diagnostics.
+
+        simpleeval binds comprehension targets in a closure-local scope reachable
+        only through the ``ast.Name`` handler it swaps into ``self.nodes`` for the
+        duration of the comprehension. The root lookup in ``_eval_attribute``
+        deliberately bypasses that dispatch (see there), so a loop variable is
+        otherwise indistinguishable from a typo. This flag lets the error name the
+        real cause.
+        """
+        self._comprehension_depth += 1
+        try:
+            return super()._eval_comprehension(node)
+        finally:
+            self._comprehension_depth -= 1
+
     def _eval_attribute(self, node: ast.Attribute) -> Any:  # noqa: ANN401
         """
         Override attribute access to distribute over collections.
@@ -763,10 +781,22 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
                 obj = super()._eval_name(node.value)
             except NameNotDefined:
                 ref = f"{node.value.id}.{node.attr}"
-                msg = (
-                    f"Expression references unknown {node.value.id!r} in {ref!r}: "
-                    f"no such source class, join, or slot. Typo or stale reference?"
-                )
+                if self._comprehension_depth:
+                    # The name is bound by an enclosing comprehension, not missing
+                    # from the schema, so the unknown-reference wording below would
+                    # send the author hunting for a typo that isn't there.
+                    msg = (
+                        f"Attribute access on comprehension-bound {node.value.id!r} in {ref!r} "
+                        f"is not supported. Building records in an expression bypasses the "
+                        f"range, cardinality, and datatype coercion applied to derived objects; "
+                        f"declare a class_derivation keyed on the source range class and reduce "
+                        f"the slot to populated_from instead."
+                    )
+                else:
+                    msg = (
+                        f"Expression references unknown {node.value.id!r} in {ref!r}: "
+                        f"no such source class, join, or slot. Typo or stale reference?"
+                    )
                 raise NameError(msg) from None
         else:
             obj = self._eval(node.value)
