@@ -1356,6 +1356,29 @@ def test_bare_absent_and_known_none_stay_null() -> None:
     assert eval_expr("{a.b}", a=None) is None
 
 
+def test_comprehension_bound_root_names_the_real_cause() -> None:
+    """A loop variable is bound, so the unknown-reference wording misdiagnoses it.
+
+    simpleeval binds comprehension targets in a scope the root lookup in
+    ``_eval_attribute`` deliberately bypasses, which made ``c.code`` report a
+    typo that was never there.
+    """
+    with pytest.raises(NameError, match="comprehension-bound 'c'") as excinfo:
+        eval_expr("[c.code for c in codes]", codes=[{"code": "0"}])
+    assert "Typo or stale reference" not in str(excinfo.value)
+
+
+def test_unknown_root_after_comprehension_still_reports_typo() -> None:
+    """Comprehension depth unwinds, so a genuine unknown root is still diagnosed.
+
+    Evaluators are reused across rows, so a leaked flag would mislabel every
+    later unknown reference.
+    """
+    assert eval_expr("[c for c in codes]", codes=[1, 2]) == [1, 2]
+    with pytest.raises(NameError, match="Typo or stale reference"):
+        eval_expr("{Nope.col}", a=1)
+
+
 # -- caching / evaluator-reuse regression tests (issue #277) --
 
 
