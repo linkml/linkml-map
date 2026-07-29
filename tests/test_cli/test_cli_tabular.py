@@ -1,5 +1,6 @@
 """Integration tests for CLI with tabular (TSV/CSV) input."""
 
+import csv
 import json
 import os
 from pathlib import Path
@@ -385,6 +386,75 @@ class TestMapDataOutputFile:
         # Should be valid JSON array
         data = json.loads(content)
         assert len(data) == 2
+
+    def test_tsv_output_pads_heterogeneous_records(
+        self,
+        runner: CliRunner,
+        sample_schema: Path,
+        tmp_path: Path,
+    ) -> None:
+        """Single-output TSV to a file produces a well-formed table when records
+        have different keys.
+
+        The first record omits ``email`` (blank source cell) while the second has it,
+        so the tabular writer discovers ``email`` late and the file is rewritten with
+        the full header and the first row padded. Column order in the output is not
+        asserted (it varies by environment and is only cosmetic); the header set,
+        row width, and per-column values are what matter.
+        """
+        transform_path = tmp_path / "transform.yaml"
+        transform_path.write_text(
+            yaml.dump(
+                {
+                    "id": "test-transform",
+                    "class_derivations": {
+                        "Agent": {
+                            "populated_from": "Person",
+                            "slot_derivations": {
+                                "id": {},
+                                "label": {"populated_from": "name"},
+                                "email": {"populated_from": "primary_email"},
+                            },
+                        }
+                    },
+                }
+            )
+        )
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        # Row 1 leaves primary_email blank -> the derived object omits ``email``.
+        (data_dir / "Person.tsv").write_text(
+            "id\tname\tprimary_email\tage_in_years\tgender\n"
+            "P:001\tAlice\t\t30\tcisgender woman\n"
+            "P:002\tBob\tbob@example.com\t25\tcisgender man\n"
+        )
+        output_file = tmp_path / "output.tsv"
+        result = runner.invoke(
+            main,
+            [
+                "map-data",
+                "-T",
+                str(transform_path),
+                "-s",
+                str(sample_schema),
+                "-f",
+                "tsv",
+                "-o",
+                str(output_file),
+                str(data_dir),
+            ],
+        )
+        assert result.exit_code == 0
+
+        reader = csv.DictReader(output_file.read_text().splitlines(), delimiter="\t")
+        assert set(reader.fieldnames) == {"id", "label", "email"}  # email discovered late
+        rows = {row["id"]: row for row in reader}
+        assert rows.keys() == {"P:001", "P:002"}
+        # First row was padded for the missing email; every row is full width.
+        assert rows["P:001"]["label"] == "Alice"
+        assert rows["P:001"]["email"] == ""
+        assert rows["P:002"]["label"] == "Bob"
+        assert rows["P:002"]["email"] == "bob@example.com"
 
 
 def test_additional_output_tsv_and_json(
