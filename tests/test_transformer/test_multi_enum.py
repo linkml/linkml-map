@@ -385,6 +385,53 @@ def test_enum_expr_strict_unknown_name_raises_without_fallback(unrestricted_eval
         tr.map_object({"id": "light1", "color": "light_red"}, source_type="Light")
 
 
+def test_scalar_enum_expr_can_reference_source_as_src_in_restricted_mode():
+    """A plain enum-range slot passes the scalar value; the expr sees it as ``src`` without opt-in."""
+    source_schema = """\
+id: https://example.org/scalar-source
+name: scalar-source
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+enums:
+  Color:
+    permissible_values:
+      red:
+      green:
+classes:
+  Rec:
+    tree_root: true
+    attributes:
+      id:
+        identifier: true
+        range: string
+      color:
+        range: Color
+"""
+    target_schema = source_schema.replace("scalar-source", "scalar-target").replace("Color", "TColor")
+
+    tr = ObjectTransformer(unrestricted_eval=False)
+    tr.source_schemaview = SchemaView(source_schema)
+    tr.target_schemaview = SchemaView(target_schema)
+    tr.create_transformer_specification(
+        {
+            "class_derivations": {
+                "Rec": {
+                    "populated_from": "Rec",
+                    "slot_derivations": {"id": {}, "color": {"populated_from": "color"}},
+                }
+            },
+            "enum_derivations": {
+                "TColor": {"name": "TColor", "populated_from": "Color", "expr": "'X:' + src"},
+            },
+        }
+    )
+
+    result = tr.map_object({"id": "r1", "color": "red"}, source_type="Rec")
+    assert result["color"] == "X:red"
+
+
 def test_explicit_range_any_with_any_of():
     """Slots with explicit range: Any plus any_of enum ranges are mapped correctly."""
     schema = SOURCE_SCHEMA.replace(

@@ -1306,7 +1306,11 @@ class ObjectTransformer(Transformer):
         for enum_name in enum_names:
             enum_deriv = self._get_enum_derivation(enum_name)
             if enum_deriv.expr:
-                mapping = {**source_obj, "NULL": None} if isinstance(source_obj, Mapping) else {"NULL": None}
+                mapping = (
+                    {**source_obj, "NULL": None}
+                    if isinstance(source_obj, Mapping)
+                    else {"src": source_obj, "NULL": None}
+                )
                 try:
                     v = eval_expr_with_mapping(
                         enum_deriv.expr,
