@@ -8,7 +8,7 @@ See `tests/README.md` for guidance on the scaffold-based testing pattern used in
 
 This project uses [`ruff`](https://docs.astral.sh/ruff/) to lint and format.
 Run `uv run ruff check .` and `uv run ruff format .` before opening a pull
-request, or install the hooks with `pre-commit install` and let them run
+request, or install the hooks with `uv run pre-commit install` and let them run
 automatically.
 
 Each of these checks are run on each commit using GitHub Actions as a continuous
