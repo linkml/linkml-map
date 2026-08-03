@@ -123,13 +123,7 @@ subclass this.</p>
 
               <details class="quote">
                 <summary>Source code in <code>src/linkml_map/transformer/transformer.py</code></summary>
-                <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 57</span>
-<span class="normal"> 58</span>
-<span class="normal"> 59</span>
-<span class="normal"> 60</span>
-<span class="normal"> 61</span>
-<span class="normal"> 62</span>
-<span class="normal"> 63</span>
+                <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 63</span>
 <span class="normal"> 64</span>
 <span class="normal"> 65</span>
 <span class="normal"> 66</span>
@@ -849,7 +843,202 @@ subclass this.</p>
 <span class="normal">780</span>
 <span class="normal">781</span>
 <span class="normal">782</span>
-<span class="normal">783</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="normal">783</span>
+<span class="normal">784</span>
+<span class="normal">785</span>
+<span class="normal">786</span>
+<span class="normal">787</span>
+<span class="normal">788</span>
+<span class="normal">789</span>
+<span class="normal">790</span>
+<span class="normal">791</span>
+<span class="normal">792</span>
+<span class="normal">793</span>
+<span class="normal">794</span>
+<span class="normal">795</span>
+<span class="normal">796</span>
+<span class="normal">797</span>
+<span class="normal">798</span>
+<span class="normal">799</span>
+<span class="normal">800</span>
+<span class="normal">801</span>
+<span class="normal">802</span>
+<span class="normal">803</span>
+<span class="normal">804</span>
+<span class="normal">805</span>
+<span class="normal">806</span>
+<span class="normal">807</span>
+<span class="normal">808</span>
+<span class="normal">809</span>
+<span class="normal">810</span>
+<span class="normal">811</span>
+<span class="normal">812</span>
+<span class="normal">813</span>
+<span class="normal">814</span>
+<span class="normal">815</span>
+<span class="normal">816</span>
+<span class="normal">817</span>
+<span class="normal">818</span>
+<span class="normal">819</span>
+<span class="normal">820</span>
+<span class="normal">821</span>
+<span class="normal">822</span>
+<span class="normal">823</span>
+<span class="normal">824</span>
+<span class="normal">825</span>
+<span class="normal">826</span>
+<span class="normal">827</span>
+<span class="normal">828</span>
+<span class="normal">829</span>
+<span class="normal">830</span>
+<span class="normal">831</span>
+<span class="normal">832</span>
+<span class="normal">833</span>
+<span class="normal">834</span>
+<span class="normal">835</span>
+<span class="normal">836</span>
+<span class="normal">837</span>
+<span class="normal">838</span>
+<span class="normal">839</span>
+<span class="normal">840</span>
+<span class="normal">841</span>
+<span class="normal">842</span>
+<span class="normal">843</span>
+<span class="normal">844</span>
+<span class="normal">845</span>
+<span class="normal">846</span>
+<span class="normal">847</span>
+<span class="normal">848</span>
+<span class="normal">849</span>
+<span class="normal">850</span>
+<span class="normal">851</span>
+<span class="normal">852</span>
+<span class="normal">853</span>
+<span class="normal">854</span>
+<span class="normal">855</span>
+<span class="normal">856</span>
+<span class="normal">857</span>
+<span class="normal">858</span>
+<span class="normal">859</span>
+<span class="normal">860</span>
+<span class="normal">861</span>
+<span class="normal">862</span>
+<span class="normal">863</span>
+<span class="normal">864</span>
+<span class="normal">865</span>
+<span class="normal">866</span>
+<span class="normal">867</span>
+<span class="normal">868</span>
+<span class="normal">869</span>
+<span class="normal">870</span>
+<span class="normal">871</span>
+<span class="normal">872</span>
+<span class="normal">873</span>
+<span class="normal">874</span>
+<span class="normal">875</span>
+<span class="normal">876</span>
+<span class="normal">877</span>
+<span class="normal">878</span>
+<span class="normal">879</span>
+<span class="normal">880</span>
+<span class="normal">881</span>
+<span class="normal">882</span>
+<span class="normal">883</span>
+<span class="normal">884</span>
+<span class="normal">885</span>
+<span class="normal">886</span>
+<span class="normal">887</span>
+<span class="normal">888</span>
+<span class="normal">889</span>
+<span class="normal">890</span>
+<span class="normal">891</span>
+<span class="normal">892</span>
+<span class="normal">893</span>
+<span class="normal">894</span>
+<span class="normal">895</span>
+<span class="normal">896</span>
+<span class="normal">897</span>
+<span class="normal">898</span>
+<span class="normal">899</span>
+<span class="normal">900</span>
+<span class="normal">901</span>
+<span class="normal">902</span>
+<span class="normal">903</span>
+<span class="normal">904</span>
+<span class="normal">905</span>
+<span class="normal">906</span>
+<span class="normal">907</span>
+<span class="normal">908</span>
+<span class="normal">909</span>
+<span class="normal">910</span>
+<span class="normal">911</span>
+<span class="normal">912</span>
+<span class="normal">913</span>
+<span class="normal">914</span>
+<span class="normal">915</span>
+<span class="normal">916</span>
+<span class="normal">917</span>
+<span class="normal">918</span>
+<span class="normal">919</span>
+<span class="normal">920</span>
+<span class="normal">921</span>
+<span class="normal">922</span>
+<span class="normal">923</span>
+<span class="normal">924</span>
+<span class="normal">925</span>
+<span class="normal">926</span>
+<span class="normal">927</span>
+<span class="normal">928</span>
+<span class="normal">929</span>
+<span class="normal">930</span>
+<span class="normal">931</span>
+<span class="normal">932</span>
+<span class="normal">933</span>
+<span class="normal">934</span>
+<span class="normal">935</span>
+<span class="normal">936</span>
+<span class="normal">937</span>
+<span class="normal">938</span>
+<span class="normal">939</span>
+<span class="normal">940</span>
+<span class="normal">941</span>
+<span class="normal">942</span>
+<span class="normal">943</span>
+<span class="normal">944</span>
+<span class="normal">945</span>
+<span class="normal">946</span>
+<span class="normal">947</span>
+<span class="normal">948</span>
+<span class="normal">949</span>
+<span class="normal">950</span>
+<span class="normal">951</span>
+<span class="normal">952</span>
+<span class="normal">953</span>
+<span class="normal">954</span>
+<span class="normal">955</span>
+<span class="normal">956</span>
+<span class="normal">957</span>
+<span class="normal">958</span>
+<span class="normal">959</span>
+<span class="normal">960</span>
+<span class="normal">961</span>
+<span class="normal">962</span>
+<span class="normal">963</span>
+<span class="normal">964</span>
+<span class="normal">965</span>
+<span class="normal">966</span>
+<span class="normal">967</span>
+<span class="normal">968</span>
+<span class="normal">969</span>
+<span class="normal">970</span>
+<span class="normal">971</span>
+<span class="normal">972</span>
+<span class="normal">973</span>
+<span class="normal">974</span>
+<span class="normal">975</span>
+<span class="normal">976</span>
+<span class="normal">977</span>
+<span class="normal">978</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Transformer</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class for all transformers.</span>
@@ -1100,8 +1289,23 @@ subclass this.</p>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_inherit_populated_from</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_coerce_pv_populated_from_to_list</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_migrate_pv_sources_to_populated_from</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_coerce_schema_refs</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">messages</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_coerce_schema_refs</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Coerce bare-string ``source_schema``/``target_schema`` to object form.</span>
+
+<span class="sd">        The original spec form was a bare string (e.g. ``source_schema: my.yaml``);</span>
+<span class="sd">        the field now ranges over ``SchemaReference``. For backward compatibility</span>
+<span class="sd">        a string is rewritten to ``{&quot;name&quot;: &lt;string&gt;}`` so legacy specs keep</span>
+<span class="sd">        loading. The pre-normalize scan reports the string form as deprecated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">schema_field</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;source_schema&quot;</span><span class="p">,</span> <span class="s2">&quot;target_schema&quot;</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">schema_field</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">obj</span><span class="p">[</span><span class="n">schema_field</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">val</span><span class="p">}</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_shape_normalize</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -1378,18 +1582,27 @@ subclass this.</p>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">specification</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">None</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_apply_source_schema_patches</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_derived_specification</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">specification</span><span class="p">)</span>
-            <span class="n">induce_missing_values</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_derived_specification</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_synthesize_implicit_joins</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_derived_specification</span><span class="p">)</span>
+            <span class="c1"># Build into a local and only cache on full success: synthesis can</span>
+            <span class="c1"># fail loud (e.g. an un-keyable cross-table reference), and caching a</span>
+            <span class="c1"># half-synthesized spec would poison every later access.</span>
+            <span class="n">derived</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">specification</span><span class="p">)</span>
+            <span class="n">induce_missing_values</span><span class="p">(</span><span class="n">derived</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_synthesize_implicit_joins</span><span class="p">(</span><span class="n">derived</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_derived_specification</span> <span class="o">=</span> <span class="n">derived</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_derived_specification</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_synthesize_implicit_joins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec</span><span class="p">:</span> <span class="n">TransformationSpecification</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add explicit join specs for nested class_derivations with cross-table references.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add explicit join specs for every implicit cross-table reference.</span>
 
-<span class="sd">        Walks all nested class_derivations. When a nested CD has a different</span>
-<span class="sd">        ``populated_from`` than its parent and no explicit ``joins:`` block,</span>
-<span class="sd">        synthesizes an ``AliasedClass`` join entry on the parent CD using</span>
-<span class="sd">        :func:`pick_join_key` to determine the join column.</span>
+<span class="sd">        Two kinds of implicit reference are normalized into explicit</span>
+<span class="sd">        ``AliasedClass`` joins on the enclosing ClassDerivation (the only place</span>
+<span class="sd">        ``joins:`` can live):</span>
+
+<span class="sd">        - a nested class_derivation whose ``populated_from`` is a different table;</span>
+<span class="sd">        - a ``{Table.col}`` reference in *any* expression on a class derivation or</span>
+<span class="sd">          its slot derivations (``expr``, ``expression_mappings``, etc.). This</span>
+<span class="sd">          second case was previously unhandled, which is why an expr-only implicit</span>
+<span class="sd">          join silently resolved to ``None``.</span>
 
 <span class="sd">        Mutates *spec* in place.</span>
 
@@ -1399,49 +1612,214 @@ subclass this.</p>
         <span class="k">if</span> <span class="n">sv</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span>
 
+        <span class="n">table_names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sv</span><span class="o">.</span><span class="n">all_classes</span><span class="p">())</span>
         <span class="k">for</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">class_derivations</span><span class="p">:</span>
             <span class="n">parent_source</span> <span class="o">=</span> <span class="n">cd</span><span class="o">.</span><span class="n">populated_from</span> <span class="ow">or</span> <span class="n">cd</span><span class="o">.</span><span class="n">name</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_walk_and_synthesize_joins</span><span class="p">(</span><span class="n">cd</span><span class="p">,</span> <span class="n">parent_source</span><span class="p">,</span> <span class="n">sv</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_walk_and_synthesize_joins</span><span class="p">(</span><span class="n">cd</span><span class="p">,</span> <span class="n">parent_source</span><span class="p">,</span> <span class="n">sv</span><span class="p">,</span> <span class="n">table_names</span><span class="p">,</span> <span class="p">{</span><span class="n">parent_source</span><span class="p">})</span>
+        <span class="c1"># Cross-table refs in derivations with no enclosing class_derivation</span>
+        <span class="c1"># (top-level enum/permissible-value/slot derivations) have nowhere to host</span>
+        <span class="c1"># a join — fail fast rather than silently resolve to None.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reject_unhostable_cross_table_refs</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">table_names</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_walk_and_synthesize_joins</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">class_deriv</span><span class="p">:</span> <span class="n">ClassDerivation</span><span class="p">,</span>
         <span class="n">parent_source</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">sv</span><span class="p">:</span> <span class="n">SchemaView</span><span class="p">,</span>
+        <span class="n">table_names</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">available</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Recursively walk slot_derivations and synthesize joins on parent CDs.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Recursively synthesize joins for cross-table references under *class_deriv*.</span>
 
-<span class="sd">        :param class_deriv: The parent ClassDerivation to add joins to.</span>
-<span class="sd">        :param parent_source: The parent&#39;s populated_from.</span>
+<span class="sd">        :param class_deriv: The ClassDerivation that will host synthesized joins.</span>
+<span class="sd">        :param parent_source: This derivation&#39;s ``populated_from``.</span>
 <span class="sd">        :param sv: Source schema view.</span>
+<span class="sd">        :param table_names: All source-schema class names (table candidates).</span>
+<span class="sd">        :param available: Tables already in scope here (the ancestor source chain</span>
+<span class="sd">            plus this source) — a reference to one of these is the parent/own row,</span>
+<span class="sd">            not a new join.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Expressions on the class derivation itself and on each slot derivation</span>
+        <span class="c1"># are hosted on this class derivation.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_synthesize_joins_for_expressions</span><span class="p">(</span><span class="n">class_deriv</span><span class="p">,</span> <span class="n">parent_source</span><span class="p">,</span> <span class="n">class_deriv</span><span class="p">,</span> <span class="n">sv</span><span class="p">,</span> <span class="n">table_names</span><span class="p">,</span> <span class="n">available</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">sd</span> <span class="ow">in</span> <span class="n">class_deriv</span><span class="o">.</span><span class="n">slot_derivations</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">sd</span><span class="o">.</span><span class="n">class_derivations</span><span class="p">:</span>
-                <span class="k">continue</span>
-            <span class="k">for</span> <span class="n">nested_cd</span> <span class="ow">in</span> <span class="n">sd</span><span class="o">.</span><span class="n">class_derivations</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_synthesize_joins_for_expressions</span><span class="p">(</span><span class="n">class_deriv</span><span class="p">,</span> <span class="n">parent_source</span><span class="p">,</span> <span class="n">sd</span><span class="p">,</span> <span class="n">sv</span><span class="p">,</span> <span class="n">table_names</span><span class="p">,</span> <span class="n">available</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">sd</span><span class="o">.</span><span class="n">populated_from</span> <span class="ow">and</span> <span class="s2">&quot;.&quot;</span> <span class="ow">in</span> <span class="n">sd</span><span class="o">.</span><span class="n">populated_from</span><span class="p">:</span>
+                <span class="n">table_name</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">populated_from</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">table_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">available</span> <span class="ow">and</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">table_names</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_synthesize_join</span><span class="p">(</span><span class="n">class_deriv</span><span class="p">,</span> <span class="n">parent_source</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">sv</span><span class="p">)</span>
+
+            <span class="c1"># object_derivations are flattened into class_derivations at spec-load</span>
+            <span class="c1"># time (deprecated), so synthesis only needs to walk class_derivations.</span>
+            <span class="k">for</span> <span class="n">nested_cd</span> <span class="ow">in</span> <span class="n">sd</span><span class="o">.</span><span class="n">class_derivations</span> <span class="ow">or</span> <span class="p">[]:</span>
                 <span class="n">nested_source</span> <span class="o">=</span> <span class="n">nested_cd</span><span class="o">.</span><span class="n">populated_from</span> <span class="ow">or</span> <span class="n">parent_source</span>
-
-                <span class="c1"># Synthesize a join when the nested CD references a different table</span>
                 <span class="k">if</span> <span class="n">nested_source</span> <span class="o">!=</span> <span class="n">parent_source</span><span class="p">:</span>
-                    <span class="n">join_key</span> <span class="o">=</span> <span class="n">pick_join_key</span><span class="p">(</span><span class="n">sv</span><span class="p">,</span> <span class="n">parent_source</span><span class="p">,</span> <span class="n">nested_source</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">join_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="k">if</span> <span class="n">class_deriv</span><span class="o">.</span><span class="n">joins</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                            <span class="n">class_deriv</span><span class="o">.</span><span class="n">joins</span> <span class="o">=</span> <span class="p">{}</span>
-                        <span class="k">if</span> <span class="n">nested_source</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">class_deriv</span><span class="o">.</span><span class="n">joins</span><span class="p">:</span>
-                            <span class="n">class_deriv</span><span class="o">.</span><span class="n">joins</span><span class="p">[</span><span class="n">nested_source</span><span class="p">]</span> <span class="o">=</span> <span class="n">AliasedClass</span><span class="p">(</span>
-                                <span class="n">alias</span><span class="o">=</span><span class="n">nested_source</span><span class="p">,</span>
-                                <span class="n">join_on</span><span class="o">=</span><span class="n">join_key</span><span class="p">,</span>
-                            <span class="p">)</span>
-                            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                                <span class="s2">&quot;Synthesized implicit join: </span><span class="si">%s</span><span class="s2">.joins[</span><span class="si">%r</span><span class="s2">] on column </span><span class="si">%r</span><span class="s2">&quot;</span><span class="p">,</span>
-                                <span class="n">class_deriv</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                                <span class="n">nested_source</span><span class="p">,</span>
-                                <span class="n">join_key</span><span class="p">,</span>
-                            <span class="p">)</span>
-
-                <span class="c1"># Always recurse into nested CD&#39;s own slots</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_synthesize_join</span><span class="p">(</span><span class="n">class_deriv</span><span class="p">,</span> <span class="n">parent_source</span><span class="p">,</span> <span class="n">nested_source</span><span class="p">,</span> <span class="n">sv</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">nested_cd</span><span class="o">.</span><span class="n">slot_derivations</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_walk_and_synthesize_joins</span><span class="p">(</span><span class="n">nested_cd</span><span class="p">,</span> <span class="n">nested_source</span><span class="p">,</span> <span class="n">sv</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_walk_and_synthesize_joins</span><span class="p">(</span>
+                        <span class="n">nested_cd</span><span class="p">,</span> <span class="n">nested_source</span><span class="p">,</span> <span class="n">sv</span><span class="p">,</span> <span class="n">table_names</span><span class="p">,</span> <span class="n">available</span> <span class="o">|</span> <span class="p">{</span><span class="n">nested_source</span><span class="p">}</span>
+                    <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_synthesize_joins_for_expressions</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">host_cd</span><span class="p">:</span> <span class="n">ClassDerivation</span><span class="p">,</span>
+        <span class="n">parent_source</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">derivation</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">sv</span><span class="p">:</span> <span class="n">SchemaView</span><span class="p">,</span>
+        <span class="n">table_names</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">available</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Synthesize joins on *host_cd* for every ``{Table.col}`` in *derivation*&#39;s expressions.</span>
+
+<span class="sd">        Tables already in scope (``available``) are the parent/own row and need no join.</span>
+<span class="sd">        A qualified ``{Name.col}`` whose root is neither a table, an in-scope source, a</span>
+<span class="sd">        slot on this source, nor a function is an unresolvable reference and fails loud.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">expression</span> <span class="ow">in</span> <span class="n">iter_expressions</span><span class="p">(</span><span class="n">derivation</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">extract_table_references</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="n">table_names</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">table</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">available</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_synthesize_join</span><span class="p">(</span><span class="n">host_cd</span><span class="p">,</span> <span class="n">parent_source</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">sv</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">roots</span> <span class="o">=</span> <span class="n">extract_braced_reference_roots</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_reject_unknown_qualified_roots</span><span class="p">(</span><span class="n">host_cd</span><span class="p">,</span> <span class="n">parent_source</span><span class="p">,</span> <span class="n">roots</span><span class="p">,</span> <span class="n">sv</span><span class="p">,</span> <span class="n">table_names</span><span class="p">,</span> <span class="n">available</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_reject_unknown_qualified_roots</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">host_cd</span><span class="p">:</span> <span class="n">ClassDerivation</span><span class="p">,</span>
+        <span class="n">parent_source</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">roots</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">sv</span><span class="p">:</span> <span class="n">SchemaView</span><span class="p">,</span>
+        <span class="n">table_names</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">available</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fail loud on a qualified ``{Name.col}`` whose root resolves to nothing.</span>
+
+<span class="sd">        ``Name`` is resolvable when it is a source table, an in-scope source</span>
+<span class="sd">        (``available``), a declared join alias on *host_cd* (which may differ</span>
+<span class="sd">        from its ``class_named`` schema class), a slot on *parent_source* (a</span>
+<span class="sd">        same-row or inlined-object reference), or a known expression function.</span>
+<span class="sd">        Anything else — a typo or a renamed/missing table — would silently</span>
+<span class="sd">        resolve to ``None`` at runtime, so surface it at normalization time.</span>
+
+<span class="sd">        :raises ValueError: if any qualified root is unresolvable.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">known</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">table_names</span>
+            <span class="o">|</span> <span class="n">available</span>
+            <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">host_cd</span><span class="o">.</span><span class="n">joins</span> <span class="ow">or</span> <span class="p">{})</span>
+            <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source_slot_names</span><span class="p">(</span><span class="n">sv</span><span class="p">,</span> <span class="n">parent_source</span><span class="p">)</span>
+            <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">FUNCTIONS</span><span class="p">)</span>
+            <span class="o">|</span> <span class="n">INJECTED_EVAL_NAMES</span>
+        <span class="p">)</span>
+        <span class="n">unknown</span> <span class="o">=</span> <span class="n">roots</span> <span class="o">-</span> <span class="n">known</span>
+        <span class="k">if</span> <span class="n">unknown</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Expression reference(s) </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">unknown</span><span class="p">)</span><span class="si">}</span><span class="s2"> on class_derivation </span><span class="si">{</span><span class="n">host_cd</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;cannot be resolved: each root must be a source table, a slot on </span><span class="si">{</span><span class="n">parent_source</span><span class="si">!r}</span><span class="s2">, &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;or a function. Fix the reference or correct the source schema.&quot;</span>
+            <span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_source_slot_names</span><span class="p">(</span><span class="n">sv</span><span class="p">:</span> <span class="n">SchemaView</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the induced slot names of *source*, or empty if it is not a class.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">source</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sv</span><span class="o">.</span><span class="n">all_classes</span><span class="p">():</span>
+            <span class="k">return</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sv</span><span class="o">.</span><span class="n">class_induced_slots</span><span class="p">(</span><span class="n">source</span><span class="p">)}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_synthesize_join</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">class_deriv</span><span class="p">:</span> <span class="n">ClassDerivation</span><span class="p">,</span>
+        <span class="n">parent_source</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">table</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">sv</span><span class="p">:</span> <span class="n">SchemaView</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">required</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add an explicit ``AliasedClass`` join for *table* on *class_deriv*.</span>
+
+<span class="sd">        No-op when the join is already declared/synthesized. When no join key can</span>
+<span class="sd">        be inferred, behavior depends on *required*:</span>
+
+<span class="sd">        - ``required=True`` (an expression ``{table.col}`` reference): fail loud.</span>
+<span class="sd">          An expression reference has no runtime safety net — it silently</span>
+<span class="sd">          resolves to ``None`` — so an un-keyable one must surface here.</span>
+<span class="sd">        - ``required=False`` (a structural ``populated_from`` join): return</span>
+<span class="sd">          quietly. The engine reports an un-keyable structural join loudly at</span>
+<span class="sd">          runtime with a more specific diagnostic (shared/candidate columns).</span>
+
+<span class="sd">        :param required: whether an un-keyable reference is a hard error.</span>
+<span class="sd">        :raises ValueError: if *required* and *table* cannot be keyed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">class_deriv</span><span class="o">.</span><span class="n">joins</span> <span class="ow">and</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">class_deriv</span><span class="o">.</span><span class="n">joins</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">join_key</span> <span class="o">=</span> <span class="n">infer_join_key</span><span class="p">(</span><span class="n">sv</span><span class="p">,</span> <span class="n">parent_source</span><span class="p">,</span> <span class="n">table</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">join_key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">required</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Cross-table reference to </span><span class="si">{</span><span class="n">table</span><span class="si">!r}</span><span class="s2"> from </span><span class="si">{</span><span class="n">parent_source</span><span class="si">!r}</span><span class="s2"> on class_derivation &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">class_deriv</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> cannot be joined: no shared join key could be inferred. &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Declare an explicit &#39;joins:&#39; entry with &#39;join_on&#39; (or &#39;source_key&#39;/&#39;lookup_key&#39;).&quot;</span>
+                <span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="n">class_deriv</span><span class="o">.</span><span class="n">joins</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">class_deriv</span><span class="o">.</span><span class="n">joins</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">class_deriv</span><span class="o">.</span><span class="n">joins</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="o">=</span> <span class="n">AliasedClass</span><span class="p">(</span><span class="n">alias</span><span class="o">=</span><span class="n">table</span><span class="p">,</span> <span class="n">join_on</span><span class="o">=</span><span class="n">join_key</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;Synthesized implicit join: </span><span class="si">%s</span><span class="s2">.joins[</span><span class="si">%r</span><span class="s2">] on column </span><span class="si">%r</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">class_deriv</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">table</span><span class="p">,</span>
+            <span class="n">join_key</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_reject_unhostable_cross_table_refs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec</span><span class="p">:</span> <span class="n">TransformationSpecification</span><span class="p">,</span> <span class="n">table_names</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fail fast on a cross-table reference that has no class_derivation to host its join.</span>
+
+<span class="sd">        Enum, permissible-value, and top-level slot derivations are not nested</span>
+<span class="sd">        under a ClassDerivation, so a cross-table reference in one of them cannot</span>
+<span class="sd">        be turned into a ``joins:`` entry. Covers both an expression ``{Table.col}``</span>
+<span class="sd">        and a structural ``populated_from: Table.col``; surface either rather than</span>
+<span class="sd">        letting it silently resolve to ``None`` at runtime.</span>
+
+<span class="sd">        :raises ValueError: if such a reference is found.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">check</span><span class="p">(</span><span class="n">kind</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">derivation</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa: ANN401</span>
+            <span class="n">refs</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">expression</span> <span class="ow">in</span> <span class="n">iter_expressions</span><span class="p">(</span><span class="n">derivation</span><span class="p">):</span>
+                <span class="n">refs</span> <span class="o">|=</span> <span class="n">extract_table_references</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="n">table_names</span><span class="p">)</span>
+            <span class="c1"># populated_from is list-form on permissible-value derivations.</span>
+            <span class="n">populated_from</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">derivation</span><span class="p">,</span> <span class="s2">&quot;populated_from&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">pf_values</span> <span class="o">=</span> <span class="n">populated_from</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">populated_from</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="p">[</span><span class="n">populated_from</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">pf</span> <span class="ow">in</span> <span class="n">pf_values</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">pf</span> <span class="ow">and</span> <span class="s2">&quot;.&quot;</span> <span class="ow">in</span> <span class="n">pf</span><span class="p">:</span>
+                    <span class="n">table</span> <span class="o">=</span> <span class="n">pf</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">table_names</span><span class="p">:</span>
+                        <span class="n">refs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">refs</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Cross-table reference(s) </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">refs</span><span class="p">)</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> cannot be &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;joined: only class_derivations can host joins. Move the derivation under &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;a class_derivation, or reference only same-row columns.&quot;</span>
+                <span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">enum_derivation</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">enum_derivations</span><span class="p">):</span>
+            <span class="n">check</span><span class="p">(</span><span class="s2">&quot;enum_derivation&quot;</span><span class="p">,</span> <span class="n">enum_derivation</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">enum_derivation</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">pv_derivation</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">(</span><span class="n">enum_derivation</span><span class="o">.</span><span class="n">permissible_value_derivations</span><span class="p">):</span>
+                <span class="n">check</span><span class="p">(</span><span class="s2">&quot;permissible_value_derivation&quot;</span><span class="p">,</span> <span class="n">pv_derivation</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">pv_derivation</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">slot_derivation</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">slot_derivations</span><span class="p">):</span>
+            <span class="n">check</span><span class="p">(</span><span class="s2">&quot;top-level slot_derivation&quot;</span><span class="p">,</span> <span class="n">slot_derivation</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">slot_derivation</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_values</span><span class="p">(</span><span class="n">collection</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>  <span class="c1"># noqa: ANN401 - dict- or list-form linkml collection</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the members of a linkml multivalued collection, whether dict- or list-form.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">collection</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">collection</span><span class="p">,</span> <span class="s2">&quot;values&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">collection</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">collection</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_class_derivation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_class_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ClassDerivation</span><span class="p">:</span>
         <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">derived_specification</span>
@@ -1789,17 +2167,17 @@ would otherwise produce silent nulls in the output.</p>
 
             <details class="quote">
               <summary>Source code in <code>src/linkml_map/transformer/transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">547</span>
-<span class="normal">548</span>
-<span class="normal">549</span>
-<span class="normal">550</span>
-<span class="normal">551</span>
-<span class="normal">552</span>
-<span class="normal">553</span>
-<span class="normal">554</span>
-<span class="normal">555</span>
-<span class="normal">556</span>
-<span class="normal">557</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">create_transformer_specification</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">568</span>
+<span class="normal">569</span>
+<span class="normal">570</span>
+<span class="normal">571</span>
+<span class="normal">572</span>
+<span class="normal">573</span>
+<span class="normal">574</span>
+<span class="normal">575</span>
+<span class="normal">576</span>
+<span class="normal">577</span>
+<span class="normal">578</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">create_transformer_specification</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create specification from a dict.</span>
 
@@ -1833,15 +2211,15 @@ would otherwise produce silent nulls in the output.</p>
 
             <details class="quote">
               <summary>Source code in <code>src/linkml_map/transformer/transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">149</span>
-<span class="normal">150</span>
-<span class="normal">151</span>
-<span class="normal">152</span>
-<span class="normal">153</span>
-<span class="normal">154</span>
-<span class="normal">155</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">155</span>
 <span class="normal">156</span>
-<span class="normal">157</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_source_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_source_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Set source_schemaview from a schema path.</span>
 
@@ -1874,17 +2252,17 @@ would otherwise produce silent nulls in the output.</p>
 
             <details class="quote">
               <summary>Source code in <code>src/linkml_map/transformer/transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">159</span>
-<span class="normal">160</span>
-<span class="normal">161</span>
-<span class="normal">162</span>
-<span class="normal">163</span>
-<span class="normal">164</span>
-<span class="normal">165</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">165</span>
 <span class="normal">166</span>
 <span class="normal">167</span>
 <span class="normal">168</span>
-<span class="normal">169</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_transformer_specification</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_transformer_specification</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Set specification from a schema path.</span>
 
@@ -1922,13 +2300,7 @@ set as <code>self.specification</code>.</p>
 
             <details class="quote">
               <summary>Source code in <code>src/linkml_map/transformer/transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">171</span>
-<span class="normal">172</span>
-<span class="normal">173</span>
-<span class="normal">174</span>
-<span class="normal">175</span>
-<span class="normal">176</span>
-<span class="normal">177</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">177</span>
 <span class="normal">178</span>
 <span class="normal">179</span>
 <span class="normal">180</span>
@@ -1936,7 +2308,13 @@ set as <code>self.specification</code>.</p>
 <span class="normal">182</span>
 <span class="normal">183</span>
 <span class="normal">184</span>
-<span class="normal">185</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_transformer_specifications</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">paths</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_transformer_specifications</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">paths</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load and merge multiple transformation spec files into a single specification.</span>
 
 <span class="sd">    Accepts file paths and/or directories.  Directories are recursively</span>
@@ -1977,18 +2355,18 @@ set as <code>self.specification</code>.</p>
 
             <details class="quote">
               <summary>Source code in <code>src/linkml_map/transformer/transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">136</span>
-<span class="normal">137</span>
-<span class="normal">138</span>
-<span class="normal">139</span>
-<span class="normal">140</span>
-<span class="normal">141</span>
-<span class="normal">142</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">142</span>
 <span class="normal">143</span>
 <span class="normal">144</span>
 <span class="normal">145</span>
 <span class="normal">146</span>
-<span class="normal">147</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">map_database</span><span class="p">(</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">map_database</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span> <span class="n">source_database</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">target_database</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OBJECT_TYPE</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -2025,15 +2403,15 @@ set as <code>self.specification</code>.</p>
 
             <details class="quote">
               <summary>Source code in <code>src/linkml_map/transformer/transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">126</span>
-<span class="normal">127</span>
-<span class="normal">128</span>
-<span class="normal">129</span>
-<span class="normal">130</span>
-<span class="normal">131</span>
-<span class="normal">132</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">132</span>
 <span class="normal">133</span>
-<span class="normal">134</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">map_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">OBJECT_TYPE</span><span class="p">,</span> <span class="n">source_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OBJECT_TYPE</span><span class="p">:</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">map_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">OBJECT_TYPE</span><span class="p">,</span> <span class="n">source_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OBJECT_TYPE</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Transform source object into an instance of the target class.</span>
 
@@ -2072,13 +2450,7 @@ them sees the user's original field values.</p>
 
             <details class="quote">
               <summary>Source code in <code>src/linkml_map/transformer/transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">187</span>
-<span class="normal">188</span>
-<span class="normal">189</span>
-<span class="normal">190</span>
-<span class="normal">191</span>
-<span class="normal">192</span>
-<span class="normal">193</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">193</span>
 <span class="normal">194</span>
 <span class="normal">195</span>
 <span class="normal">196</span>
@@ -2096,7 +2468,13 @@ them sees the user's original field values.</p>
 <span class="normal">208</span>
 <span class="normal">209</span>
 <span class="normal">210</span>
-<span class="normal">211</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">normalize_transform_spec</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">normalizer</span><span class="p">:</span> <span class="n">ReferenceValidator</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Shape-canonicalize class_derivations recursively.</span>
 
@@ -2157,8 +2535,7 @@ them sees the user's original field values.</p>
 
               <details class="quote">
                 <summary>Source code in <code>src/linkml_map/transformer/object_transformer.py</code></summary>
-                <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 263</span>
-<span class="normal"> 264</span>
+                <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 264</span>
 <span class="normal"> 265</span>
 <span class="normal"> 266</span>
 <span class="normal"> 267</span>
@@ -3426,7 +3803,33 @@ them sees the user's original field values.</p>
 <span class="normal">1529</span>
 <span class="normal">1530</span>
 <span class="normal">1531</span>
-<span class="normal">1532</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="normal">1532</span>
+<span class="normal">1533</span>
+<span class="normal">1534</span>
+<span class="normal">1535</span>
+<span class="normal">1536</span>
+<span class="normal">1537</span>
+<span class="normal">1538</span>
+<span class="normal">1539</span>
+<span class="normal">1540</span>
+<span class="normal">1541</span>
+<span class="normal">1542</span>
+<span class="normal">1543</span>
+<span class="normal">1544</span>
+<span class="normal">1545</span>
+<span class="normal">1546</span>
+<span class="normal">1547</span>
+<span class="normal">1548</span>
+<span class="normal">1549</span>
+<span class="normal">1550</span>
+<span class="normal">1551</span>
+<span class="normal">1552</span>
+<span class="normal">1553</span>
+<span class="normal">1554</span>
+<span class="normal">1555</span>
+<span class="normal">1556</span>
+<span class="normal">1557</span>
+<span class="normal">1558</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ObjectTransformer</span><span class="p">(</span><span class="n">Transformer</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A Transformer that works on in-memory dict objects.</span>
@@ -3757,12 +4160,30 @@ them sees the user's original field values.</p>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">unrestricted_eval</span><span class="p">:</span>
                 <span class="k">raise</span>
             <span class="n">ctxt_obj</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">bindings</span><span class="o">.</span><span class="n">get_ctxt_obj_and_dict</span><span class="p">()</span>
-            <span class="n">usersyms</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;src&quot;</span><span class="p">:</span> <span class="n">ctxt_obj</span><span class="p">,</span> <span class="s2">&quot;target&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;uuid5&quot;</span><span class="p">:</span> <span class="n">_uuid5</span><span class="p">}</span>
-            <span class="k">if</span> <span class="n">functions</span><span class="p">:</span>
-                <span class="n">usersyms</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">functions</span><span class="p">)</span>
-            <span class="n">aeval</span> <span class="o">=</span> <span class="n">Interpreter</span><span class="p">(</span><span class="n">usersyms</span><span class="o">=</span><span class="n">usersyms</span><span class="p">)</span>
-            <span class="n">aeval</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">aeval</span><span class="o">.</span><span class="n">symtable</span><span class="p">[</span><span class="s2">&quot;target&quot;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unrestricted_eval</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">ctxt_obj</span><span class="p">,</span> <span class="n">functions</span><span class="o">=</span><span class="n">functions</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_unrestricted_eval</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">expr</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">src</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">functions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate *expr* with the unrestricted asteval interpreter.</span>
+
+<span class="sd">        This is the escape hatch reached only when restricted evaluation fails</span>
+<span class="sd">        *and* the user opted in via ``unrestricted_eval``. Callers own the gate;</span>
+<span class="sd">        this method assumes the opt-in has already been checked.</span>
+
+<span class="sd">        :param expr: The expression string to evaluate.</span>
+<span class="sd">        :param src: Object exposed to the expression as ``src``.</span>
+<span class="sd">        :param functions: Extra functions injected into the interpreter.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">usersyms</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;src&quot;</span><span class="p">:</span> <span class="n">src</span><span class="p">,</span> <span class="s2">&quot;target&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;uuid5&quot;</span><span class="p">:</span> <span class="n">_uuid5</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">functions</span><span class="p">:</span>
+            <span class="n">usersyms</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">functions</span><span class="p">)</span>
+        <span class="n">aeval</span> <span class="o">=</span> <span class="n">Interpreter</span><span class="p">(</span><span class="n">usersyms</span><span class="o">=</span><span class="n">usersyms</span><span class="p">)</span>
+        <span class="n">aeval</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">aeval</span><span class="o">.</span><span class="n">symtable</span><span class="p">[</span><span class="s2">&quot;target&quot;</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_apply_mappings</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -3967,12 +4388,14 @@ them sees the user's original field values.</p>
 <span class="sd">        :returns: Matched row as a dict, or ``None`` if no match found.</span>
 <span class="sd">        :raises ValueError: If join spec is missing keys or lookup_index is not initialized.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Pre-joined fast path: when the joined row is already supplied inline via a</span>
+        <span class="c1"># MergedRow (the set-based DuckDB join engine, or an earlier merge of the same</span>
+        <span class="c1"># table), resolve from it directly instead of a per-row lookup.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source_obj</span><span class="p">,</span> <span class="n">MergedRow</span><span class="p">)</span> <span class="ow">and</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">source_obj</span><span class="o">.</span><span class="n">rows_by_table</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">source_obj</span><span class="o">.</span><span class="n">rows_by_table</span><span class="p">[</span><span class="n">table_name</span><span class="p">]</span>
+
         <span class="n">spec</span> <span class="o">=</span> <span class="n">class_deriv</span><span class="o">.</span><span class="n">joins</span><span class="p">[</span><span class="n">table_name</span><span class="p">]</span>
-        <span class="n">source_key</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">source_key</span> <span class="ow">or</span> <span class="n">spec</span><span class="o">.</span><span class="n">join_on</span>
-        <span class="n">lookup_key</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">lookup_key</span> <span class="ow">or</span> <span class="n">spec</span><span class="o">.</span><span class="n">join_on</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">source_key</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">lookup_key</span><span class="p">:</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Join spec for </span><span class="si">{</span><span class="n">table_name</span><span class="si">!r}</span><span class="s2"> must specify &#39;join_on&#39; or both &#39;source_key&#39; and &#39;lookup_key&#39;&quot;</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">source_key</span><span class="p">,</span> <span class="n">lookup_key</span> <span class="o">=</span> <span class="n">join_keys</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
         <span class="n">key_val</span> <span class="o">=</span> <span class="n">source_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">source_key</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">key_val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
@@ -4041,7 +4464,12 @@ them sees the user's original field values.</p>
                 <span class="n">nested_source</span><span class="p">,</span>
             <span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">MergedRow</span><span class="p">(</span><span class="n">merged</span><span class="p">,</span> <span class="n">rows_by_table</span><span class="o">=</span><span class="p">{</span><span class="n">parent_source</span><span class="p">:</span> <span class="n">parent_row</span><span class="p">,</span> <span class="n">nested_source</span><span class="p">:</span> <span class="n">joined_row</span><span class="p">})</span>
+        <span class="c1"># Carry ancestor tables forward so dot-notation (and the pre-joined fast</span>
+        <span class="c1"># path) keep resolving at arbitrary nesting depth — e.g.</span>
+        <span class="c1"># MeasurementObservationSet -&gt; MeasurementObservation -&gt; Quantity, where the</span>
+        <span class="c1"># deepest level still needs every star-joined table available.</span>
+        <span class="n">inherited</span> <span class="o">=</span> <span class="n">parent_row</span><span class="o">.</span><span class="n">rows_by_table</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parent_row</span><span class="p">,</span> <span class="n">MergedRow</span><span class="p">)</span> <span class="k">else</span> <span class="p">{</span><span class="n">parent_source</span><span class="p">:</span> <span class="n">parent_row</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">MergedRow</span><span class="p">(</span><span class="n">merged</span><span class="p">,</span> <span class="n">rows_by_table</span><span class="o">=</span><span class="p">{</span><span class="o">**</span><span class="n">inherited</span><span class="p">,</span> <span class="n">nested_source</span><span class="p">:</span> <span class="n">joined_row</span><span class="p">})</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_apply_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">slot_derivation</span><span class="p">:</span> <span class="n">SlotDerivation</span><span class="p">,</span> <span class="n">source_obj</span><span class="p">:</span> <span class="n">DICT_OBJ</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply an offset calculation using a value from another source field.&quot;&quot;&quot;</span>
@@ -4132,7 +4560,7 @@ them sees the user's original field values.</p>
                         <span class="p">)</span>
                         <span class="k">continue</span>
                     <span class="n">join_spec</span> <span class="o">=</span> <span class="n">parent_class_deriv</span><span class="o">.</span><span class="n">joins</span><span class="p">[</span><span class="n">nested_source</span><span class="p">]</span>
-                    <span class="n">join_key</span> <span class="o">=</span> <span class="n">join_spec</span><span class="o">.</span><span class="n">join_on</span> <span class="ow">or</span> <span class="n">join_spec</span><span class="o">.</span><span class="n">source_key</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
+                    <span class="n">join_key</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">join_keys</span><span class="p">(</span><span class="n">join_spec</span><span class="p">)</span>  <span class="c1"># parent-side key; kept unmarked in the merge</span>
                     <span class="n">effective_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merge_rows</span><span class="p">(</span>
                         <span class="n">source_obj</span><span class="p">,</span>
                         <span class="n">joined_row</span><span class="p">,</span>
@@ -4142,22 +4570,12 @@ them sees the user's original field values.</p>
                     <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c1"># No join spec for this nested source — cross-table reference can&#39;t be resolved.</span>
-                    <span class="c1"># Re-derive the candidate set so the diagnostic tells the user *why* synthesis</span>
-                    <span class="c1"># failed (no overlap vs. multiple non-identifier candidates), recovering the</span>
-                    <span class="c1"># detail lost when the per-row resolution path was consolidated into</span>
-                    <span class="c1"># normalization-time synthesis.</span>
-                    <span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.utils.join_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">find_common_columns</span>
+                    <span class="c1"># Re-derive the reason via the shared resolver so the diagnostic tells the user</span>
+                    <span class="c1"># *why* synthesis failed (no overlap vs. multiple non-identifier candidates),</span>
+                    <span class="c1"># using the same logic synthesis used rather than a parallel implementation.</span>
+                    <span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.utils.join_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_join</span>
 
-                    <span class="n">common</span> <span class="o">=</span> <span class="n">find_common_columns</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span><span class="p">,</span> <span class="n">parent_source</span><span class="p">,</span> <span class="n">nested_source</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="n">common</span><span class="p">:</span>
-                        <span class="n">reason</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;no columns are shared between </span><span class="si">{</span><span class="n">parent_source</span><span class="si">!r}</span><span class="s2"> and </span><span class="si">{</span><span class="n">nested_source</span><span class="si">!r}</span><span class="s2">&quot;</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">candidates</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">common</span><span class="p">))</span>
-                        <span class="n">reason</span> <span class="o">=</span> <span class="p">(</span>
-                            <span class="sa">f</span><span class="s2">&quot;multiple candidate join columns are shared between &quot;</span>
-                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">parent_source</span><span class="si">!r}</span><span class="s2"> and </span><span class="si">{</span><span class="n">nested_source</span><span class="si">!r}</span><span class="s2"> (</span><span class="si">{</span><span class="n">candidates</span><span class="si">}</span><span class="s2">); &quot;</span>
-                            <span class="sa">f</span><span class="s2">&quot;specify which to use&quot;</span>
-                        <span class="p">)</span>
+                    <span class="n">reason</span> <span class="o">=</span> <span class="n">resolve_join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_schemaview</span><span class="p">,</span> <span class="n">parent_source</span><span class="p">,</span> <span class="n">nested_source</span><span class="p">)</span><span class="o">.</span><span class="n">reason</span>
                     <span class="k">raise</span> <span class="n">TransformationError</span><span class="p">(</span>
                         <span class="n">message</span><span class="o">=</span><span class="p">(</span>
                             <span class="sa">f</span><span class="s2">&quot;Nested class </span><span class="si">{</span><span class="n">cls_derivation</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> has &quot;</span>
@@ -4456,12 +4874,22 @@ them sees the user's original field values.</p>
         <span class="k">for</span> <span class="n">enum_name</span> <span class="ow">in</span> <span class="n">enum_names</span><span class="p">:</span>
             <span class="n">enum_deriv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_enum_derivation</span><span class="p">(</span><span class="n">enum_name</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">enum_deriv</span><span class="o">.</span><span class="n">expr</span><span class="p">:</span>
+                <span class="n">mapping</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="p">{</span><span class="o">**</span><span class="n">source_obj</span><span class="p">,</span> <span class="s2">&quot;NULL&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source_obj</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span>
+                    <span class="k">else</span> <span class="p">{</span><span class="s2">&quot;src&quot;</span><span class="p">:</span> <span class="n">source_obj</span><span class="p">,</span> <span class="s2">&quot;NULL&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+                <span class="p">)</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">v</span> <span class="o">=</span> <span class="n">eval_expr</span><span class="p">(</span><span class="n">enum_deriv</span><span class="o">.</span><span class="n">expr</span><span class="p">,</span> <span class="o">**</span><span class="n">source_obj</span><span class="p">,</span> <span class="n">NULL</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                    <span class="n">aeval</span> <span class="o">=</span> <span class="n">Interpreter</span><span class="p">(</span><span class="n">usersyms</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;src&quot;</span><span class="p">:</span> <span class="n">source_obj</span><span class="p">,</span> <span class="s2">&quot;target&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;uuid5&quot;</span><span class="p">:</span> <span class="n">_uuid5</span><span class="p">})</span>
-                    <span class="n">aeval</span><span class="p">(</span><span class="n">enum_deriv</span><span class="o">.</span><span class="n">expr</span><span class="p">)</span>
-                    <span class="n">v</span> <span class="o">=</span> <span class="n">aeval</span><span class="o">.</span><span class="n">symtable</span><span class="p">[</span><span class="s2">&quot;target&quot;</span><span class="p">]</span>
+                    <span class="n">v</span> <span class="o">=</span> <span class="n">eval_expr_with_mapping</span><span class="p">(</span>
+                        <span class="n">enum_deriv</span><span class="o">.</span><span class="n">expr</span><span class="p">,</span>
+                        <span class="n">mapping</span><span class="p">,</span>
+                        <span class="n">strict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">strict</span><span class="p">,</span>
+                        <span class="n">warned_unbound</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_warned_unbound_names</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="k">except</span> <span class="p">(</span><span class="n">InvalidExpression</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">unrestricted_eval</span><span class="p">:</span>
+                        <span class="k">raise</span>
+                    <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unrestricted_eval</span><span class="p">(</span><span class="n">enum_deriv</span><span class="o">.</span><span class="n">expr</span><span class="p">,</span> <span class="n">source_obj</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">v</span>
             <span class="k">for</span> <span class="n">pv_deriv</span> <span class="ow">in</span> <span class="n">enum_deriv</span><span class="o">.</span><span class="n">permissible_value_derivations</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
@@ -4757,8 +5185,7 @@ precedence; built-in functions are precedence-checked at load time via
 
             <details class="quote">
               <summary>Source code in <code>src/linkml_map/transformer/object_transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">296</span>
-<span class="normal">297</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">297</span>
 <span class="normal">298</span>
 <span class="normal">299</span>
 <span class="normal">300</span>
@@ -4773,7 +5200,8 @@ precedence; built-in functions are precedence-checked at load time via
 <span class="normal">309</span>
 <span class="normal">310</span>
 <span class="normal">311</span>
-<span class="normal">312</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">312</span>
+<span class="normal">313</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create an index over a container object.</span>
 
@@ -4820,8 +5248,7 @@ calls can reference them) but excluded from the returned dict.</p>
 
             <details class="quote">
               <summary>Source code in <code>src/linkml_map/transformer/object_transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">347</span>
-<span class="normal">348</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">348</span>
 <span class="normal">349</span>
 <span class="normal">350</span>
 <span class="normal">351</span>
@@ -4892,7 +5319,8 @@ calls can reference them) but excluded from the returned dict.</p>
 <span class="normal">416</span>
 <span class="normal">417</span>
 <span class="normal">418</span>
-<span class="normal">419</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">map_object</span><span class="p">(</span>
+<span class="normal">419</span>
+<span class="normal">420</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">map_object</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">source_obj</span><span class="p">:</span> <span class="n">OBJECT_TYPE</span><span class="p">,</span>
     <span class="n">source_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -4995,23 +5423,7 @@ returns the source value unchanged without trying further enums.</p>
 
             <details class="quote">
               <summary>Source code in <code>src/linkml_map/transformer/object_transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1277</span>
-<span class="normal">1278</span>
-<span class="normal">1279</span>
-<span class="normal">1280</span>
-<span class="normal">1281</span>
-<span class="normal">1282</span>
-<span class="normal">1283</span>
-<span class="normal">1284</span>
-<span class="normal">1285</span>
-<span class="normal">1286</span>
-<span class="normal">1287</span>
-<span class="normal">1288</span>
-<span class="normal">1289</span>
-<span class="normal">1290</span>
-<span class="normal">1291</span>
-<span class="normal">1292</span>
-<span class="normal">1293</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1293</span>
 <span class="normal">1294</span>
 <span class="normal">1295</span>
 <span class="normal">1296</span>
@@ -5033,7 +5445,33 @@ returns the source value unchanged without trying further enums.</p>
 <span class="normal">1312</span>
 <span class="normal">1313</span>
 <span class="normal">1314</span>
-<span class="normal">1315</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">transform_enum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_value</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">enum_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">source_obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">1315</span>
+<span class="normal">1316</span>
+<span class="normal">1317</span>
+<span class="normal">1318</span>
+<span class="normal">1319</span>
+<span class="normal">1320</span>
+<span class="normal">1321</span>
+<span class="normal">1322</span>
+<span class="normal">1323</span>
+<span class="normal">1324</span>
+<span class="normal">1325</span>
+<span class="normal">1326</span>
+<span class="normal">1327</span>
+<span class="normal">1328</span>
+<span class="normal">1329</span>
+<span class="normal">1330</span>
+<span class="normal">1331</span>
+<span class="normal">1332</span>
+<span class="normal">1333</span>
+<span class="normal">1334</span>
+<span class="normal">1335</span>
+<span class="normal">1336</span>
+<span class="normal">1337</span>
+<span class="normal">1338</span>
+<span class="normal">1339</span>
+<span class="normal">1340</span>
+<span class="normal">1341</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">transform_enum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_value</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">enum_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">source_obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Transform a source enum value through one or more enum derivations.</span>
 
 <span class="sd">    Iterates *enum_names* in order. For each enum derivation, tries</span>
@@ -5049,12 +5487,22 @@ returns the source value unchanged without trying further enums.</p>
     <span class="k">for</span> <span class="n">enum_name</span> <span class="ow">in</span> <span class="n">enum_names</span><span class="p">:</span>
         <span class="n">enum_deriv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_enum_derivation</span><span class="p">(</span><span class="n">enum_name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">enum_deriv</span><span class="o">.</span><span class="n">expr</span><span class="p">:</span>
+            <span class="n">mapping</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="p">{</span><span class="o">**</span><span class="n">source_obj</span><span class="p">,</span> <span class="s2">&quot;NULL&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source_obj</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span>
+                <span class="k">else</span> <span class="p">{</span><span class="s2">&quot;src&quot;</span><span class="p">:</span> <span class="n">source_obj</span><span class="p">,</span> <span class="s2">&quot;NULL&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+            <span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">v</span> <span class="o">=</span> <span class="n">eval_expr</span><span class="p">(</span><span class="n">enum_deriv</span><span class="o">.</span><span class="n">expr</span><span class="p">,</span> <span class="o">**</span><span class="n">source_obj</span><span class="p">,</span> <span class="n">NULL</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                <span class="n">aeval</span> <span class="o">=</span> <span class="n">Interpreter</span><span class="p">(</span><span class="n">usersyms</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;src&quot;</span><span class="p">:</span> <span class="n">source_obj</span><span class="p">,</span> <span class="s2">&quot;target&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;uuid5&quot;</span><span class="p">:</span> <span class="n">_uuid5</span><span class="p">})</span>
-                <span class="n">aeval</span><span class="p">(</span><span class="n">enum_deriv</span><span class="o">.</span><span class="n">expr</span><span class="p">)</span>
-                <span class="n">v</span> <span class="o">=</span> <span class="n">aeval</span><span class="o">.</span><span class="n">symtable</span><span class="p">[</span><span class="s2">&quot;target&quot;</span><span class="p">]</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="n">eval_expr_with_mapping</span><span class="p">(</span>
+                    <span class="n">enum_deriv</span><span class="o">.</span><span class="n">expr</span><span class="p">,</span>
+                    <span class="n">mapping</span><span class="p">,</span>
+                    <span class="n">strict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">strict</span><span class="p">,</span>
+                    <span class="n">warned_unbound</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_warned_unbound_names</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">InvalidExpression</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">unrestricted_eval</span><span class="p">:</span>
+                    <span class="k">raise</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unrestricted_eval</span><span class="p">(</span><span class="n">enum_deriv</span><span class="o">.</span><span class="n">expr</span><span class="p">,</span> <span class="n">source_obj</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">v</span>
         <span class="k">for</span> <span class="n">pv_deriv</span> <span class="ow">in</span> <span class="n">enum_deriv</span><span class="o">.</span><span class="n">permissible_value_derivations</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
@@ -5100,23 +5548,7 @@ returns the source value unchanged without trying further enums.</p>
 
             <details class="quote">
               <summary>Source code in <code>src/linkml_map/transformer/object_transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1247</span>
-<span class="normal">1248</span>
-<span class="normal">1249</span>
-<span class="normal">1250</span>
-<span class="normal">1251</span>
-<span class="normal">1252</span>
-<span class="normal">1253</span>
-<span class="normal">1254</span>
-<span class="normal">1255</span>
-<span class="normal">1256</span>
-<span class="normal">1257</span>
-<span class="normal">1258</span>
-<span class="normal">1259</span>
-<span class="normal">1260</span>
-<span class="normal">1261</span>
-<span class="normal">1262</span>
-<span class="normal">1263</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1263</span>
 <span class="normal">1264</span>
 <span class="normal">1265</span>
 <span class="normal">1266</span>
@@ -5128,7 +5560,23 @@ returns the source value unchanged without trying further enums.</p>
 <span class="normal">1272</span>
 <span class="normal">1273</span>
 <span class="normal">1274</span>
-<span class="normal">1275</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">transform_object</span><span class="p">(</span>
+<span class="normal">1275</span>
+<span class="normal">1276</span>
+<span class="normal">1277</span>
+<span class="normal">1278</span>
+<span class="normal">1279</span>
+<span class="normal">1280</span>
+<span class="normal">1281</span>
+<span class="normal">1282</span>
+<span class="normal">1283</span>
+<span class="normal">1284</span>
+<span class="normal">1285</span>
+<span class="normal">1286</span>
+<span class="normal">1287</span>
+<span class="normal">1288</span>
+<span class="normal">1289</span>
+<span class="normal">1290</span>
+<span class="normal">1291</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">transform_object</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">source_obj</span><span class="p">:</span> <span class="n">YAMLRoot</span> <span class="o">|</span> <span class="n">BaseModel</span><span class="p">,</span>
     <span class="n">target_class</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">YAMLRoot</span><span class="p">]</span> <span class="o">|</span> <span class="nb">type</span><span class="p">[</span><span class="n">BaseModel</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>

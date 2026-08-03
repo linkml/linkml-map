@@ -43,7 +43,6 @@
               {title: "NonInvertibleSpecificationError", url: "#linkml_map.inference.inverter.NonInvertibleSpecificationError" },
               {title: "TransformationSpecificationInverter", url: "#linkml_map.inference.inverter.TransformationSpecificationInverter" },
               {title: "Schema Mapper", url: "#schema-mapper" },
-              {title: "copy_attributes", url: "#linkml_map.inference.schema_mapper.SchemaMapper.copy_attributes" },
               {title: "derive_schema", url: "#linkml_map.inference.schema_mapper.SchemaMapper.derive_schema" },
           ]},
         ];
@@ -201,7 +200,12 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
 <span class="normal">64</span>
 <span class="normal">65</span>
 <span class="normal">66</span>
-<span class="normal">67</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">induce_missing_values</span><span class="p">(</span><span class="n">specification</span><span class="p">:</span> <span class="n">TransformationSpecification</span><span class="p">,</span> <span class="n">source_schemaview</span><span class="p">:</span> <span class="n">SchemaView</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span>
+<span class="normal">71</span>
+<span class="normal">72</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">induce_missing_values</span><span class="p">(</span><span class="n">specification</span><span class="p">:</span> <span class="n">TransformationSpecification</span><span class="p">,</span> <span class="n">source_schemaview</span><span class="p">:</span> <span class="n">SchemaView</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Infer missing values in a specification.</span>
 
@@ -235,17 +239,19 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
                 <span class="n">populated_from_slot</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">populated_from</span>
 
                 <span class="n">source_induced_slot_range</span> <span class="o">=</span> <span class="kc">None</span>
-                <span class="k">if</span> <span class="s2">&quot;.&quot;</span> <span class="ow">in</span> <span class="n">populated_from_slot</span> <span class="ow">and</span> <span class="n">cd</span><span class="o">.</span><span class="n">joins</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;.&quot;</span> <span class="ow">in</span> <span class="n">populated_from_slot</span><span class="p">:</span>
+                    <span class="c1"># cd.joins may be empty here (join synthesis runs later).</span>
                     <span class="n">table_name</span><span class="p">,</span> <span class="n">field_path</span> <span class="o">=</span> <span class="n">populated_from_slot</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">cd</span><span class="o">.</span><span class="n">joins</span><span class="p">:</span>
+                    <span class="n">joined_class</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="k">if</span> <span class="n">cd</span><span class="o">.</span><span class="n">joins</span> <span class="ow">and</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">cd</span><span class="o">.</span><span class="n">joins</span><span class="p">:</span>
                         <span class="n">joined_class</span> <span class="o">=</span> <span class="n">cd</span><span class="o">.</span><span class="n">joins</span><span class="p">[</span><span class="n">table_name</span><span class="p">]</span><span class="o">.</span><span class="n">class_named</span> <span class="ow">or</span> <span class="n">table_name</span>
-                        <span class="k">if</span> <span class="n">joined_class</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">source_schemaview</span><span class="o">.</span><span class="n">all_classes</span><span class="p">():</span>
-                            <span class="k">continue</span>
-                        <span class="k">if</span> <span class="n">field_path</span> <span class="ow">in</span> <span class="n">source_schemaview</span><span class="o">.</span><span class="n">class_induced_slots</span><span class="p">(</span><span class="n">joined_class</span><span class="p">):</span>
+                    <span class="k">elif</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">source_schemaview</span><span class="o">.</span><span class="n">all_classes</span><span class="p">():</span>
+                        <span class="n">joined_class</span> <span class="o">=</span> <span class="n">table_name</span>
+                    <span class="k">if</span> <span class="n">joined_class</span> <span class="ow">and</span> <span class="n">joined_class</span> <span class="ow">in</span> <span class="n">source_schemaview</span><span class="o">.</span><span class="n">all_classes</span><span class="p">():</span>
+                        <span class="n">induced_names</span> <span class="o">=</span> <span class="p">{</span><span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">source_schemaview</span><span class="o">.</span><span class="n">class_induced_slots</span><span class="p">(</span><span class="n">joined_class</span><span class="p">)}</span>
+                        <span class="k">if</span> <span class="n">field_path</span> <span class="ow">in</span> <span class="n">induced_names</span><span class="p">:</span>
                             <span class="n">source_induced_slot</span> <span class="o">=</span> <span class="n">source_schemaview</span><span class="o">.</span><span class="n">induced_slot</span><span class="p">(</span><span class="n">field_path</span><span class="p">,</span> <span class="n">joined_class</span><span class="p">)</span>
                             <span class="n">source_induced_slot_range</span> <span class="o">=</span> <span class="n">source_induced_slot</span><span class="o">.</span><span class="n">range</span>
-                        <span class="k">else</span><span class="p">:</span>
-                            <span class="k">continue</span>
 
                 <span class="k">if</span> <span class="n">source_induced_slot_range</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">fk_resolution</span> <span class="o">=</span> <span class="n">resolve_fk_path</span><span class="p">(</span><span class="n">source_schemaview</span><span class="p">,</span> <span class="n">cd</span><span class="o">.</span><span class="n">populated_from</span><span class="p">,</span> <span class="n">populated_from_slot</span><span class="p">)</span>
@@ -253,6 +259,9 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
                         <span class="k">if</span> <span class="ow">not</span> <span class="n">fk_resolution</span><span class="o">.</span><span class="n">final_slot</span><span class="p">:</span>
                             <span class="k">continue</span>
                         <span class="n">source_induced_slot_range</span> <span class="o">=</span> <span class="n">fk_resolution</span><span class="o">.</span><span class="n">final_slot</span><span class="o">.</span><span class="n">range</span>
+                    <span class="k">elif</span> <span class="s2">&quot;.&quot;</span> <span class="ow">in</span> <span class="n">populated_from_slot</span><span class="p">:</span>
+                        <span class="c1"># Unresolvable Table.col: skip (bare-slot lookup would raise, #279).</span>
+                        <span class="k">continue</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">source_induced_slot</span> <span class="o">=</span> <span class="n">source_schemaview</span><span class="o">.</span><span class="n">induced_slot</span><span class="p">(</span><span class="n">populated_from_slot</span><span class="p">,</span> <span class="n">cd</span><span class="o">.</span><span class="n">populated_from</span><span class="p">)</span>
                         <span class="n">source_induced_slot_range</span> <span class="o">=</span> <span class="n">source_induced_slot</span><span class="o">.</span><span class="n">range</span>
@@ -1128,7 +1137,8 @@ Note this becomes the source schema for the generated inverse transformation.</p
 
               <details class="quote">
                 <summary>Source code in <code>src/linkml_map/inference/schema_mapper.py</code></summary>
-                <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 38</span>
+                <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 37</span>
+<span class="normal"> 38</span>
 <span class="normal"> 39</span>
 <span class="normal"> 40</span>
 <span class="normal"> 41</span>
@@ -1481,33 +1491,7 @@ Note this becomes the source schema for the generated inverse transformation.</p
 <span class="normal">388</span>
 <span class="normal">389</span>
 <span class="normal">390</span>
-<span class="normal">391</span>
-<span class="normal">392</span>
-<span class="normal">393</span>
-<span class="normal">394</span>
-<span class="normal">395</span>
-<span class="normal">396</span>
-<span class="normal">397</span>
-<span class="normal">398</span>
-<span class="normal">399</span>
-<span class="normal">400</span>
-<span class="normal">401</span>
-<span class="normal">402</span>
-<span class="normal">403</span>
-<span class="normal">404</span>
-<span class="normal">405</span>
-<span class="normal">406</span>
-<span class="normal">407</span>
-<span class="normal">408</span>
-<span class="normal">409</span>
-<span class="normal">410</span>
-<span class="normal">411</span>
-<span class="normal">412</span>
-<span class="normal">413</span>
-<span class="normal">414</span>
-<span class="normal">415</span>
-<span class="normal">416</span>
-<span class="normal">417</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="normal">391</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">SchemaMapper</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Translates a source schema and transformation specification into a target schema.</span>
@@ -1862,31 +1846,6 @@ Note this becomes the source schema for the generated inverse transformation.</p
         <span class="k">if</span> <span class="n">parent_cls</span><span class="o">.</span><span class="n">is_a</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rewire_parent</span><span class="p">(</span><span class="n">class_definition</span><span class="p">,</span> <span class="n">parent_cls</span><span class="o">.</span><span class="n">is_a</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">copy_attributes</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">target_element</span><span class="p">:</span> <span class="n">Element</span><span class="p">,</span>
-        <span class="n">source_element</span><span class="p">:</span> <span class="n">Element</span><span class="p">,</span>
-        <span class="n">copy_directive</span><span class="p">:</span> <span class="n">CopyDirective</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Copy attributes from source to target according to a directive.</span>
-
-<span class="sd">        :param target_element:</span>
-<span class="sd">        :param source_element:</span>
-<span class="sd">        :param copy_directive:</span>
-<span class="sd">        :return:</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="n">source_element</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">included</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="k">if</span> <span class="n">copy_directive</span><span class="o">.</span><span class="n">include_all</span><span class="p">:</span>
-                <span class="n">included</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">copy_directive</span><span class="o">.</span><span class="n">include</span><span class="p">:</span>
-                <span class="n">included</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">copy_directive</span><span class="o">.</span><span class="n">exclude</span><span class="p">:</span>
-                <span class="n">included</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="k">if</span> <span class="n">included</span><span class="p">:</span>
-                <span class="nb">setattr</span><span class="p">(</span><span class="n">target_element</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
               </details>
 
@@ -1901,79 +1860,6 @@ Note this becomes the source schema for the generated inverse transformation.</p
 
 
 
-
-<div class="doc doc-object doc-function">
-
-
-<h2 id="linkml_map.inference.schema_mapper.SchemaMapper.copy_attributes" class="doc doc-heading">
-            <code class=" language-python"><span class="n">copy_attributes</span><span class="p">(</span><span class="n">target_element</span><span class="p">,</span> <span class="n">source_element</span><span class="p">,</span> <span class="n">copy_directive</span><span class="p">)</span></code>
-
-</h2>
-
-
-    <div class="doc doc-contents ">
-
-        <p>Copy attributes from source to target according to a directive.</p>
-<p>:param target_element:
-:param source_element:
-:param copy_directive:
-:return:</p>
-
-
-            <details class="quote">
-              <summary>Source code in <code>src/linkml_map/inference/schema_mapper.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">394</span>
-<span class="normal">395</span>
-<span class="normal">396</span>
-<span class="normal">397</span>
-<span class="normal">398</span>
-<span class="normal">399</span>
-<span class="normal">400</span>
-<span class="normal">401</span>
-<span class="normal">402</span>
-<span class="normal">403</span>
-<span class="normal">404</span>
-<span class="normal">405</span>
-<span class="normal">406</span>
-<span class="normal">407</span>
-<span class="normal">408</span>
-<span class="normal">409</span>
-<span class="normal">410</span>
-<span class="normal">411</span>
-<span class="normal">412</span>
-<span class="normal">413</span>
-<span class="normal">414</span>
-<span class="normal">415</span>
-<span class="normal">416</span>
-<span class="normal">417</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">copy_attributes</span><span class="p">(</span>
-    <span class="bp">self</span><span class="p">,</span>
-    <span class="n">target_element</span><span class="p">:</span> <span class="n">Element</span><span class="p">,</span>
-    <span class="n">source_element</span><span class="p">:</span> <span class="n">Element</span><span class="p">,</span>
-    <span class="n">copy_directive</span><span class="p">:</span> <span class="n">CopyDirective</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Copy attributes from source to target according to a directive.</span>
-
-<span class="sd">    :param target_element:</span>
-<span class="sd">    :param source_element:</span>
-<span class="sd">    :param copy_directive:</span>
-<span class="sd">    :return:</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="n">source_element</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">included</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">if</span> <span class="n">copy_directive</span><span class="o">.</span><span class="n">include_all</span><span class="p">:</span>
-            <span class="n">included</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">copy_directive</span><span class="o">.</span><span class="n">include</span><span class="p">:</span>
-            <span class="n">included</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">copy_directive</span><span class="o">.</span><span class="n">exclude</span><span class="p">:</span>
-            <span class="n">included</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">if</span> <span class="n">included</span><span class="p">:</span>
-            <span class="nb">setattr</span><span class="p">(</span><span class="n">target_element</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
-</code></pre></div></td></tr></table></div>
-            </details>
-    </div>
-
-</div>
 
 <div class="doc doc-object doc-function">
 
@@ -1993,7 +1879,8 @@ Note this becomes the source schema for the generated inverse transformation.</p
 
             <details class="quote">
               <summary>Source code in <code>src/linkml_map/inference/schema_mapper.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">139</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">138</span>
+<span class="normal">139</span>
 <span class="normal">140</span>
 <span class="normal">141</span>
 <span class="normal">142</span>
@@ -2042,8 +1929,7 @@ Note this becomes the source schema for the generated inverse transformation.</p
 <span class="normal">185</span>
 <span class="normal">186</span>
 <span class="normal">187</span>
-<span class="normal">188</span>
-<span class="normal">189</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">derive_schema</span><span class="p">(</span>
+<span class="normal">188</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">derive_schema</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">specification</span><span class="p">:</span> <span class="n">TransformationSpecification</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">target_schema_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
