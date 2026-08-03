@@ -35,7 +35,6 @@ nav:
       - Session: api/session.md
       - Transformer: api/transformer.md
       - Compiler: api/compiler.md
-      # - Importer: api/importer.md
       - Inference: api/inference.md
       - Expressions: api/expressions.md
       - Functions: api/functions.md

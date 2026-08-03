@@ -37,12 +37,6 @@ class UndefinedUnitError(Exception):
     """
 
 
-class QuantitySyntaxError(Exception):
-    """
-    Raised when a quantity cannot be parsed.
-    """
-
-
 class DimensionalityError(Exception):
     """
     Raised when a unit conversion cannot be performed.
