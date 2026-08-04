@@ -111,8 +111,8 @@ def get_unit_registry(
     <Quantity(1.0, 'meter * kilogram / second ** 2')>
     >>> str(_)
     '1.0 kilogram * meter / second ** 2'
-    >>> ureg.from_ucum("m[H2O]{35Cel}")  # UCUM code with annotation
-    <Quantity(1, 'm_H2O')>
+    >>> ureg.from_ucum("m[H2O]{35Cel}")  # annotated UCUM code; ucumvert <0.3 names it m_H2O, >=0.3 meter_H2O
+    <Quantity(1, '..._H2O')>
     >>> _.to("mbar")
     <Quantity(98.0665, 'millibar')>
     >>> ureg("degC")   # a standard pint unit

@@ -6,15 +6,10 @@ See `tests/README.md` for guidance on the scaffold-based testing pattern used in
 
 ### Code Style
 
-This project uses [`black`](https://github.com/psf/black) to automatically
-enforce a consistent code style. You can apply `black` and other pre-configured
-linters with `tox -e lint`.
-
-This project uses [`flake8`](https://flake8.pycqa.org) and several plugins for
-additional checks of documentation style, security issues, good variable
-nomenclature, and more (
-see [`tox.ini`](tox.ini) for a list of flake8 plugins). You can check if your
-code passes `flake8` with `tox -e flake8`.
+This project uses [`ruff`](https://docs.astral.sh/ruff/) to lint and format.
+Run `uv run ruff check .` and `uv run ruff format .` before opening a pull
+request, or install the hooks with `uv run pre-commit install` and let them run
+automatically.
 
 Each of these checks are run on each commit using GitHub Actions as a continuous
 integration service. Passing all of them is required for accepting a
