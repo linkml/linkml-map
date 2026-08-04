@@ -53,8 +53,8 @@ logger = logging.getLogger(__name__)
 
 
 @click.group()
-@click.option("-v", "--verbose", count=True)
-@click.option("-q", "--quiet")
+@click.option("-v", "--verbose", count=True, help="Increase log verbosity; repeat for debug.")
+@click.option("-q", "--quiet", is_flag=True, help="Suppress warnings; only report errors.")
 # @click.version_option(__version__)
 def main(verbose: int, quiet: bool) -> None:
     """CLI for linkml-map."""
