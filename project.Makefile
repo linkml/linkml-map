@@ -1,7 +1,4 @@
-tests/model/%.py: tests/input/%.yaml
-	$(RUN) gen-python $< > $@.tmp && mv $@.tmp $@
-
-specification: src/docs/specification/compliance.md
+specification: docs/specification/compliance.md
 
 docs/specification/compliance.md: tests/test_compliance/test_compliance_suite.py
 	mkdir -p docs/specification
