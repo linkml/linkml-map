@@ -1,0 +1,44 @@
+name: Python version cycle
+
+on:
+  schedule:
+    - cron: '0 6 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    name: Check the Python support window
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Compare the CI matrix against upstream release data
+        id: check
+        run: |
+          python .github/scripts/python_version_cycle.py > report.md
+          if [ -s report.md ]; then
+            echo "report=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open an issue
+        if: steps.check.outputs.report == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: 'Python version cycle: review supported versions'
+        run: |
+          existing=$(gh issue list --state open --search "\"$TITLE\" in:title" --json number,title \
+            --jq "[.[] | select(.title == \"$TITLE\")] | first | .number // empty")
+          if [ -n "$existing" ]; then
+            echo "Issue #$existing is already open; leaving it alone."
+          else
+            gh issue create --title "$TITLE" --body-file report.md
+          fi

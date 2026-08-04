@@ -52,8 +52,9 @@ def nested_chunks():
     )
 
 
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 class TestYamlStream:
-    """Tests for yaml_stream function."""
+    """Tests for the deprecated yaml_stream function."""
 
     def test_basic_output(self, sample_chunks) -> None:
         result = "".join(yaml_stream(sample_chunks))
@@ -69,8 +70,9 @@ class TestYamlStream:
         assert "people:" in result
 
 
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 class TestJsonStream:
-    """Tests for json_stream function."""
+    """Tests for the deprecated json_stream function."""
 
     def test_basic_output(self, sample_chunks) -> None:
         result = "".join(json_stream(sample_chunks))
@@ -88,8 +90,9 @@ class TestJsonStream:
         assert len(data["people"]) == 1
 
 
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 class TestJsonlStream:
-    """Tests for jsonl_stream function."""
+    """Tests for the deprecated jsonl_stream function."""
 
     def test_basic_output(self, sample_chunks) -> None:
         result = "".join(jsonl_stream(sample_chunks))
@@ -112,8 +115,9 @@ class TestJsonlStream:
         assert obj["id"] == "P:001"
 
 
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 class TestTsvStream:
-    """Tests for tsv_stream function."""
+    """Tests for the deprecated tsv_stream function."""
 
     def test_basic_output(self, sample_chunks) -> None:
         result = "".join(tsv_stream(sample_chunks))
@@ -138,8 +142,9 @@ class TestTsvStream:
         assert "address__city" in result
 
 
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 class TestCsvStream:
-    """Tests for csv_stream function."""
+    """Tests for the deprecated csv_stream function."""
 
     def test_basic_output(self) -> None:
         chunks = iter([[{"id": "P:001", "name": "Alice"}]])
@@ -171,7 +176,7 @@ class TestTabularStreamWriter:
             ]
         )
         # Consume the stream to trigger header discovery
-        "".join(writer.stream(chunks))
+        "".join(writer.process(chunks))
         assert writer.headers_changed is True
         assert "email" in writer.get_final_headers()
 
@@ -200,8 +205,9 @@ class TestTabularStreamWriter:
         assert '"key"' in escaped
 
 
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 class TestGetStreamWriter:
-    """Tests for get_stream_writer function."""
+    """Tests for the deprecated get_stream_writer function."""
 
     def test_get_yaml_writer(self) -> None:
         writer = get_stream_writer(OutputFormat.YAML)
@@ -222,6 +228,34 @@ class TestGetStreamWriter:
     def test_get_csv_writer(self) -> None:
         writer = get_stream_writer(OutputFormat.CSV)
         assert writer is csv_stream
+
+
+class TestDeprecatedFunctionAPI:
+    """The legacy function-based writers still work but emit DeprecationWarning."""
+
+    def test_yaml_stream_warns(self) -> None:
+        with pytest.warns(DeprecationWarning, match="yaml_stream"):
+            "".join(yaml_stream(iter([[{"id": "P:001"}]])))
+
+    def test_json_stream_warns(self) -> None:
+        with pytest.warns(DeprecationWarning, match="json_stream"):
+            "".join(json_stream(iter([[{"id": "P:001"}]])))
+
+    def test_jsonl_stream_warns(self) -> None:
+        with pytest.warns(DeprecationWarning, match="jsonl_stream"):
+            "".join(jsonl_stream(iter([[{"id": "P:001"}]])))
+
+    def test_tsv_stream_warns(self) -> None:
+        with pytest.warns(DeprecationWarning, match="tsv_stream"):
+            "".join(tsv_stream(iter([[{"id": "P:001"}]])))
+
+    def test_csv_stream_warns(self) -> None:
+        with pytest.warns(DeprecationWarning, match="csv_stream"):
+            "".join(csv_stream(iter([[{"id": "P:001"}]])))
+
+    def test_get_stream_writer_warns(self) -> None:
+        with pytest.warns(DeprecationWarning, match="get_stream_writer"):
+            get_stream_writer(OutputFormat.YAML)
 
 
 class TestOutputFormat:
@@ -419,6 +453,7 @@ DATA_WITH_NULLS = [
 ]
 
 
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_json_stream_omits_null_values():
     result = "".join(json_stream(iter([DATA_WITH_NULLS])))
     data = json.loads(result)
@@ -428,6 +463,7 @@ def test_json_stream_omits_null_values():
     assert data[1]["email"] == "bob@example.com"
 
 
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_jsonl_stream_omits_null_values():
     result = "".join(jsonl_stream(iter([DATA_WITH_NULLS])))
     lines = [json.loads(line) for line in result.strip().split("\n")]
@@ -451,6 +487,7 @@ def test_jsonl_stream_writer_omits_null_values():
     assert "name" not in lines[1]
 
 
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_json_stream_omits_nested_null_values():
     data = [{"id": "1", "address": {"city": "NYC", "zip": None}}]
     result = "".join(json_stream(iter([data])))
@@ -474,11 +511,13 @@ def test_tabular_write_chunk_produces_header_and_rows():
 
 
 def test_tabular_process_matches_stream():
+    """The deprecated ``stream`` alias warns but still matches ``process``."""
     writer_a = TabularStreamWriter(separator="\t")
     writer_b = TabularStreamWriter(separator="\t")
     chunks = [SAMPLE_DATA[:2], SAMPLE_DATA[2:]]
     result_process = "".join(writer_a.process(iter(chunks)))
-    result_stream = "".join(writer_b.stream(iter([SAMPLE_DATA[:2], SAMPLE_DATA[2:]])))
+    with pytest.warns(DeprecationWarning):
+        result_stream = "".join(writer_b.stream(iter([SAMPLE_DATA[:2], SAMPLE_DATA[2:]])))
     assert result_process == result_stream
 
 
