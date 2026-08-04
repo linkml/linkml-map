@@ -8,6 +8,11 @@ updates:
       minor-and-patch:
         patterns: ["*"]
         update-types: ["minor", "patch"]
+    ignore:
+      # ucumvert 0.3 requires pint>=0.25, which is Python 3.11+. Lift this once
+      # 3.10 reaches EOL (2026-10-31) and requires-python moves off it.
+      - dependency-name: "ucumvert"
+        versions: [">=0.3"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
