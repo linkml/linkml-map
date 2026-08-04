@@ -642,7 +642,7 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
         # default dedupes within a single expression eval (mostly a no-op
         # since a given name appears once per expr, but cheap and safe).
         self._warned_unbound: set[str] = warned_unbound if warned_unbound is not None else set()
-        self._comprehension_depth: int = 0
+        self._comprehension_targets: list[str] = []
         super().__init__(**kwargs)
         for op_type in (ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE):
             self.operators[op_type] = _coercing(self.operators[op_type])
@@ -744,20 +744,27 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
 
     def _eval_comprehension(self, node: ast.ListComp | ast.GeneratorExp | ast.DictComp) -> Any:  # noqa: ANN401
         """
-        Track comprehension nesting for ``_eval_attribute``'s diagnostics.
+        Track the names bound by this comprehension for ``_eval_attribute``'s diagnostics.
 
         simpleeval binds comprehension targets in a closure-local scope reachable
         only through the ``ast.Name`` handler it swaps into ``self.nodes`` for the
         duration of the comprehension. The root lookup in ``_eval_attribute``
         deliberately bypasses that dispatch (see there), so a loop variable is
-        otherwise indistinguishable from a typo. This flag lets the error name the
-        real cause.
+        otherwise indistinguishable from a typo. Recording the bound names lets the
+        error name the real cause without mislabelling a genuine typo that merely
+        appears inside a comprehension.
         """
-        self._comprehension_depth += 1
+        bound = [
+            element.id
+            for generator in node.generators
+            for element in ast.walk(generator.target)
+            if isinstance(element, ast.Name)
+        ]
+        self._comprehension_targets.extend(bound)
         try:
             return super()._eval_comprehension(node)
         finally:
-            self._comprehension_depth -= 1
+            del self._comprehension_targets[len(self._comprehension_targets) - len(bound) :]
 
     def _eval_attribute(self, node: ast.Attribute) -> Any:  # noqa: ANN401
         """
@@ -781,7 +788,7 @@ class LinkMLEvaluator(EvalWithCompoundTypes):
                 obj = super()._eval_name(node.value)
             except NameNotDefined:
                 ref = f"{node.value.id}.{node.attr}"
-                if self._comprehension_depth:
+                if node.value.id in self._comprehension_targets:
                     # The name is bound by an enclosing comprehension, not missing
                     # from the schema, so the unknown-reference wording below would
                     # send the author hunting for a typo that isn't there.
