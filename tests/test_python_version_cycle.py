@@ -86,6 +86,21 @@ def test_matrix_versions_parses_the_real_workflow() -> None:
     assert all(v.startswith("3.") for v in versions)
 
 
+@pytest.mark.parametrize(
+    "matrix",
+    [
+        "        python-version: [3.10, 3.11]\n",
+        "        python-version: []\n",
+    ],
+)
+def test_unquoted_matrix_entries_raise_rather_than_parsing_to_nothing(tmp_path: Path, matrix: str) -> None:
+    """A matrix the version regex can't read fails at the parse, not later on an empty list."""
+    workflow = tmp_path / "main.yaml"
+    workflow.write_text(f"jobs:\n  test:\n    strategy:\n      matrix:\n{matrix}")
+    with pytest.raises(ValueError, match="No quoted versions"):
+        cycle.matrix_versions(workflow)
+
+
 def test_requires_python_reads_pyproject() -> None:
     """The pyproject reader returns the declared specifier."""
     pyproject = Path(__file__).resolve().parents[1] / "pyproject.toml"

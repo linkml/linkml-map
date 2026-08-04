@@ -35,7 +35,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TITLE: 'Python version cycle: review supported versions'
         run: |
-          existing=$(gh issue list --state open --limit 100 --json number,title \
+          existing=$(gh issue list --state open --search "\"$TITLE\" in:title" --json number,title \
             --jq "[.[] | select(.title == \"$TITLE\")] | first | .number // empty")
           if [ -n "$existing" ]; then
             echo "Issue #$existing is already open; leaving it alone."

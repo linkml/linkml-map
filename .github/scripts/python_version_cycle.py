@@ -32,7 +32,11 @@ def matrix_versions(workflow: Path) -> list[str]:
     if match is None:
         msg = f"No 'python-version: [...]' matrix found in {workflow}"
         raise ValueError(msg)
-    return QUOTED_VERSION.findall(match.group(1))
+    versions = QUOTED_VERSION.findall(match.group(1))
+    if not versions:
+        msg = f"No quoted versions in the 'python-version' matrix in {workflow}"
+        raise ValueError(msg)
+    return versions
 
 
 def requires_python(pyproject: Path) -> str:
