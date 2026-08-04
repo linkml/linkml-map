@@ -13,9 +13,19 @@ repos:
       - id: trailing-whitespace
         exclude: ^(tests/input/|src/linkml_map/datamodel/|docs/schema/)
 
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.13
+  # Run the ruff from uv.lock rather than a separately pinned copy, so local
+  # hooks, `uv run ruff`, and CI can't drift apart.
+  - repo: local
     hooks:
       - id: ruff-check
-        args: [--fix, --exit-non-zero-on-fix]
+        name: ruff check
+        entry: uv run ruff check --fix --exit-non-zero-on-fix
+        language: system
+        types_or: [python, pyi, jupyter]
+        require_serial: true
       - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format
+        language: system
+        types_or: [python, pyi, jupyter]
+        require_serial: true
