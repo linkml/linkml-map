@@ -15,7 +15,6 @@ from linkml_runtime.dumpers import json_dumper
 from linkml_runtime.linkml_model import (
     ClassDefinition,
     ClassDefinitionName,
-    Element,
     EnumDefinition,
     PermissibleValue,
     SchemaDefinition,
@@ -390,28 +389,3 @@ class SchemaMapper:
         if parent_cls.is_a:
             return self._rewire_parent(class_definition, parent_cls.is_a)
         return None
-
-    def copy_attributes(
-        self,
-        target_element: Element,
-        source_element: Element,
-        copy_directive: CopyDirective,
-    ) -> None:
-        """
-        Copy attributes from source to target according to a directive.
-
-        :param target_element:
-        :param source_element:
-        :param copy_directive:
-        :return:
-        """
-        for k, v in vars(source_element).items():
-            included = False
-            if copy_directive.include_all:
-                included = True
-            if k in copy_directive.include:
-                included = True
-            if k in copy_directive.exclude:
-                included = False
-            if included:
-                setattr(target_element, k, v)
