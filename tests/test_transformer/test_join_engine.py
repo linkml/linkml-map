@@ -702,14 +702,14 @@ class _RecordingLookupIndex(LookupIndex):
         self.registered: list[str] = []
 
     def register_table(self, name: str, file_path: Path | str, key_column: str) -> None:
-        """Record *name*, then register it as usual.
+        """Register the table as usual, then record *name* on success.
 
         :param name: Logical table name.
         :param file_path: Path to the table's data file.
         :param key_column: Column to index for lookups.
         """
-        self.registered.append(name)
         super().register_table(name, file_path, key_column)
+        self.registered.append(name)
 
 
 FALLBACK_SRC = yaml.safe_load(
@@ -759,7 +759,10 @@ SAMPLE_ROWS = [
     {"sample_id": "S003", "name": "Gamma", "site_code": "NO_SUCH_SITE"},
 ]
 
+SAMPLE_COLUMNS = ["sample_id", "name", "site_code"]
+
 SITES_TABLE = ("sites", (["site_code", "site_name"], [["SITE_A", "Boston Medical"], ["SITE_B", "Seattle Clinic"]]))
+SAMPLES_TABLE = ("samples", (SAMPLE_COLUMNS, [[r[c] for c in SAMPLE_COLUMNS] for r in SAMPLE_ROWS]))
 
 
 def _run_join(tmp_path, *, primary_as_yaml: bool) -> tuple[list[dict], list[str], bool]:
@@ -779,10 +782,7 @@ def _run_join(tmp_path, *, primary_as_yaml: bool) -> tuple[list[dict], list[str]
     if primary_as_yaml:
         (tmp_path / "samples.yaml").write_text(yaml.safe_dump(SAMPLE_ROWS))
     else:
-        _write(
-            tmp_path,
-            {"samples": (["sample_id", "name", "site_code"], [list(r.values()) for r in SAMPLE_ROWS])},
-        )
+        _write(tmp_path, dict([SAMPLES_TABLE]))
 
     tr = _transformer(FALLBACK_SRC, FALLBACK_SPEC, FALLBACK_TARGET)
     index = _RecordingLookupIndex()
@@ -846,11 +846,7 @@ def test_engine_on_error_collects_and_continues(tmp_path):
               site_name: {expr: "{sites.site_name}"}
         """)
     )
-    _write(tmp_path, dict([SITES_TABLE]))
-    _write(
-        tmp_path,
-        {"samples": (["sample_id", "name", "site_code"], [list(r.values()) for r in SAMPLE_ROWS])},
-    )
+    _write(tmp_path, dict([SITES_TABLE, SAMPLES_TABLE]))
     tr = _transformer(FALLBACK_SRC, spec, FALLBACK_TARGET)
     loader = DataLoader(tmp_path, schemaview=tr.source_schemaview)
     assert can_use_join_engine(tr.derived_specification.class_derivations[0], loader, tr.source_schemaview) is True
