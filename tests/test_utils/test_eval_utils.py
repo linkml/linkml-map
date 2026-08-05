@@ -817,8 +817,9 @@ def test_uuid5_matches_python_stdlib() -> None:
     """Pin the derivation against Python's stdlib, not just its shape.
 
     The other uuid5 tests assert format and determinism, which a change to how
-    the namespace is derived would sail straight through. Salvaged from the NMDC
-    pattern tests (issue #298), which held the only check of the actual algorithm.
+    the namespace is derived would sail straight through. Salvaged from
+    ``test_nmdc_uuid5_ids.py`` (issue #298), which held the only check of the
+    actual algorithm.
     """
     namespace = uuid.uuid5(uuid.NAMESPACE_URL, "https://example.org/X")
     expected = str(uuid.uuid5(namespace, "foo"))
