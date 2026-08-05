@@ -47,6 +47,12 @@ dev = [
 [project.scripts]
 linkml-map = "linkml_map.cli.cli:main"
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "integration: tests that need external services or network access",
+]
+
 [tool.deptry]
 known_first_party = ["linkml_map"]
 extend_exclude = ["docs"]

@@ -1,8 +1,13 @@
 """Integration tests for cross-table join lookups (Issue #134).
 
-These tests exercise the full stack: DataLoader → LookupIndex → Bindings →
-ObjectTransformer → engine.transform_spec.  Temporary TSV files serve as
-primary and secondary tables.
+These tests exercise DataLoader → Bindings → ObjectTransformer →
+engine.transform_spec.  Temporary TSV files serve as primary and secondary
+tables.
+
+Note the joins here are subject-keyed over TSV, so ``transform_spec`` dispatches
+them to the set-based DuckDB engine; ``LookupIndex`` is not on the path despite
+being the mechanism these tests were originally written against. The per-row
+index is covered by ``test_join_engine.test_per_row_fallback_resolves_a_real_join``.
 """
 
 # ruff: noqa: ANN401, PLR2004
