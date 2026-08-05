@@ -1,4 +1,10 @@
-"""Test the object transformer. -- New framework"""
+"""Scaffold-based tests for slot-derivation features.
+
+Covers ``missing_values``, hidden slots, ``slot()``, uuid5 identifiers, and
+value/expression precedence. Despite the shared subject, this is not a newer
+copy of ``test_object_transformer.py`` — that file covers unit conversion,
+cardinalities, indexing, and offsets, and the two barely overlap.
+"""
 
 import pytest
 from linkml_runtime import SchemaView
