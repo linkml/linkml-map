@@ -3,6 +3,7 @@
 # ruff: noqa: ANN401, PLR2004
 
 import re
+import uuid
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
@@ -810,6 +811,18 @@ def test_uuid5_different_namespace_gives_different_uuid() -> None:
     a = _uuid5("https://example.org/A", "foo")
     b = _uuid5("https://example.org/B", "foo")
     assert a != b
+
+
+def test_uuid5_matches_python_stdlib() -> None:
+    """Pin the derivation against Python's stdlib, not just its shape.
+
+    The other uuid5 tests assert format and determinism, which a change to how
+    the namespace is derived would sail straight through. Salvaged from the NMDC
+    pattern tests (issue #298), which held the only check of the actual algorithm.
+    """
+    namespace = uuid.uuid5(uuid.NAMESPACE_URL, "https://example.org/X")
+    expected = str(uuid.uuid5(namespace, "foo"))
+    assert _uuid5("https://example.org/X", "foo") == expected
 
 
 def test_uuid5_via_eval_expr() -> None:

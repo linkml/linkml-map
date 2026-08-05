@@ -173,3 +173,128 @@ def test_flatten_id_and_name_always_propagate(depth_input):
 
     assert result["id"] == "samp004"
     assert result["name"] == "Generic sample"
+
+
+# --- two-level dotpaths (salvaged from the NMDC pattern tests, issue #298) ---
+
+NESTED_SOURCE_SCHEMA = """\
+id: https://example.org/nested-source
+name: nested-source
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+classes:
+  Sample:
+    tree_root: true
+    attributes:
+      id:
+        identifier: true
+        range: string
+      env_broad_scale:
+        range: ControlledIdentifiedTermValue
+        inlined: true
+  ControlledIdentifiedTermValue:
+    attributes:
+      term:
+        range: Term
+        inlined: true
+      has_raw_value:
+        range: string
+  Term:
+    attributes:
+      id:
+        identifier: true
+        range: string
+      name:
+        range: string
+"""
+
+NESTED_TARGET_SCHEMA = """\
+id: https://example.org/nested-flat
+name: nested-flat
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+classes:
+  FlatSample:
+    attributes:
+      id:
+        identifier: true
+        range: string
+      env_broad_scale_term_id:
+        range: string
+      env_broad_scale_term_name:
+        range: string
+      env_broad_scale_has_raw_value:
+        range: string
+"""
+
+NESTED_SPEC = {
+    "class_derivations": {
+        "FlatSample": {
+            "populated_from": "Sample",
+            "slot_derivations": {
+                "id": {},
+                "env_broad_scale_term_id": {"expr": "env_broad_scale.term.id"},
+                "env_broad_scale_term_name": {"expr": "env_broad_scale.term.name"},
+                "env_broad_scale_has_raw_value": {"expr": "env_broad_scale.has_raw_value"},
+            },
+        }
+    }
+}
+
+
+def _make_nested_transformer() -> ObjectTransformer:
+    """Build an ObjectTransformer for the two-level nesting schemas."""
+    obj_tr = ObjectTransformer()
+    obj_tr.source_schemaview = SchemaView(NESTED_SOURCE_SCHEMA)
+    obj_tr.target_schemaview = SchemaView(NESTED_TARGET_SCHEMA)
+    obj_tr.create_transformer_specification(copy.deepcopy(NESTED_SPEC))
+    return obj_tr
+
+
+def test_flatten_two_level_dotpath():
+    """A dotted ``expr`` reaches through two levels of inlined objects.
+
+    The rest of this module covers a single level (``depth.has_unit``); this is
+    the only coverage for a second hop into a nested inlined object.
+    """
+    obj_tr = _make_nested_transformer()
+    source = {
+        "id": "S1",
+        "env_broad_scale": {
+            "term": {"id": "ENVO:00002030", "name": "aquatic biome"},
+            "has_raw_value": "aquatic biome [ENVO:00002030]",
+        },
+    }
+
+    result = obj_tr.map_object(source, source_type="Sample")
+
+    assert result["env_broad_scale_term_id"] == "ENVO:00002030"
+    assert result["env_broad_scale_term_name"] == "aquatic biome"
+    assert result["env_broad_scale_has_raw_value"] == "aquatic biome [ENVO:00002030]"
+
+
+@pytest.mark.parametrize(
+    ("env_broad_scale", "case"),
+    [
+        (None, "outer absent"),
+        ({"has_raw_value": "raw only"}, "middle absent"),
+        ({"term": None, "has_raw_value": "raw only"}, "middle null"),
+    ],
+)
+def test_flatten_two_level_dotpath_null_propagation(env_broad_scale, case):
+    """A missing link anywhere along a two-level dotpath yields null, not an error.
+
+    :param env_broad_scale: source value standing in for a broken path
+    :param case: which link is missing, for test-id readability
+    """
+    obj_tr = _make_nested_transformer()
+    source = {"id": "S1", "env_broad_scale": env_broad_scale}
+
+    result = obj_tr.map_object(source, source_type="Sample")
+
+    assert result.get("env_broad_scale_term_id") is None, case
+    assert result.get("env_broad_scale_term_name") is None, case
