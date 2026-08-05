@@ -9,6 +9,7 @@ from __future__ import annotations
 import csv
 import logging
 import textwrap
+from pathlib import Path
 
 import pytest
 import yaml
@@ -18,6 +19,7 @@ from linkml_map.loaders.data_loaders import DataLoader
 from linkml_map.session import Session
 from linkml_map.transformer.engine import transform_spec
 from linkml_map.transformer.join_engine import _collect_joins, can_use_join_engine
+from linkml_map.utils.lookup_index import LookupIndex
 
 
 def _write(tmp_path, tables: dict[str, tuple[list[str], list[list]]]) -> None:
@@ -43,8 +45,10 @@ def _run(tmp_path, source_schema, spec, target_schema, source_type, tables):
 
     ``transform_spec`` routes these subject-keyed specs through the join engine (its
     default when the block is engine-capable), so this exercises the real production
-    path. Parity against the per-row lookup path is covered by the pre-existing join
-    suites, which run their human-validated expected outputs through the same dispatch.
+    path — and only that path. Parity against the per-row lookup path is covered by
+    ``test_per_row_fallback_matches_the_engine`` below, which is the one place a join
+    is driven through ``LookupIndex``; the other join suites all dispatch to the
+    engine too, so they cannot stand in for it.
     """
     _write(tmp_path, tables)
     tr = _transformer(source_schema, spec, target_schema)
@@ -679,3 +683,177 @@ def test_join_resolves_when_alias_differs_from_join_key(tmp_path):
         key=lambda r: r["id"],
     )
     assert out[0]["reading_score"] == 95.5
+
+
+# --- per-row fallback parity (issue #296) ---
+
+
+class _RecordingLookupIndex(LookupIndex):
+    """A ``LookupIndex`` that records the tables the per-row path registers.
+
+    A test-only subclass rather than a patch: ``register_table`` being called at
+    all is the signal that the per-row fallback — not the set-based engine —
+    handled a block, and that is precisely what these tests need to observe.
+    """
+
+    def __init__(self) -> None:
+        """Record registrations alongside the normal index behaviour."""
+        super().__init__()
+        self.registered: list[str] = []
+
+    def register_table(self, name: str, file_path: Path | str, key_column: str) -> None:
+        """Register the table as usual, then record *name* on success.
+
+        :param name: Logical table name.
+        :param file_path: Path to the table's data file.
+        :param key_column: Column to index for lookups.
+        """
+        super().register_table(name, file_path, key_column)
+        self.registered.append(name)
+
+
+FALLBACK_SRC = yaml.safe_load(
+    textwrap.dedent("""\
+    id: https://example.org/fb
+    name: fb
+    prefixes: {linkml: https://w3id.org/linkml/}
+    default_prefix: fb
+    default_range: string
+    imports: [linkml:types]
+    classes:
+      samples: {attributes: {sample_id: {identifier: true}, name: {range: string}, site_code: {range: string}}}
+      sites: {attributes: {site_code: {identifier: true}, site_name: {range: string}}}
+    """)
+)
+
+FALLBACK_TARGET = textwrap.dedent("""\
+    id: https://example.org/fbt
+    name: fbt
+    prefixes: {linkml: https://w3id.org/linkml/}
+    default_prefix: fbt
+    default_range: string
+    imports: [linkml:types]
+    classes:
+      FlatSample: {attributes: {sample_id: {identifier: true}, name: {}, site_name: {}}}
+""")
+
+FALLBACK_SPEC = yaml.safe_load(
+    textwrap.dedent("""\
+    id: fb
+    title: fallback parity
+    class_derivations:
+      FlatSample:
+        populated_from: samples
+        joins:
+          sites: {join_on: site_code}
+        slot_derivations:
+          sample_id: {populated_from: sample_id}
+          name: {populated_from: name}
+          site_name: {expr: "{sites.site_name}"}
+    """)
+)
+
+SAMPLE_ROWS = [
+    {"sample_id": "S001", "name": "Alpha", "site_code": "SITE_A"},
+    {"sample_id": "S002", "name": "Beta", "site_code": "SITE_B"},
+    {"sample_id": "S003", "name": "Gamma", "site_code": "NO_SUCH_SITE"},
+]
+
+SAMPLE_COLUMNS = ["sample_id", "name", "site_code"]
+
+SITES_TABLE = ("sites", (["site_code", "site_name"], [["SITE_A", "Boston Medical"], ["SITE_B", "Seattle Clinic"]]))
+SAMPLES_TABLE = ("samples", (SAMPLE_COLUMNS, [[r[c] for c in SAMPLE_COLUMNS] for r in SAMPLE_ROWS]))
+
+
+def _run_join(tmp_path, *, primary_as_yaml: bool) -> tuple[list[dict], list[str], bool]:
+    """Run the same join spec, choosing the dispatch path via the primary's file format.
+
+    The engine reads CSV/TSV/JSON only, so writing the primary as YAML makes the
+    block engine-ineligible while leaving the join itself unchanged — the per-row
+    path still reads the YAML primary through the ``DataLoader`` and the TSV
+    lookup table through ``LookupIndex``.
+
+    :param tmp_path: temporary directory for the data files
+    :param primary_as_yaml: write the primary as YAML to force the per-row path
+    :returns: sorted output rows, tables registered on the index, engine eligibility
+    :rtype: tuple[list[dict], list[str], bool]
+    """
+    _write(tmp_path, dict([SITES_TABLE]))
+    if primary_as_yaml:
+        (tmp_path / "samples.yaml").write_text(yaml.safe_dump(SAMPLE_ROWS))
+    else:
+        _write(tmp_path, dict([SAMPLES_TABLE]))
+
+    tr = _transformer(FALLBACK_SRC, FALLBACK_SPEC, FALLBACK_TARGET)
+    index = _RecordingLookupIndex()
+    tr.lookup_index = index
+    loader = DataLoader(tmp_path, schemaview=tr.source_schemaview)
+    cd = tr.derived_specification.class_derivations[0]
+    eligible = can_use_join_engine(cd, loader, tr.source_schemaview)
+    out = sorted(transform_spec(tr, loader, source_type="samples"), key=lambda r: r["sample_id"])
+    return out, index.registered, eligible
+
+
+def test_per_row_fallback_resolves_a_real_join(tmp_path):
+    """The per-row ``LookupIndex`` path must resolve an actual join, not just exist.
+
+    Every other join test routes through the set-based engine, so this is the only
+    one that drives ``register_table``/``lookup_row`` with a real join (issue #296).
+    """
+    out, registered, eligible = _run_join(tmp_path, primary_as_yaml=True)
+    assert eligible is False, "YAML primary must be engine-ineligible for this test to mean anything"
+    assert registered == ["sites"], "the per-row path must have registered the joined table"
+    assert [r["site_name"] for r in out] == ["Boston Medical", "Seattle Clinic", None]
+
+
+def test_per_row_fallback_matches_the_engine(tmp_path):
+    """The two paths must agree on identical data — the parity the engine is measured against.
+
+    Same spec and same rows; only the primary's file format differs, which is what
+    selects the dispatch path.
+    """
+    engine_dir, fallback_dir = tmp_path / "engine", tmp_path / "fallback"
+    engine_dir.mkdir()
+    fallback_dir.mkdir()
+    engine_out, engine_registered, engine_eligible = _run_join(engine_dir, primary_as_yaml=False)
+    fallback_out, fallback_registered, fallback_eligible = _run_join(fallback_dir, primary_as_yaml=True)
+
+    assert engine_eligible is True
+    assert fallback_eligible is False
+    assert engine_registered == [], "the engine path must not touch the per-row index"
+    assert fallback_registered == ["sites"]
+    assert engine_out == fallback_out
+
+
+def test_engine_on_error_collects_and_continues(tmp_path):
+    """``transform_block_via_join`` must route row errors to ``on_error`` instead of raising.
+
+    The pre-existing ``on_error`` coverage runs join-free specs, which take the
+    per-row path — the engine's own error branch was never reached.
+    """
+    spec = yaml.safe_load(
+        textwrap.dedent("""\
+        id: fb
+        title: engine on_error
+        class_derivations:
+          FlatSample:
+            populated_from: samples
+            joins:
+              sites: {join_on: site_code}
+            slot_derivations:
+              sample_id: {populated_from: sample_id}
+              name: {expr: "1 / 0"}
+              site_name: {expr: "{sites.site_name}"}
+        """)
+    )
+    _write(tmp_path, dict([SITES_TABLE, SAMPLES_TABLE]))
+    tr = _transformer(FALLBACK_SRC, spec, FALLBACK_TARGET)
+    loader = DataLoader(tmp_path, schemaview=tr.source_schemaview)
+    assert can_use_join_engine(tr.derived_specification.class_derivations[0], loader, tr.source_schemaview) is True
+
+    errors = []
+    results = list(transform_spec(tr, loader, source_type="samples", on_error=errors.append))
+
+    assert results == []
+    assert [e.row_index for e in errors] == [0, 1, 2]
+    assert {e.class_derivation_name for e in errors} == {"FlatSample"}

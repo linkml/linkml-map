@@ -1,6 +1,7 @@
 """Tests all command-line subcommands."""
 
 import json
+import logging
 import re
 from collections.abc import Generator
 from pathlib import Path
@@ -51,6 +52,73 @@ def test_main_help(runner: CliRunner) -> None:
     assert "derive-schema" in out
     assert "map-data" in out
     assert result.exit_code == 0
+
+
+@pytest.fixture
+def restore_root_log_level() -> Generator[None, None, None]:
+    """
+    Restore the root logger level, which the ``main`` group mutates globally.
+
+    :return: nothing; yields control to the test
+    :rtype: Generator[None, None, None]
+    """
+    level = logging.getLogger().level
+    yield
+    logging.getLogger().setLevel(level)
+
+
+@pytest.mark.parametrize("flag", ["-q", "--quiet", "-v", "--verbose"])
+def test_group_log_flag_does_not_consume_the_subcommand(
+    runner: CliRunner, restore_root_log_level: None, flag: str
+) -> None:
+    """
+    Ensure the group-level logging options are flags, not value-taking options.
+
+    ``--quiet`` was declared without ``is_flag=True``, so click treated the
+    following token as its value: ``-q derive-schema`` swallowed the subcommand
+    and printed the group help instead of running anything.
+
+    :param runner: command line interface runner
+    :type runner: CliRunner
+    :param restore_root_log_level: resets the level this mutates
+    :type restore_root_log_level: None
+    :param flag: group-level logging flag under test
+    :type flag: str
+    """
+    cmd = [flag, "derive-schema", "-T", str(PERSONINFO_TR), str(PERSONINFO_SRC_SCHEMA)]
+    result = runner.invoke(main, cmd)
+    assert result.exit_code == 0
+    assert DERIVED_SCHEMA_NAME_LINE in result.stdout
+
+
+@pytest.mark.parametrize(
+    ("args", "expected_level"),
+    [
+        ([], logging.WARNING),
+        (["-q"], logging.ERROR),
+        (["-v"], logging.INFO),
+        (["-vv"], logging.DEBUG),
+    ],
+)
+def test_group_log_flags_set_the_root_level(
+    runner: CliRunner, restore_root_log_level: None, args: list[str], expected_level: int
+) -> None:
+    """
+    Check each logging flag resolves to the level it advertises.
+
+    :param runner: command line interface runner
+    :type runner: CliRunner
+    :param restore_root_log_level: resets the level this mutates
+    :type restore_root_log_level: None
+    :param args: group-level flags preceding the subcommand
+    :type args: list[str]
+    :param expected_level: logging level the flags should produce
+    :type expected_level: int
+    """
+    cmd = [*args, "derive-schema", "-T", str(PERSONINFO_TR), str(PERSONINFO_SRC_SCHEMA)]
+    result = runner.invoke(main, cmd)
+    assert result.exit_code == 0
+    assert logging.getLogger().level == expected_level
 
 
 def check_result(result: Result, expected_file: Path, output_param: str | None = None) -> None:

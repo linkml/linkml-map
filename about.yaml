@@ -1,3 +1,0 @@
-name: linkml_map
-description: Datamodel for schema transformations
-source_schema_path: src/linkml_map/datamodel/transformer_model.yaml

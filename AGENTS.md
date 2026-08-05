@@ -21,8 +21,7 @@ Layout:
 
 Building and testing:
 
-* `uv run pytest` - run unit tests
-* `uv run pytest -m integration` - run integration tests
+* `uv run pytest` - run the test suite
 * `uv run ruff check .` and `uv run ruff format .` - lint and format
 * `make` targets (e.g. `make src/linkml_map/datamodel/transformer_model.py`) regenerate the pydantic model from the YAML schema
 
@@ -33,7 +32,7 @@ Best practice:
 * always write pytest functional style rather than unittest OO style
 * use modern pytest idioms, including `@pytest.mark.parametrize` to test for combinations of inputs
 * NEVER write mock tests unless requested. I need to rely on tests to know if something breaks
-* For tests that have external dependencies, you can do `@pytest.mark.integration`
+* For tests that have external dependencies, you can do `@pytest.mark.integration` - the marker is registered in `pyproject.toml`, and nothing carries it yet
 * Do not "fix" issues by changing or weakening test conditions. Try harder, or ask questions if a test fails.
 * Avoid try/except blocks, these can mask bugs
 * Fail fast is a good principle
@@ -45,10 +44,3 @@ Best practice:
 * Always use type hints, always document methods and classes
 * **Always add tests when implementing new features or fixing bugs.** Don't wait to be asked.
 * For transformation tests, use the scaffold-based testing pattern described in `tests/README.md`
-
-## Code Patterns
-
-When modifying `ObjectTransformer.map_object`, check for `# EXTRACT:` markers.
-If touching a marked section, extract it to a private method first and add a test
-in `tests/test_transformer/test_object_transformer_new.py` using `@add_to_test_setup`.
-See issue #104 for context.
