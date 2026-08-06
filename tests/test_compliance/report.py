@@ -47,10 +47,20 @@ def emit(text: str = "") -> None:
     _fragments.append(text)
 
 
+def normalize(document: str) -> str:
+    """Return ``document`` in the shape the pre-commit hooks would leave it in.
+
+    trailing-whitespace and end-of-file-fixer run over this file, so emitting
+    anything they would rewrite puts the generator and the hooks in a loop that
+    the drift check can never settle.
+    """
+    return "\n".join(line.rstrip() for line in document.split("\n")).rstrip("\n") + "\n"
+
+
 def render(package: str, generated_on: str) -> str:
     """Return the assembled markdown document."""
     body = "\n".join(_fragments)
-    return HEADER.format(generated_on=generated_on, package=package) + body + "\n"
+    return normalize(HEADER.format(generated_on=generated_on, package=package) + body)
 
 
 def write_if_changed(path: Path, document: str) -> bool:

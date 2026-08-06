@@ -44,7 +44,7 @@ Mapping `string` => `string`
 
 Isomorphic mapping: input should equal output
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -149,7 +149,7 @@ Mapping `integer` => `integer`
 
 Isomorphic mapping: input should equal output
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -254,7 +254,7 @@ Mapping `string` => `integer`
 
 Should coerce datatype
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -359,7 +359,7 @@ Mapping `integer` => `float`
 
 Should coerce datatype
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -464,7 +464,7 @@ Mapping `float` => `integer`
 
 Should coerce datatype
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -569,7 +569,7 @@ Mapping `float` => `integer`
 
 Should coerce datatype
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -659,7 +659,7 @@ Mapping `integer` => `boolean`
 
 Should coerce datatype
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -749,7 +749,7 @@ Mapping `integer` => `boolean`
 
 Should coerce datatype
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -852,7 +852,7 @@ Mapping `string` => `string`
 
 Isomorphic mapping: **input must equal output**
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -1015,7 +1015,7 @@ Mapping `string` => `string`
 
 Isomorphic mapping: **input must equal output**
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -1197,7 +1197,7 @@ in future.
 
 ### Combo: test_expr[s1 + s2-source_object0-11]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -1284,7 +1284,7 @@ classes:
 
 ### Combo: test_expr[{s1} + {s2}-source_object1-11]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -1371,7 +1371,7 @@ classes:
 
 ### Combo: test_expr[{s1} + {s2}-source_object2-None]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -1454,7 +1454,7 @@ classes:
 
 ### Combo: test_expr[s1 + s2.s3-source_object3-11]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -1548,7 +1548,7 @@ classes:
 
 ### Combo: test_expr[s1 + s2.s3.s4-source_object4-11]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -1646,7 +1646,7 @@ classes:
 
 ### Combo: test_expr[s1 + s2-source_object5-ab]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -1733,7 +1733,7 @@ classes:
 
 ### Combo: test_expr[s1 + s2-source_object6-target_value6]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -1826,7 +1826,7 @@ classes:
 
 ### Combo: test_expr[len(s1)-source_object7-1]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -1911,7 +1911,7 @@ classes:
 
 ### Combo: test_expr[s1 < s2-source_object8-True]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -2014,14 +2014,14 @@ as well as UCUM-specific syntax (e.g. `m.s-1`) and extensions (e.g. using annota
 * **target_unit**: unit of target slot
 * **source_value**: magnitude of source slot (to be converted)
 * **target_value**: expected magnitude of target slot (output of conversion)
-* **err**: 
+* **err**:
 
 ### Combo: test_simple_unit_conversion[s1-s1-m-cm-ucum_code-1.0-100.0-None-None]
 
 Unit Conversion: `1.0` `m` => `100.0` `cm` [with s1]
 
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -2131,7 +2131,7 @@ class_derivations:
 Unit Conversion: `1.0` `m` => `100.0` `cm` [with s1]
 
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -2242,7 +2242,7 @@ Unit Conversion: `1.0` `m` => `1.0` `m` [with s1]
 
 
 Isomorphic mapping: **input must equal output**
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -2352,7 +2352,7 @@ class_derivations:
 Unit Conversion: `10.0` `a` => `120.0` `mo` [with s1]
 
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -2462,7 +2462,7 @@ class_derivations:
 Unit Conversion: `10.0` `a` => `None` `mo` [with s1]
 
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -2556,7 +2556,7 @@ classes:
 Unit Conversion: `1.0` `m` => `None` `ml` [with s1]
 
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -2650,7 +2650,7 @@ classes:
 Unit Conversion: `1.0` `m` => `None` `pinknoodles` [with s1]
 
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -2744,7 +2744,7 @@ classes:
 Unit Conversion: `1.0` `ml` => `None` `m` [with s1]
 
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -2838,7 +2838,7 @@ classes:
 Unit Conversion: `1.0` `pinknoodles` => `None` `m` [with s1]
 
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -2932,7 +2932,7 @@ classes:
 Unit Conversion: `1.0` `m/s` => `100.0` `cm/s` [with s1]
 
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -3042,7 +3042,7 @@ class_derivations:
 Unit Conversion: `1.0` `m.s-1` => `100.0` `cm.s-1` [with s1]
 
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -3154,7 +3154,7 @@ class_derivations:
 Unit Conversion: `1.0` `m` => `100.0` `cm` [with height_in_m]
 
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -3265,7 +3265,7 @@ Unit Conversion: `1.0` `m[H2O]{35Cel}` => `1.0` `m[H2O]{35Cel}` [with s1]
 
 
 Isomorphic mapping: **input must equal output**
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -3389,7 +3389,7 @@ For example `magnitude: 1.0, unit: "m"`
 
 ### Combo: test_complex_unit_conversion[m-cm-1.0-100.0-roundtrip_object0-None]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -3510,7 +3510,7 @@ class_derivations:
 
 ### Combo: test_complex_unit_conversion[cm-cm-100.0-100.0-roundtrip_object1-None]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -3631,7 +3631,7 @@ class_derivations:
 
 ### Combo: test_complex_unit_conversion[cm-ml-100.0-None-None-DimensionalityError]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -3736,7 +3736,7 @@ classes:
 
 ### Combo: test_complex_unit_conversion[cm-pinknoodles-100.0-None-None-UndefinedUnitError]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -3862,7 +3862,7 @@ stringified form.
 
 ### Combo: test_stringify[None-,-source_value0-a,b]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -3970,12 +3970,12 @@ class_derivations:
 **Compiled Specification (SQLCompiler)**:
 
 
-INSERT INTO D SELECT 
+INSERT INTO D SELECT
   STRING_AGG(s1, ',') AS s1_verbatim FROM C;
 
 ### Combo: test_stringify[None-|-source_value1-a|b]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -4083,12 +4083,12 @@ class_derivations:
 **Compiled Specification (SQLCompiler)**:
 
 
-INSERT INTO D SELECT 
+INSERT INTO D SELECT
   STRING_AGG(s1, '|') AS s1_verbatim FROM C;
 
 ### Combo: test_stringify[None-|-source_value2-a]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -4195,12 +4195,12 @@ class_derivations:
 **Compiled Specification (SQLCompiler)**:
 
 
-INSERT INTO D SELECT 
+INSERT INTO D SELECT
   STRING_AGG(s1, '|') AS s1_verbatim FROM C;
 
 ### Combo: test_stringify[None-|-source_value3-]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -4306,12 +4306,12 @@ class_derivations:
 **Compiled Specification (SQLCompiler)**:
 
 
-INSERT INTO D SELECT 
+INSERT INTO D SELECT
   STRING_AGG(s1, '|') AS s1_verbatim FROM C;
 
 ### Combo: test_stringify[JSON-None-source_value4-["a", "b"]]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -4419,12 +4419,12 @@ class_derivations:
 **Compiled Specification (SQLCompiler)**:
 
 
-INSERT INTO D SELECT 
+INSERT INTO D SELECT
   CAST(s1 AS TEXT) AS s1_verbatim FROM C;
 
 ### Combo: test_stringify[JSON-None-source_value5-[]]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -4530,12 +4530,12 @@ class_derivations:
 **Compiled Specification (SQLCompiler)**:
 
 
-INSERT INTO D SELECT 
+INSERT INTO D SELECT
   CAST(s1 AS TEXT) AS s1_verbatim FROM C;
 
 ### Combo: test_stringify[YAML-None-source_value6-[a, b]]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -4643,7 +4643,7 @@ class_derivations:
 **Compiled Specification (SQLCompiler)**:
 
 
-INSERT INTO D SELECT 
+INSERT INTO D SELECT
   s1 AS s1_verbatim FROM C;
 
 ## Feature Set: test_isomorphic
@@ -4653,13 +4653,13 @@ Test mapping a schema to an identical schema (i.e copy).
 
 This also tests for the ability to recursively descend a nested structure.
 
-* **source_object**: 
-* **use_expr**: 
+* **source_object**:
+* **use_expr**:
 * **supply_source_schema**: TODO: always True for now
 
 ### Combo: test_isomorphic[True-True-source_object0]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -4857,7 +4857,7 @@ class_derivations:
 
 ### Combo: test_isomorphic[True-False-source_object0]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -5064,7 +5064,7 @@ Test joining two objects into a single object, aka denormalization.
 
 ### Combo: test_join[source_object0-target_object0-True]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -5185,7 +5185,7 @@ classes:
 
 ### Combo: test_join[source_object0-target_object0-False]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -5353,7 +5353,7 @@ akin to SSSOM, but in future additional expressivity will be supported, includin
 
 ### Combo: test_map_enum[A-mapping0-B-False]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -5489,7 +5489,7 @@ enum_derivations:
 
 ### Combo: test_map_enum[Z-mapping1-None-False]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -5602,7 +5602,7 @@ classes:
 
 ### Combo: test_map_enum[C-mapping2-C-True]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -5663,7 +5663,7 @@ enum_derivations:
 
 ### Combo: test_map_enum[A-mapping3-B-False]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -5777,7 +5777,7 @@ classes:
 
 ### Combo: test_map_enum[C-mapping4-B-False]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -5901,7 +5901,7 @@ Transformation specifications can utilize inheritance, in the same way that Link
 
 ### Combo: test_inheritance[False-True]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -6012,7 +6012,7 @@ classes:
 
 ### Combo: test_inheritance[False-False]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -6126,7 +6126,7 @@ classes:
 
 ### Combo: test_inheritance[True-True]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -6229,7 +6229,7 @@ classes:
 
 ### Combo: test_inheritance[True-False]
 
-**Source Schema**: 
+**Source Schema**:
 
 
 ```yaml
@@ -6330,4 +6330,3 @@ classes:
     tree_root: true
 
 ```
-

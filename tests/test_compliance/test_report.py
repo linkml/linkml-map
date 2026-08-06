@@ -8,9 +8,27 @@ from pathlib import Path
 
 import pytest
 
-from tests.test_compliance.report import write_if_changed
+from tests.test_compliance.report import normalize, write_if_changed
 
 DOC = "```yaml\nTime_executed: 2026-08-06\n```\n\n## Feature Set: test_join\n"
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        ("**Source Schema**: \n\nbody", "**Source Schema**:\n\nbody\n"),
+        ("body\n\n\n", "body\n"),
+        ("trailing tabs\t\nbody", "trailing tabs\nbody\n"),
+        ("already clean\n", "already clean\n"),
+    ],
+)
+def test_normalize_matches_what_the_hooks_would_do(raw: str, expected: str) -> None:
+    """The generator must emit what trailing-whitespace and end-of-file-fixer accept.
+
+    Otherwise the hooks rewrite the file, the next regeneration undoes them, and the
+    drift check never settles.
+    """
+    assert normalize(raw) == expected
 
 
 def test_writes_when_the_file_is_absent(tmp_path: Path) -> None:
