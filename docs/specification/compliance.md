@@ -3149,6 +3149,8 @@ class_derivations:
 
 ### Combo: test_simple_unit_conversion[s1-s1-g.m2-1-kg.m2-1-ucum_code-1.0-0.001-None-https://github.com/dalito/ucumvert/issues/8]
 
+**Not yet supported**: https://github.com/dalito/ucumvert/issues/8
+
 ### Combo: test_simple_unit_conversion[height_in_m-height_in_cm-m-cm-ucum_code-1.0-100.0-None-None]
 
 Unit Conversion: `1.0` `m` => `100.0` `cm` [with height_in_m]
@@ -5660,6 +5662,8 @@ enum_derivations:
         - A
 
 ```
+
+**Not yet supported**: mirror_source
 
 ### Combo: test_map_enum[A-mapping3-B-False]
 

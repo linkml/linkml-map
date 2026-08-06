@@ -580,6 +580,7 @@ def test_simple_unit_conversion(
     :return:
     """
     if skip:
+        report.emit(f"**Not yet supported**: {skip}\n")
         pytest.skip(f"TODO: {skip}")
     report.emit(
         f"Unit Conversion: `{source_value}` `{source_unit}` => "
@@ -1083,6 +1084,7 @@ def test_map_enum(
     if target_value is None:
         invertible = False
     if mirror_source:
+        report.emit("**Not yet supported**: mirror_source\n")
         pytest.skip("TODO: mirror_source")
     map_object(
         spec=spec,

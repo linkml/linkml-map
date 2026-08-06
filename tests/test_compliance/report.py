@@ -5,8 +5,9 @@ schema, specification, and objects it exercised. Those fragments are buffered he
 and assembled into a single document at the end of the session.
 
 The report is only written when ``--compliance-out`` is given, so an ordinary test
-run never touches the working tree, and a filtered run (``-k``) cannot truncate the
-document to whatever subset happened to execute.
+run never touches the working tree. That option covers the whole suite: combining
+it with ``-k`` or ``-m`` would write whatever subset happened to run, so the suite
+refuses that combination rather than truncating a published document.
 """
 
 import re
