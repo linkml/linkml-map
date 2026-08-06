@@ -5,8 +5,8 @@ always with a float source value, so it says nothing about how the config's
 other options behave. These drive real schemas and specs through
 ``map_object`` rather than poking ``_perform_unit_conversion`` with mocks.
 
-Replaces the mock block removed in issue #298. ``numeric_string`` and
-``non_numeric_raises`` are regression guards for 8966fe7 and 328dc30.
+Replaces the mock block removed in issue #298. The numeric-string and
+``none_if_non_numeric`` cases guard 2fb4f12, which introduced both.
 """
 
 import textwrap
@@ -122,7 +122,7 @@ def test_absent_source_value_yields_none() -> None:
 
 
 def test_numeric_string_is_converted() -> None:
-    """A numeric value arriving as a string still converts (regression guard, 8966fe7).
+    """A numeric value arriving as a string still converts (regression guard, 2fb4f12).
 
     Tabular sources deliver every column as text, so refusing strings here broke
     conversion for TSV input entirely.
@@ -135,7 +135,7 @@ def test_numeric_string_is_converted() -> None:
 
 
 def test_non_numeric_string_raises_by_default() -> None:
-    """A non-numeric value is an error unless the spec opts out (regression guard, 328dc30).
+    """A non-numeric value is an error unless the spec opts out (regression guard, 2fb4f12).
 
     Failing loudly is the point: silently nulling would corrupt a column whose
     coded values the curator never intended to convert.
