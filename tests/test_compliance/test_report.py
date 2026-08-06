@@ -1,0 +1,46 @@
+"""Tests for the compliance report writer.
+
+The timestamp rule is what lets the doc carry a generation date and still be
+drift-checked in CI, so it is the part worth pinning down.
+"""
+
+from pathlib import Path
+
+import pytest
+
+from tests.test_compliance.report import write_if_changed
+
+DOC = "```yaml\nTime_executed: 2026-08-06\n```\n\n## Feature Set: test_join\n"
+
+
+def test_writes_when_the_file_is_absent(tmp_path: Path) -> None:
+    """A missing report is created, parent directories included."""
+    target = tmp_path / "specification" / "compliance.md"
+    assert write_if_changed(target, DOC) is True
+    assert target.read_text() == DOC
+
+
+@pytest.mark.parametrize(
+    ("stamp", "expected_write"),
+    [
+        ("Time_executed: 2026-08-06", False),
+        ("Time_executed: 2001-01-01", False),
+    ],
+)
+def test_timestamp_alone_does_not_trigger_a_write(tmp_path: Path, stamp: str, expected_write: bool) -> None:
+    """Identical content leaves the file untouched however stale its date."""
+    target = tmp_path / "compliance.md"
+    target.write_text(DOC.replace("Time_executed: 2026-08-06", stamp))
+    before = target.read_text()
+    assert write_if_changed(target, DOC) is expected_write
+    assert target.read_text() == before, "an unchanged report must not be restamped"
+
+
+def test_changed_content_rewrites_and_carries_the_new_stamp(tmp_path: Path) -> None:
+    """A real change is written out, taking the fresh timestamp with it."""
+    target = tmp_path / "compliance.md"
+    target.write_text(DOC.replace("Time_executed: 2026-08-06", "Time_executed: 2001-01-01"))
+    changed = DOC.replace("test_join", "test_join_rewritten")
+    assert write_if_changed(target, changed) is True
+    assert target.read_text() == changed
+    assert "2026-08-06" in target.read_text()

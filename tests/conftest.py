@@ -23,6 +23,16 @@ from tests.scaffold_container import (
 )
 
 
+def pytest_addoption(parser: pytest.Parser) -> None:
+    """Register the option that makes the compliance suite write its markdown report."""
+    parser.addoption(
+        "--compliance-out",
+        default=None,
+        metavar="PATH",
+        help="write the compliance suite's markdown report to PATH",
+    )
+
+
 def yaml_load(file_path: Path) -> dict:
     return yaml.safe_load(file_path.read_text())
 
