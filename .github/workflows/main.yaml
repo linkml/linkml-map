@@ -85,5 +85,16 @@ jobs:
             exit 1
           fi
 
+      - name: Regenerate compliance doc and check for drift
+        if: github.event_name == 'pull_request' && matrix.python-version == '3.12'
+        run: |
+          make -B specification
+          if ! git diff --quiet docs/specification/; then
+            echo "::error::docs/specification/compliance.md is out of date."
+            echo "Run 'make -B specification' and commit the result."
+            git diff --stat docs/specification/
+            exit 1
+          fi
+
       - name: Run tests
         run: make test
