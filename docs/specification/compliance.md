@@ -1,68 +1,53 @@
--   [LinkML-Map Compliance Suite](#linkml-map-compliance-suite)
-    -   [Feature Set: test\_map\_types](#feature-set-test_map_types)
-    -   [Feature Set:
-        test\_map\_collections](#feature-set-test_map_collections)
-    -   [Feature Set: test\_expr](#feature-set-test_expr)
-    -   [Feature Set:
-        test\_simple\_unit\_conversion](#feature-set-test_simple_unit_conversion)
-    -   [Feature Set:
-        test\_complex\_unit\_conversion](#feature-set-test_complex_unit_conversion)
-    -   [Feature Set: test\_stringify](#feature-set-test_stringify)
-    -   [Feature Set: test\_isomorphic](#feature-set-test_isomorphic)
-    -   [Feature Set: test\_join](#feature-set-test_join)
-    -   [Feature Set: test\_map\_enum](#feature-set-test_map_enum)
-    -   [Feature Set: test\_inheritance](#feature-set-test_inheritance)
-
-LinkML-Map Compliance Suite
-===========================
+# LinkML-Map Compliance Suite
 
 This is the output from running the full compliance test suite.
 
-``` {.yaml}
-Time_executed: 2024-07-03
-Package: /Users/cjm/repos/linkml-map/tests/test_compliance/test_compliance_suite.py
+```yaml
+Time_executed: 2026-08-06
+Package: tests/test_compliance/test_compliance_suite.py
 ```
 
-It is organized into **Feature Sets** that test a particular feature or
-group of features, and **combinations** of different schemas, input
-objects, and transformation specifications. This is intended to
-exhaustively test all combinations of features, and provide informative
+It is organized into **Feature Sets** that test a particular feature or group of features,
+and **combinations** of different schemas, input objects, and transformation specifications.
+This is intended to exhaustively test all combinations of features, and provide informative
 output.
 
 Each test is designed to demonstrate:
 
--   data mapping (transformation)
--   derived schemas
--   inversion (reverse transformation) (in some cases)
--   compilation to other frameworks (coming soon)
+- data mapping (transformation)
+- derived schemas
+- inversion (reverse transformation) (in some cases)
+- compilation to other frameworks (coming soon)
 
-Feature Set: test\_map\_types
------------------------------
+## Feature Set: test_map_types
+
 
 Test mapping between basic data types.
 
-This test uses an ultra-minimal schema with a single class and a single
-attribute, the transformation specification maps that attribute onto
-itself, with a different type, demonstrating type coercion.
+This test uses an ultra-minimal schema with a single class and a single attribute,
+the transformation specification maps that attribute onto itself, with a different
+type, demonstrating type coercion.
 
-Some cases will be trivially isomorphic (where `source_datatype` ==
-`target_datatype`), but these are executed anyway.
+Some cases will be trivially isomorphic (where `source_datatype` == `target_datatype`),
+but these are executed anyway.
 
--   **source\_datatype**: linkml datatype of source object
--   **target\_datatype**: linkml datatype of target object
--   **source\_value**: value of source object
--   **target\_value**: expected value of slot in target object
--   **invertible**: True if the transformation is invertible
+* **source_datatype**: linkml datatype of source object
+* **target_datatype**: linkml datatype of target object
+* **source_value**: value of source object
+* **target_value**: expected value of slot in target object
+* **invertible**: True if the transformation is invertible
 
-### Combo: test\_map\_types\[string-string-foo-foo-True\]
+### Combo: test_map_types[string-string-foo-foo-True]
 
-Mapping `string` =\> `string`
+Mapping `string` => `string`
+
 
 Isomorphic mapping: input should equal output
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: types
 description: Minimal single-attribute schema for testing datatype mapping
 id: types
@@ -88,37 +73,36 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        range: string
+- name: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      range: string
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: foo
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1: foo
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -145,28 +129,30 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        range: string
+- name: C
+  populated_from: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      range: string
 
 ```
 
-### Combo: test\_map\_types\[integer-integer-5-5-True\]
+### Combo: test_map_types[integer-integer-5-5-True]
 
-Mapping `integer` =\> `integer`
+Mapping `integer` => `integer`
+
 
 Isomorphic mapping: input should equal output
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: types
 description: Minimal single-attribute schema for testing datatype mapping
 id: types
@@ -192,37 +178,36 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        range: integer
+- name: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      range: integer
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 5
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1: 5
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -249,28 +234,30 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        range: integer
+- name: C
+  populated_from: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      range: integer
 
 ```
 
-### Combo: test\_map\_types\[string-integer-5-5-True\]
+### Combo: test_map_types[string-integer-5-5-True]
 
-Mapping `string` =\> `integer`
+Mapping `string` => `integer`
+
 
 Should coerce datatype
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: types
 description: Minimal single-attribute schema for testing datatype mapping
 id: types
@@ -296,37 +283,36 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        range: integer
+- name: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      range: integer
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: '5'
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1: 5
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -353,28 +339,30 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        range: string
+- name: C
+  populated_from: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      range: string
 
 ```
 
-### Combo: test\_map\_types\[integer-float-5-5.0-True\] {#combo-test_map_typesinteger-float-5-50-true}
+### Combo: test_map_types[integer-float-5-5.0-True]
 
-Mapping `integer` =\> `float`
+Mapping `integer` => `float`
+
 
 Should coerce datatype
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: types
 description: Minimal single-attribute schema for testing datatype mapping
 id: types
@@ -400,37 +388,36 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        range: float
+- name: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      range: float
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 5
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1: 5.0
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -457,28 +444,30 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        range: integer
+- name: C
+  populated_from: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      range: integer
 
 ```
 
-### Combo: test\_map\_types\[float-integer-5.0-5-True\] {#combo-test_map_typesfloat-integer-50-5-true}
+### Combo: test_map_types[float-integer-5.0-5-True]
 
-Mapping `float` =\> `integer`
+Mapping `float` => `integer`
+
 
 Should coerce datatype
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: types
 description: Minimal single-attribute schema for testing datatype mapping
 id: types
@@ -504,37 +493,36 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        range: integer
+- name: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      range: integer
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 5.0
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1: 5
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -561,28 +549,30 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        range: float
+- name: C
+  populated_from: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      range: float
 
 ```
 
-### Combo: test\_map\_types\[float-integer-5.2-5-False\] {#combo-test_map_typesfloat-integer-52-5-false}
+### Combo: test_map_types[float-integer-5.2-5-False]
 
-Mapping `float` =\> `integer`
+Mapping `float` => `integer`
+
 
 Should coerce datatype
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: types
 description: Minimal single-attribute schema for testing datatype mapping
 id: types
@@ -608,37 +598,36 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        range: integer
+- name: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      range: integer
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 5.2
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1: 5
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -663,15 +652,17 @@ classes:
 
 ```
 
-### Combo: test\_map\_types\[integer-boolean-5-True-False\]
+### Combo: test_map_types[integer-boolean-5-True-False]
 
-Mapping `integer` =\> `boolean`
+Mapping `integer` => `boolean`
+
 
 Should coerce datatype
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: types
 description: Minimal single-attribute schema for testing datatype mapping
 id: types
@@ -697,37 +688,36 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        range: boolean
+- name: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      range: boolean
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 5
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1: true
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -752,15 +742,17 @@ classes:
 
 ```
 
-### Combo: test\_map\_types\[integer-boolean-0-False-False\]
+### Combo: test_map_types[integer-boolean-0-False-False]
 
-Mapping `integer` =\> `boolean`
+Mapping `integer` => `boolean`
+
 
 Should coerce datatype
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: types
 description: Minimal single-attribute schema for testing datatype mapping
 id: types
@@ -786,37 +778,36 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        range: boolean
+- name: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      range: boolean
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 0
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1: false
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -841,28 +832,30 @@ classes:
 
 ```
 
-Feature Set: test\_map\_collections
------------------------------------
+## Feature Set: test_map_collections
+
 
 Test mapping between collection data types (lists and dicts).
 
 This makes use of the `cast_collection_as` construct
 
--   **source\_datatype**: linkml datatype of source object
--   **target\_datatype**: linkml datatype of target object
--   **source\_value**: value of source object
--   **target\_value**: expected value of slot in target object
--   **invertible**: True if the transformation is invertible
+* **source_datatype**: linkml datatype of source object
+* **target_datatype**: linkml datatype of target object
+* **source_value**: value of source object
+* **target_value**: expected value of slot in target object
+* **invertible**: True if the transformation is invertible
 
-### Combo: test\_map\_collections\[string-string-source\_value0-target\_value0-True\]
+### Combo: test_map_collections[string-string-source_value0-target_value0-True]
 
-Mapping `string` =\> `string`
+Mapping `string` => `string`
+
 
 Isomorphic mapping: **input must equal output**
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: types
 description: Mapping between collection types
 id: types
@@ -901,34 +894,32 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      ds:
-        name: ds
-        populated_from: ds
-        cast_collection_as: MultiValuedDict
-        dictionary_key: id
-  D:
-    name: D
-    slot_derivations:
-      id:
-        name: id
-        populated_from: id
-      s1:
-        name: s1
-        populated_from: s1
-        range: string
+- name: C
+  slot_derivations:
+    ds:
+      name: ds
+      populated_from: ds
+      cast_collection_as: MultiValuedDict
+      dictionary_key: id
+- name: D
+  slot_derivations:
+    id:
+      name: id
+      populated_from: id
+    s1:
+      name: s1
+      populated_from: s1
+      range: string
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 ds:
 - id: X
   s1: foo
@@ -937,9 +928,8 @@ ds:
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 ds:
   X:
     s1: foo
@@ -950,7 +940,8 @@ ds:
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -984,7 +975,6 @@ classes:
         identifier: true
         domain_of:
         - D
-        required: true
       s1:
         name: s1
         domain_of:
@@ -995,39 +985,40 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      ds:
-        name: ds
-        populated_from: ds
-        cast_collection_as: MultiValuedList
-  D:
-    name: D
-    populated_from: D
-    slot_derivations:
-      id:
-        name: id
-        populated_from: id
-      s1:
-        name: s1
-        populated_from: s1
-        range: string
+- name: C
+  populated_from: C
+  slot_derivations:
+    ds:
+      name: ds
+      populated_from: ds
+      cast_collection_as: MultiValuedList
+- name: D
+  populated_from: D
+  slot_derivations:
+    id:
+      name: id
+      populated_from: id
+    s1:
+      name: s1
+      populated_from: s1
+      range: string
 
 ```
 
-### Combo: test\_map\_collections\[string-string-source\_value1-target\_value1-True\]
+### Combo: test_map_collections[string-string-source_value1-target_value1-True]
 
-Mapping `string` =\> `string`
+Mapping `string` => `string`
+
 
 Isomorphic mapping: **input must equal output**
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: types
 description: Mapping between collection types
 id: types
@@ -1066,33 +1057,31 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      ds:
-        name: ds
-        populated_from: ds
-        cast_collection_as: MultiValuedList
-  D:
-    name: D
-    slot_derivations:
-      id:
-        name: id
-        populated_from: id
-      s1:
-        name: s1
-        populated_from: s1
-        range: string
+- name: C
+  slot_derivations:
+    ds:
+      name: ds
+      populated_from: ds
+      cast_collection_as: MultiValuedList
+- name: D
+  slot_derivations:
+    id:
+      name: id
+      populated_from: id
+    s1:
+      name: s1
+      populated_from: s1
+      range: string
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 ds:
   X:
     s1: foo
@@ -1101,9 +1090,8 @@ ds:
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 ds:
 - id: X
   s1: foo
@@ -1114,7 +1102,8 @@ ds:
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -1148,7 +1137,6 @@ classes:
         identifier: true
         domain_of:
         - D
-        required: true
       s1:
         name: s1
         domain_of:
@@ -1159,33 +1147,32 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      ds:
-        name: ds
-        populated_from: ds
-        cast_collection_as: MultiValuedDict
-        dictionary_key: id
-  D:
-    name: D
-    populated_from: D
-    slot_derivations:
-      id:
-        name: id
-        populated_from: id
-      s1:
-        name: s1
-        populated_from: s1
-        range: string
+- name: C
+  populated_from: C
+  slot_derivations:
+    ds:
+      name: ds
+      populated_from: ds
+      cast_collection_as: MultiValuedDict
+      dictionary_key: id
+- name: D
+  populated_from: D
+  slot_derivations:
+    id:
+      name: id
+      populated_from: id
+    s1:
+      name: s1
+      populated_from: s1
+      range: string
 
 ```
 
-Feature Set: test\_expr
------------------------
+## Feature Set: test_expr
+
 
 Test transformation using pythonic expressions.
 
@@ -1199,23 +1186,21 @@ If the expression wraps a slot in `{...}` then the presence of a None
 forces the entire expression to be `None`
 
 Limitations: At this time, the framework cannot generate a complete
-derived schema or inversion for expressions. This will be fixed in
-future.
+derived schema or inversion for expressions. This will be fixed
+in future.
 
--   See also: [LinkML
-    Expressions](https://linkml.io/linkml/schemas/expression-language.html)
+- See also: [LinkML Expressions](https://linkml.io/linkml/schemas/expression-language.html)
 
-<!-- -->
+* **expr**: pythonic expression
+* **source_object**: source object
+* **target_value**: expected value of slot in target object
 
--   **expr**: pythonic expression
--   **source\_object**: source object
--   **target\_value**: expected value of slot in target object
+### Combo: test_expr[s1 + s2-source_object0-11]
 
-### Combo: test\_expr\[s1 + s2-source\_object0-11\] {#combo-test_exprs1--s2-source_object0-11}
+**Source Schema**: 
 
-**Source Schema**:
 
-``` {.yaml}
+```yaml
 name: expr
 id: expr
 imports:
@@ -1244,38 +1229,37 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      derived:
-        name: derived
-        expr: s1 + s2
+- name: C
+  populated_from: C
+  slot_derivations:
+    derived:
+      name: derived
+      expr: s1 + s2
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 5
 s2: 6
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 derived: 11
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: expr-derived
 id: expr-derived
 imports:
@@ -1298,11 +1282,12 @@ classes:
 
 ```
 
-### Combo: test\_expr\[{s1} + {s2}-source\_object1-11\] {#combo-test_exprs1--s2-source_object1-11}
+### Combo: test_expr[{s1} + {s2}-source_object1-11]
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: expr
 id: expr
 imports:
@@ -1331,38 +1316,37 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      derived:
-        name: derived
-        expr: '{s1} + {s2}'
+- name: C
+  populated_from: C
+  slot_derivations:
+    derived:
+      name: derived
+      expr: '{s1} + {s2}'
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 5
 s2: 6
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 derived: 11
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: expr-derived
 id: expr-derived
 imports:
@@ -1385,11 +1369,12 @@ classes:
 
 ```
 
-### Combo: test\_expr\[{s1} + {s2}-source\_object2-None\] {#combo-test_exprs1--s2-source_object2-none}
+### Combo: test_expr[{s1} + {s2}-source_object2-None]
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: expr
 id: expr
 imports:
@@ -1415,37 +1400,36 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      derived:
-        name: derived
-        expr: '{s1} + {s2}'
+- name: C
+  populated_from: C
+  slot_derivations:
+    derived:
+      name: derived
+      expr: '{s1} + {s2}'
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 5
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 {}
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: expr-derived
 id: expr-derived
 imports:
@@ -1468,11 +1452,12 @@ classes:
 
 ```
 
-### Combo: test\_expr\[s1 + s2.s3-source\_object3-11\] {#combo-test_exprs1--s2s3-source_object3-11}
+### Combo: test_expr[s1 + s2.s3-source_object3-11]
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: expr
 id: expr
 imports:
@@ -1507,39 +1492,38 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      derived:
-        name: derived
-        expr: s1 + s2.s3
+- name: C
+  populated_from: C
+  slot_derivations:
+    derived:
+      name: derived
+      expr: s1 + s2.s3
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 5
 s2:
   s3: 6
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 derived: 11
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: expr-derived
 id: expr-derived
 imports:
@@ -1562,11 +1546,12 @@ classes:
 
 ```
 
-### Combo: test\_expr\[s1 + s2.s3.s4-source\_object4-11\] {#combo-test_exprs1--s2s3s4-source_object4-11}
+### Combo: test_expr[s1 + s2.s3.s4-source_object4-11]
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: expr
 id: expr
 imports:
@@ -1604,23 +1589,22 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      derived:
-        name: derived
-        expr: s1 + s2.s3.s4
+- name: C
+  populated_from: C
+  slot_derivations:
+    derived:
+      name: derived
+      expr: s1 + s2.s3.s4
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 5
 s2:
   s3:
@@ -1628,16 +1612,16 @@ s2:
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 derived: 11
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: expr-derived
 id: expr-derived
 imports:
@@ -1660,11 +1644,12 @@ classes:
 
 ```
 
-### Combo: test\_expr\[s1 + s2-source\_object5-ab\] {#combo-test_exprs1--s2-source_object5-ab}
+### Combo: test_expr[s1 + s2-source_object5-ab]
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: expr
 id: expr
 imports:
@@ -1693,38 +1678,37 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      derived:
-        name: derived
-        expr: s1 + s2
+- name: C
+  populated_from: C
+  slot_derivations:
+    derived:
+      name: derived
+      expr: s1 + s2
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: a
 s2: b
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 derived: ab
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: expr-derived
 id: expr-derived
 imports:
@@ -1747,11 +1731,12 @@ classes:
 
 ```
 
-### Combo: test\_expr\[s1 + s2-source\_object6-target\_value6\] {#combo-test_exprs1--s2-source_object6-target_value6}
+### Combo: test_expr[s1 + s2-source_object6-target_value6]
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: expr
 id: expr
 imports:
@@ -1782,23 +1767,22 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      derived:
-        name: derived
-        expr: s1 + s2
+- name: C
+  populated_from: C
+  slot_derivations:
+    derived:
+      name: derived
+      expr: s1 + s2
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1:
 - a
 s2:
@@ -1806,9 +1790,8 @@ s2:
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 derived:
 - a
 - b
@@ -1817,7 +1800,8 @@ derived:
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: expr-derived
 id: expr-derived
 imports:
@@ -1840,11 +1824,12 @@ classes:
 
 ```
 
-### Combo: test\_expr\[len(s1)-source\_object7-1\]
+### Combo: test_expr[len(s1)-source_object7-1]
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: expr
 id: expr
 imports:
@@ -1871,38 +1856,37 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      derived:
-        name: derived
-        expr: len(s1)
+- name: C
+  populated_from: C
+  slot_derivations:
+    derived:
+      name: derived
+      expr: len(s1)
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1:
 - a
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 derived: 1
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: expr-derived
 id: expr-derived
 imports:
@@ -1925,11 +1909,12 @@ classes:
 
 ```
 
-### Combo: test\_expr\[s1 \< s2-source\_object8-True\] {#combo-test_exprs1--s2-source_object8-true}
+### Combo: test_expr[s1 < s2-source_object8-True]
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: expr
 id: expr
 imports:
@@ -1958,38 +1943,37 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      derived:
-        name: derived
-        expr: s1 < s2
+- name: C
+  populated_from: C
+  slot_derivations:
+    derived:
+      name: derived
+      expr: s1 < s2
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 5
 s2: 6
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 derived: true
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: expr-derived
 id: expr-derived
 imports:
@@ -2012,37 +1996,35 @@ classes:
 
 ```
 
-Feature Set: test\_simple\_unit\_conversion
--------------------------------------------
+## Feature Set: test_simple_unit_conversion
+
 
 Test unit conversion.
 
-This test uses a simple source schema with a single class and a single
-attribute, where the attribute is described using the
-[units](https://w3id.org/linkml/units) metaslot.
+This test uses a simple source schema with a single class and a single attribute, where the attribute
+is described using the [units](https://w3id.org/linkml/units) metaslot.
 
-The recommended way to describe unit slots in LinkML is with UCUM, but a
-number of other schemes can be used. We explicitly test for some known
-cases where UCUM uses non-standard units (e.g. Cel, mo), as well as
-UCUM-specific syntax (e.g. `m.s-1`) and extensions (e.g. using
-annotations like `{Cre}`).
+The recommended way to describe unit slots in LinkML is with UCUM, but a number of other schemes
+can be used. We explicitly test for some known cases where UCUM uses non-standard units (e.g. Cel, mo),
+as well as UCUM-specific syntax (e.g. `m.s-1`) and extensions (e.g. using annotations like `{Cre}`).
 
--   **source\_slot**: name of slot in source schema
--   **target\_slot**: name of slot in target schema
--   **source\_unit**: unit of source slot
--   **target\_unit**: unit of target slot
--   **source\_value**: magnitude of source slot (to be converted)
--   **target\_value**: expected magnitude of target slot (output of
-    conversion)
--   **err**:
+* **source_slot**: name of slot in source schema
+* **target_slot**: name of slot in target schema
+* **source_unit**: unit of source slot
+* **target_unit**: unit of target slot
+* **source_value**: magnitude of source slot (to be converted)
+* **target_value**: expected magnitude of target slot (output of conversion)
+* **err**: 
 
-### Combo: test\_simple\_unit\_conversion\[s1-s1-m-cm-ucum\_code-1.0-100.0-None-None\] {#combo-test_simple_unit_conversions1-s1-m-cm-ucum_code-10-1000-none-none}
+### Combo: test_simple_unit_conversion[s1-s1-m-cm-ucum_code-1.0-100.0-None-None]
 
-Unit Conversion: `1.0` `m` =\> `100.0` `cm` \[with s1\]
+Unit Conversion: `1.0` `m` => `100.0` `cm` [with s1]
 
-**Source Schema**:
 
-``` {.yaml}
+**Source Schema**: 
+
+
+```yaml
 name: types
 id: types
 imports:
@@ -2069,38 +2051,37 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        unit_conversion:
-          target_unit: cm
+- name: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      unit_conversion:
+        target_unit: cm
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 1.0
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1: 100.0
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -2129,29 +2110,31 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        unit_conversion:
-          target_unit: m
-          target_unit_scheme: ucum_code
-          source_unit: cm
+- name: C
+  populated_from: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      unit_conversion:
+        target_unit: m
+        target_unit_scheme: ucum_code
+        source_unit: cm
 
 ```
 
-### Combo: test\_simple\_unit\_conversion\[s1-s1-m-cm-symbol-1.0-100.0-None-None\] {#combo-test_simple_unit_conversions1-s1-m-cm-symbol-10-1000-none-none}
+### Combo: test_simple_unit_conversion[s1-s1-m-cm-symbol-1.0-100.0-None-None]
 
-Unit Conversion: `1.0` `m` =\> `100.0` `cm` \[with s1\]
+Unit Conversion: `1.0` `m` => `100.0` `cm` [with s1]
 
-**Source Schema**:
 
-``` {.yaml}
+**Source Schema**: 
+
+
+```yaml
 name: types
 id: types
 imports:
@@ -2178,38 +2161,37 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        unit_conversion:
-          target_unit: cm
+- name: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      unit_conversion:
+        target_unit: cm
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 1.0
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1: 100.0
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -2238,29 +2220,32 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        unit_conversion:
-          target_unit: m
-          target_unit_scheme: symbol
-          source_unit: cm
+- name: C
+  populated_from: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      unit_conversion:
+        target_unit: m
+        target_unit_scheme: symbol
+        source_unit: cm
 
 ```
 
-### Combo: test\_simple\_unit\_conversion\[s1-s1-m-m-ucum\_code-1.0-1.0-None-None\] {#combo-test_simple_unit_conversions1-s1-m-m-ucum_code-10-10-none-none}
+### Combo: test_simple_unit_conversion[s1-s1-m-m-ucum_code-1.0-1.0-None-None]
 
-Unit Conversion: `1.0` `m` =\> `1.0` `m` \[with s1\]
+Unit Conversion: `1.0` `m` => `1.0` `m` [with s1]
 
-Isomorphic mapping: **input must equal output** **Source Schema**:
 
-``` {.yaml}
+Isomorphic mapping: **input must equal output**
+**Source Schema**: 
+
+
+```yaml
 name: types
 id: types
 imports:
@@ -2287,38 +2272,37 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        unit_conversion:
-          target_unit: m
+- name: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      unit_conversion:
+        target_unit: m
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 1.0
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1: 1.0
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -2347,29 +2331,31 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        unit_conversion:
-          target_unit: m
-          target_unit_scheme: ucum_code
-          source_unit: m
+- name: C
+  populated_from: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      unit_conversion:
+        target_unit: m
+        target_unit_scheme: ucum_code
+        source_unit: m
 
 ```
 
-### Combo: test\_simple\_unit\_conversion\[s1-s1-a-mo-ucum\_code-10.0-120.0-None-None\] {#combo-test_simple_unit_conversions1-s1-a-mo-ucum_code-100-1200-none-none}
+### Combo: test_simple_unit_conversion[s1-s1-a-mo-ucum_code-10.0-120.0-None-None]
 
-Unit Conversion: `10.0` `a` =\> `120.0` `mo` \[with s1\]
+Unit Conversion: `10.0` `a` => `120.0` `mo` [with s1]
 
-**Source Schema**:
 
-``` {.yaml}
+**Source Schema**: 
+
+
+```yaml
 name: types
 id: types
 imports:
@@ -2396,38 +2382,37 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        unit_conversion:
-          target_unit: mo
+- name: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      unit_conversion:
+        target_unit: mo
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 10.0
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1: 120.0
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -2456,29 +2441,31 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        unit_conversion:
-          target_unit: a
-          target_unit_scheme: ucum_code
-          source_unit: mo
+- name: C
+  populated_from: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      unit_conversion:
+        target_unit: a
+        target_unit_scheme: ucum_code
+        source_unit: mo
 
 ```
 
-### Combo: test\_simple\_unit\_conversion\[s1-s1-a-mo-symbol-10.0-None-UndefinedUnitError-None\] {#combo-test_simple_unit_conversions1-s1-a-mo-symbol-100-none-undefineduniterror-none}
+### Combo: test_simple_unit_conversion[s1-s1-a-mo-symbol-10.0-None-UndefinedUnitError-None]
 
-Unit Conversion: `10.0` `a` =\> `None` `mo` \[with s1\]
+Unit Conversion: `10.0` `a` => `None` `mo` [with s1]
 
-**Source Schema**:
 
-``` {.yaml}
+**Source Schema**: 
+
+
+```yaml
 name: types
 id: types
 imports:
@@ -2505,33 +2492,30 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        unit_conversion:
-          target_unit: mo
+- name: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      unit_conversion:
+        target_unit: mo
 
 ```
 
 **Object Transformation**:
 
 **Expected Error**: UndefinedUnitError
-
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 10.0
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 null
 ...
 
@@ -2539,7 +2523,8 @@ null
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -2566,13 +2551,15 @@ classes:
 
 ```
 
-### Combo: test\_simple\_unit\_conversion\[s1-s1-m-ml-ucum\_code-1.0-None-DimensionalityError-None\] {#combo-test_simple_unit_conversions1-s1-m-ml-ucum_code-10-none-dimensionalityerror-none}
+### Combo: test_simple_unit_conversion[s1-s1-m-ml-ucum_code-1.0-None-DimensionalityError-None]
 
-Unit Conversion: `1.0` `m` =\> `None` `ml` \[with s1\]
+Unit Conversion: `1.0` `m` => `None` `ml` [with s1]
 
-**Source Schema**:
 
-``` {.yaml}
+**Source Schema**: 
+
+
+```yaml
 name: types
 id: types
 imports:
@@ -2599,33 +2586,30 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        unit_conversion:
-          target_unit: ml
+- name: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      unit_conversion:
+        target_unit: ml
 
 ```
 
 **Object Transformation**:
 
 **Expected Error**: DimensionalityError
-
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 1.0
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 null
 ...
 
@@ -2633,7 +2617,8 @@ null
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -2660,13 +2645,15 @@ classes:
 
 ```
 
-### Combo: test\_simple\_unit\_conversion\[s1-s1-m-pinknoodles-ucum\_code-1.0-None-UndefinedUnitError-None\] {#combo-test_simple_unit_conversions1-s1-m-pinknoodles-ucum_code-10-none-undefineduniterror-none}
+### Combo: test_simple_unit_conversion[s1-s1-m-pinknoodles-ucum_code-1.0-None-UndefinedUnitError-None]
 
-Unit Conversion: `1.0` `m` =\> `None` `pinknoodles` \[with s1\]
+Unit Conversion: `1.0` `m` => `None` `pinknoodles` [with s1]
 
-**Source Schema**:
 
-``` {.yaml}
+**Source Schema**: 
+
+
+```yaml
 name: types
 id: types
 imports:
@@ -2693,33 +2680,30 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        unit_conversion:
-          target_unit: pinknoodles
+- name: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      unit_conversion:
+        target_unit: pinknoodles
 
 ```
 
 **Object Transformation**:
 
 **Expected Error**: UndefinedUnitError
-
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 1.0
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 null
 ...
 
@@ -2727,7 +2711,8 @@ null
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -2754,13 +2739,15 @@ classes:
 
 ```
 
-### Combo: test\_simple\_unit\_conversion\[s1-s1-ml-m-ucum\_code-1.0-None-DimensionalityError-None\] {#combo-test_simple_unit_conversions1-s1-ml-m-ucum_code-10-none-dimensionalityerror-none}
+### Combo: test_simple_unit_conversion[s1-s1-ml-m-ucum_code-1.0-None-DimensionalityError-None]
 
-Unit Conversion: `1.0` `ml` =\> `None` `m` \[with s1\]
+Unit Conversion: `1.0` `ml` => `None` `m` [with s1]
 
-**Source Schema**:
 
-``` {.yaml}
+**Source Schema**: 
+
+
+```yaml
 name: types
 id: types
 imports:
@@ -2787,33 +2774,30 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        unit_conversion:
-          target_unit: m
+- name: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      unit_conversion:
+        target_unit: m
 
 ```
 
 **Object Transformation**:
 
 **Expected Error**: DimensionalityError
-
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 1.0
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 null
 ...
 
@@ -2821,7 +2805,8 @@ null
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -2848,13 +2833,15 @@ classes:
 
 ```
 
-### Combo: test\_simple\_unit\_conversion\[s1-s1-pinknoodles-m-ucum\_code-1.0-None-UndefinedUnitError-None\] {#combo-test_simple_unit_conversions1-s1-pinknoodles-m-ucum_code-10-none-undefineduniterror-none}
+### Combo: test_simple_unit_conversion[s1-s1-pinknoodles-m-ucum_code-1.0-None-UndefinedUnitError-None]
 
-Unit Conversion: `1.0` `pinknoodles` =\> `None` `m` \[with s1\]
+Unit Conversion: `1.0` `pinknoodles` => `None` `m` [with s1]
 
-**Source Schema**:
 
-``` {.yaml}
+**Source Schema**: 
+
+
+```yaml
 name: types
 id: types
 imports:
@@ -2881,33 +2868,30 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        unit_conversion:
-          target_unit: m
+- name: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      unit_conversion:
+        target_unit: m
 
 ```
 
 **Object Transformation**:
 
 **Expected Error**: UndefinedUnitError
-
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 1.0
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 null
 ...
 
@@ -2915,7 +2899,8 @@ null
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -2942,13 +2927,15 @@ classes:
 
 ```
 
-### Combo: test\_simple\_unit\_conversion\[s1-s1-m/s-cm/s-ucum\_code-1.0-100.0-None-None\] {#combo-test_simple_unit_conversions1-s1-ms-cms-ucum_code-10-1000-none-none}
+### Combo: test_simple_unit_conversion[s1-s1-m/s-cm/s-ucum_code-1.0-100.0-None-None]
 
-Unit Conversion: `1.0` `m/s` =\> `100.0` `cm/s` \[with s1\]
+Unit Conversion: `1.0` `m/s` => `100.0` `cm/s` [with s1]
 
-**Source Schema**:
 
-``` {.yaml}
+**Source Schema**: 
+
+
+```yaml
 name: types
 id: types
 imports:
@@ -2975,38 +2962,37 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        unit_conversion:
-          target_unit: cm/s
+- name: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      unit_conversion:
+        target_unit: cm/s
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 1.0
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1: 100.0
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -3035,29 +3021,31 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        unit_conversion:
-          target_unit: m/s
-          target_unit_scheme: ucum_code
-          source_unit: cm/s
+- name: C
+  populated_from: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      unit_conversion:
+        target_unit: m/s
+        target_unit_scheme: ucum_code
+        source_unit: cm/s
 
 ```
 
-### Combo: test\_simple\_unit\_conversion\[s1-s1-m.s-1-cm.s-1-ucum\_code-1.0-100.0-None-None\] {#combo-test_simple_unit_conversions1-s1-ms-1-cms-1-ucum_code-10-1000-none-none}
+### Combo: test_simple_unit_conversion[s1-s1-m.s-1-cm.s-1-ucum_code-1.0-100.0-None-None]
 
-Unit Conversion: `1.0` `m.s-1` =\> `100.0` `cm.s-1` \[with s1\]
+Unit Conversion: `1.0` `m.s-1` => `100.0` `cm.s-1` [with s1]
 
-**Source Schema**:
 
-``` {.yaml}
+**Source Schema**: 
+
+
+```yaml
 name: types
 id: types
 imports:
@@ -3084,38 +3072,37 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        unit_conversion:
-          target_unit: cm.s-1
+- name: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      unit_conversion:
+        target_unit: cm.s-1
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 1.0
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1: 100.0
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -3144,32 +3131,33 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        unit_conversion:
-          target_unit: m.s-1
-          target_unit_scheme: ucum_code
-          source_unit: cm.s-1
+- name: C
+  populated_from: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      unit_conversion:
+        target_unit: m.s-1
+        target_unit_scheme: ucum_code
+        source_unit: cm.s-1
 
 ```
 
-### Combo: test\_simple\_unit\_conversion\[s1-s1-g.m2-1-kg.m2-1-ucum\_code-1.0-0.001-None-https://github.com/dalito/ucumvert/issues/8\] {#combo-test_simple_unit_conversions1-s1-gm2-1-kgm2-1-ucum_code-10-0001-none-httpsgithubcomdalitoucumvertissues8}
+### Combo: test_simple_unit_conversion[s1-s1-g.m2-1-kg.m2-1-ucum_code-1.0-0.001-None-https://github.com/dalito/ucumvert/issues/8]
 
-s\#\#\# Combo:
-test\_simple\_unit\_conversion\[height\_in\_m-height\_in\_cm-m-cm-ucum\_code-1.0-100.0-None-None\]
+### Combo: test_simple_unit_conversion[height_in_m-height_in_cm-m-cm-ucum_code-1.0-100.0-None-None]
 
-Unit Conversion: `1.0` `m` =\> `100.0` `cm` \[with height\_in\_m\]
+Unit Conversion: `1.0` `m` => `100.0` `cm` [with height_in_m]
 
-**Source Schema**:
 
-``` {.yaml}
+**Source Schema**: 
+
+
+```yaml
 name: types
 id: types
 imports:
@@ -3196,38 +3184,37 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      height_in_cm:
-        name: height_in_cm
-        populated_from: height_in_m
-        unit_conversion:
-          target_unit: cm
+- name: C
+  slot_derivations:
+    height_in_cm:
+      name: height_in_cm
+      populated_from: height_in_m
+      unit_conversion:
+        target_unit: cm
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 height_in_m: 1.0
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 height_in_cm: 100.0
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -3256,30 +3243,32 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      height_in_m:
-        name: height_in_m
-        populated_from: height_in_cm
-        unit_conversion:
-          target_unit: m
-          target_unit_scheme: ucum_code
-          source_unit: cm
+- name: C
+  populated_from: C
+  slot_derivations:
+    height_in_m:
+      name: height_in_m
+      populated_from: height_in_cm
+      unit_conversion:
+        target_unit: m
+        target_unit_scheme: ucum_code
+        source_unit: cm
 
 ```
 
-### Combo: test\_simple\_unit\_conversion\[s1-s1-m\[H2O\]{35Cel}-m\[H2O\]{35Cel}-ucum\_code-1.0-1.0-None-None\] {#combo-test_simple_unit_conversions1-s1-mh2o35cel-mh2o35cel-ucum_code-10-10-none-none}
+### Combo: test_simple_unit_conversion[s1-s1-m[H2O]{35Cel}-m[H2O]{35Cel}-ucum_code-1.0-1.0-None-None]
 
-Unit Conversion: `1.0` `m[H2O]{35Cel}` =\> `1.0` `m[H2O]{35Cel}` \[with
-s1\]
+Unit Conversion: `1.0` `m[H2O]{35Cel}` => `1.0` `m[H2O]{35Cel}` [with s1]
 
-Isomorphic mapping: **input must equal output** **Source Schema**:
 
-``` {.yaml}
+Isomorphic mapping: **input must equal output**
+**Source Schema**: 
+
+
+```yaml
 name: types
 id: types
 imports:
@@ -3306,38 +3295,37 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        unit_conversion:
-          target_unit: m[H2O]{35Cel}
+- name: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      unit_conversion:
+        target_unit: m[H2O]{35Cel}
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 1.0
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1: 1.0
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -3366,46 +3354,45 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-        unit_conversion:
-          target_unit: m[H2O]{35Cel}
-          target_unit_scheme: ucum_code
-          source_unit: m[H2O]{35Cel}
+- name: C
+  populated_from: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+      unit_conversion:
+        target_unit: m[H2O]{35Cel}
+        target_unit_scheme: ucum_code
+        source_unit: m[H2O]{35Cel}
 
 ```
 
-Feature Set: test\_complex\_unit\_conversion
---------------------------------------------
+## Feature Set: test_complex_unit_conversion
+
 
 Test unit conversion, from complex object to simple scalar.
 
-An example complex object would be an object with separate attributes
-for representing magnitude (value) and unit.
+An example complex object would be an object with separate attributes for
+representing magnitude (value) and unit.
 
 For example `magnitude: 1.0, unit: "m"`
 
--   **source\_unit**: unit of source slot
--   **target\_unit**: unit of target slot
--   **source\_value**: magnitude of source slot (to be converted)
--   **target\_value**: expected magnitude of target slot (output of
-    conversion)
--   **roundtrip\_object**: expected value of passing target object back
-    through inverted transformation
--   **err**: True if expected to raise an Error
+* **source_unit**: unit of source slot
+* **target_unit**: unit of target slot
+* **source_value**: magnitude of source slot (to be converted)
+* **target_value**: expected magnitude of target slot (output of conversion)
+* **roundtrip_object**: expected value of passing target object back through inverted transformation
+* **err**: True if expected to raise an Error
 
-### Combo: test\_complex\_unit\_conversion\[m-cm-1.0-100.0-roundtrip\_object0-None\] {#combo-test_complex_unit_conversionm-cm-10-1000-roundtrip_object0-none}
+### Combo: test_complex_unit_conversion[m-cm-1.0-100.0-roundtrip_object0-None]
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: types
 id: types
 imports:
@@ -3440,43 +3427,42 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  D:
-    name: D
-    populated_from: C
-    slot_derivations:
-      q_in_cm:
-        name: q_in_cm
-        populated_from: q
-        unit_conversion:
-          target_unit: cm
-          source_unit_slot: unit
-          source_magnitude_slot: magnitude
+- name: D
+  populated_from: C
+  slot_derivations:
+    q_in_cm:
+      name: q_in_cm
+      populated_from: q
+      unit_conversion:
+        target_unit: cm
+        source_unit_slot: unit
+        source_magnitude_slot: magnitude
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 q:
   magnitude: 1.0
   unit: m
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 q_in_cm: 100.0
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -3506,27 +3492,28 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: D
-    slot_derivations:
-      q:
-        name: q
-        populated_from: q_in_cm
-        unit_conversion:
-          source_unit: cm
-          target_unit_slot: unit
-          target_magnitude_slot: magnitude
+- name: C
+  populated_from: D
+  slot_derivations:
+    q:
+      name: q
+      populated_from: q_in_cm
+      unit_conversion:
+        source_unit: cm
+        target_unit_slot: unit
+        target_magnitude_slot: magnitude
 
 ```
 
-### Combo: test\_complex\_unit\_conversion\[cm-cm-100.0-100.0-roundtrip\_object1-None\] {#combo-test_complex_unit_conversioncm-cm-1000-1000-roundtrip_object1-none}
+### Combo: test_complex_unit_conversion[cm-cm-100.0-100.0-roundtrip_object1-None]
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: types
 id: types
 imports:
@@ -3561,43 +3548,42 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  D:
-    name: D
-    populated_from: C
-    slot_derivations:
-      q_in_cm:
-        name: q_in_cm
-        populated_from: q
-        unit_conversion:
-          target_unit: cm
-          source_unit_slot: unit
-          source_magnitude_slot: magnitude
+- name: D
+  populated_from: C
+  slot_derivations:
+    q_in_cm:
+      name: q_in_cm
+      populated_from: q
+      unit_conversion:
+        target_unit: cm
+        source_unit_slot: unit
+        source_magnitude_slot: magnitude
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 q:
   magnitude: 100.0
   unit: cm
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 q_in_cm: 100.0
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -3627,27 +3613,28 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: D
-    slot_derivations:
-      q:
-        name: q
-        populated_from: q_in_cm
-        unit_conversion:
-          source_unit: cm
-          target_unit_slot: unit
-          target_magnitude_slot: magnitude
+- name: C
+  populated_from: D
+  slot_derivations:
+    q:
+      name: q
+      populated_from: q_in_cm
+      unit_conversion:
+        source_unit: cm
+        target_unit_slot: unit
+        target_magnitude_slot: magnitude
 
 ```
 
-### Combo: test\_complex\_unit\_conversion\[cm-ml-100.0-None-None-DimensionalityError\] {#combo-test_complex_unit_conversioncm-ml-1000-none-none-dimensionalityerror}
+### Combo: test_complex_unit_conversion[cm-ml-100.0-None-None-DimensionalityError]
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: types
 id: types
 imports:
@@ -3682,38 +3669,35 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  D:
-    name: D
-    populated_from: C
-    slot_derivations:
-      q_in_ml:
-        name: q_in_ml
-        populated_from: q
-        unit_conversion:
-          target_unit: ml
-          source_unit_slot: unit
-          source_magnitude_slot: magnitude
+- name: D
+  populated_from: C
+  slot_derivations:
+    q_in_ml:
+      name: q_in_ml
+      populated_from: q
+      unit_conversion:
+        target_unit: ml
+        source_unit_slot: unit
+        source_magnitude_slot: magnitude
 
 ```
 
 **Object Transformation**:
 
 **Expected Error**: DimensionalityError
-
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 q:
   magnitude: 100.0
   unit: cm
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 null
 ...
 
@@ -3721,7 +3705,8 @@ null
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -3749,11 +3734,12 @@ classes:
 
 ```
 
-### Combo: test\_complex\_unit\_conversion\[cm-pinknoodles-100.0-None-None-UndefinedUnitError\] {#combo-test_complex_unit_conversioncm-pinknoodles-1000-none-none-undefineduniterror}
+### Combo: test_complex_unit_conversion[cm-pinknoodles-100.0-None-None-UndefinedUnitError]
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: types
 id: types
 imports:
@@ -3788,38 +3774,35 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  D:
-    name: D
-    populated_from: C
-    slot_derivations:
-      q_in_pinknoodles:
-        name: q_in_pinknoodles
-        populated_from: q
-        unit_conversion:
-          target_unit: pinknoodles
-          source_unit_slot: unit
-          source_magnitude_slot: magnitude
+- name: D
+  populated_from: C
+  slot_derivations:
+    q_in_pinknoodles:
+      name: q_in_pinknoodles
+      populated_from: q
+      unit_conversion:
+        target_unit: pinknoodles
+        source_unit_slot: unit
+        source_magnitude_slot: magnitude
 
 ```
 
 **Object Transformation**:
 
 **Expected Error**: UndefinedUnitError
-
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 q:
   magnitude: 100.0
   unit: cm
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 null
 ...
 
@@ -3827,7 +3810,8 @@ null
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -3855,34 +3839,33 @@ classes:
 
 ```
 
-Feature Set: test\_stringify
-----------------------------
+## Feature Set: test_stringify
+
 
 Test compaction of multivalued slots into a string.
 
-Stringification is primarily intended for mapping from complex nested
-formats to simple tabular TSV formats, where some of the following
-methodologies can be used:
+Stringification is primarily intended for mapping from complex nested formats to
+simple tabular TSV formats, where some of the following methodologies can be used:
 
--   flattening lists using an (internal) delimiter
--   flattening lists or more complex objects using JSON or YAML
+- flattening lists using an (internal) delimiter
+- flattening lists or more complex objects using JSON or YAML
 
-For example, `["a", "b"]` =\> `"a,b"`
+For example, `["a", "b"]` => `"a,b"`
 
 As a convention we use `s1_verbatim` as a slot/attribute name for the
 stringified form.
 
--   **syntax**: SerializationSyntaxType
--   **delimiter**: delimiter to use in stringification
--   **source\_value**: source value (a list)
--   **target\_value**: expected value of slot in target object (a
-    string)
+* **syntax**: SerializationSyntaxType
+* **delimiter**: delimiter to use in stringification
+* **source_value**: source value (a list)
+* **target_value**: expected value of slot in target object (a string)
 
-### Combo: test\_stringify\[None-,-source\_value0-a,b\]
+### Combo: test_stringify[None-,-source_value0-a,b]
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: types
 id: types
 imports:
@@ -3908,41 +3891,40 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  D:
-    name: D
-    populated_from: C
-    slot_derivations:
-      s1_verbatim:
-        name: s1_verbatim
-        populated_from: s1
-        stringification:
-          delimiter: ','
+- name: D
+  populated_from: C
+  slot_derivations:
+    s1_verbatim:
+      name: s1_verbatim
+      populated_from: s1
+      stringification:
+        delimiter: ','
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1:
 - a
 - b
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1_verbatim: a,b
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -3970,30 +3952,33 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: D
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1_verbatim
-        stringification:
-          delimiter: ','
-          reversed: true
+- name: C
+  populated_from: D
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1_verbatim
+      stringification:
+        delimiter: ','
+        reversed: true
 
 ```
 
 **Compiled Specification (SQLCompiler)**:
 
-INSERT INTO D SELECT s1\_verbatim AS STRING\_AGG(s1, \',\') FROM D;
 
-### Combo: test\_stringify\[None-\|-source\_value1-a\|b\]
+INSERT INTO D SELECT 
+  STRING_AGG(s1, ',') AS s1_verbatim FROM C;
 
-**Source Schema**:
+### Combo: test_stringify[None-|-source_value1-a|b]
 
-``` {.yaml}
+**Source Schema**: 
+
+
+```yaml
 name: types
 id: types
 imports:
@@ -4019,41 +4004,40 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  D:
-    name: D
-    populated_from: C
-    slot_derivations:
-      s1_verbatim:
-        name: s1_verbatim
-        populated_from: s1
-        stringification:
-          delimiter: '|'
+- name: D
+  populated_from: C
+  slot_derivations:
+    s1_verbatim:
+      name: s1_verbatim
+      populated_from: s1
+      stringification:
+        delimiter: '|'
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1:
 - a
 - b
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1_verbatim: a|b
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -4081,30 +4065,33 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: D
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1_verbatim
-        stringification:
-          delimiter: '|'
-          reversed: true
+- name: C
+  populated_from: D
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1_verbatim
+      stringification:
+        delimiter: '|'
+        reversed: true
 
 ```
 
 **Compiled Specification (SQLCompiler)**:
 
-INSERT INTO D SELECT s1\_verbatim AS STRING\_AGG(s1, \'\|\') FROM D;
 
-### Combo: test\_stringify\[None-\|-source\_value2-a\]
+INSERT INTO D SELECT 
+  STRING_AGG(s1, '|') AS s1_verbatim FROM C;
 
-**Source Schema**:
+### Combo: test_stringify[None-|-source_value2-a]
 
-``` {.yaml}
+**Source Schema**: 
+
+
+```yaml
 name: types
 id: types
 imports:
@@ -4130,40 +4117,39 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  D:
-    name: D
-    populated_from: C
-    slot_derivations:
-      s1_verbatim:
-        name: s1_verbatim
-        populated_from: s1
-        stringification:
-          delimiter: '|'
+- name: D
+  populated_from: C
+  slot_derivations:
+    s1_verbatim:
+      name: s1_verbatim
+      populated_from: s1
+      stringification:
+        delimiter: '|'
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1:
 - a
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1_verbatim: a
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -4191,30 +4177,33 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: D
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1_verbatim
-        stringification:
-          delimiter: '|'
-          reversed: true
+- name: C
+  populated_from: D
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1_verbatim
+      stringification:
+        delimiter: '|'
+        reversed: true
 
 ```
 
 **Compiled Specification (SQLCompiler)**:
 
-INSERT INTO D SELECT s1\_verbatim AS STRING\_AGG(s1, \'\|\') FROM D;
 
-### Combo: test\_stringify\[None-\|-source\_value3-\]
+INSERT INTO D SELECT 
+  STRING_AGG(s1, '|') AS s1_verbatim FROM C;
 
-**Source Schema**:
+### Combo: test_stringify[None-|-source_value3-]
 
-``` {.yaml}
+**Source Schema**: 
+
+
+```yaml
 name: types
 id: types
 imports:
@@ -4240,39 +4229,38 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  D:
-    name: D
-    populated_from: C
-    slot_derivations:
-      s1_verbatim:
-        name: s1_verbatim
-        populated_from: s1
-        stringification:
-          delimiter: '|'
+- name: D
+  populated_from: C
+  slot_derivations:
+    s1_verbatim:
+      name: s1_verbatim
+      populated_from: s1
+      stringification:
+        delimiter: '|'
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 {}
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1_verbatim: ''
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -4300,30 +4288,33 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: D
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1_verbatim
-        stringification:
-          delimiter: '|'
-          reversed: true
+- name: C
+  populated_from: D
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1_verbatim
+      stringification:
+        delimiter: '|'
+        reversed: true
 
 ```
 
 **Compiled Specification (SQLCompiler)**:
 
-INSERT INTO D SELECT s1\_verbatim AS STRING\_AGG(s1, \'\|\') FROM D;
 
-### Combo: test\_stringify\[JSON-None-source\_value4-\[\"a\", \"b\"\]\]
+INSERT INTO D SELECT 
+  STRING_AGG(s1, '|') AS s1_verbatim FROM C;
 
-**Source Schema**:
+### Combo: test_stringify[JSON-None-source_value4-["a", "b"]]
 
-``` {.yaml}
+**Source Schema**: 
+
+
+```yaml
 name: types
 id: types
 imports:
@@ -4349,41 +4340,40 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  D:
-    name: D
-    populated_from: C
-    slot_derivations:
-      s1_verbatim:
-        name: s1_verbatim
-        populated_from: s1
-        stringification:
-          syntax: JSON
+- name: D
+  populated_from: C
+  slot_derivations:
+    s1_verbatim:
+      name: s1_verbatim
+      populated_from: s1
+      stringification:
+        syntax: JSON
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1:
 - a
 - b
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1_verbatim: '["a", "b"]'
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -4411,30 +4401,33 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: D
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1_verbatim
-        stringification:
-          reversed: true
-          syntax: JSON
+- name: C
+  populated_from: D
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1_verbatim
+      stringification:
+        reversed: true
+        syntax: JSON
 
 ```
 
 **Compiled Specification (SQLCompiler)**:
 
-INSERT INTO D SELECT s1\_verbatim AS CAST(s1 AS TEXT) FROM D;
 
-### Combo: test\_stringify\[JSON-None-source\_value5-\[\]\]
+INSERT INTO D SELECT 
+  CAST(s1 AS TEXT) AS s1_verbatim FROM C;
 
-**Source Schema**:
+### Combo: test_stringify[JSON-None-source_value5-[]]
 
-``` {.yaml}
+**Source Schema**: 
+
+
+```yaml
 name: types
 id: types
 imports:
@@ -4460,39 +4453,38 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  D:
-    name: D
-    populated_from: C
-    slot_derivations:
-      s1_verbatim:
-        name: s1_verbatim
-        populated_from: s1
-        stringification:
-          syntax: JSON
+- name: D
+  populated_from: C
+  slot_derivations:
+    s1_verbatim:
+      name: s1_verbatim
+      populated_from: s1
+      stringification:
+        syntax: JSON
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 {}
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1_verbatim: '[]'
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -4520,30 +4512,33 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: D
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1_verbatim
-        stringification:
-          reversed: true
-          syntax: JSON
+- name: C
+  populated_from: D
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1_verbatim
+      stringification:
+        reversed: true
+        syntax: JSON
 
 ```
 
 **Compiled Specification (SQLCompiler)**:
 
-INSERT INTO D SELECT s1\_verbatim AS CAST(s1 AS TEXT) FROM D;
 
-### Combo: test\_stringify\[YAML-None-source\_value6-\[a, b\]\]
+INSERT INTO D SELECT 
+  CAST(s1 AS TEXT) AS s1_verbatim FROM C;
 
-**Source Schema**:
+### Combo: test_stringify[YAML-None-source_value6-[a, b]]
 
-``` {.yaml}
+**Source Schema**: 
+
+
+```yaml
 name: types
 id: types
 imports:
@@ -4569,41 +4564,40 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  D:
-    name: D
-    populated_from: C
-    slot_derivations:
-      s1_verbatim:
-        name: s1_verbatim
-        populated_from: s1
-        stringification:
-          syntax: YAML
+- name: D
+  populated_from: C
+  slot_derivations:
+    s1_verbatim:
+      name: s1_verbatim
+      populated_from: s1
+      stringification:
+        syntax: YAML
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1:
 - a
 - b
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1_verbatim: '[a, b]'
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -4631,42 +4625,44 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: D
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1_verbatim
-        stringification:
-          reversed: true
-          syntax: YAML
+- name: C
+  populated_from: D
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1_verbatim
+      stringification:
+        reversed: true
+        syntax: YAML
 
 ```
 
 **Compiled Specification (SQLCompiler)**:
 
-INSERT INTO D SELECT s1\_verbatim AS s1 FROM D;
 
-Feature Set: test\_isomorphic
------------------------------
+INSERT INTO D SELECT 
+  s1 AS s1_verbatim FROM C;
+
+## Feature Set: test_isomorphic
+
 
 Test mapping a schema to an identical schema (i.e copy).
 
-This also tests for the ability to recursively descend a nested
-structure.
+This also tests for the ability to recursively descend a nested structure.
 
--   **source\_object**:
--   **use\_expr**:
--   **supply\_source\_schema**: TODO: always True for now
+* **source_object**: 
+* **use_expr**: 
+* **supply_source_schema**: TODO: always True for now
 
-### Combo: test\_isomorphic\[True-True-source\_object0\]
+### Combo: test_isomorphic[True-True-source_object0]
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: isomorphic
 id: isomorphic
 imports:
@@ -4711,45 +4707,42 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  Container:
-    name: Container
-    populated_from: Container
-    slot_derivations:
-      c_list:
-        name: c_list
-        populated_from: c_list
-        range: C
-      d:
-        name: d
-        populated_from: d
-        range: D
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-      s2:
-        name: s2
-        populated_from: s2
-  D:
-    name: D
-    populated_from: D
-    slot_derivations:
-      s3:
-        name: s3
-        expr: s3
+- name: Container
+  populated_from: Container
+  slot_derivations:
+    c_list:
+      name: c_list
+      populated_from: c_list
+      range: C
+    d:
+      name: d
+      populated_from: d
+      range: D
+- name: C
+  populated_from: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+    s2:
+      name: s2
+      populated_from: s2
+- name: D
+  populated_from: D
+  slot_derivations:
+    s3:
+      name: s3
+      expr: s3
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 c_list:
 - s1: a
   s2: b
@@ -4760,9 +4753,8 @@ d:
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 c_list:
 - s1: a
   s2: b
@@ -4775,7 +4767,8 @@ d:
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: isomorphic-derived
 id: isomorphic-derived
 imports:
@@ -4830,45 +4823,44 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  Container:
-    name: Container
-    populated_from: Container
-    slot_derivations:
-      c_list:
-        name: c_list
-        populated_from: c_list
-        range: C
-      d:
-        name: d
-        populated_from: d
-        range: D
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-      s2:
-        name: s2
-        populated_from: s2
-  D:
-    name: D
-    populated_from: D
-    slot_derivations:
-      s3:
-        name: s3
-        populated_from: s3
+- name: Container
+  populated_from: Container
+  slot_derivations:
+    c_list:
+      name: c_list
+      populated_from: c_list
+      range: C
+    d:
+      name: d
+      populated_from: d
+      range: D
+- name: C
+  populated_from: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+    s2:
+      name: s2
+      populated_from: s2
+- name: D
+  populated_from: D
+  slot_derivations:
+    s3:
+      name: s3
+      populated_from: s3
 
 ```
 
-### Combo: test\_isomorphic\[True-False-source\_object0\]
+### Combo: test_isomorphic[True-False-source_object0]
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: isomorphic
 id: isomorphic
 imports:
@@ -4913,45 +4905,42 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  Container:
-    name: Container
-    populated_from: Container
-    slot_derivations:
-      c_list:
-        name: c_list
-        populated_from: c_list
-        range: C
-      d:
-        name: d
-        populated_from: d
-        range: D
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-      s2:
-        name: s2
-        populated_from: s2
-  D:
-    name: D
-    populated_from: D
-    slot_derivations:
-      s3:
-        name: s3
-        populated_from: s3
+- name: Container
+  populated_from: Container
+  slot_derivations:
+    c_list:
+      name: c_list
+      populated_from: c_list
+      range: C
+    d:
+      name: d
+      populated_from: d
+      range: D
+- name: C
+  populated_from: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+    s2:
+      name: s2
+      populated_from: s2
+- name: D
+  populated_from: D
+  slot_derivations:
+    s3:
+      name: s3
+      populated_from: s3
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 c_list:
 - s1: a
   s2: b
@@ -4962,9 +4951,8 @@ d:
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 c_list:
 - s1: a
   s2: b
@@ -4977,7 +4965,8 @@ d:
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: isomorphic-derived
 id: isomorphic-derived
 imports:
@@ -5032,54 +5021,53 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  Container:
-    name: Container
-    populated_from: Container
-    slot_derivations:
-      c_list:
-        name: c_list
-        populated_from: c_list
-        range: C
-      d:
-        name: d
-        populated_from: d
-        range: D
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
-      s2:
-        name: s2
-        populated_from: s2
-  D:
-    name: D
-    populated_from: D
-    slot_derivations:
-      s3:
-        name: s3
-        populated_from: s3
+- name: Container
+  populated_from: Container
+  slot_derivations:
+    c_list:
+      name: c_list
+      populated_from: c_list
+      range: C
+    d:
+      name: d
+      populated_from: d
+      range: D
+- name: C
+  populated_from: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
+    s2:
+      name: s2
+      populated_from: s2
+- name: D
+  populated_from: D
+  slot_derivations:
+    s3:
+      name: s3
+      populated_from: s3
 
 ```
 
-Feature Set: test\_join
------------------------
+## Feature Set: test_join
+
 
 Test joining two objects into a single object, aka denormalization.
 
--   **source\_object**: normalized source object
--   **target\_object**: denormalized target object
--   **inlined**: True if the source objects are inlined
+* **source_object**: normalized source object
+* **target_object**: denormalized target object
+* **inlined**: True if the source objects are inlined
 
-### Combo: test\_join\[source\_object0-target\_object0-True\]
+### Combo: test_join[source_object0-target_object0-True]
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: types
 id: types
 imports:
@@ -5120,32 +5108,31 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  R:
-    name: R
-    populated_from: R
-    slot_derivations:
-      s1_id:
-        name: s1_id
-        expr: s1.id
-      s1_name:
-        name: s1_name
-        expr: s1.name
-      s2_id:
-        name: s2_id
-        expr: s2.id
-      s2_name:
-        name: s2_name
-        expr: s2.name
+- name: R
+  populated_from: R
+  slot_derivations:
+    s1_id:
+      name: s1_id
+      expr: s1.id
+    s1_name:
+      name: s1_name
+      expr: s1.name
+    s2_id:
+      name: s2_id
+      expr: s2.id
+    s2_name:
+      name: s2_name
+      expr: s2.name
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1:
   id: x1
   name: foo
@@ -5155,9 +5142,8 @@ s2:
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1_id: x1
 s1_name: foo
 s2_id: x2
@@ -5167,7 +5153,8 @@ s2_name: bar
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -5196,11 +5183,12 @@ classes:
 
 ```
 
-### Combo: test\_join\[source\_object0-target\_object0-False\]
+### Combo: test_join[source_object0-target_object0-False]
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: types
 id: types
 imports:
@@ -5254,39 +5242,37 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  R:
-    name: R
-    populated_from: R
-    slot_derivations:
-      s1_id:
-        name: s1_id
-        expr: s1.id
-      s1_name:
-        name: s1_name
-        expr: s1.name
-      s2_id:
-        name: s2_id
-        expr: s2.id
-      s2_name:
-        name: s2_name
-        expr: s2.name
-  Container:
-    name: Container
-    populated_from: Container
-    slot_derivations:
-      r_list:
-        name: r_list
-        populated_from: r_list
+- name: R
+  populated_from: R
+  slot_derivations:
+    s1_id:
+      name: s1_id
+      expr: s1.id
+    s1_name:
+      name: s1_name
+      expr: s1.name
+    s2_id:
+      name: s2_id
+      expr: s2.id
+    s2_name:
+      name: s2_name
+      expr: s2.name
+- name: Container
+  populated_from: Container
+  slot_derivations:
+    r_list:
+      name: r_list
+      populated_from: r_list
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 r_list:
 - s1: x1
   s2: x2
@@ -5298,9 +5284,8 @@ e_list:
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 r_list:
 - s1_id: x1
   s1_name: foo
@@ -5311,7 +5296,8 @@ r_list:
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: types-derived
 id: types-derived
 imports:
@@ -5350,29 +5336,27 @@ classes:
 
 ```
 
-Feature Set: test\_map\_enum
-----------------------------
+## Feature Set: test_map_enum
+
 
 Test mapping between enum values.
 
-Currently this only supports simple dictionary-style mapping between
-permissible values, akin to SSSOM, but in future additional expressivity
-will be supported, including:
+Currently this only supports simple dictionary-style mapping between permissible values,
+akin to SSSOM, but in future additional expressivity will be supported, including:
 
--   mapping ranges to categorical values
--   boolean/branching logic
+- mapping ranges to categorical values
+- boolean/branching logic
 
-<!-- -->
+* **source_value**: source enum permissible value to be mapped
+* **mapping**: mapping from source to target enum permissible values
+* **target_value**: expected target enum permissible value
 
--   **source\_value**: source enum permissible value to be mapped
--   **mapping**: mapping from source to target enum permissible values
--   **target\_value**: expected target enum permissible value
+### Combo: test_map_enum[A-mapping0-B-False]
 
-### Combo: test\_map\_enum\[A-mapping0-B-False\]
+**Source Schema**: 
 
-**Source Schema**:
 
-``` {.yaml}
+```yaml
 name: enums
 id: enums
 imports:
@@ -5407,14 +5391,14 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
+- name: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
 enum_derivations:
   E:
     name: E
@@ -5423,29 +5407,29 @@ enum_derivations:
     permissible_value_derivations:
       B:
         name: B
-        populated_from: A
+        populated_from:
+        - A
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: A
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1: B
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: enums-derived
 id: enums-derived
 imports:
@@ -5482,15 +5466,15 @@ classes:
 
 **Inverted Transformation Specification** (Derived):
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
+- name: C
+  populated_from: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
 enum_derivations:
   E:
     name: E
@@ -5498,15 +5482,17 @@ enum_derivations:
     permissible_value_derivations:
       A:
         name: A
-        populated_from: B
+        populated_from:
+        - B
 
 ```
 
-### Combo: test\_map\_enum\[Z-mapping1-None-False\]
+### Combo: test_map_enum[Z-mapping1-None-False]
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: enums
 id: enums
 imports:
@@ -5541,14 +5527,14 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
+- name: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
 enum_derivations:
   E:
     name: E
@@ -5557,29 +5543,29 @@ enum_derivations:
     permissible_value_derivations:
       B:
         name: B
-        populated_from: A
+        populated_from:
+        - A
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: Z
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 {}
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: enums-derived
 id: enums-derived
 imports:
@@ -5614,11 +5600,12 @@ classes:
 
 ```
 
-### Combo: test\_map\_enum\[C-mapping2-C-True\]
+### Combo: test_map_enum[C-mapping2-C-True]
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: enums
 id: enums
 imports:
@@ -5653,14 +5640,14 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
+- name: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
 enum_derivations:
   E:
     name: E
@@ -5669,15 +5656,17 @@ enum_derivations:
     permissible_value_derivations:
       B:
         name: B
-        populated_from: A
+        populated_from:
+        - A
 
 ```
 
-s\#\#\# Combo: test\_map\_enum\[A-mapping3-B-False\]
+### Combo: test_map_enum[A-mapping3-B-False]
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: enums
 id: enums
 imports:
@@ -5712,14 +5701,14 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
+- name: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
 enum_derivations:
   E:
     name: E
@@ -5728,7 +5717,7 @@ enum_derivations:
     permissible_value_derivations:
       B:
         name: B
-        sources:
+        populated_from:
         - A
         - C
 
@@ -5736,23 +5725,22 @@ enum_derivations:
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: A
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1: B
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: enums-derived
 id: enums-derived
 imports:
@@ -5787,11 +5775,12 @@ classes:
 
 ```
 
-### Combo: test\_map\_enum\[C-mapping4-B-False\]
+### Combo: test_map_enum[C-mapping4-B-False]
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: enums
 id: enums
 imports:
@@ -5826,14 +5815,14 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    slot_derivations:
-      s1:
-        name: s1
-        populated_from: s1
+- name: C
+  slot_derivations:
+    s1:
+      name: s1
+      populated_from: s1
 enum_derivations:
   E:
     name: E
@@ -5842,7 +5831,7 @@ enum_derivations:
     permissible_value_derivations:
       B:
         name: B
-        sources:
+        populated_from:
         - A
         - C
 
@@ -5850,23 +5839,22 @@ enum_derivations:
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: C
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1: B
 
 ```
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: enums-derived
 id: enums-derived
 imports:
@@ -5901,22 +5889,22 @@ classes:
 
 ```
 
-Feature Set: test\_inheritance
-------------------------------
+## Feature Set: test_inheritance
+
 
 Test inheritance.
 
-Transformation specifications can utilize inheritance, in the same way
-that LinkML schemas can.
+Transformation specifications can utilize inheritance, in the same way that LinkML schemas can.
 
--   **is\_a**: use is\_as instead of mixins in test schema
--   **flatten**: roll down inherited slots
+* **is_a**: use is_as instead of mixins in test schema
+* **flatten**: roll down inherited slots
 
-### Combo: test\_inheritance\[False-True\]
+### Combo: test_inheritance[False-True]
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: expr
 id: expr
 imports:
@@ -5949,39 +5937,36 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    is_a: D
-    populated_from: C
-    slot_derivations:
-      s1:
-        name: s1
-        expr: s1 + 1
-  D:
-    name: D
-    populated_from: D
-    slot_derivations:
-      s2:
-        name: s2
-        expr: s2 + 1
+- name: C
+  is_a: D
+  populated_from: C
+  slot_derivations:
+    s1:
+      name: s1
+      expr: s1 + 1
+- name: D
+  populated_from: D
+  slot_derivations:
+    s2:
+      name: s2
+      expr: s2 + 1
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 1
 s2: 2
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1: 2
 s2: 3
 
@@ -5989,7 +5974,8 @@ s2: 3
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: expr-derived
 id: expr-derived
 imports:
@@ -6024,11 +6010,12 @@ classes:
 
 ```
 
-### Combo: test\_inheritance\[False-False\]
+### Combo: test_inheritance[False-False]
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: expr
 id: expr
 imports:
@@ -6062,40 +6049,37 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    mixins:
-    - D
-    populated_from: C
-    slot_derivations:
-      s1:
-        name: s1
-        expr: s1 + 1
-  D:
-    name: D
-    populated_from: D
-    slot_derivations:
-      s2:
-        name: s2
-        expr: s2 + 1
+- name: C
+  mixins:
+  - D
+  populated_from: C
+  slot_derivations:
+    s1:
+      name: s1
+      expr: s1 + 1
+- name: D
+  populated_from: D
+  slot_derivations:
+    s2:
+      name: s2
+      expr: s2 + 1
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 1
 s2: 2
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1: 2
 s2: 3
 
@@ -6103,7 +6087,8 @@ s2: 3
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: expr-derived
 id: expr-derived
 imports:
@@ -6139,11 +6124,12 @@ classes:
 
 ```
 
-### Combo: test\_inheritance\[True-True\]
+### Combo: test_inheritance[True-True]
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: expr
 id: expr
 imports:
@@ -6176,34 +6162,32 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      s1:
-        name: s1
-        expr: s1 + 1
-      s2:
-        name: s2
-        expr: s2 + 1
+- name: C
+  populated_from: C
+  slot_derivations:
+    s1:
+      name: s1
+      expr: s1 + 1
+    s2:
+      name: s2
+      expr: s2 + 1
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 1
 s2: 2
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1: 2
 s2: 3
 
@@ -6211,7 +6195,8 @@ s2: 3
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: expr-derived
 id: expr-derived
 imports:
@@ -6242,11 +6227,12 @@ classes:
 
 ```
 
-### Combo: test\_inheritance\[True-False\]
+### Combo: test_inheritance[True-False]
 
-**Source Schema**:
+**Source Schema**: 
 
-``` {.yaml}
+
+```yaml
 name: expr
 id: expr
 imports:
@@ -6280,34 +6266,32 @@ classes:
 
 **Transformer Specification**:
 
-``` {.yaml}
+
+```yaml
 class_derivations:
-  C:
-    name: C
-    populated_from: C
-    slot_derivations:
-      s1:
-        name: s1
-        expr: s1 + 1
-      s2:
-        name: s2
-        expr: s2 + 1
+- name: C
+  populated_from: C
+  slot_derivations:
+    s1:
+      name: s1
+      expr: s1 + 1
+    s2:
+      name: s2
+      expr: s2 + 1
 
 ```
 
 **Object Transformation**:
 
--   Source Object:
-
-``` {.yaml}
+ * Source Object:
+```yaml
 s1: 1
 s2: 2
 
 ```
 
--   Target Object:
-
-``` {.yaml}
+ * Target Object:
+```yaml
 s1: 2
 s2: 3
 
@@ -6315,7 +6299,8 @@ s2: 3
 
 **Target Schema (Derived)**:
 
-``` {.yaml}
+
+```yaml
 name: expr-derived
 id: expr-derived
 imports:
@@ -6346,4 +6331,3 @@ classes:
 
 ```
 
-. 55 passed, 2 skipped, 83 warnings in 4.60s
