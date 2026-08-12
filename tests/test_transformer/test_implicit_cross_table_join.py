@@ -215,22 +215,21 @@ def test_implicit_join_resolves_via_engine(data_dir):
     assert r2["observation"]["value"] == 88.0
 
 
-def test_implicit_join_ambiguous_columns_resolved_when_one_non_id(data_dir):
+def test_implicit_join_ambiguous_columns_resolved_when_one_non_id():
     """When both tables share 'id' (identifier) and 'subject_id' (non-id), join on subject_id.
 
-    Ambiguous non-data columns (like 'id') that are identifiers get excluded,
-    leaving 'subject_id' as the sole non-id common column.
+    Ambiguous common columns that are identifiers get excluded, leaving 'subject_id'
+    as the sole non-id candidate. Asserts the synthesized key directly: checking only
+    that values resolved made this a strict subset of
+    ``test_implicit_join_resolves_via_engine`` and never verified the disambiguation
+    it describes.
     """
     tr = _make_transformer(SOURCE_SCHEMA, TRANSFORM_SPEC, TARGET_SCHEMA_YAML)
-    data_loader = DataLoader(data_dir)
 
-    results = list(transform_spec(tr, data_loader, source_type="Measurement"))
+    joins = tr.derived_specification.class_derivations[0].joins
 
-    assert len(results) == 2
-    # id columns are ambiguous (both tables have them), but subject_id is the join key
-    # The nested row's 'score' should be resolved
-    assert results[0]["observation"]["value"] == 95.5
-    assert results[1]["observation"]["value"] == 88.0
+    assert "Reading" in joins
+    assert joins["Reading"].join_on == "subject_id", "'id' is common to both tables but must be excluded"
 
 
 def test_implicit_join_no_common_columns(data_dir):
