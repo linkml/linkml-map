@@ -45,32 +45,47 @@ class DuckDBTransformer(Transformer):
         source_database: DATABASE,
         target_database: DATABASE | None = None,
         **kwargs: Any,
-    ) -> OBJECT_TYPE:
+    ) -> DuckDBPyConnection:
         """
         Transform source resource.
 
-        :param source_database:
-        :param target_database:
+        :param source_database: Database holding the source tables, as a path or an open
+            connection.  Target tables are created alongside them and populated in place.
+        :param target_database: Must be unset or equal to *source_database*.
         :param kwargs:
-        :return:
+        :return: The connection the target tables were written to.
+        :raises NotImplementedError: If a target database distinct from the source is given.
         """
         import duckdb
-
-        if target_database is None:
-            target_database = source_database
 
         def _connect(db: DATABASE) -> DuckDBPyConnection:
             if isinstance(db, str):
                 return duckdb.connect(db)
             return db
 
-        source_connection = _connect(source_database)
-        target_connection = _connect(target_database)
-        sql_compiler = SQLCompiler()
-        source_connection.sql(sql_compiler.create_ddl(self.source_schemaview))
-        target_connection.sql(sql_compiler.create_ddl(self.target_schemaview))
+        if target_database is not None and target_database != source_database:
+            # The compiled INSERTs name source tables unqualified, so they only resolve on a
+            # connection that holds both source and target.  Spanning two databases needs an
+            # ATTACH and qualified names; until that exists, say so rather than silently
+            # leaving the target empty.
+            msg = (
+                "map_database cannot yet write to a database separate from the source. "
+                "Omit target_database to transform in place."
+            )
+            raise NotImplementedError(msg)
+
+        # One connection, not two: connecting twice to the same path (and especially to
+        # ':memory:') yields two independent databases, so the target would never see the rows.
+        connection = _connect(source_database)
+        sql_compiler = SQLCompiler(
+            source_schemaview=self.source_schemaview,
+            target_schemaview=self.target_schemaview,
+        )
+        connection.sql(sql_compiler.create_ddl(self.source_schemaview))
+        connection.sql(sql_compiler.create_ddl(self.target_schemaview))
         if not self.specification:
             msg = "No specification provided."
             raise ValueError(msg)
         compiled = sql_compiler.compile(self.specification)
-        source_connection.execute(compiled.serialization)
+        connection.execute(compiled.serialization)
+        return connection

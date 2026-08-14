@@ -28,6 +28,13 @@ def session() -> Session:
 
 
 def test_compile(session: Session) -> None:
-    """Test compilation using the DuckDb transformer."""
-    pytest.skip("TODO")
+    """Test compilation using the DuckDb transformer.
+
+    Still skipped, but no longer for want of a working map_database — see
+    ``test_duckdb_nested_structs.py`` for end-to-end coverage on schemas whose class names
+    don't collide. personinfo's source and target both declare ``Container``, so the target
+    DDL's ``CREATE TABLE IF NOT EXISTS`` is a no-op and ``Container`` keeps the source's
+    columns. Unskipping needs source and target in separate DuckDB schemas.
+    """
+    pytest.skip("source and target schemas both declare Container; needs schema namespacing")
     session.transformer.map_database(":memory:")

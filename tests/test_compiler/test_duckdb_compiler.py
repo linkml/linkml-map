@@ -172,7 +172,9 @@ def test_compile(session: Session) -> None:
     conn = duckdb.connect(":memory:")
     conn.execute(source_ddl)
     conn.execute(target_ddl)
-    # TODO #150: compiled INSERTs don't yet provide every target column for
-    # arbitrary specs (the target's derived schema can include columns not
-    # named by any slot_derivation). Re-enable execution once SQLCompiler
-    # emits explicit column lists / handles full target shape.
+    # Compiled INSERTs now carry an explicit column list, so a partial spec is no longer
+    # the blocker here. What remains is a namespace collision: personinfo's source and
+    # target schemas both declare Container, source DDL runs first, and the target's
+    # `CREATE TABLE IF NOT EXISTS Container` is then a no-op — leaving Container with the
+    # source's columns. Executing the INSERTs needs source and target in separate DuckDB
+    # schemas.
