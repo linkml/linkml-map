@@ -96,7 +96,7 @@ def main(verbose: int, quiet: bool) -> None:
 @click.option(
     "--output-format",
     "-f",
-    type=click.Choice(["yaml", "json", "jsonl", "tsv", "csv"]),
+    type=click.Choice(["yaml", "json", "jsonl", "tsv", "csv", "parquet", "duckdb"]),
     default=None,
     help="Output format. Defaults to yaml for single objects, or inferred from output file extension.",
 )
@@ -236,6 +236,7 @@ def map_data(
             transformer_specification=transformer_specification,
             output=output,
             output_format=output_format,
+            table_name=table_name,
             target_schema=target_schema,
             continue_on_error=continue_on_error,
             entity=entity,
@@ -345,6 +346,7 @@ def _map_data_single(
     transformer_specification: tuple[str, ...],
     output: str | None,
     output_format: str,
+    table_name: str | None = None,
     target_schema: str | None = None,
     continue_on_error: bool = False,
     entity: str | None = None,
@@ -382,15 +384,54 @@ def _map_data_single(
         click.echo("\n1 transformation error:", err=True)
         click.echo(f"  - {err}", err=True)
         raise SystemExit(1) from err
+    if output_format in COLUMNAR_FORMATS:
+        _dump_columnar(tr_obj, output_format, output, table_name)
+        return
     dump_output(tr_obj, output_format, output)
+
+
+#: Formats whose artifact is a binary file built by DuckDB, so they cannot go to stdout
+#: and are not handled by the text-oriented ``dump_output``.
+COLUMNAR_FORMATS = frozenset({OutputFormat.PARQUET.value, OutputFormat.DUCKDB.value})
+
+
+def _dump_columnar(
+    tr_obj: dict[str, Any] | list[Any],
+    output_format: str,
+    output: str | None,
+    table_name: str | None,
+) -> None:
+    """Write a single transformed object (or list of them) as Parquet or DuckDB.
+
+    The single-object path has no chunk stream, so the result is handed to the same
+    writers the streaming path uses as one chunk.  Without this, inferring ``parquet``
+    from an output extension on single-object input reached ``dump_output`` and raised
+    ``NotImplementedError``.
+
+    :param tr_obj: The transformed object, or a list of them.
+    :param output_format: ``parquet`` or ``duckdb``.
+    :param output: Output file path.
+    :param table_name: Table name for DuckDB output.
+    :raises click.ClickException: If no output path was given.
+    """
+    if not output:
+        msg = f"{output_format} output requires an output file; pass -o/--output FILE"
+        raise click.ClickException(msg)
+    rows = tr_obj if isinstance(tr_obj, list) else [tr_obj]
+    writer = make_stream_writer(OutputFormat(output_format), table_name=table_name)
+    MultiStreamWriter([(writer, Path(output))]).write_all(iter([rows]))
 
 
 def _build_additional_outputs(
     additional_output: tuple,
+    table_name: str | None = None,
 ) -> list[tuple[StreamWriter, Path]]:
     """Build (StreamWriter, Path) pairs for additional -O outputs.
 
     :param additional_output: Tuple of file path strings from the CLI.
+    :param table_name: Table name for DuckDB outputs, applied to every DuckDB writer this
+        command builds so ``-O out.duckdb --table-name X`` names the table consistently
+        with the primary output.
     :return: List of (StreamWriter, Path) tuples.
     :raises click.ClickException: If an extension cannot be mapped to a format.
     """
@@ -402,7 +443,7 @@ def _build_additional_outputs(
         if extra_fmt is None:
             msg = f"Cannot infer output format from extension: {ext}"
             raise click.ClickException(msg)
-        result.append((make_stream_writer(extra_fmt), extra_path))
+        result.append((make_stream_writer(extra_fmt, table_name=table_name), extra_path))
     return result
 
 
@@ -460,7 +501,11 @@ def _map_data_streaming(
         msg = f"Unsupported output format: {output_format}"
         raise click.ClickException(msg) from None
 
-    extra_outputs = _build_additional_outputs(additional_output) if additional_output else []
+    if output_format in COLUMNAR_FORMATS and not output:
+        msg = f"{output_format} output requires an output file; pass -o/--output FILE"
+        raise click.ClickException(msg)
+
+    extra_outputs = _build_additional_outputs(additional_output, table_name) if additional_output else []
 
     # Validate no duplicate paths between primary and additional outputs
     if extra_outputs and output:
