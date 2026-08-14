@@ -21,13 +21,12 @@ from simpleeval import InvalidExpression
 from linkml_map.datamodel.transformer_model import (
     ClassDerivation,
     CollectionType,
-    PivotDirectionType,
-    PivotOperation,
     SerializationSyntaxType,
     SlotDerivation,
 )
-from linkml_map.functions.unit_conversion import UnitSystem, convert_units
+from linkml_map.functions.unit_conversion import perform_unit_conversion
 from linkml_map.transformer.errors import TransformationError
+from linkml_map.transformer.pivot import perform_melt, perform_pivot_operation
 from linkml_map.transformer.transformer import OBJECT_TYPE, Transformer
 from linkml_map.utils.dynamic_object import DynObj, dynamic_object
 from linkml_map.utils.eval_utils import _uuid5, eval_expr_with_mapping
@@ -396,7 +395,9 @@ class ObjectTransformer(Transformer):
 
         # Handle class-level pivot operations (UNMELT from EAV to wide format)
         if class_deriv.pivot_operation:
-            return self._perform_pivot_operation(class_deriv.pivot_operation, source_obj, class_deriv, sv, source_type)
+            return perform_pivot_operation(
+                class_deriv.pivot_operation, source_obj, class_deriv, sv, source_type, self.target_schemaview
+            )
 
         context = DerivationContext(
             source_obj=source_obj,
@@ -474,10 +475,12 @@ class ObjectTransformer(Transformer):
         if slot_derivation.value is not None:
             v = slot_derivation.value
         elif slot_derivation.unit_conversion:
-            v = self._perform_unit_conversion(slot_derivation, context)
+            v = perform_unit_conversion(slot_derivation, context.source_obj, context.sv, context.source_type)
         elif slot_derivation.pivot_operation:
             # MELT operation: wide format to EAV/long format
-            v = self._perform_melt(slot_derivation.pivot_operation, context.source_obj, slot_derivation)
+            v = perform_melt(
+                slot_derivation.pivot_operation, context.source_obj, slot_derivation, self.target_schemaview
+            )
         elif slot_derivation.expr:
             v = self._eval_expr(slot_derivation.expr, bindings, functions=expr_functions)
         elif slot_derivation.populated_from:
@@ -1117,104 +1120,6 @@ class ObjectTransformer(Transformer):
         all_enums = sv.all_enums()
         return [ao.range for ao in slot.any_of if ao.range in all_enums]
 
-    def _perform_unit_conversion(
-        self,
-        slot_derivation: SlotDerivation,
-        context: DerivationContext,
-    ) -> float | dict | None:
-        """Perform unit conversion for a slot derivation."""
-        uc = slot_derivation.unit_conversion
-        curr_v = context.source_obj.get(slot_derivation.populated_from, None)
-
-        if curr_v is None:
-            logger.debug(f"No value found for slot '{slot_derivation.populated_from}'; skipping conversion")
-            return None
-
-        slot = context.sv.induced_slot(slot_derivation.populated_from, context.source_type)
-        schema_unit = None
-        from_unit = None
-        system = UnitSystem.UCUM
-
-        if slot.unit:
-            if slot.unit.ucum_code:
-                schema_unit = slot.unit.ucum_code
-            elif slot.unit.iec61360code:
-                schema_unit = slot.unit.iec61360code
-                system = UnitSystem.IEC61360
-            elif slot.unit.symbol:
-                schema_unit = slot.unit.symbol
-                system = None
-            elif slot.unit.abbreviation:
-                schema_unit = slot.unit.abbreviation
-                system = None
-            elif slot.unit.descriptive_name:
-                schema_unit = slot.unit.descriptive_name
-                system = None
-            else:
-                raise NotImplementedError(
-                    f"Cannot determine unit system for slot '{slot.name}' — all unit fields are None"
-                )
-
-        spec_unit = uc.source_unit if uc.source_unit else None
-
-        if schema_unit and spec_unit:
-            if schema_unit != spec_unit:
-                raise ValueError(
-                    f"Mismatch in source units for slot '{slot_derivation.populated_from}': "
-                    f"schema unit '{schema_unit}' vs. transformation spec '{spec_unit}'"
-                )
-            from_unit = schema_unit
-        elif schema_unit:
-            from_unit = schema_unit
-        elif spec_unit:
-            from_unit = spec_unit
-        else:
-            if uc.source_unit_slot:
-                from_unit = None
-            else:
-                slot_name = slot_derivation.populated_from
-                raise ValueError(f"No source unit provided in schema or transformation spec for slot '{slot_name}'")
-
-        if uc.source_unit_slot:
-            # Structured input, e.g., {"value": 120, "unit": "cm"}
-            from_unit_val = curr_v.get(uc.source_unit_slot)
-            if from_unit_val:
-                if from_unit and from_unit_val != from_unit:
-                    slot_name = slot_derivation.populated_from
-                    raise ValueError(
-                        f"Value unit '{from_unit_val}' does not match expected '{from_unit}' for slot '{slot_name}'"
-                    )
-                from_unit = from_unit_val
-            else:
-                raise ValueError(
-                    f"Missing unit in structured value for slot '{slot_derivation.populated_from}': {curr_v}"
-                )
-
-            magnitude = curr_v.get(uc.source_magnitude_slot)
-            if magnitude is None:
-                raise ValueError(
-                    f"Missing magnitude in structured value for slot '{slot_derivation.populated_from}': {curr_v}"
-                )
-        else:
-            magnitude = curr_v
-
-        try:
-            magnitude = float(magnitude)
-        except (TypeError, ValueError):
-            if uc.none_if_non_numeric:
-                return None
-            raise
-
-        to_unit = uc.target_unit or from_unit
-        if from_unit == to_unit:
-            result = magnitude
-        else:
-            result = convert_units(magnitude, from_unit=from_unit, to_unit=to_unit, system=system)
-
-        if uc.target_magnitude_slot:
-            return {uc.target_magnitude_slot: result, uc.target_unit_slot: to_unit}
-        return result
-
     def _multivalued_to_singlevalued(self, vs: list[Any], slot_derivation: SlotDerivation) -> Any:
         if slot_derivation.stringification:
             stringification = slot_derivation.stringification
@@ -1339,220 +1244,3 @@ class ObjectTransformer(Transformer):
             if enum_deriv.mirror_source:
                 return str(source_value)
         return None
-
-    def _perform_pivot_operation(
-        self,
-        pivot_op: PivotOperation,
-        source_obj: DICT_OBJ,
-        class_deriv: ClassDerivation,
-        sv: SchemaView,
-        source_type: str,
-    ) -> DICT_OBJ | list[DICT_OBJ]:
-        """
-        Perform a pivot (MELT or UNMELT) operation.
-
-        :param pivot_op: The pivot operation configuration
-        :param source_obj: The source object to transform
-        :param class_deriv: The class derivation spec
-        :param sv: Source schema view
-        :param source_type: Source type name
-        :return: Transformed object(s)
-        """
-        if pivot_op.direction == PivotDirectionType.UNMELT:
-            return self._perform_unmelt(pivot_op, source_obj, class_deriv, sv, source_type)
-        elif pivot_op.direction == PivotDirectionType.MELT:
-            return self._perform_melt(pivot_op, source_obj, class_deriv)
-        else:
-            msg = f"Unknown pivot direction: {pivot_op.direction}"
-            raise ValueError(msg)
-
-    def _perform_unmelt(
-        self,
-        pivot_op: PivotOperation,
-        source_obj: DICT_OBJ,
-        class_deriv: ClassDerivation,
-        sv: SchemaView,
-        source_type: str,
-    ) -> DICT_OBJ:
-        """
-        Transform EAV/long format to wide format.
-
-        Handles both single record and collection-based unmelt:
-        - Single record: {att: 'len', val: 1.0} -> {len: 1.0}
-        - Collection: [{att: 'h', val: 1.8}, {att: 'w', val: 75}] -> {h: 1.8, w: 75}
-
-        :param pivot_op: The pivot operation configuration
-        :param source_obj: The source object (may contain EAV records)
-        :param class_deriv: The class derivation spec
-        :param sv: Source schema view
-        :param source_type: Source type name
-        :return: Wide-format object
-        """
-        variable_slot = pivot_op.variable_slot or "variable"
-        value_slot = pivot_op.value_slot or "value"
-        unit_slot = pivot_op.unit_slot
-        template = pivot_op.slot_name_template or "{variable}"
-
-        # Check if source_obj itself is an EAV record (has variable and value slots)
-        if variable_slot in source_obj and value_slot in source_obj:
-            return self._unmelt_single_record(pivot_op, source_obj, variable_slot, value_slot, unit_slot, template)
-
-        # Otherwise, look for a collection of EAV records in the source
-        # Try to find a multivalued slot containing EAV records
-        for slot_name, slot_value in source_obj.items():
-            if isinstance(slot_value, list) and len(slot_value) > 0:
-                first_item = slot_value[0]
-                if isinstance(first_item, dict) and variable_slot in first_item:
-                    return self._unmelt_collection(pivot_op, slot_value)
-
-        # Fallback: treat source_obj as a single EAV record
-        return self._unmelt_single_record(pivot_op, source_obj, variable_slot, value_slot, unit_slot, template)
-
-    def _unmelt_single_record(
-        self,
-        pivot_op: PivotOperation,
-        record: DICT_OBJ,
-        variable_slot: str,
-        value_slot: str,
-        unit_slot: str | None,
-        template: str,
-    ) -> DICT_OBJ:
-        """
-        Unmelt a single EAV record into slot assignment(s).
-
-        Example:
-            Input:  {att: 'len', val: 1.0, unit: 'm'}
-            Output: {len_m: 1.0}
-        """
-        result = {}
-
-        # Copy ID slots (non-pivoted attributes)
-        if pivot_op.id_slots:
-            for id_slot in pivot_op.id_slots:
-                if id_slot in record:
-                    result[id_slot] = record[id_slot]
-
-        # Get variable and value
-        variable = record.get(variable_slot)
-        value = record.get(value_slot)
-
-        if variable is None:
-            logger.warning(f"No variable found in slot '{variable_slot}'")
-            return result
-
-        # Generate target slot name
-        if unit_slot and unit_slot in record:
-            unit = record[unit_slot]
-            target_slot_name = template.format(variable=variable, unit=unit)
-        else:
-            target_slot_name = template.format(variable=variable, unit="")
-
-        # Validate against target schema if unmelt_to_class specified
-        if pivot_op.unmelt_to_class and self.target_schemaview:
-            valid_slots = [s.name for s in self.target_schemaview.class_induced_slots(pivot_op.unmelt_to_class)]
-            if pivot_op.unmelt_to_slots:
-                valid_slots = [s for s in valid_slots if s in pivot_op.unmelt_to_slots]
-
-            if target_slot_name not in valid_slots:
-                logger.warning(
-                    f"Generated slot name '{target_slot_name}' not in valid slots for "
-                    f"class '{pivot_op.unmelt_to_class}'"
-                )
-
-        result[target_slot_name] = value
-        return result
-
-    def _unmelt_collection(
-        self,
-        pivot_op: PivotOperation,
-        records: list[DICT_OBJ],
-    ) -> DICT_OBJ:
-        """
-        Unmelt a collection of EAV records into a single wide object.
-
-        Example:
-            Input:  [{att: 'height', val: 1.8}, {att: 'weight', val: 75.0}]
-            Output: {height: 1.8, weight: 75.0}
-        """
-        result = {}
-        variable_slot = pivot_op.variable_slot or "variable"
-        value_slot = pivot_op.value_slot or "value"
-        unit_slot = pivot_op.unit_slot
-        template = pivot_op.slot_name_template or "{variable}"
-
-        for record in records:
-            variable = record.get(variable_slot)
-            value = record.get(value_slot)
-
-            if variable is None:
-                continue
-
-            if unit_slot and unit_slot in record:
-                unit = record[unit_slot]
-                target_slot = template.format(variable=variable, unit=unit)
-            else:
-                target_slot = template.format(variable=variable, unit="")
-
-            if target_slot in result:
-                logger.warning(f"Duplicate variable '{variable}' in unmelt; last value wins")
-
-            result[target_slot] = value
-
-        # Copy ID slots from the first record (assuming they're the same across all)
-        if pivot_op.id_slots and records:
-            for id_slot in pivot_op.id_slots:
-                if id_slot in records[0]:
-                    result[id_slot] = records[0][id_slot]
-
-        return result
-
-    def _perform_melt(
-        self,
-        pivot_op: PivotOperation,
-        source_obj: DICT_OBJ,
-        slot_derivation: SlotDerivation | None = None,
-    ) -> list[DICT_OBJ]:
-        """
-        Transform wide format to EAV/long format.
-
-        Example:
-            Input:  {height: 1.8, weight: 75.0}
-            Output: [{variable: 'height', value: 1.8}, {variable: 'weight', value: 75.0}]
-
-        :param pivot_op: The pivot operation configuration
-        :param source_obj: The source object in wide format
-        :param slot_derivation: Optional slot derivation (for context)
-        :return: List of EAV records
-        """
-        variable_slot = pivot_op.variable_slot or "variable"
-        value_slot = pivot_op.value_slot or "value"
-
-        # Determine which slots to melt
-        if pivot_op.source_slots:
-            slots_to_melt = list(pivot_op.source_slots)
-        elif pivot_op.unmelt_to_class and self.target_schemaview:
-            # Infer from target class
-            slots_to_melt = [s.name for s in self.target_schemaview.class_induced_slots(pivot_op.unmelt_to_class)]
-        else:
-            # Melt all non-ID slots
-            id_slots = set(pivot_op.id_slots or [])
-            slots_to_melt = [k for k in source_obj.keys() if k not in id_slots]
-
-        results = []
-        base_record = {}
-
-        # Copy ID slots to base record
-        if pivot_op.id_slots:
-            for id_slot in pivot_op.id_slots:
-                if id_slot in source_obj:
-                    base_record[id_slot] = source_obj[id_slot]
-
-        # Create one record per melted slot
-        for slot_name in slots_to_melt:
-            if slot_name in source_obj and source_obj[slot_name] is not None:
-                record = base_record.copy()
-                record[variable_slot] = slot_name
-                record[value_slot] = source_obj[slot_name]
-                results.append(record)
-
-        return results
