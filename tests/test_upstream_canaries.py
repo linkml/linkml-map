@@ -17,7 +17,7 @@ import pytest
         "list input to inlined-dict fields as {None: ...}. The proposed upstream "
         "fix hoists unambiguous single-key items (and errors on degenerate cases). "
         "Our test case is unambiguous so it will hoist. When this passes, remove "
-        "the PV-level branch from Transformer._pre_shape_expand_compact_keys."
+        "the PV-level branch from spec_normalizer._pre_shape_expand_compact_keys."
     ),
 )
 def test_reference_validator_normalizes_compact_key_pv_list():
