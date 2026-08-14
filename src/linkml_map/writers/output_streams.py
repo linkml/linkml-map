@@ -51,6 +51,8 @@ class OutputFormat(str, Enum):
     JSONL = "jsonl"
     TSV = "tsv"
     CSV = "csv"
+    PARQUET = "parquet"
+    DUCKDB = "duckdb"
 
 
 class StreamWriter(ABC):
@@ -92,6 +94,27 @@ class StreamWriter(ABC):
         for chunk in chunks:
             yield from self.write_chunk(chunk)
         yield from self.finalize()
+
+    def staging_path(self, target: Path) -> Path | None:
+        """
+        Path this writer's text fragments should be written to instead of *target*.
+
+        Writers whose final artifact is not the text they emit — a binary columnar file,
+        say — stage the text elsewhere and convert it in :meth:`finalize_path`, so *target*
+        never briefly holds content that doesn't match its extension.
+
+        :param target: The final output path.
+        :return: A staging path, or ``None`` to write directly to *target*.
+        """
+        return None
+
+    def finalize_path(self, target: Path, staged: Path | None) -> None:
+        """
+        Post-process a file target once every fragment has been written.
+
+        :param target: The final output path.
+        :param staged: The staging path used, if :meth:`staging_path` returned one.
+        """
 
 
 class JSONStreamWriter(StreamWriter):
@@ -432,6 +455,22 @@ class TabularStreamWriter(StreamWriter):
         """Get the final set of headers after streaming."""
         return list(self.headers)
 
+    def finalize_path(self, target: Path, staged: Path | None) -> None:  # noqa: ARG002
+        """
+        Rewrite the file with the full header set when later rows introduced new columns.
+
+        :param target: The written file.
+        :param staged: Unused; tabular output is written directly to *target*.
+        """
+        if not self._headers_changed:
+            return
+        logger.info("Rewriting %s with updated headers", target)
+        tmp_path = str(target) + ".tmp"
+        with open(target, encoding="utf-8") as src, open(tmp_path, "w", encoding="utf-8") as dst:
+            for line in rewrite_header_and_pad(iter(src), self.get_final_headers(), self.separator):
+                dst.write(line)
+        os.replace(tmp_path, str(target))
+
 
 def tsv_stream(
     chunks: Iterator[list[dict[str, Any]]],
@@ -538,6 +577,163 @@ def rewrite_header_and_pad(
             yield _write_row(fields)
 
 
+class ColumnarStreamWriter(StreamWriter):
+    """
+    Base for writers whose artifact is built by DuckDB from staged JSON Lines.
+
+    Objects are streamed to a staging ``.jsonl`` file exactly as :class:`JSONLStreamWriter`
+    writes them, then handed to DuckDB's ``read_json_auto``, which infers a column type per
+    field — including ``STRUCT`` for nested objects and ``STRUCT[]`` for lists of them.  So
+    nesting survives into the columnar artifact as typed columns, and a nested field stays a
+    column access for consumers rather than becoming a join.
+
+    Staging keeps the streaming contract intact: transformed objects are never all held in
+    memory, and the target path only ever contains the finished artifact.
+    """
+
+    def __init__(self) -> None:
+        """Initialize the writer with a JSONL writer to stage through."""
+        self._jsonl = JSONLStreamWriter()
+
+    def write_chunk(self, chunk: list[dict]) -> Iterator[str]:
+        """
+        Emit staged JSONL for a chunk.
+
+        :param chunk: A list of dictionaries.
+        :yield: JSONL fragments destined for the staging file.
+        """
+        yield from self._jsonl.write_chunk(chunk)
+
+    def finalize(self) -> Iterator[str]:
+        """
+        Emit any trailing staged content.
+
+        :yield: Trailing JSONL fragments.
+        """
+        yield from self._jsonl.finalize()
+
+    def staging_path(self, target: Path) -> Path:
+        """
+        Stage alongside *target* so the conversion is a local rename-free read.
+
+        :param target: The final output path.
+        :return: The staging path.
+        """
+        return target.with_name(target.name + ".staging.jsonl")
+
+    def finalize_path(self, target: Path, staged: Path | None) -> None:
+        """
+        Convert the staged JSONL into the final artifact, then remove the staging file.
+
+        :param target: The final output path.
+        :param staged: The staging path written during streaming.
+        :raises ValueError: If no staging file was produced.
+        """
+        if staged is None:
+            msg = f"{type(self).__name__} requires a staging file to convert from"
+            raise ValueError(msg)
+        import duckdb
+
+        connection = duckdb.connect(*self._connect_args(target))
+        try:
+            connection.execute(self._conversion_sql(target, staged))
+        finally:
+            connection.close()
+        staged.unlink()
+
+    def _connect_args(self, target: Path) -> tuple[str, ...]:
+        """
+        Arguments for ``duckdb.connect`` when converting.
+
+        :param target: The final output path.
+        :return: Positional arguments, empty for an in-memory connection.
+        """
+        return ()
+
+    def _conversion_sql(self, target: Path, staged: Path) -> str:
+        """
+        SQL converting *staged* into the final artifact.
+
+        :param target: The final output path.
+        :param staged: The staging JSONL path.
+        :return: A DuckDB statement.
+        """
+        raise NotImplementedError
+
+
+class ParquetStreamWriter(ColumnarStreamWriter):
+    """Writes a single Parquet file, readable outside the DuckDB ecosystem."""
+
+    def _conversion_sql(self, target: Path, staged: Path) -> str:
+        """
+        Build the ``COPY ... TO ... (FORMAT PARQUET)`` statement.
+
+        :param target: The Parquet file to write.
+        :param staged: The staging JSONL path.
+        :return: A DuckDB statement.
+        """
+        return f"COPY (SELECT * FROM read_json_auto({_sql_literal(staged)})) TO {_sql_literal(target)} (FORMAT PARQUET)"
+
+
+class DuckDBStreamWriter(ColumnarStreamWriter):
+    """
+    Writes one table into a DuckDB database file, creating the file if absent.
+
+    Repeated runs against the same path accumulate tables, so a database covering several
+    target classes is built by invoking the transform once per class.
+
+    :param table_name: Table to create.  Defaults to the output file's stem.
+    """
+
+    def __init__(self, table_name: str | None = None) -> None:
+        """Initialize the writer, optionally overriding the derived table name."""
+        super().__init__()
+        self.table_name = table_name
+
+    def _connect_args(self, target: Path) -> tuple[str, ...]:
+        """
+        Connect to the database file itself rather than an in-memory database.
+
+        :param target: The DuckDB file to write.
+        :return: Positional arguments for ``duckdb.connect``.
+        """
+        return (str(target),)
+
+    def _conversion_sql(self, target: Path, staged: Path) -> str:
+        """
+        Build the ``CREATE OR REPLACE TABLE ... AS SELECT`` statement.
+
+        :param target: The DuckDB file being written.
+        :param staged: The staging JSONL path.
+        :return: A DuckDB statement.
+        """
+        table = self.table_name or target.stem
+        return (
+            f"CREATE OR REPLACE TABLE {_quote_identifier(table)} AS "
+            f"SELECT * FROM read_json_auto({_sql_literal(staged)})"
+        )
+
+
+def _sql_literal(path: Path) -> str:
+    """
+    Render *path* as a SQL string literal.
+
+    :param path: Path to quote.
+    :return: A single-quoted SQL literal.
+    """
+    return "'" + str(path).replace("'", "''") + "'"
+
+
+def _quote_identifier(name: str) -> str:
+    """
+    Render *name* as a quoted SQL identifier.
+
+    :param name: Identifier to quote.
+    :return: A double-quoted SQL identifier.
+    """
+    return '"' + name.replace('"', '""') + '"'
+
+
 def get_stream_writer(output_format: OutputFormat) -> Any:
     """
     Get the appropriate stream writer for the given format.
@@ -572,6 +768,8 @@ EXTENSION_FORMAT_MAP = {
     ".jsonl": OutputFormat.JSONL,
     ".tsv": OutputFormat.TSV,
     ".csv": OutputFormat.CSV,
+    ".parquet": OutputFormat.PARQUET,
+    ".duckdb": OutputFormat.DUCKDB,
 }
 
 
@@ -579,6 +777,7 @@ def make_stream_writer(
     output_format: OutputFormat,
     key_name: str | None = None,
     separator: str | None = None,
+    table_name: str | None = None,
 ) -> StreamWriter:
     """
     Return the appropriate ``StreamWriter`` for a format.
@@ -586,9 +785,14 @@ def make_stream_writer(
     :param output_format: The desired output format.
     :param key_name: Optional key for formats that support wrapping (JSON, YAML).
     :param separator: Optional separator override for tabular formats.
+    :param table_name: Optional table name for DuckDB output.
     :return: A ``StreamWriter`` instance.
     :raises ValueError: If the format is not supported.
     """
+    if output_format == OutputFormat.PARQUET:
+        return ParquetStreamWriter()
+    if output_format == OutputFormat.DUCKDB:
+        return DuckDBStreamWriter(table_name=table_name)
     if output_format == OutputFormat.JSON:
         return JSONStreamWriter(key_name=key_name)
     if output_format == OutputFormat.JSONL:
@@ -627,13 +831,19 @@ class MultiStreamWriter:
         """
         handles: list[IO[str]] = []
         owned: list[bool] = []  # True when we opened the handle (so we close it)
+        staged: list[Path | None] = []
         try:
-            for _writer, target in self.outputs:
+            for writer, target in self.outputs:
                 if isinstance(target, Path):
-                    fh = open(target, "w", encoding="utf-8")  # noqa: SIM115
+                    # A writer whose artifact isn't the text it emits streams to a staging
+                    # file instead, and builds the real artifact in finalize_path.
+                    stage = writer.staging_path(target)
+                    staged.append(stage)
+                    fh = open(stage or target, "w", encoding="utf-8")  # noqa: SIM115
                     handles.append(fh)
                     owned.append(True)
                 else:
+                    staged.append(None)
                     handles.append(target)
                     owned.append(False)
 
@@ -653,12 +863,7 @@ class MultiStreamWriter:
                 if is_owned:
                     fh.close()
 
-        # Post-process tabular Path outputs that had header changes
-        for writer, target in self.outputs:
-            if isinstance(target, Path) and isinstance(writer, TabularStreamWriter) and writer.headers_changed:
-                logger.info("Rewriting %s with updated headers", target)
-                tmp_path = str(target) + ".tmp"
-                with open(target, encoding="utf-8") as src, open(tmp_path, "w", encoding="utf-8") as dst:
-                    for line in rewrite_header_and_pad(iter(src), writer.get_final_headers(), writer.separator):
-                        dst.write(line)
-                os.replace(tmp_path, str(target))
+        # Let each writer build or repair its own file artifact
+        for idx, (writer, target) in enumerate(self.outputs):
+            if isinstance(target, Path):
+                writer.finalize_path(target, staged[idx])

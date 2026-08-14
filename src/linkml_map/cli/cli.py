@@ -108,6 +108,11 @@ def main(verbose: int, quiet: bool) -> None:
     help="Number of records to process per chunk (for streaming output).",
 )
 @click.option(
+    "--table-name",
+    default=None,
+    help="Table name for DuckDB output. Defaults to the output file's stem.",
+)
+@click.option(
     "-O",
     "--additional-output",
     multiple=True,
@@ -144,6 +149,7 @@ def map_data(
     output: str | None,
     output_format: str | None,
     chunk_size: int,
+    table_name: str | None,
     additional_output: tuple,
     continue_on_error: bool = False,
     target_schema: str | None = None,
@@ -213,6 +219,7 @@ def map_data(
             output=output,
             output_format=output_format,
             chunk_size=chunk_size,
+            table_name=table_name,
             additional_output=additional_output,
             target_schema=target_schema,
             continue_on_error=continue_on_error,
@@ -407,6 +414,7 @@ def _map_data_streaming(
     output: str | None,
     output_format: str,
     chunk_size: int,
+    table_name: str | None = None,
     additional_output: tuple = (),
     target_schema: str | None = None,
     continue_on_error: bool = False,
@@ -463,7 +471,7 @@ def _map_data_streaming(
             raise click.ClickException(msg)
 
     primary_target = Path(output) if output else sys.stdout
-    all_outputs = [(make_stream_writer(fmt), primary_target), *extra_outputs]
+    all_outputs = [(make_stream_writer(fmt, table_name=table_name), primary_target), *extra_outputs]
     MultiStreamWriter(all_outputs).write_all(chunks)
 
     # Errors were already printed as they occurred; a mid-stream crash would
