@@ -6,6 +6,7 @@ from abc import ABC
 from collections.abc import Iterator
 from copy import deepcopy
 from dataclasses import dataclass, field
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -36,6 +37,20 @@ from linkml_map.utils.join_utils import infer_join_key
 from linkml_map.utils.schema_patch import apply_schema_patch
 
 logger = logging.getLogger(__name__)
+
+
+@lru_cache(maxsize=1)
+def _shape_normalizer() -> ReferenceValidator:
+    """Return the shared ReferenceValidator used by ``_shape_normalize``.
+
+    Constructing a ReferenceValidator materializes the derived transformer_model
+    schema. That process is expensive, so instead, a single instance is built
+    lazily and reused. The schema is a packaged constant and the validator does
+    not hold any per-call state, so caching is safe.
+    """
+    normalizer = ReferenceValidator(package_schemaview("linkml_map.datamodel.transformer_model"))
+    normalizer.expand_all = True
+    return normalizer
 
 
 def _iter_values_or_list(container: Any) -> Iterator[dict[str, Any]]:
@@ -340,9 +355,7 @@ class Transformer(ABC):
         injection. No field semantics are mutated.
         """
         cls._pre_shape_expand_compact_keys(obj)
-        normalizer = ReferenceValidator(package_schemaview("linkml_map.datamodel.transformer_model"))
-        normalizer.expand_all = True
-        normalized = cls.normalize_transform_spec(obj, normalizer)
+        normalized = cls.normalize_transform_spec(obj, _shape_normalizer())
         obj.clear()
         obj.update(normalized)
 
