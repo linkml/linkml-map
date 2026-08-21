@@ -5,6 +5,7 @@ import pytest
 import yaml
 from linkml_runtime import SchemaView
 
+from linkml_map.transformer.object_transformer import ObjectTransformer
 from tests.scaffold import EXPECTED_DATA, INPUT_DATA, SOURCE_SCHEMA, TARGET_SCHEMA, TRANSFORM_SPEC
 from tests.scaffold_container import (
     EXPECTED_DATA as CONTAINER_EXPECTED_DATA,
@@ -69,6 +70,42 @@ def add_to_test_setup(func: Callable) -> Callable:
     return func
 
 
+def setup_ids(setups: list[Callable]) -> list[str]:
+    """Readable parametrize ids for a list of setup functions.
+
+    :param setups: setup functions to label
+    :return: one id per setup, its docstring where it has one
+    :rtype: list[str]
+    """
+    return [f.__doc__ or f.__name__.removeprefix("setup_") for f in setups]
+
+
+def make_setup_registry() -> tuple[list[Callable], Callable]:
+    """Create a module-local setup list plus a decorator feeding it and the shared list.
+
+    Parametrizing directly over ``TEST_SETUP_FUNCTIONS`` only sees setups registered
+    before the parametrizing module is imported, because the decorator runs at import
+    time while ``integration_scaffold`` reads the list at fixture-execution time. A
+    setup defined in a later-collected module therefore joins the cumulative
+    integration run while getting no unit test of its own — silently, and while
+    perturbing an expectation owned by a different file.
+
+    A module-local list is guaranteed complete by the time that same module's
+    ``parametrize`` is evaluated, so each file unit-tests exactly its own setups while
+    integration still accumulates every file's.
+
+    :return: the module-local list, and a decorator registering into both
+    :rtype: tuple[list[Callable], Callable]
+    """
+    local: list[Callable] = []
+
+    def register(func: Callable) -> Callable:
+        local.append(func)
+        return add_to_test_setup(func)
+
+    return local, register
+
+
 @pytest.fixture
 def integration_scaffold(scaffold):
     """Return a scaffold with all registered integration setup functions applied."""
@@ -104,3 +141,18 @@ def integration_container_scaffold(container_scaffold):
     for setup_func in CONTAINER_TEST_SETUP_FUNCTIONS:
         setup_func(container_scaffold)
     return container_scaffold
+
+
+def run_transformer(scaffold: dict, source_type: str = "Person") -> dict:
+    """Run the object transformer over a scaffold and return the mapped object.
+
+    :param scaffold: scaffold dict holding schemas, spec and input data
+    :param source_type: source class to map from
+    :return: the transformed object
+    :rtype: dict
+    """
+    obj_tr = ObjectTransformer(unrestricted_eval=True)
+    obj_tr.source_schemaview = scaffold["source_schema"]
+    obj_tr.target_schemaview = scaffold["target_schema"]
+    obj_tr.create_transformer_specification(scaffold["transform_spec"])
+    return obj_tr.map_object(scaffold["input_data"], source_type=source_type)
