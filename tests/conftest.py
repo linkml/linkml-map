@@ -24,6 +24,27 @@ from tests.scaffold_container import (
 )
 
 
+def pytest_addoption(parser: pytest.Parser) -> None:
+    """Register the option that makes the compliance suite write its markdown report."""
+    parser.addoption(
+        "--compliance-out",
+        default=None,
+        metavar="PATH",
+        help="write the compliance suite's markdown report to PATH",
+    )
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    """Refuse to write a compliance report from a filtered run.
+
+    ``--compliance-out`` overwrites a published document, so writing whatever
+    subset ``-k`` or ``-m`` selected would silently truncate it.
+    """
+    if config.getoption("--compliance-out") and (config.option.keyword or config.option.markexpr):
+        msg = "--compliance-out writes the whole report; -k/-m would silently truncate it"
+        raise pytest.UsageError(msg)
+
+
 def yaml_load(file_path: Path) -> dict:
     return yaml.safe_load(file_path.read_text())
 
