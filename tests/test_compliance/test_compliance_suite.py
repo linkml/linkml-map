@@ -5,10 +5,12 @@ This is intended to test all features of the LinkML-Transformers language.
 Each test focuses on a single feature, and explores different combinations
 of schema, transformation specification, and source/target object pairs.
 
-Note that "print" statements are used intentionally here; when this
-test is run via pytest with ``-s -q --tb no --disable-warnings`` settings,
-the output is a markdown document that can be used as documentation, for
-both end users and developers.
+The suite narrates itself as it runs, via ``report.emit``. Running it with
+``--compliance-out PATH`` assembles those fragments into a markdown document
+that serves as documentation for both end users and developers; ``make
+specification`` writes it to ``docs/specification/compliance.md``. Without
+that option the report is buffered and discarded, so an ordinary test run
+leaves the working tree alone.
 
 This can also be helpful for developers of this test suite: due to
 the use of combinatorial exploration using pytest parametrization,
@@ -20,7 +22,7 @@ to see what is being generated for each test.
 import logging
 import re
 from dataclasses import dataclass
-from datetime import date
+from pathlib import Path
 from types import ModuleType
 from typing import Any
 
@@ -43,43 +45,31 @@ from linkml_map.inference.inverter import TransformationSpecificationInverter
 from linkml_map.inference.schema_mapper import SchemaMapper
 from linkml_map.transformer.errors import TransformationError
 from linkml_map.transformer.object_transformer import ObjectTransformer
-
-today = date.today()
-formatted_date = today.strftime("%Y-%m-%d")
+from tests.test_compliance import report
 
 logger = logging.getLogger(__name__)
 
-print(
-    f"""
-# LinkML-Map Compliance Suite
+REPO_ROOT = Path(__file__).resolve().parents[2]
+PACKAGE = Path(__file__).resolve().relative_to(REPO_ROOT).as_posix()
 
-This is the output from running the full compliance test suite.
 
-```yaml
-Time_executed: {formatted_date}
-Package: {__file__}
-```
+@pytest.fixture(scope="module", autouse=True)
+def compliance_report(request: pytest.FixtureRequest):
+    """Write the accumulated report once the whole suite has run, if asked to.
 
-It is organized into **Feature Sets** that test a particular feature or group of features,
-and **combinations** of different schemas, input objects, and transformation specifications.
-This is intended to exhaustively test all combinations of features, and provide informative
-output.
-
-Each test is designed to demonstrate:
-
-- data mapping (transformation)
-- derived schemas
-- inversion (reverse transformation) (in some cases)
-- compilation to other frameworks (coming soon)
-
-"""
-)
+    A failed or early-stopped run has only narrated part of the suite, so writing
+    would truncate the published document.
+    """
+    yield
+    out = request.config.getoption("--compliance-out")
+    if out and not request.session.testsfailed:
+        report.write(Path(out), PACKAGE)
 
 
 def print_yaml(obj: Any) -> None:
-    print("```yaml")
-    print(yaml_dumper.dumps(obj))
-    print("```\n")
+    report.emit("```yaml")
+    report.emit(yaml_dumper.dumps(obj))
+    report.emit("```\n")
 
 
 def build_schema(name: str, **kwargs: dict[str, Any]) -> SchemaDefinition:
@@ -88,7 +78,7 @@ def build_schema(name: str, **kwargs: dict[str, Any]) -> SchemaDefinition:
     schema.default_prefix = "test"
     for k, v in [("linkml", "https://w3id.org/linkml/"), ("test", "http://example.org/test/")]:
         schema.prefixes[k] = Prefix(k, v)
-    print("**Source Schema**: \n\n")
+    report.emit("**Source Schema**: \n\n")
     print_yaml(schema)
     return schema
 
@@ -96,7 +86,7 @@ def build_schema(name: str, **kwargs: dict[str, Any]) -> SchemaDefinition:
 def build_transformer(**kwargs: dict[str, Any]) -> TransformationSpecification:
     mapper = ObjectTransformer()
     mapper.create_transformer_specification(kwargs)
-    print("**Transformer Specification**:\n\n")
+    report.emit("**Transformer Specification**:\n\n")
     print_yaml(mapper.specification)
     return mapper.specification
 
@@ -115,8 +105,8 @@ def create_compilers(spec: TransformationSpecification, expected_map: dict[Modul
     for compiler_type, expected in expected_map.items():
         compiler = compiler_type()
         compiled_spec = compiler.compile(spec)
-        print(f"**Compiled Specification ({compiler_type.__name__})**:\n\n")
-        print(compiled_spec.serialization)
+        report.emit(f"**Compiled Specification ({compiler_type.__name__})**:\n\n")
+        report.emit(compiled_spec.serialization)
         assert expected in compiled_spec.serialization
 
 
@@ -176,14 +166,14 @@ def map_object(
         target_object = mapper.map_object(source_object)
     assert target_object == expected_target_object, f"failed to map {source_object} to {expected_target_object}"
     assert not DeepDiff(target_object, expected_target_object), "unexpected differences"
-    print("**Object Transformation**:\n")
+    report.emit("**Object Transformation**:\n")
     if raises_error:
-        print(f"**Expected Error**: {raises_error.__name__}")
-    print(" * Source Object:")
+        report.emit(f"**Expected Error**: {raises_error.__name__}")
+    report.emit(" * Source Object:")
     print_yaml(source_object)
-    print(" * Target Object:")
+    report.emit(" * Target Object:")
     print_yaml(target_object)
-    print("**Target Schema (Derived)**:\n\n")
+    report.emit("**Target Schema (Derived)**:\n\n")
     print_yaml(target_schema)
     if target_object is not None:
         # remove `foo: None` entries
@@ -195,7 +185,7 @@ def map_object(
             target_schemaview=target_sv,
         )
         inv_spec = inverter.invert(spec)
-        print("**Inverted Transformation Specification** (Derived):\n\n")
+        report.emit("**Inverted Transformation Specification** (Derived):\n\n")
         print_yaml(inv_spec)
         inv_mapper = ObjectTransformer(source_schemaview=target_sv, specification=inv_spec)
         inv_target_object = inv_mapper.map_object(target_object)
@@ -231,7 +221,7 @@ def invocation_tracker(request: pytest.FixtureRequest) -> bool:
     if not hasattr(request.config, key):
         setattr(request.config, key, True)
         test_function = node.function
-        print(f"## Feature Set: {node.originalname}\n")
+        report.emit(f"## Feature Set: {node.originalname}\n")
         docstring = test_function.__doc__
         if not docstring:
             msg = f"Test {node.originalname} has no docstring"
@@ -245,11 +235,11 @@ def invocation_tracker(request: pytest.FixtureRequest) -> bool:
                 pname, pdesc = match.groups()
                 if pname == "invocation_tracker":
                     continue
-                print(f"* **{pname}**: {pdesc}")
+                report.emit(f"* **{pname}**: {pdesc}")
             else:
-                print(line)
+                report.emit(line)
         first_invocation = True
-    print(f"### Combo: {node.name}\n")
+    report.emit(f"### Combo: {node.name}\n")
     return first_invocation
 
 
@@ -292,11 +282,11 @@ def test_map_types(
     :param invertible: True if the transformation is invertible
     :return:
     """
-    print(f"Mapping `{source_datatype}` => `{target_datatype}`\n\n")
+    report.emit(f"Mapping `{source_datatype}` => `{target_datatype}`\n\n")
     if source_datatype == target_datatype:
-        print("Isomorphic mapping: input should equal output\n")
+        report.emit("Isomorphic mapping: input should equal output\n")
     else:
-        print("Should coerce datatype\n")
+        report.emit("Should coerce datatype\n")
     classes = {"C": {"attributes": {"s1": {"range": source_datatype}}}}
     schema = build_schema(
         "types",
@@ -366,11 +356,11 @@ def test_map_collections(
     :param invertible: True if the transformation is invertible
     :return:
     """
-    print(f"Mapping `{source_datatype}` => `{target_datatype}`\n\n")
+    report.emit(f"Mapping `{source_datatype}` => `{target_datatype}`\n\n")
     if source_datatype == target_datatype:
-        print("Isomorphic mapping: **input must equal output**\n")
+        report.emit("Isomorphic mapping: **input must equal output**\n")
     else:
-        print("Should coerce datatype\n")
+        report.emit("Should coerce datatype\n")
     source_collection_type = (
         CollectionType.MultiValuedList if isinstance(source_value, list) else CollectionType.MultiValuedDict
     )
@@ -594,13 +584,14 @@ def test_simple_unit_conversion(
     :return:
     """
     if skip:
+        report.emit(f"**Not yet supported**: {skip}\n")
         pytest.skip(f"TODO: {skip}")
-    print(
+    report.emit(
         f"Unit Conversion: `{source_value}` `{source_unit}` => "
         f"`{target_value}` `{target_unit}` [with {source_slot}]\n\n"
     )
     if source_unit == target_unit:
-        print("Isomorphic mapping: **input must equal output**")
+        report.emit("Isomorphic mapping: **input must equal output**")
     classes = {
         "C": {
             "attributes": {
@@ -1097,6 +1088,7 @@ def test_map_enum(
     if target_value is None:
         invertible = False
     if mirror_source:
+        report.emit("**Not yet supported**: mirror_source\n")
         pytest.skip("TODO: mirror_source")
     map_object(
         spec=spec,

@@ -14,6 +14,7 @@ the transformer's load methods, :class:`~linkml_map.session.Session`,
 
 import warnings
 from collections.abc import Iterator
+from functools import lru_cache
 from typing import Any
 
 from linkml_runtime.processing.referencevalidator import ReferenceValidator
@@ -99,6 +100,20 @@ def normalize_spec(obj: dict[str, Any], *, silent: bool = False) -> list[Validat
     return messages
 
 
+@lru_cache(maxsize=1)
+def _shape_normalizer() -> ReferenceValidator:
+    """Return the shared ReferenceValidator used by ``_shape_normalize``.
+
+    Constructing a ReferenceValidator materializes the derived transformer_model
+    schema. That process is expensive, so instead, a single instance is built
+    lazily and reused. The schema is a packaged constant and the validator does
+    not hold any per-call state, so caching is safe.
+    """
+    normalizer = ReferenceValidator(package_schemaview("linkml_map.datamodel.transformer_model"))
+    normalizer.expand_all = True
+    return normalizer
+
+
 def _shape_normalize(obj: dict[str, Any]) -> None:
     """Canonicalize the structural shape of every derivation section.
 
@@ -109,9 +124,7 @@ def _shape_normalize(obj: dict[str, Any]) -> None:
     injection. No field semantics are mutated.
     """
     _pre_shape_expand_compact_keys(obj)
-    normalizer = ReferenceValidator(package_schemaview("linkml_map.datamodel.transformer_model"))
-    normalizer.expand_all = True
-    normalized = normalize_transform_spec(obj, normalizer)
+    normalized = normalize_transform_spec(obj, _shape_normalizer())
     obj.clear()
     obj.update(normalized)
 
