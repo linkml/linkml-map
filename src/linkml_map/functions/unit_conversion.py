@@ -7,12 +7,19 @@ For UCUM, the ucumvert library is used to convert UCUM units to pint units,
 see `<https://github.com/dalito/ucumvert>`_.
 """
 
+import logging
 from enum import Enum
 from functools import lru_cache
+from typing import Any
 
 import lark
 import pint
+from linkml_runtime import SchemaView
 from ucumvert import PintUcumRegistry
+
+from linkml_map.datamodel.transformer_model import SlotDerivation
+
+logger = logging.getLogger(__name__)
 
 
 class UnitSystem(str, Enum):
@@ -160,3 +167,111 @@ def normalize_unit(unit: str, system: UnitSystem | None = None) -> str:
     except lark.exceptions.UnexpectedCharacters as err:
         msg = f"Cannot parse unit: {unit}"
         raise UndefinedUnitError(msg) from err
+
+
+def perform_unit_conversion(
+    slot_derivation: SlotDerivation,
+    source_obj: dict[str, Any],
+    sv: SchemaView,
+    source_type: str,
+) -> float | dict | None:
+    """Convert a slot's value between units, per its ``unit_conversion`` config.
+
+    Takes the source row, schemaview and source type explicitly rather than a
+    ``DerivationContext``: that type lives in ``object_transformer``, which imports
+    this module, so depending on it here would be circular.
+
+    :param slot_derivation: the derivation carrying the ``unit_conversion`` block
+    :param source_obj: the source row
+    :param sv: source schema view, for resolving the slot's declared unit
+    :param source_type: source class name
+    :return: the converted magnitude, a structured value, or None
+    :rtype: float | dict | None
+    """
+    uc = slot_derivation.unit_conversion
+    curr_v = source_obj.get(slot_derivation.populated_from, None)
+
+    if curr_v is None:
+        logger.debug(f"No value found for slot '{slot_derivation.populated_from}'; skipping conversion")
+        return None
+
+    slot = sv.induced_slot(slot_derivation.populated_from, source_type)
+    schema_unit = None
+    from_unit = None
+    system = UnitSystem.UCUM
+
+    if slot.unit:
+        if slot.unit.ucum_code:
+            schema_unit = slot.unit.ucum_code
+        elif slot.unit.iec61360code:
+            schema_unit = slot.unit.iec61360code
+            system = UnitSystem.IEC61360
+        elif slot.unit.symbol:
+            schema_unit = slot.unit.symbol
+            system = None
+        elif slot.unit.abbreviation:
+            schema_unit = slot.unit.abbreviation
+            system = None
+        elif slot.unit.descriptive_name:
+            schema_unit = slot.unit.descriptive_name
+            system = None
+        else:
+            raise NotImplementedError(f"Cannot determine unit system for slot '{slot.name}' — all unit fields are None")
+
+    spec_unit = uc.source_unit if uc.source_unit else None
+
+    if schema_unit and spec_unit:
+        if schema_unit != spec_unit:
+            raise ValueError(
+                f"Mismatch in source units for slot '{slot_derivation.populated_from}': "
+                f"schema unit '{schema_unit}' vs. transformation spec '{spec_unit}'"
+            )
+        from_unit = schema_unit
+    elif schema_unit:
+        from_unit = schema_unit
+    elif spec_unit:
+        from_unit = spec_unit
+    else:
+        if uc.source_unit_slot:
+            from_unit = None
+        else:
+            slot_name = slot_derivation.populated_from
+            raise ValueError(f"No source unit provided in schema or transformation spec for slot '{slot_name}'")
+
+    if uc.source_unit_slot:
+        # Structured input, e.g., {"value": 120, "unit": "cm"}
+        from_unit_val = curr_v.get(uc.source_unit_slot)
+        if from_unit_val:
+            if from_unit and from_unit_val != from_unit:
+                slot_name = slot_derivation.populated_from
+                raise ValueError(
+                    f"Value unit '{from_unit_val}' does not match expected '{from_unit}' for slot '{slot_name}'"
+                )
+            from_unit = from_unit_val
+        else:
+            raise ValueError(f"Missing unit in structured value for slot '{slot_derivation.populated_from}': {curr_v}")
+
+        magnitude = curr_v.get(uc.source_magnitude_slot)
+        if magnitude is None:
+            raise ValueError(
+                f"Missing magnitude in structured value for slot '{slot_derivation.populated_from}': {curr_v}"
+            )
+    else:
+        magnitude = curr_v
+
+    try:
+        magnitude = float(magnitude)
+    except (TypeError, ValueError):
+        if uc.none_if_non_numeric:
+            return None
+        raise
+
+    to_unit = uc.target_unit or from_unit
+    if from_unit == to_unit:
+        result = magnitude
+    else:
+        result = convert_units(magnitude, from_unit=from_unit, to_unit=to_unit, system=system)
+
+    if uc.target_magnitude_slot:
+        return {uc.target_magnitude_slot: result, uc.target_unit_slot: to_unit}
+    return result
