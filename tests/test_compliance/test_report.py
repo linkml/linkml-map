@@ -63,16 +63,16 @@ def test_writes_lf_line_endings(tmp_path: Path, existing: str | None) -> None:
 def test_timestamp_alone_does_not_trigger_a_write(tmp_path: Path, stamp: str, expected_write: bool) -> None:
     """Identical content leaves the file untouched however stale its date."""
     target = tmp_path / "compliance.md"
-    target.write_text(DOC.replace("Time_executed: 2026-08-06", stamp))
-    before = target.read_text()
+    target.write_bytes(DOC.replace("Time_executed: 2026-08-06", stamp).encode("utf-8"))
+    before = target.read_bytes()
     assert write_if_changed(target, DOC) is expected_write
-    assert target.read_text() == before, "an unchanged report must not be restamped"
+    assert target.read_bytes() == before, "an unchanged report must not be restamped"
 
 
 def test_changed_content_rewrites_and_carries_the_new_stamp(tmp_path: Path) -> None:
     """A real change is written out, taking the fresh timestamp with it."""
     target = tmp_path / "compliance.md"
-    target.write_text(DOC.replace("Time_executed: 2026-08-06", "Time_executed: 2001-01-01"))
+    target.write_bytes(DOC.replace("Time_executed: 2026-08-06", "Time_executed: 2001-01-01").encode("utf-8"))
     changed = DOC.replace("test_join", "test_join_rewritten")
     assert write_if_changed(target, changed) is True
     assert target.read_text() == changed
