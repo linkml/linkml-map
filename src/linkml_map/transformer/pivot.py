@@ -14,10 +14,8 @@ from typing import Any
 from linkml_runtime import SchemaView
 
 from linkml_map.datamodel.transformer_model import (
-    ClassDerivation,
     PivotDirectionType,
     PivotOperation,
-    SlotDerivation,
 )
 
 logger = logging.getLogger(__name__)
@@ -28,25 +26,20 @@ DICT_OBJ = dict[str, Any]
 def perform_pivot_operation(
     pivot_op: PivotOperation,
     source_obj: DICT_OBJ,
-    class_deriv: ClassDerivation,
-    sv: SchemaView,
-    source_type: str,
-    target_sv: SchemaView | None = None,
+    target_sv: SchemaView | None,
 ) -> DICT_OBJ | list[DICT_OBJ]:
     """
     Perform a pivot (MELT or UNMELT) operation.
 
     :param pivot_op: The pivot operation configuration
     :param source_obj: The source object to transform
-    :param class_deriv: The class derivation spec
-    :param sv: Source schema view
-    :param source_type: Source type name
+    :param target_sv: Target schema view, used to resolve ``unmelt_to_class``
     :return: Transformed object(s)
     """
     if pivot_op.direction == PivotDirectionType.UNMELT:
-        return _perform_unmelt(pivot_op, source_obj, class_deriv, sv, source_type, target_sv)
+        return _perform_unmelt(pivot_op, source_obj, target_sv)
     elif pivot_op.direction == PivotDirectionType.MELT:
-        return perform_melt(pivot_op, source_obj, class_deriv, target_sv)
+        return perform_melt(pivot_op, source_obj, target_sv)
     else:
         msg = f"Unknown pivot direction: {pivot_op.direction}"
         raise ValueError(msg)
@@ -55,10 +48,7 @@ def perform_pivot_operation(
 def _perform_unmelt(
     pivot_op: PivotOperation,
     source_obj: DICT_OBJ,
-    class_deriv: ClassDerivation,
-    sv: SchemaView,
-    source_type: str,
-    target_sv: SchemaView | None = None,
+    target_sv: SchemaView | None,
 ) -> DICT_OBJ:
     """
     Transform EAV/long format to wide format.
@@ -69,9 +59,7 @@ def _perform_unmelt(
 
     :param pivot_op: The pivot operation configuration
     :param source_obj: The source object (may contain EAV records)
-    :param class_deriv: The class derivation spec
-    :param sv: Source schema view
-    :param source_type: Source type name
+    :param target_sv: Target schema view, used to resolve ``unmelt_to_class``
     :return: Wide-format object
     """
     variable_slot = pivot_op.variable_slot or "variable"
@@ -85,7 +73,7 @@ def _perform_unmelt(
 
     # Otherwise, look for a collection of EAV records in the source
     # Try to find a multivalued slot containing EAV records
-    for slot_name, slot_value in source_obj.items():
+    for slot_value in source_obj.values():
         if isinstance(slot_value, list) and len(slot_value) > 0:
             first_item = slot_value[0]
             if isinstance(first_item, dict) and variable_slot in first_item:
@@ -102,7 +90,7 @@ def _unmelt_single_record(
     value_slot: str,
     unit_slot: str | None,
     template: str,
-    target_sv: SchemaView | None = None,
+    target_sv: SchemaView | None,
 ) -> DICT_OBJ:
     """
     Unmelt a single EAV record into slot assignment(s).
@@ -196,8 +184,7 @@ def _unmelt_collection(
 def perform_melt(
     pivot_op: PivotOperation,
     source_obj: DICT_OBJ,
-    slot_derivation: SlotDerivation | None = None,
-    target_sv: SchemaView | None = None,
+    target_sv: SchemaView | None,
 ) -> list[DICT_OBJ]:
     """
     Transform wide format to EAV/long format.
@@ -208,7 +195,7 @@ def perform_melt(
 
     :param pivot_op: The pivot operation configuration
     :param source_obj: The source object in wide format
-    :param slot_derivation: Optional slot derivation (for context)
+    :param target_sv: Target schema view, used to resolve ``unmelt_to_class``
     :return: List of EAV records
     """
     variable_slot = pivot_op.variable_slot or "variable"

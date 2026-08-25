@@ -395,9 +395,7 @@ class ObjectTransformer(Transformer):
 
         # Handle class-level pivot operations (UNMELT from EAV to wide format)
         if class_deriv.pivot_operation:
-            return perform_pivot_operation(
-                class_deriv.pivot_operation, source_obj, class_deriv, sv, source_type, self.target_schemaview
-            )
+            return perform_pivot_operation(class_deriv.pivot_operation, source_obj, self.target_schemaview)
 
         context = DerivationContext(
             source_obj=source_obj,
@@ -478,9 +476,7 @@ class ObjectTransformer(Transformer):
             v = perform_unit_conversion(slot_derivation, context.source_obj, context.sv, context.source_type)
         elif slot_derivation.pivot_operation:
             # MELT operation: wide format to EAV/long format
-            v = perform_melt(
-                slot_derivation.pivot_operation, context.source_obj, slot_derivation, self.target_schemaview
-            )
+            v = perform_melt(slot_derivation.pivot_operation, context.source_obj, self.target_schemaview)
         elif slot_derivation.expr:
             v = self._eval_expr(slot_derivation.expr, bindings, functions=expr_functions)
         elif slot_derivation.populated_from:
