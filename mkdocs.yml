@@ -25,12 +25,12 @@ markdown_extensions:
 nav:
   - Index: index.md
   - Examples:
-      Tutorial: examples/Tutorial.ipynb
-      Compilation to SQL: examples/Tutorial-SQLCompiler.ipynb
-      Metamodel Mapping: examples/MetamodelMapping.ipynb
+      - Tutorial: examples/Tutorial.ipynb
+      - Compilation to SQL: examples/Tutorial-SQLCompiler.ipynb
+      - Metamodel Mapping: examples/MetamodelMapping.ipynb
   - Specification:
-      Data Model: schema/datamodel.md
-      Compliance Suite: specification/compliance.md
+      - Data Model: schema/datamodel.md
+      - Compliance Suite: specification/compliance.md
   - API:
       - Session: api/session.md
       - Transformer: api/transformer.md
