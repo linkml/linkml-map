@@ -1,8 +1,8 @@
 """Pivot (MELT / UNMELT) operations for EAV-shaped data.
 
 Extracted from ``ObjectTransformer`` (issue #304). These never touched instance
-state beyond ``target_schemaview``, which the two functions that need it now take
-explicitly, so they are plain module functions rather than methods.
+state beyond ``target_schemaview``, which is now a required ``target_sv``
+parameter, so they are plain module functions rather than methods.
 
 ``perform_pivot_operation`` and ``perform_melt`` are the entry points the
 transformer calls; the rest are internal steps.
