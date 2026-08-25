@@ -1232,7 +1232,7 @@ class ObjectTransformer(Transformer):
                     msg = (
                         f"PermissibleValueDerivation '{pv_deriv.name}' has 'sources' set; "
                         "this should have been migrated to 'populated_from' during spec load. "
-                        "Did the spec bypass Transformer._normalize_spec_dict?"
+                        "Did the spec bypass linkml_map.spec_normalizer.normalize_spec?"
                     )
                     raise SpecificationError(msg)
                 if pv_deriv.populated_from and source_value in pv_deriv.populated_from:
