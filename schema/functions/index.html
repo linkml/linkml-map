@@ -88,7 +88,9 @@ see <code>&lt;https://github.com/dalito/ucumvert&gt;</code>_.</p>
 
 
 
-  <div class="doc doc-children">
+
+<div class="doc doc-children">
+
 
 
 
@@ -113,6 +115,7 @@ see <code>&lt;https://github.com/dalito/ucumvert&gt;</code>_.</p>
               Bases: <code><span title="Exception">Exception</span></code></p>
 
 
+
         <p>Raised when a unit conversion cannot be performed.</p>
 <p>Note: equivalent to the pint error, but the
 pint dependency is optional</p>
@@ -123,7 +126,8 @@ pint dependency is optional</p>
 
 
 
-              <details class="quote">
+
+              <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/linkml_map/functions/unit_conversion.py</code></summary>
                 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">40</span>
 <span class="normal">41</span>
@@ -161,6 +165,7 @@ pint dependency is optional</p>
               Bases: <code><span title="Exception">Exception</span></code></p>
 
 
+
         <p>Raised when a unit is not defined.</p>
 <p>Note: equivalent to the pint error, but the
 pint dependency is optional</p>
@@ -171,7 +176,8 @@ pint dependency is optional</p>
 
 
 
-              <details class="quote">
+
+              <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/linkml_map/functions/unit_conversion.py</code></summary>
                 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">31</span>
 <span class="normal">32</span>
@@ -209,6 +215,7 @@ pint dependency is optional</p>
               Bases: <code><span title="str">str</span></code>, <code><span title="enum.Enum">Enum</span></code></p>
 
 
+
         <p>Enumeration of supported unit systems.</p>
 
 
@@ -217,7 +224,8 @@ pint dependency is optional</p>
 
 
 
-              <details class="quote">
+
+              <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/linkml_map/functions/unit_conversion.py</code></summary>
                 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">18</span>
 <span class="normal">19</span>
@@ -235,7 +243,8 @@ pint dependency is optional</p>
 
 
 
-  <div class="doc doc-children">
+<div class="doc doc-children">
+
 
 
 
@@ -296,7 +305,7 @@ convert_units("3.14", "m", "cm")
 :return: converted magnitude</p>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/linkml_map/functions/unit_conversion.py</code></summary>
               <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">49</span>
 <span class="normal">50</span>
@@ -429,8 +438,8 @@ ureg.from_ucum("m/s2.kg")
 <Quantity(1.0, 'meter * kilogram / second ** 2')>
 str(<em>)
 '1.0 kilogram * meter / second ** 2'
-ureg.from_ucum("m[H2O]{35Cel}")  # UCUM code with annotation
-<Quantity(1, 'm_H2O')>
+ureg.from_ucum("m[H2O]{35Cel}")  # annotated UCUM code; ucumvert &lt;0.3 names it m_H2O, &gt;=0.3 meter_H2O
+<Quantity(1, '..._H2O')>
 </em>.to("mbar")
 <Quantity(98.0665, 'millibar')>
 ureg("degC")   # a standard pint unit
@@ -453,7 +462,7 @@ sireg("ha")
 :return:</p>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/linkml_map/functions/unit_conversion.py</code></summary>
               <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">102</span>
 <span class="normal">103</span>
@@ -511,8 +520,8 @@ sireg("ha")
 <span class="sd">    &lt;Quantity(1.0, &#39;meter * kilogram / second ** 2&#39;)&gt;</span>
 <span class="sd">    &gt;&gt;&gt; str(_)</span>
 <span class="sd">    &#39;1.0 kilogram * meter / second ** 2&#39;</span>
-<span class="sd">    &gt;&gt;&gt; ureg.from_ucum(&quot;m[H2O]{35Cel}&quot;)  # UCUM code with annotation</span>
-<span class="sd">    &lt;Quantity(1, &#39;m_H2O&#39;)&gt;</span>
+<span class="sd">    &gt;&gt;&gt; ureg.from_ucum(&quot;m[H2O]{35Cel}&quot;)  # annotated UCUM code; ucumvert &lt;0.3 names it m_H2O, &gt;=0.3 meter_H2O</span>
+<span class="sd">    &lt;Quantity(1, &#39;..._H2O&#39;)&gt;</span>
 <span class="sd">    &gt;&gt;&gt; _.to(&quot;mbar&quot;)</span>
 <span class="sd">    &lt;Quantity(98.0665, &#39;millibar&#39;)&gt;</span>
 <span class="sd">    &gt;&gt;&gt; ureg(&quot;degC&quot;)   # a standard pint unit</span>
@@ -564,7 +573,7 @@ sireg("ha")
         <p>Normalize the unit to UnitSystem.UCUM, if possible.</p>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/linkml_map/functions/unit_conversion.py</code></summary>
               <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">149</span>
 <span class="normal">150</span>
