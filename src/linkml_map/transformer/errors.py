@@ -14,7 +14,7 @@ class SpecificationError(ValueError):
     both ``populated_from`` and ``sources`` on the same derivation, or
     setting both ``object_derivations`` and ``class_derivations`` on a
     slot). Subclasses ``ValueError`` for backward compatibility with
-    callers that already catch ``ValueError`` from ``_normalize_spec_dict``.
+    callers that already catch ``ValueError`` from ``normalize_spec``.
     """
 
 

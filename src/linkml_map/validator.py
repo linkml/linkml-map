@@ -20,11 +20,10 @@ import ast
 import concurrent.futures
 import json
 import logging
-from dataclasses import dataclass
 from datetime import date, datetime
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Literal, NamedTuple
+from typing import Any, NamedTuple
 
 import jsonschema
 import yaml
@@ -32,7 +31,9 @@ from linkml.generators.jsonschemagen import JsonSchemaGenerator
 from linkml_runtime import SchemaView
 
 from linkml_map.datamodel import TR_SCHEMA
-from linkml_map.transformer.transformer import Transformer
+from linkml_map.spec_normalizer import normalize_spec
+from linkml_map.spec_scan import ValidationMessage, iter_derivation_dicts
+from linkml_map.spec_scan import check_deprecated_fields as check_deprecated_fields  # re-export
 from linkml_map.utils.eval_utils import FUNCTIONS
 from linkml_map.utils.join_utils import resolve_join
 
@@ -60,25 +61,6 @@ _EXPR_SAFE_NAMES = frozenset(
         *FUNCTIONS.keys(),
     }
 )
-
-
-@dataclass
-class ValidationMessage:
-    """A single validation finding with severity and location context.
-
-    ``category`` is an optional tag that downstream consumers can use to
-    group or filter messages. The validator currently emits ``"deprecated"``
-    for warnings about deprecated field usage; other categories may be
-    added in the future.
-    """
-
-    severity: Literal["error", "warning", "info"]
-    path: str
-    message: str
-    category: str | None = None
-
-    def __str__(self) -> str:
-        return f"{self.path}: [{self.severity}] {self.message}"
 
 
 # ---------------------------------------------------------------------------
@@ -166,15 +148,15 @@ def _normalize_and_collect_messages(
 ) -> tuple[dict[str, Any], list[ValidationMessage]]:
     """Normalize and return both the dict and the pre-normalize scan messages.
 
-    Internal helper used by :func:`validate_spec`. Calls the transformer's
-    normalization in silent mode so scan findings are returned as
-    ``ValidationMessage`` records rather than emitted as Python warnings or
-    raised as ``SpecificationError``.
+    Internal helper used by :func:`validate_spec`. Calls
+    :func:`~linkml_map.spec_normalizer.normalize_spec` in silent mode so scan
+    findings are returned as ``ValidationMessage`` records rather than emitted
+    as Python warnings or raised as ``SpecificationError``.
     """
     obj = dict(obj)
     messages: list[ValidationMessage] = []
     try:
-        messages = Transformer._normalize_spec_dict(obj, silent=True) or []
+        messages = normalize_spec(obj, silent=True) or []
     except Exception:
         logger.debug("Normalization failed; falling back to raw dict", exc_info=True)
     for field in _COERCE_FIELDS:
@@ -502,193 +484,6 @@ def _resolve_schemaview(
         return None
 
 
-def _iter_derivation_dicts(raw: Any) -> list[dict[str, Any]]:
-    """Normalize a derivations section (dict or list) to a list of dicts.
-
-    Assumes the SHAPE phase of ``Transformer._normalize_spec_dict`` has
-    already canonicalized compact-key list items, so callers only need to
-    handle dict-keyed and explicit-name list forms here.
-    """
-    if isinstance(raw, list):
-        return [item for item in raw if isinstance(item, dict)]
-    if isinstance(raw, dict):
-        result: list[dict[str, Any]] = []
-        for name, body in raw.items():
-            d = dict(body) if isinstance(body, dict) else {}
-            d.setdefault("name", name)
-            result.append(d)
-        return result
-    return []
-
-
-def check_deprecated_fields(data: dict[str, Any]) -> list[ValidationMessage]:
-    """Scan a spec dict for deprecated-field usage and ambiguous combinations.
-
-    Runs in the SCAN phase of ``Transformer._normalize_spec_dict`` — after
-    SHAPE (which runs ``ReferenceValidator.normalize()`` and the local
-    compact-key pre-expansion) and before MIGRATE (which flattens
-    ``object_derivations``, inherits ``populated_from``, and rewrites PV
-    ``sources``). So the dict the scan sees is structurally canonical
-    (dict-keyed or explicit-name list, no compact-key items) but the
-    deprecated field values are still as the user wrote them.
-
-    Flags:
-
-    * ``sources`` on ``ClassDerivation`` / ``SlotDerivation`` /
-      ``EnumDerivation`` / ``PermissibleValueDerivation`` — replaced by
-      ``populated_from``. Severity: warning, category: deprecated.
-    * ``derived_from`` on ``SlotDerivation`` — ignored by the runtime
-      and removable. Severity: warning, category: deprecated.
-    * ``object_derivations`` on ``SlotDerivation`` — flattened into
-      ``class_derivations`` at load time. Severity: warning, category:
-      deprecated.
-    * ``populated_from`` **and** ``sources`` both set on the same
-      ``PermissibleValueDerivation`` — ambiguous, the user almost
-      certainly didn't mean both. Severity: error.
-    * ``object_derivations`` **and** ``class_derivations`` both set on
-      the same ``SlotDerivation`` — ambiguous. Severity: error.
-    * ``source_schema`` / ``target_schema`` set to a bare string — the
-      original form, now superseded by the ``SchemaReference`` object
-      form (``{name: ...}``). Coerced at load time. Severity: warning,
-      category: deprecated.
-
-    ``sources`` deprecation findings are collapsed to one message per
-    (deprecation, derivation type) pair to keep output readable on
-    large specs; per-entry messages are emitted for the other categories.
-
-    :param data: A spec dict post-SHAPE, pre-MIGRATE. Derivation sections
-        are dict-keyed or explicit-name list (no compact-key items).
-    :returns: A list of validation messages — warnings for deprecations,
-        errors for ambiguous combinations.
-    """
-    messages: list[ValidationMessage] = []
-    sources_counts: dict[str, list[str]] = {
-        "ClassDerivation": [],
-        "SlotDerivation": [],
-        "EnumDerivation": [],
-        "PermissibleValueDerivation": [],
-    }
-    derived_from_names: list[str] = []
-    object_derivation_names: list[str] = []
-
-    for cd in _iter_derivation_dicts(data.get("class_derivations")):
-        cd_name = cd.get("name", "<unnamed>")
-        if cd.get("sources"):
-            sources_counts["ClassDerivation"].append(cd_name)
-        for sd in _iter_derivation_dicts(cd.get("slot_derivations")):
-            sd_name = sd.get("name", "<unnamed>")
-            if sd.get("sources"):
-                sources_counts["SlotDerivation"].append(sd_name)
-            if sd.get("derived_from"):
-                derived_from_names.append(sd_name)
-            if sd.get("object_derivations"):
-                object_derivation_names.append(sd_name)
-                if sd.get("class_derivations"):
-                    messages.append(
-                        ValidationMessage(
-                            severity="error",
-                            path=f"$.class_derivations[{cd_name}].slot_derivations[{sd_name}]",
-                            message=(
-                                f"SlotDerivation '{sd_name}' sets both 'object_derivations' "
-                                f"and 'class_derivations'. Remove 'object_derivations' and "
-                                f"use 'class_derivations' only."
-                            ),
-                        )
-                    )
-
-    for ed in _iter_derivation_dicts(data.get("enum_derivations")):
-        ed_name = ed.get("name", "<unnamed>")
-        if ed.get("sources"):
-            sources_counts["EnumDerivation"].append(ed_name)
-        for pvd in _iter_derivation_dicts(ed.get("permissible_value_derivations")):
-            pvd_name = pvd.get("name", "<unnamed>")
-            if pvd.get("sources"):
-                sources_counts["PermissibleValueDerivation"].append(pvd_name)
-                if pvd.get("populated_from"):
-                    messages.append(
-                        ValidationMessage(
-                            severity="error",
-                            path=(f"$.enum_derivations[{ed_name}].permissible_value_derivations[{pvd_name}]"),
-                            message=(
-                                f"PermissibleValueDerivation '{pvd_name}' sets both "
-                                f"'populated_from' and 'sources'. These are alternative "
-                                f"spellings of the same field; set only 'populated_from' "
-                                f"(which now accepts a list)."
-                            ),
-                        )
-                    )
-
-    for deriv_type, names in sources_counts.items():
-        if names:
-            preview = ", ".join(names[:5])
-            suffix = f" (and {len(names) - 5} more)" if len(names) > 5 else ""
-            messages.append(
-                ValidationMessage(
-                    severity="warning",
-                    category="deprecated",
-                    path=f"$.{deriv_type}",
-                    message=(
-                        f"{len(names)} {deriv_type}(s) use 'sources', which is deprecated: "
-                        f"{preview}{suffix}. Use 'populated_from' instead. "
-                        f"'sources' will be removed in a future version."
-                    ),
-                )
-            )
-
-    if object_derivation_names:
-        preview = ", ".join(object_derivation_names[:5])
-        suffix = f" (and {len(object_derivation_names) - 5} more)" if len(object_derivation_names) > 5 else ""
-        messages.append(
-            ValidationMessage(
-                severity="warning",
-                category="deprecated",
-                path="$.SlotDerivation",
-                message=(
-                    f"{len(object_derivation_names)} SlotDerivation(s) use 'object_derivations', "
-                    f"which is deprecated and flattened into 'class_derivations' at load time: "
-                    f"{preview}{suffix}. Use list-based 'class_derivations' instead. "
-                    f"'object_derivations' will be removed in a future version. "
-                    f"See https://github.com/linkml/linkml-map/issues/112"
-                ),
-            )
-        )
-
-    if derived_from_names:
-        preview = ", ".join(derived_from_names[:5])
-        suffix = f" (and {len(derived_from_names) - 5} more)" if len(derived_from_names) > 5 else ""
-        messages.append(
-            ValidationMessage(
-                severity="warning",
-                category="deprecated",
-                path="$.SlotDerivation",
-                message=(
-                    f"{len(derived_from_names)} SlotDerivation(s) use 'derived_from', "
-                    f"which is deprecated and ignored by the runtime: "
-                    f"{preview}{suffix}. This field can be removed — source slot "
-                    f"dependencies are derivable from 'expr'. 'derived_from' will "
-                    f"be removed in a future version."
-                ),
-            )
-        )
-
-    for schema_field in ("source_schema", "target_schema"):
-        if isinstance(data.get(schema_field), str):
-            messages.append(
-                ValidationMessage(
-                    severity="warning",
-                    category="deprecated",
-                    path=f"$.{schema_field}",
-                    message=(
-                        f"'{schema_field}' is set to a bare string, which is deprecated. "
-                        f"Use the SchemaReference object form '{schema_field}: {{name: ...}}'. "
-                        f"The string form will be removed in a future version."
-                    ),
-                )
-            )
-
-    return messages
-
-
 def validate_spec_semantics(
     data: dict[str, Any],
     *,
@@ -749,7 +544,7 @@ def validate_spec_semantics(
     target_all_classes = set(target_sv.all_classes()) if target_sv is not None else set()
 
     # Validate class_derivations (recurses into nested CDs internally)
-    for cd in _iter_derivation_dicts(data.get("class_derivations", [])):
+    for cd in iter_derivation_dicts(data.get("class_derivations", [])):
         _validate_class_derivation(
             cd,
             source_sv,
@@ -762,7 +557,7 @@ def validate_spec_semantics(
         )
 
     # Validate enum_derivations
-    for ed in _iter_derivation_dicts(data.get("enum_derivations", [])):
+    for ed in iter_derivation_dicts(data.get("enum_derivations", [])):
         _validate_enum_derivation(ed, source_sv, target_sv, messages)
 
     return messages
@@ -777,7 +572,7 @@ def _collect_class_derivation_pool(data: dict[str, Any]) -> set[str]:
     :meth:`~linkml_map.transformer.transformer.Transformer._find_class_derivation_by_name`
     which raises ``KeyError`` for anything not at the top level.
     """
-    return {cd.get("name") for cd in _iter_derivation_dicts(data.get("class_derivations", [])) if cd.get("name")}
+    return {cd.get("name") for cd in iter_derivation_dicts(data.get("class_derivations", [])) if cd.get("name")}
 
 
 def _slot_is_string_typed(sv: SchemaView, range_name: str | None) -> bool:
@@ -907,7 +702,7 @@ def _validate_class_derivation(
         }
 
     # Validate slot_derivations (may be list or dict after normalization)
-    slot_derivation_dicts = _iter_derivation_dicts(cd.get("slot_derivations", []))
+    slot_derivation_dicts = iter_derivation_dicts(cd.get("slot_derivations", []))
 
     # Build alias -> slot-set map for cross-table expression reference checks.
     # Covers both explicit `joins:` aliases and the nested-CD populated_from
@@ -930,7 +725,7 @@ def _validate_class_derivation(
         )
 
         # Recurse into nested class_derivations declared on this slot.
-        for nested_cd in _iter_derivation_dicts(sd.get("class_derivations", [])):
+        for nested_cd in iter_derivation_dicts(sd.get("class_derivations", [])):
             _validate_class_derivation(
                 nested_cd,
                 source_sv,
@@ -1010,7 +805,7 @@ def _build_joined_class_map(
     parent_source = cd.get("populated_from") or cd.get("name")
     if source_sv is not None and parent_source:
         for sd in slot_derivation_dicts:
-            for nested in _iter_derivation_dicts(sd.get("class_derivations", [])):
+            for nested in iter_derivation_dicts(sd.get("class_derivations", [])):
                 nested_source = nested.get("populated_from")
                 if nested_source and nested_source != parent_source and nested_source not in result:
                     if nested_source in source_all_classes:
