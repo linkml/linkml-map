@@ -55,10 +55,14 @@ PACKAGE = Path(__file__).resolve().relative_to(REPO_ROOT).as_posix()
 
 @pytest.fixture(scope="module", autouse=True)
 def compliance_report(request: pytest.FixtureRequest):
-    """Write the accumulated report once the whole suite has run, if asked to."""
+    """Write the accumulated report once the whole suite has run, if asked to.
+
+    A failed or early-stopped run has only narrated part of the suite, so writing
+    would truncate the published document.
+    """
     yield
     out = request.config.getoption("--compliance-out")
-    if out:
+    if out and not request.session.testsfailed:
         report.write(Path(out), PACKAGE)
 
 

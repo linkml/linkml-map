@@ -71,10 +71,10 @@ def write_if_changed(path: Path, document: str) -> bool:
     date and defeat the CI drift check, so the timestamp advances only when the
     substance of the report does.
     """
-    if path.exists() and TIMESTAMP.sub("", path.read_text()) == TIMESTAMP.sub("", document):
+    if path.exists() and TIMESTAMP.sub("", path.read_text(encoding="utf-8")) == TIMESTAMP.sub("", document):
         return False
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(document)
+    path.write_text(document, encoding="utf-8", newline="\n")
     return True
 
 
