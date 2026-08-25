@@ -70,8 +70,12 @@ def write_if_changed(path: Path, document: str) -> bool:
     Returns True if the file was written. Rewriting on every run would restamp the
     date and defeat the CI drift check, so the timestamp advances only when the
     substance of the report does.
+
+    The comparison reads bytes rather than text: text mode would translate a CRLF
+    file to LF in memory, call it unchanged, and leave the CRLF on disk forever.
     """
-    if path.exists() and TIMESTAMP.sub("", path.read_text(encoding="utf-8")) == TIMESTAMP.sub("", document):
+    existing = path.read_bytes().decode("utf-8") if path.exists() else None
+    if existing is not None and TIMESTAMP.sub("", existing) == TIMESTAMP.sub("", document):
         return False
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(document, encoding="utf-8", newline="\n")

@@ -38,13 +38,17 @@ def test_writes_when_the_file_is_absent(tmp_path: Path) -> None:
     assert target.read_text() == DOC
 
 
-def test_writes_lf_line_endings(tmp_path: Path) -> None:
+@pytest.mark.parametrize("existing", [None, DOC.replace("\n", "\r\n")], ids=["absent", "crlf"])
+def test_writes_lf_line_endings(tmp_path: Path, existing: str | None) -> None:
     """The bytes on disk are what ``normalize`` produced, on every platform.
 
-    Text-mode writes translate newlines on Windows, which would leave a CRLF file
-    the pre-commit hooks rewrite and the drift check can never settle.
+    A CRLF report is what a Windows run used to leave behind. Comparing it as text
+    would call it unchanged and strand it, so it has to count as a difference: the
+    pre-commit hooks rewrite CRLF, and the drift check can never settle while they do.
     """
     target = tmp_path / "compliance.md"
+    if existing is not None:
+        target.write_bytes(existing.encode("utf-8"))
     write_if_changed(target, DOC)
     assert target.read_bytes() == DOC.encode("utf-8")
 
