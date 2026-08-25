@@ -14,21 +14,11 @@ from linkml_map.datamodel.transformer_model import (
     TransformationSpecification,
 )
 from linkml_map.transformer.object_transformer import ObjectTransformer
-from tests.conftest import TEST_SETUP_FUNCTIONS, add_to_test_setup
+from tests.conftest import make_setup_registry, run_transformer, setup_ids
 from tests.scaffold.utils.apply_patch import apply_schema_patch, apply_transform_patch
 
-
-def run_transformer(scaffold, source_type="Person"):
-    """Helper function to run the object transformer with the given scaffold."""
-    source = scaffold["source_schema"]
-    target = scaffold["target_schema"]
-
-    obj_tr = ObjectTransformer(unrestricted_eval=True)
-    obj_tr.source_schemaview = source
-    obj_tr.target_schemaview = target
-    obj_tr.create_transformer_specification(scaffold["transform_spec"])
-
-    return obj_tr.map_object(scaffold["input_data"], source_type=source_type)
+#: Setups owned by this module. Registering also feeds the shared integration list.
+SLOT_DERIVATION_SETUPS, add_to_test_setup = make_setup_registry()
 
 
 def test_basic_person_to_agent(scaffold):
@@ -357,11 +347,7 @@ def setup_value_mapping_literal(scaffold):
     scaffold["expected"]["role_label"] = "Admin"
 
 
-@pytest.mark.parametrize(
-    "setup_func",
-    TEST_SETUP_FUNCTIONS,
-    ids=[f.__doc__ or f.__name__.removeprefix("setup_") for f in TEST_SETUP_FUNCTIONS],
-)
+@pytest.mark.parametrize("setup_func", SLOT_DERIVATION_SETUPS, ids=setup_ids(SLOT_DERIVATION_SETUPS))
 def test_unit(scaffold, setup_func):
     """Apply a setup function, run transformer, and assert expected output."""
     setup_func(scaffold)
