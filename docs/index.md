@@ -28,13 +28,16 @@ interpreted by different execution backends:
 - **ObjectTransformer** (Python) — interprets the spec row-by-row, supports the full feature set
   including Python expressions, unit conversion, and cross-class lookups.
 - **SQLCompiler / DuckDBTransformer** (SQL) — compiles the spec to SQL for set-based execution.
-  This backend is **experimental** and supports a limited subset of the specification today.
-  See the [SQL Compilation tutorial](examples/Tutorial-SQLCompiler.ipynb) for current capabilities.
+  This backend is **experimental**, and the subset it supports is narrow: `expr`, `value`,
+  `case()`, unit conversion and value mappings are **dropped silently** rather than raising,
+  so a spec using any of them compiles to SQL that quietly omits those slots. Use the
+  ObjectTransformer unless you have verified your spec compiles faithfully. The
+  [SQL Compilation tutorial](examples/Tutorial-SQLCompiler.ipynb) shows the shape it does handle.
 
-The output serialization formats (YAML, JSON, JSONL, TSV, CSV) are intentionally limited to
-text-based representations of transformed data. For loading results into analytical stores
-(DuckDB, Parquet, databases), use the appropriate downstream tool — e.g., DuckDB's native
-`read_json()` or `read_csv()` functions work directly on linkml-map output files.
+Transformed data serializes to text (YAML, JSON, JSONL, TSV, CSV) or to a columnar
+artifact (Parquet, DuckDB). The columnar formats preserve nested structure that the
+flat text formats cannot: a nested object becomes a `STRUCT` column rather than being
+flattened away. See [Columnar Output](#columnar-output).
 
 This documentation is available at:
 
@@ -392,6 +395,8 @@ The `-f/--output-format` option supports:
 - `jsonl` - JSON Lines (one object per line)
 - `tsv` - Tab-separated values
 - `csv` - Comma-separated values
+- `parquet` - Apache Parquet, with nested fields preserved as columns
+- `duckdb` - a DuckDB database file, one table per run
 
 Output format can also be inferred from the output file extension.
 
@@ -427,7 +432,38 @@ linkml-map map-data \
 
 The primary output uses `-f`/`-o` as usual. Each `-O` flag adds an additional
 output file whose format is inferred from the file extension (`.json`, `.jsonl`,
-`.yaml`, `.yml`, `.tsv`, `.csv`). All outputs are written in a single streaming pass.
+`.yaml`, `.yml`, `.tsv`, `.csv`, `.parquet`, `.duckdb`). All outputs are written
+in a single streaming pass.
+
+#### Columnar Output
+
+`parquet` and `duckdb` write a columnar artifact rather than text. Unlike `tsv`
+and `csv`, which flatten to one row of scalars, these keep nested structure: a
+nested object becomes a `STRUCT` column and a list of them a `STRUCT[]`, so a
+consumer reads a nested field with a column access instead of a join.
+
+```bash
+linkml-map map-data \
+  -T transform.yaml \
+  -s schema.yaml \
+  --source-type Person \
+  -o agents.parquet \
+  data/Person.tsv
+```
+
+DuckDB output writes one table per run, named by `--table-name` and defaulting
+to the output file's stem. Pointing several runs at the same `.duckdb` path
+builds up a database covering multiple target classes:
+
+```bash
+linkml-map map-data -T transform.yaml -s schema.yaml \
+  --source-type Person --table-name person -o study.duckdb data/Person.tsv
+linkml-map map-data -T transform.yaml -s schema.yaml \
+  --source-type Measurement --table-name measurement -o study.duckdb data/Measurement.tsv
+```
+
+Both formats also work as `-O` targets alongside a text primary output. Neither
+adds a dependency: `duckdb` is already required by the join engine.
 
 ### derive-schema
 
