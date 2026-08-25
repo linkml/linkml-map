@@ -116,8 +116,7 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
 
               <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/linkml_map/session.py</code></summary>
-                <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 20</span>
-<span class="normal"> 21</span>
+                <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 21</span>
 <span class="normal"> 22</span>
 <span class="normal"> 23</span>
 <span class="normal"> 24</span>
@@ -255,7 +254,8 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
 <span class="normal">156</span>
 <span class="normal">157</span>
 <span class="normal">158</span>
-<span class="normal">159</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="normal">159</span>
+<span class="normal">160</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Session</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A wrapper object for a transformer session.</span>
@@ -285,7 +285,7 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">specification</span><span class="p">,</span> <span class="n">TransformationSpecification</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">transformer_specification</span> <span class="o">=</span> <span class="n">specification</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">specification</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-            <span class="n">Transformer</span><span class="o">.</span><span class="n">_normalize_spec_dict</span><span class="p">(</span><span class="n">specification</span><span class="p">)</span>
+            <span class="n">normalize_spec</span><span class="p">(</span><span class="n">specification</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">transformer_specification</span> <span class="o">=</span> <span class="n">TransformationSpecification</span><span class="p">(</span><span class="o">**</span><span class="n">specification</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">specification</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="k">if</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="ow">in</span> <span class="n">specification</span><span class="p">:</span>
@@ -427,15 +427,15 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/linkml_map/session.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">151</span>
-<span class="normal">152</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">152</span>
 <span class="normal">153</span>
 <span class="normal">154</span>
 <span class="normal">155</span>
 <span class="normal">156</span>
 <span class="normal">157</span>
 <span class="normal">158</span>
-<span class="normal">159</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">graphviz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="normal">159</span>
+<span class="normal">160</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">graphviz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return a graphviz representation of the schema.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -466,8 +466,7 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/linkml_map/session.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">138</span>
-<span class="normal">139</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">139</span>
 <span class="normal">140</span>
 <span class="normal">141</span>
 <span class="normal">142</span>
@@ -477,7 +476,8 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
 <span class="normal">146</span>
 <span class="normal">147</span>
 <span class="normal">148</span>
-<span class="normal">149</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">invert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_place</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TransformationSpecification</span><span class="p">:</span>
+<span class="normal">149</span>
+<span class="normal">150</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">invert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_place</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TransformationSpecification</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Invert the transformer specification.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -511,8 +511,7 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/linkml_map/session.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">59</span>
-<span class="normal">60</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">60</span>
 <span class="normal">61</span>
 <span class="normal">62</span>
 <span class="normal">63</span>
@@ -529,7 +528,8 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
 <span class="normal">74</span>
 <span class="normal">75</span>
 <span class="normal">76</span>
-<span class="normal">77</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">set_source_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">schema</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">dict</span> <span class="o">|</span> <span class="n">SchemaView</span> <span class="o">|</span> <span class="n">SchemaDefinition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">77</span>
+<span class="normal">78</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">set_source_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">schema</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">dict</span> <span class="o">|</span> <span class="n">SchemaView</span> <span class="o">|</span> <span class="n">SchemaDefinition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Set the schema from a path or SchemaView object.</span>
 <span class="sd">    &quot;&quot;&quot;</span>

@@ -222,13 +222,16 @@ interpreted by different execution backends:</p>
 <li><strong>ObjectTransformer</strong> (Python) — interprets the spec row-by-row, supports the full feature set
   including Python expressions, unit conversion, and cross-class lookups.</li>
 <li><strong>SQLCompiler / DuckDBTransformer</strong> (SQL) — compiles the spec to SQL for set-based execution.
-  This backend is <strong>experimental</strong> and supports a limited subset of the specification today.
-  See the <a href="examples/Tutorial-SQLCompiler/">SQL Compilation tutorial</a> for current capabilities.</li>
+  This backend is <strong>experimental</strong>, and the subset it supports is narrow: <code>expr</code>, <code>value</code>,
+  <code>case()</code>, unit conversion and value mappings are <strong>dropped silently</strong> rather than raising,
+  so a spec using any of them compiles to SQL that quietly omits those slots. Use the
+  ObjectTransformer unless you have verified your spec compiles faithfully. The
+  <a href="examples/Tutorial-SQLCompiler/">SQL Compilation tutorial</a> shows the shape it does handle.</li>
 </ul>
-<p>The output serialization formats (YAML, JSON, JSONL, TSV, CSV) are intentionally limited to
-text-based representations of transformed data. For loading results into analytical stores
-(DuckDB, Parquet, databases), use the appropriate downstream tool — e.g., DuckDB's native
-<code>read_json()</code> or <code>read_csv()</code> functions work directly on linkml-map output files.</p>
+<p>Transformed data serializes to text (YAML, JSON, JSONL, TSV, CSV) or to a columnar
+artifact (Parquet, DuckDB). The columnar formats preserve nested structure that the
+flat text formats cannot: a nested object becomes a <code>STRUCT</code> column rather than being
+flattened away. See <a href="#columnar-output">Columnar Output</a>.</p>
 <p>This documentation is available at:</p>
 <ul>
 <li><a href="https://linkml.io/linkml-map/">linkml.io/linkml-map/</a></li>
@@ -501,7 +504,9 @@ named after the source type (e.g., <code>Person.tsv</code>, <code>Organization.c
 - <code>json</code> - JSON array
 - <code>jsonl</code> - JSON Lines (one object per line)
 - <code>tsv</code> - Tab-separated values
-- <code>csv</code> - Comma-separated values</p>
+- <code>csv</code> - Comma-separated values
+- <code>parquet</code> - Apache Parquet, with nested fields preserved as columns
+- <code>duckdb</code> - a DuckDB database file, one table per run</p>
 <p>Output format can also be inferred from the output file extension.</p>
 <p><strong>Streaming for large files:</strong></p>
 <p>For large datasets, use <code>--chunk-size</code> to control memory usage:</p>
@@ -527,7 +532,30 @@ from a single transformation pass:</p>
 </code></pre></div>
 <p>The primary output uses <code>-f</code>/<code>-o</code> as usual. Each <code>-O</code> flag adds an additional
 output file whose format is inferred from the file extension (<code>.json</code>, <code>.jsonl</code>,
-<code>.yaml</code>, <code>.yml</code>, <code>.tsv</code>, <code>.csv</code>). All outputs are written in a single streaming pass.</p>
+<code>.yaml</code>, <code>.yml</code>, <code>.tsv</code>, <code>.csv</code>, <code>.parquet</code>, <code>.duckdb</code>). All outputs are written
+in a single streaming pass.</p>
+<h4 id="columnar-output">Columnar Output</h4>
+<p><code>parquet</code> and <code>duckdb</code> write a columnar artifact rather than text. Unlike <code>tsv</code>
+and <code>csv</code>, which flatten to one row of scalars, these keep nested structure: a
+nested object becomes a <code>STRUCT</code> column and a list of them a <code>STRUCT[]</code>, so a
+consumer reads a nested field with a column access instead of a join.</p>
+<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>map-data<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-T<span class="w"> </span>transform.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-s<span class="w"> </span>schema.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--source-type<span class="w"> </span>Person<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span>agents.parquet<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>data/Person.tsv
+</code></pre></div>
+<p>DuckDB output writes one table per run, named by <code>--table-name</code> and defaulting
+to the output file's stem. Pointing several runs at the same <code>.duckdb</code> path
+builds up a database covering multiple target classes:</p>
+<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>map-data<span class="w"> </span>-T<span class="w"> </span>transform.yaml<span class="w"> </span>-s<span class="w"> </span>schema.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--source-type<span class="w"> </span>Person<span class="w"> </span>--table-name<span class="w"> </span>person<span class="w"> </span>-o<span class="w"> </span>study.duckdb<span class="w"> </span>data/Person.tsv
+linkml-map<span class="w"> </span>map-data<span class="w"> </span>-T<span class="w"> </span>transform.yaml<span class="w"> </span>-s<span class="w"> </span>schema.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--source-type<span class="w"> </span>Measurement<span class="w"> </span>--table-name<span class="w"> </span>measurement<span class="w"> </span>-o<span class="w"> </span>study.duckdb<span class="w"> </span>data/Measurement.tsv
+</code></pre></div>
+<p>Both formats also work as <code>-O</code> targets alongside a text primary output. Neither
+adds a dependency: <code>duckdb</code> is already required by the join engine.</p>
 <h3 id="derive-schema">derive-schema</h3>
 <p>Derives a target schema (the "profile") implied by the transformation specification.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>tests/input/examples/personinfo_basic
@@ -585,5 +613,5 @@ Edit on GitHub</a>
 </html>
 <!--
 MkDocs version : 1.6.1
-Build Date UTC : 2026-08-25 15:16:47.488808+00:00
+Build Date UTC : 2026-08-25 17:46:51.092628+00:00
 -->
