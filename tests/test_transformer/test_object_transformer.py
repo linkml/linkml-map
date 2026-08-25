@@ -26,9 +26,9 @@ from linkml_map.datamodel.transformer_model import (
     SlotDerivation,
     TransformationSpecification,
 )
+from linkml_map.spec_normalizer import normalize_spec
 from linkml_map.transformer.errors import TransformationError
 from linkml_map.transformer.object_transformer import ObjectTransformer
-from linkml_map.transformer.transformer import Transformer
 from linkml_map.utils.dynamic_object import dynamic_object
 from tests import (
     DENORM_SCHEMA,
@@ -655,7 +655,7 @@ def test_normalize_defaults_range_for_literal_value() -> None:
             }
         }
     }
-    Transformer._normalize_spec_dict(spec)
+    normalize_spec(spec)
     class_deriv = spec["class_derivations"][0]
     slot = class_deriv["slot_derivations"]["my_slot"]
     assert slot["range"] == "string"
@@ -711,7 +711,7 @@ def test_self_transform() -> None:
     tr.source_schemaview = SchemaView(str(TR_SCHEMA))
     tr.load_transformer_specification(TR_TO_MAPPING_TABLES)
     source_object = yaml.safe_load(open(str(PERSONINFO_TR)))
-    Transformer._normalize_spec_dict(source_object)
+    normalize_spec(source_object)
     derived = tr.map_object(source_object)
     print(derived)
     print(yaml.dump(derived))

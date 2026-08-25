@@ -864,9 +864,9 @@ def _validate_spec_merged(
         raise SystemExit(1)
 
     if emit_spec:
-        from linkml_map.transformer.transformer import Transformer
+        from linkml_map.spec_normalizer import normalize_spec
 
-        Transformer._normalize_spec_dict(merged)
+        normalize_spec(merged)
         from linkml_map.datamodel.transformer_model import TransformationSpecification
 
         spec = TransformationSpecification(**merged)

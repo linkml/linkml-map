@@ -4,6 +4,22 @@ A `{Table.col}` reference inside an `expr:` (with no `joins:` block and no neste
 class_derivation for that table) must synthesize the join — previously it was
 invisible to synthesis and silently resolved to None. This is the dominant real
 pattern (bdc-harmonized-variables: 440 specs, zero `joins:` blocks).
+
+Not a duplicate of ``test_implicit_cross_table_join``, despite identical-looking
+assertions, and not of ``test_join_synthesis_completeness`` either:
+
+* ``test_implicit_join_expr_dot_notation`` nests the same ``{Reading.score}``
+  inside a ``class_derivations`` block for ``Reading``, so the table is already
+  visible to synthesis — which is why that shape never had the #275 bug.
+* ``test_flat_dot_notation_normalization_synthesizes_join`` triggers synthesis
+  through ``populated_from: Reading.score`` (#279), a different code path.
+* the completeness suite covers where synthesis must *fail* loud, not this
+  positive case.
+
+Here ``Reading`` appears only inside the expression string on a flat top-level
+slot. Line and branch coverage are identical without this file, because those
+lines are reached by other tests with other specs — the uncovered thing is the
+scenario, not the code.
 """
 
 from __future__ import annotations
