@@ -49,6 +49,55 @@ def _transformer(spec_yaml: str):
     return tr
 
 
+#: Derivation sites that cannot host a synthesized join, each spelled two ways:
+#: as an expression reference and as a structural dotted ``populated_from``.
+UNHOSTABLE_DERIVATIONS = [
+    ("enum_derivations:\n  MyEnum:\n    expr: '{Reading.score}'", "enum-expr"),
+    (
+        "enum_derivations:\n  MyEnum:\n    permissible_value_derivations:\n      PV1:\n        expr: '{Reading.score}'",
+        "permissible-value-expr",
+    ),
+    ("slot_derivations:\n  loose:\n    expr: '{Reading.score}'", "top-level-slot-expr"),
+    ("enum_derivations:\n  MyEnum:\n    populated_from: Reading.score", "enum-structural"),
+    (
+        "enum_derivations:\n  MyEnum:\n    permissible_value_derivations:\n"
+        "      PV1:\n        populated_from: Reading.score",
+        "permissible-value-structural",
+    ),
+    ("slot_derivations:\n  loose:\n    populated_from: Reading.score", "top-level-slot-structural"),
+]
+
+
+@pytest.mark.parametrize(
+    "derivation_block",
+    [pytest.param(block, id=name) for block, name in UNHOSTABLE_DERIVATIONS],
+)
+def test_cross_table_ref_outside_a_class_derivation_fails_loud(derivation_block):
+    """A cross-table reference with nowhere to host a join must fail at normalization.
+
+    Enum derivations, permissible-value derivations and top-level slot derivations
+    all sit outside any class_derivation, so there is no block that could carry the
+    synthesized ``joins:`` entry. Surfacing that during normalization is the whole
+    point — the alternative is silently resolving to None at runtime.
+
+    Both spellings must behave identically: an ``expr`` reference and a structural
+    dotted ``populated_from``. The structural half is the counterpart to the #279
+    flat-slot fix, where under a class_derivation the join *is* synthesized.
+
+    :param derivation_block: YAML fragment placing the cross-table reference
+    """
+    tr = _transformer(
+        "id: t\ntitle: unhostable cross-table\n"
+        "class_derivations:\n"
+        "  Result:\n"
+        "    populated_from: Measurement\n"
+        "    slot_derivations:\n"
+        "      id:\n" + derivation_block + "\n"
+    )
+    with pytest.raises(ValueError, match="cannot be joined"):
+        _ = tr.derived_specification
+
+
 def test_object_derivation_nested_table_synthesizes_join():
     """A spec authored with object_derivations (flattened at load) still gets its join synthesized."""
     tr = _transformer(
@@ -72,65 +121,6 @@ def test_object_derivation_nested_table_synthesizes_join():
     assert result_cd.joins is not None
     assert "Reading" in result_cd.joins
     assert result_cd.joins["Reading"].join_on == "subject_id"
-
-
-def test_enum_derivation_cross_table_ref_fails_loud():
-    tr = _transformer(
-        textwrap.dedent("""\
-        id: t
-        title: enum cross-table
-        class_derivations:
-          Result:
-            populated_from: Measurement
-            slot_derivations:
-              id:
-        enum_derivations:
-          MyEnum:
-            expr: '{Reading.score}'
-        """)
-    )
-    with pytest.raises(ValueError, match="cannot be joined"):
-        _ = tr.derived_specification
-
-
-def test_permissible_value_derivation_cross_table_ref_fails_loud():
-    tr = _transformer(
-        textwrap.dedent("""\
-        id: t
-        title: pv cross-table
-        class_derivations:
-          Result:
-            populated_from: Measurement
-            slot_derivations:
-              id:
-        enum_derivations:
-          MyEnum:
-            permissible_value_derivations:
-              PV1:
-                expr: '{Reading.score}'
-        """)
-    )
-    with pytest.raises(ValueError, match="cannot be joined"):
-        _ = tr.derived_specification
-
-
-def test_top_level_slot_derivation_cross_table_ref_fails_loud():
-    tr = _transformer(
-        textwrap.dedent("""\
-        id: t
-        title: top-level slot cross-table
-        class_derivations:
-          Result:
-            populated_from: Measurement
-            slot_derivations:
-              id:
-        slot_derivations:
-          loose:
-            expr: '{Reading.score}'
-        """)
-    )
-    with pytest.raises(ValueError, match="cannot be joined"):
-        _ = tr.derived_specification
 
 
 def test_expr_cross_table_ref_unkeyable_fails_loud():
@@ -263,77 +253,6 @@ def test_enum_derivation_same_row_reference_is_allowed():
     )
     # Computing the derived spec must not raise.
     assert tr.derived_specification is not None
-
-
-def test_enum_derivation_structural_populated_from_fails_loud():
-    """A structural ``populated_from: Table.col`` in an enum derivation fails loud.
-
-    Parity with the expression case: an enum derivation cannot host a join, so a
-    cross-table ``populated_from`` there must surface at normalization rather than
-    silently resolving to None at runtime.
-    """
-    tr = _transformer(
-        textwrap.dedent("""\
-        id: t
-        title: enum structural cross-table
-        class_derivations:
-          Result:
-            populated_from: Measurement
-            slot_derivations:
-              id:
-        enum_derivations:
-          MyEnum:
-            populated_from: Reading.score
-        """)
-    )
-    with pytest.raises(ValueError, match="cannot be joined"):
-        _ = tr.derived_specification
-
-
-def test_permissible_value_derivation_structural_populated_from_fails_loud():
-    tr = _transformer(
-        textwrap.dedent("""\
-        id: t
-        title: pv structural cross-table
-        class_derivations:
-          Result:
-            populated_from: Measurement
-            slot_derivations:
-              id:
-        enum_derivations:
-          MyEnum:
-            permissible_value_derivations:
-              PV1:
-                populated_from: Reading.score
-        """)
-    )
-    with pytest.raises(ValueError, match="cannot be joined"):
-        _ = tr.derived_specification
-
-
-def test_top_level_slot_derivation_structural_populated_from_fails_loud():
-    """A top-level ``slot_derivation`` with ``populated_from: Table.col`` fails loud.
-
-    This is the structural counterpart to the #279 flat-slot fix: under a
-    class_derivation the join is synthesized, but a top-level slot derivation has
-    nowhere to host it.
-    """
-    tr = _transformer(
-        textwrap.dedent("""\
-        id: t
-        title: top-level slot structural cross-table
-        class_derivations:
-          Result:
-            populated_from: Measurement
-            slot_derivations:
-              id:
-        slot_derivations:
-          loose:
-            populated_from: Reading.score
-        """)
-    )
-    with pytest.raises(ValueError, match="cannot be joined"):
-        _ = tr.derived_specification
 
 
 def test_top_level_slot_derivation_fk_path_populated_from_is_allowed():
