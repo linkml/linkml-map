@@ -228,6 +228,7 @@ def test_implicit_join_ambiguous_columns_resolved_when_one_non_id():
 
     joins = tr.derived_specification.class_derivations[0].joins
 
+    assert joins is not None
     assert "Reading" in joins
     assert joins["Reading"].join_on == "subject_id", "'id' is common to both tables but must be excluded"
 
