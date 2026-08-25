@@ -12,6 +12,7 @@ from linkml_map import ObjectTransformer
 from linkml_map.datamodel.transformer_model import TransformationSpecification
 from linkml_map.inference.inverter import TransformationSpecificationInverter
 from linkml_map.inference.schema_mapper import SchemaMapper
+from linkml_map.spec_normalizer import normalize_spec
 from linkml_map.transformer.transformer import Transformer
 
 logger = logging.getLogger(__name__)
@@ -47,7 +48,7 @@ class Session:
         if isinstance(specification, TransformationSpecification):
             self.transformer_specification = specification
         elif isinstance(specification, dict):
-            Transformer._normalize_spec_dict(specification)
+            normalize_spec(specification)
             self.transformer_specification = TransformationSpecification(**specification)
         elif isinstance(specification, str):
             if "\n" in specification:
