@@ -4,6 +4,7 @@ import logging
 from abc import ABC
 from copy import deepcopy
 from dataclasses import dataclass, field
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any
 
@@ -37,6 +38,35 @@ logger = logging.getLogger(__name__)
 
 OBJECT_TYPE = dict[str, Any] | BaseModel | YAMLRoot
 """An object can be a plain python dict, a pydantic object, or a linkml YAMLRoot"""
+
+
+def _to_decimal(v: Any) -> Decimal:
+    """Convert *v* to an exact, finite decimal.
+
+    Floats go through ``str`` so they keep their printed digits rather than their
+    binary expansion.
+
+    >>> _to_decimal("52.30")
+    Decimal('52.30')
+    >>> _to_decimal(0.1)
+    Decimal('0.1')
+    >>> _to_decimal("abc")
+    Traceback (most recent call last):
+    ...
+    ValueError: Cannot convert 'abc' to decimal
+    """
+    if isinstance(v, Decimal):
+        d = v
+    else:
+        try:
+            d = Decimal(str(v))
+        except InvalidOperation as err:
+            msg = f"Cannot convert {v!r} to decimal"
+            raise ValueError(msg) from err
+    if not d.is_finite():
+        msg = f"Cannot convert {v!r} to decimal: not a finite number"
+        raise ValueError(msg)
+    return d
 
 
 @dataclass
@@ -552,6 +582,8 @@ class Transformer(ABC):
             return [self._coerce_datatype(v1, target_range) for v1 in v]
         if isinstance(v, dict):
             return {k: self._coerce_datatype(v1, target_range) for k, v1 in v.items()}
+        if target_range == "decimal":
+            return _to_decimal(v)
         cmap = {
             "integer": int,
             "float": float,

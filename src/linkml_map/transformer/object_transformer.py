@@ -32,6 +32,7 @@ from linkml_map.utils.dynamic_object import DynObj, dynamic_object
 from linkml_map.utils.eval_utils import _uuid5, eval_expr_with_mapping
 from linkml_map.utils.fk_utils import FKResolution, resolve_fk_path
 from linkml_map.utils.join_utils import join_keys
+from linkml_map.utils.serialization import dump_yaml, dumps_json
 
 DICT_OBJ = dict[str, Any]
 
@@ -1124,9 +1125,9 @@ class ObjectTransformer(Transformer):
                 return delimiter.join(vs)
             if stringification.syntax:
                 if stringification.syntax == SerializationSyntaxType.JSON:
-                    return json.dumps(vs)
+                    return dumps_json(vs, ensure_ascii=True)
                 if stringification.syntax == SerializationSyntaxType.YAML:
-                    return yaml.dump(vs, default_flow_style=True).strip()
+                    return dump_yaml(vs, default_flow_style=True, allow_unicode=False).strip()
                 msg = f"Unknown syntax: {stringification.syntax}"
                 raise ValueError(msg)
             msg = f"Cannot convert multivalued to single valued: {vs}; no delimiter"
