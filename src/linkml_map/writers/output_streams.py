@@ -638,6 +638,7 @@ class ColumnarStreamWriter(StreamWriter):
                 self._record_decimals(item, (*path, _LIST_ITEM))
         elif isinstance(value, Decimal):
             _, digits, exponent = value.as_tuple()
+            # Seeding with (0, 0) clamps integer digits at 0 for values below 0.1, keeping precision >= scale.
             int_digits, scale = self._decimal_digits.get(path, (0, 0))
             self._decimal_digits[path] = (max(int_digits, len(digits) + exponent), max(scale, -exponent))
 

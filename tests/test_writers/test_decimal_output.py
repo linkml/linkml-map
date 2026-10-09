@@ -102,6 +102,22 @@ def test_columnar_formats_store_exact_decimal_columns(tmp_path: Path, fmt: Outpu
     ]
 
 
+@pytest.mark.parametrize("fmt", [OutputFormat.PARQUET, OutputFormat.DUCKDB])
+def test_columnar_columns_of_only_small_decimals(tmp_path: Path, fmt: OutputFormat) -> None:
+    """A column whose values are all below 0.1 still gets a valid DECIMAL with precision >= scale."""
+    target = tmp_path / f"out.{fmt.value}"
+    rows = [{"p": Decimal("0.05"), "q": {"r": Decimal("1E-7")}, "vs": [Decimal("0.001")]}]
+    MultiStreamWriter([(make_stream_writer(fmt), target)]).write_all(iter([rows]))
+    con = duckdb.connect(str(target)) if fmt == OutputFormat.DUCKDB else duckdb.connect()
+    source = "out" if fmt == OutputFormat.DUCKDB else f"read_parquet('{target}')"
+
+    types = {r[0]: r[1] for r in con.execute(f"DESCRIBE SELECT * FROM {source}").fetchall()}
+    assert types == {"p": "DECIMAL(2,2)", "q": "STRUCT(r DECIMAL(7,7))", "vs": "DECIMAL(3,3)[]"}
+    assert con.execute(f"SELECT p, q.r, vs FROM {source}").fetchall() == [
+        (Decimal("0.05"), Decimal("1E-7"), [Decimal("0.001")])
+    ]
+
+
 def test_columnar_rejects_decimals_wider_than_duckdb_supports(tmp_path: Path) -> None:
     """A decimal needing more than 38 digits fails loudly rather than rounding."""
     target = tmp_path / "out.parquet"
