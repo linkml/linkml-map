@@ -543,7 +543,9 @@ class ObjectTransformer(Transformer):
             target_range = slot_derivation.range
             v = self._map_value_by_range(v, source_class_slot, target_range, context.source_obj)
             v = self._coerce_cardinality(v, slot_derivation, context.class_deriv)
-            v = self._coerce_datatype(v, target_range)
+            v = self._coerce_datatype(
+                v, target_range or self._target_slot_datatype(context.class_deriv.name, slot_derivation.name)
+            )
             v = self._reshape_collection(v, slot_derivation, source_class_slot)
         return v
 
