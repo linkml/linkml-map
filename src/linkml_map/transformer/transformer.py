@@ -460,7 +460,14 @@ class Transformer(ABC):
         if len(matching_tgt_class_derivs) != 1:
             msg = f"Could not find class derivation for {target_class_name} (results={len(matching_tgt_class_derivs)})"
             raise ValueError(msg)
-        cd = matching_tgt_class_derivs[0]
+        return self._with_inherited_fields(matching_tgt_class_derivs[0])
+
+    def _with_inherited_fields(self, cd: ClassDerivation) -> ClassDerivation:
+        """Return *cd* with fields it leaves unset filled in from its ``is_a``/``mixins`` ancestors.
+
+        Slot derivations and other collections are merged; unset scalars are copied.
+        Returns *cd* itself when it has no ancestors, otherwise a merged copy.
+        """
         ancmap = self._class_derivation_ancestors(cd)
         if ancmap:
             cd = deepcopy(cd)

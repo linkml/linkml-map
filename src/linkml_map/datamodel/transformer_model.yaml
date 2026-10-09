@@ -156,9 +156,9 @@ classes:
         description: >-
           Whether to synthesize an identifier from a hash of the record's
           content when the target class has an identifier slot that the class
-          derivation does not derive. Defaults to true. Set to false when every
-          identifier must be derived explicitly, so a missing one is reported
-          instead of minted. A class derivation's own mint_ids overrides this.
+          derivation does not derive. Defaults to false. An identifier that is
+          neither derived nor minted is an error, and no records are produced.
+          A class derivation's own mint_ids overrides this.
       class_derivations:
         description: >-
           Instructions on how to derive a set of classes in the target schema
@@ -334,8 +334,7 @@ classes:
         description: >-
           Overrides the specification's mint_ids for this class derivation.
           Set to false on classes whose identifiers other records reference,
-          so a missing derivation is reported rather than replaced by a
-          content hash.
+          so a missing derivation is an error rather than a content hash.
 
   ObjectDerivation:
     is_a: ElementDerivation

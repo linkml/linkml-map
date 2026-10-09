@@ -348,7 +348,7 @@ attributes:
     name: mint_ids
     description: Overrides the specification's mint_ids for this class derivation.
       Set to false on classes whose identifiers other records reference, so a missing
-      derivation is reported rather than replaced by a content hash.
+      derivation is an error rather than a content hash.
     from_schema: https://w3id.org/linkml/transformer
     domain_of:
     - TransformationSpecification
@@ -446,7 +446,7 @@ attributes:
     name: mint_ids
     description: Overrides the specification's mint_ids for this class derivation.
       Set to false on classes whose identifiers other records reference, so a missing
-      derivation is reported rather than replaced by a content hash.
+      derivation is an error rather than a content hash.
     from_schema: https://w3id.org/linkml/transformer
     owner: ClassDerivation
     domain_of:

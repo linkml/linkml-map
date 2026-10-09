@@ -330,6 +330,27 @@ def _filter_spec_to_entity(tr: ObjectTransformer, entity: str | None) -> None:
     tr._derived_specification = None
 
 
+def _require_identifiers(tr: ObjectTransformer, continue_on_error: bool) -> int:
+    """Check that every class derivation derives or mints its target identifier.
+
+    Runs before any output is opened.  Normally a problem refuses the run.  Under
+    ``--continue-on-error``, whose purpose is to surface every error even at the cost of
+    bad output, each problem is reported once and the records are emitted without ids.
+
+    :param tr: The transformer, after ``--entity`` filtering.
+    :param continue_on_error: Whether the run reports errors instead of stopping.
+    :return: The number of problems reported, to count toward the exit status.
+    :raises click.ClickException: Listing every problem, unless continuing on error.
+    """
+    problems = tr.missing_identifiers()
+    if problems and not continue_on_error:
+        raise click.ClickException("\n".join(problems))
+    for problem in problems:
+        click.echo(f"  - {problem}", err=True)
+    tr.emit_without_identifiers = bool(problems)
+    return len(problems)
+
+
 def _emit_spec_to_file(tr: ObjectTransformer, emit_spec: str) -> None:
     """Write the resolved specification (after any --entity filtering) to a file."""
     from linkml_runtime.dumpers import yaml_dumper
@@ -362,6 +383,7 @@ def _map_data_single(
 
     _pre_flight_validate(tr, source_schema=schema, target_schema=target_schema)
     _filter_spec_to_entity(tr, entity)
+    identifier_errors = _require_identifiers(tr, continue_on_error)
     if emit_spec:
         _emit_spec_to_file(tr, emit_spec)
 
@@ -386,8 +408,11 @@ def _map_data_single(
         raise SystemExit(1) from err
     if output_format in COLUMNAR_FORMATS:
         _dump_columnar(tr_obj, output_format, output, table_name)
-        return
-    dump_output(tr_obj, output_format, output)
+    else:
+        dump_output(tr_obj, output_format, output)
+    if identifier_errors:
+        click.echo(f"\n{identifier_errors} transformation error(s)", err=True)
+        raise SystemExit(1)
 
 
 #: Formats whose artifact is a binary file built by DuckDB, so they cannot go to stdout
@@ -473,6 +498,7 @@ def _map_data_streaming(
 
     _pre_flight_validate(tr, source_schema=schema, target_schema=target_schema)
     _filter_spec_to_entity(tr, entity)
+    identifier_errors = _require_identifiers(tr, continue_on_error)
     if emit_spec:
         _emit_spec_to_file(tr, emit_spec)
 
@@ -481,7 +507,7 @@ def _map_data_streaming(
 
     # When continue-on-error is enabled, report each row error as it occurs so
     # nothing is lost if a later write crashes; a count drives the exit code.
-    error_count = 0
+    error_count = identifier_errors
 
     def report_error(err: TransformationError) -> None:
         nonlocal error_count

@@ -37,6 +37,11 @@ class SpecMergeError(ValueError):
     """
 
 
+#: Spec-level fields whose value changes what is emitted, so fragments must agree on them
+#: rather than letting file order pick one.
+_MUST_AGREE_KEYS = frozenset({"mint_ids"})
+
+
 def resolve_spec_paths(paths: tuple[str | Path, ...]) -> list[Path]:
     """Resolve a mix of file paths and directories to a flat list of YAML files.
 
@@ -96,11 +101,13 @@ def merge_spec_dicts(spec_dicts: list[dict[str, Any]]) -> dict[str, Any]:
     - ``slot_derivations``: merged by name (dict union). Raises on duplicate
       slot names with conflicting definitions.
     - Scalar fields (``title``, ``source_schema``, etc.): first non-None value
-      wins.
+      wins, so file order decides between differing values.  Fields in
+      ``_MUST_AGREE_KEYS`` change the output, so differing values raise instead.
 
     :param spec_dicts: A list of raw spec dicts to merge.
     :returns: A single merged spec dict.
-    :raises SpecMergeError: If enum or slot derivations conflict on the same name.
+    :raises SpecMergeError: If enum or slot derivations conflict on the same name, or
+        fragments disagree on a field in ``_MUST_AGREE_KEYS``.
     """
     if not spec_dicts:
         return {}
@@ -142,8 +149,11 @@ def merge_spec_dicts(spec_dicts: list[dict[str, Any]]) -> dict[str, Any]:
                     raise SpecMergeError(msg)
                 merged_slot_derivations[name] = body
 
-        # Scalar fields: first non-None wins
+        # Scalar fields: first non-None wins, except where a disagreement changes the output
         for key, value in spec.items():
+            if key in _MUST_AGREE_KEYS and key in merged and value is not None and merged[key] != value:
+                msg = f"Conflicting values for '{key}' across spec files: {merged[key]!r} and {value!r}"
+                raise SpecMergeError(msg)
             if key not in _COLLECTION_KEYS and key not in merged and value is not None:
                 merged[key] = value
 

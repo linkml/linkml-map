@@ -451,6 +451,7 @@ def test_semantics_valid_target_class():
     """A class derivation matching a target schema class produces no errors."""
     spec = normalize_spec_dict(
         {
+            "mint_ids": True,
             "class_derivations": {"Person": {"populated_from": "Person"}},
         }
     )
@@ -491,6 +492,7 @@ def test_semantics_valid_slot_derivation():
     """A slot derivation matching a target class slot produces no errors."""
     spec = normalize_spec_dict(
         {
+            "mint_ids": True,
             "class_derivations": {
                 "Person": {
                     "populated_from": "Person",

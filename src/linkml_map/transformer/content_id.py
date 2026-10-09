@@ -8,9 +8,10 @@ id is a UUID5 hash of the record itself::
 The same harmonized record always gets the same id, and different records get
 different ids, independent of row order, chunking, or parallel execution.  These
 are content hashes, not stable identifiers: any change to a derived value changes
-the id.  An explicit derivation of the identifier slot always wins, and ``mint_ids:
-false`` on the specification or a class derivation turns minting off (see
-:func:`mints_ids`).
+the id.  Minting is opt-in with ``mint_ids: true`` on the specification or a class
+derivation (see :func:`mints_ids`), and an explicit derivation of the identifier slot
+always wins.  An identifier that is neither derived nor minted is an error: the
+transformer refuses to emit records without it.
 
 The canonical form is a contract — changing it changes every synthesized id:
 
@@ -37,14 +38,22 @@ from linkml_map.utils.eval_utils import _uuid5
 
 
 def mints_ids(spec_mint_ids: bool | None, class_mint_ids: bool | None) -> bool:
-    """Whether a class derivation mints ids: its own setting, else the spec's, else on.
+    """Whether a class derivation mints ids: its own setting, else the spec's, else off.
 
-    >>> mints_ids(None, None), mints_ids(False, None), mints_ids(False, True)
-    (True, False, True)
+    >>> mints_ids(None, None), mints_ids(True, None), mints_ids(True, False)
+    (False, True, False)
     """
     if class_mint_ids is not None:
         return class_mint_ids
-    return spec_mint_ids is not False
+    return spec_mint_ids is True
+
+
+def missing_identifier_message(class_name: str, id_slot: str) -> str:
+    """Explain an identifier slot that a class derivation neither derives nor mints."""
+    return (
+        f"Class derivation {class_name!r} does not derive identifier slot {id_slot!r} and mint_ids is not true; "
+        "derive it explicitly or set mint_ids: true"
+    )
 
 
 def canonical_json(value: Any, slot_order: dict[str, tuple[bool, str | None]] | None = None) -> str:
@@ -131,10 +140,15 @@ class ContentIdSynthesizer:
     _slot_descriptions: dict[str, dict[str, tuple[bool, str | None]]] = field(default_factory=dict, repr=False)
 
     def identifier_slot(self, class_name: str) -> str | None:
-        """The identifier slot of *class_name*, or ``None`` if it has none or isn't in the schema."""
+        """The identifier slot of *class_name*, if records of it need one.
+
+        ``None`` if the class has no identifier, isn't in the schema, or is abstract or
+        a mixin (it never has instances of its own).
+        """
         if class_name not in self._identifier_slots:
             slot = None
-            if class_name in self.schemaview.all_classes():
+            cls = self.schemaview.all_classes().get(class_name)
+            if cls is not None and not cls.abstract and not cls.mixin:
                 slot = self.schemaview.get_identifier_slot(class_name)
             self._identifier_slots[class_name] = slot.name if slot else None
         return self._identifier_slots[class_name]

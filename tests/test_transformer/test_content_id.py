@@ -1,13 +1,18 @@
 """Identifiers synthesized from record content when the spec derives none (#342)."""
 
 import copy
+import json
 import textwrap
+from pathlib import Path
 from typing import Any
 
 import pytest
 import yaml
+from click.testing import CliRunner
 from linkml_runtime import SchemaView
 
+from linkml_map.cli.cli import main
+from linkml_map.transformer.errors import TransformationError
 from linkml_map.transformer.object_transformer import ObjectTransformer
 from linkml_map.validator import validate_spec_semantics
 
@@ -59,6 +64,7 @@ TARGET_SCHEMA = textwrap.dedent("""\
 
 SPEC = {
     "id": "content-id",
+    "mint_ids": True,
     "class_derivations": {
         "Measurement": {
             "populated_from": "Row",
@@ -183,21 +189,30 @@ def test_no_target_schema_no_id() -> None:
     assert "id" not in _transform(ROW, spec, target=None)
 
 
-def test_validator_reports_synthesis_instead_of_missing_derivation() -> None:
-    """An underived identifier is reported as synthesized (info), not as a missing required slot."""
-    messages = validate_spec_semantics(
-        yaml.safe_load(yaml.safe_dump(SPEC)),
+def _about_id(messages: list) -> list[tuple[str, str]]:
+    return [(m.severity, m.message) for m in messages if "'id'" in m.message and m.path.endswith("[Measurement]")]
+
+
+def _validate(spec: dict[str, Any]) -> list:
+    return validate_spec_semantics(
+        yaml.safe_load(yaml.safe_dump(spec)),
         source_schemaview=SchemaView(SOURCE_SCHEMA),
         target_schemaview=SchemaView(TARGET_SCHEMA),
     )
-    about_id = [m for m in messages if "'id'" in m.message and m.path.endswith("[Measurement]")]
-    assert [(m.severity, m.message) for m in about_id] == [
+
+
+def test_validator_reports_minting() -> None:
+    """With minting on, an underived identifier is reported as synthesized (info)."""
+    assert _about_id(_validate(SPEC)) == [
         ("info", "Identifier slot 'id' has no derivation; it will be synthesized from a hash of the record's content")
     ]
 
 
-def _spec_with(spec_mint_ids: bool | None = None, class_mint_ids: bool | None = None) -> dict[str, Any]:
+def _spec_with(spec_mint_ids: bool | None, class_mint_ids: bool | None, nested: bool = False) -> dict[str, Any]:
     spec = copy.deepcopy(SPEC)
+    del spec["mint_ids"]
+    if not nested:
+        del spec["class_derivations"]["Measurement"]["slot_derivations"]["value_quantity"]
     if spec_mint_ids is not None:
         spec["mint_ids"] = spec_mint_ids
     if class_mint_ids is not None:
@@ -208,34 +223,171 @@ def _spec_with(spec_mint_ids: bool | None = None, class_mint_ids: bool | None = 
 @pytest.mark.parametrize(
     ("spec_mint_ids", "class_mint_ids", "minted"),
     [
-        (None, None, True),
+        (None, None, False),
         (False, None, False),
-        (None, False, False),
+        (True, None, True),
+        (None, True, True),
         (False, True, True),
         (True, False, False),
     ],
 )
 def test_mint_ids_setting(spec_mint_ids: bool | None, class_mint_ids: bool | None, minted: bool) -> None:
-    """``mint_ids`` turns minting off; a class derivation's setting overrides the spec's."""
-    out = _transform(ROW, _spec_with(spec_mint_ids, class_mint_ids))
-    assert ("id" in out) is minted
+    """Minting is opt-in; a class derivation's setting overrides the spec's; otherwise the id is an error."""
+    spec = _spec_with(spec_mint_ids, class_mint_ids)
+    if minted:
+        assert "id" in _transform(ROW, spec)
+    else:
+        with pytest.raises(TransformationError, match="does not derive identifier slot 'id' and mint_ids is not true"):
+            _transform(ROW, spec)
 
 
 def test_nested_derivation_follows_the_spec_not_its_parent() -> None:
-    """A nested class derivation without its own setting inherits the spec's, not the parent class's."""
-    out = _transform(ROW, _spec_with(class_mint_ids=False))
-    assert "id" not in out
+    """A nested class derivation without its own setting follows the spec, not its parent class."""
+    spec = _spec_with(None, True, nested=True)
+    with pytest.raises(TransformationError, match="'Quantity' does not derive identifier slot 'id'"):
+        _transform(ROW, spec)
+    spec["class_derivations"]["Measurement"]["slot_derivations"]["value_quantity"]["class_derivations"]["Quantity"][
+        "mint_ids"
+    ] = True
+    out = _transform(ROW, spec)
+    assert "id" in out
     assert "id" in out["value_quantity"]
 
 
-def test_validator_warns_when_minting_is_off() -> None:
-    """With minting off, an underived identifier is a warning again, so --strict fails on it."""
+def test_missing_identifiers_covers_nested_derivations() -> None:
+    """The whole-spec check reports every derivation without an identifier, nested ones included."""
+    tr = ObjectTransformer()
+    tr.source_schemaview = SchemaView(SOURCE_SCHEMA)
+    tr.target_schemaview = SchemaView(TARGET_SCHEMA)
+    tr.create_transformer_specification(_spec_with(None, None, nested=True))
+    assert tr.missing_identifiers() == [
+        "Class derivation 'Measurement' does not derive identifier slot 'id' and mint_ids is not true; "
+        "derive it explicitly or set mint_ids: true",
+        "Class derivation 'Quantity' does not derive identifier slot 'id' and mint_ids is not true; "
+        "derive it explicitly or set mint_ids: true",
+    ]
+    with pytest.raises(ValueError, match="'Measurement' does not derive"):
+        tr.check_identifiers()
+
+
+def test_validator_errors_when_not_minting() -> None:
+    """An identifier that is neither derived nor minted is a validation error."""
+    assert _about_id(_validate(_spec_with(None, None))) == [
+        (
+            "error",
+            "Class derivation 'Measurement' does not derive identifier slot 'id' and mint_ids is not true; "
+            "derive it explicitly or set mint_ids: true",
+        )
+    ]
+
+
+INHERITING_TARGET = textwrap.dedent("""\
+    id: https://example.org/inheriting
+    name: inheriting
+    prefixes: {linkml: 'https://w3id.org/linkml/'}
+    default_prefix: inheriting
+    default_range: string
+    imports: [linkml:types]
+    classes:
+      Record:
+        abstract: true
+        attributes:
+          id: {identifier: true, required: true}
+      Measurement:
+        is_a: Record
+        attributes:
+          observation_type: {}
+""")
+
+INHERITING_SPEC = {
+    "id": "inheriting",
+    "class_derivations": {
+        "Record": {"slot_derivations": {"id": {"expr": "'R-' + {participant}"}}},
+        "Measurement": {
+            "is_a": "Record",
+            "populated_from": "Row",
+            "slot_derivations": {"observation_type": {"populated_from": "observation_type"}},
+        },
+    },
+}
+
+
+def test_inherited_id_derivation_and_abstract_classes_need_no_minting() -> None:
+    """An id derived by an ancestor derivation counts, and abstract target classes need none."""
+    tr = ObjectTransformer()
+    tr.source_schemaview = SchemaView(SOURCE_SCHEMA)
+    tr.target_schemaview = SchemaView(INHERITING_TARGET)
+    tr.create_transformer_specification(copy.deepcopy(INHERITING_SPEC))
+    assert tr.missing_identifiers() == []
+    assert tr.map_object(ROW, "Row") == {"id": "R-P1", "observation_type": "OBA:VT0000184"}
+
     messages = validate_spec_semantics(
-        _spec_with(class_mint_ids=False),
+        copy.deepcopy(INHERITING_SPEC),
         source_schemaview=SchemaView(SOURCE_SCHEMA),
-        target_schemaview=SchemaView(TARGET_SCHEMA),
+        target_schemaview=SchemaView(INHERITING_TARGET),
     )
-    about_id = [m for m in messages if "'id'" in m.message and m.path.endswith("[Measurement]")]
-    assert [(m.severity, m.message) for m in about_id] == [
-        ("warning", "Identifier slot 'id' has no derivation, and mint_ids is false")
+    assert [m for m in messages if "identifier" in m.message] == []
+
+
+CLI_SPEC = textwrap.dedent("""\
+    id: content-id-cli
+    class_derivations:
+      Measurement:
+        populated_from: Row
+        slot_derivations:
+          associated_participant:
+            populated_from: participant
+          observation_type:
+            populated_from: observation_type
+""")
+
+
+def _map_data(tmp_path: Path, *extra: str) -> tuple[Any, Path]:
+    (tmp_path / "source.yaml").write_text(SOURCE_SCHEMA)
+    (tmp_path / "target.yaml").write_text(TARGET_SCHEMA)
+    (tmp_path / "spec.yaml").write_text(CLI_SPEC)
+    (tmp_path / "Row.tsv").write_text("participant\tobservation_type\nP1\tOBA:1\nP2\tOBA:2\n")
+    output = tmp_path / "out.jsonl"
+    args = [
+        "map-data",
+        "-T",
+        str(tmp_path / "spec.yaml"),
+        "-s",
+        str(tmp_path / "source.yaml"),
+        "--target-schema",
+        str(tmp_path / "target.yaml"),
+        "--source-type",
+        "Row",
+        "-f",
+        "jsonl",
+        "-o",
+        str(output),
+        *extra,
+        str(tmp_path / "Row.tsv"),
+    ]
+    return CliRunner().invoke(main, args), output
+
+
+def test_map_data_refuses_records_without_identifiers(tmp_path: Path) -> None:
+    """Without --continue-on-error, a missing identifier stops the run before any output."""
+    result, output = _map_data(tmp_path)
+    assert result.exit_code != 0
+    assert "'Measurement' does not derive identifier slot 'id'" in result.output
+    assert not output.exists()
+
+
+def test_continue_on_error_reports_once_and_still_writes(tmp_path: Path) -> None:
+    """--continue-on-error reports the missing identifier once (not per row), writes the records, and exits 1.
+
+    Pre-flight validation also prints the same problem as a static finding; the counted
+    error is the ``  - `` line.
+    """
+    result, output = _map_data(tmp_path, "--continue-on-error")
+    assert result.exit_code == 1
+    assert result.stderr.count("  - Class derivation 'Measurement' does not derive identifier slot 'id'") == 1
+    assert "1 transformation error(s)" in result.stderr
+    rows = [json.loads(line) for line in output.read_text().splitlines()]
+    assert rows == [
+        {"associated_participant": "P1", "observation_type": "OBA:1"},
+        {"associated_participant": "P2", "observation_type": "OBA:2"},
     ]

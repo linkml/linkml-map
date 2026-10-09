@@ -432,9 +432,9 @@ attributes:
     name: mint_ids
     description: Whether to synthesize an identifier from a hash of the record's content
       when the target class has an identifier slot that the class derivation does
-      not derive. Defaults to true. Set to false when every identifier must be derived
-      explicitly, so a missing one is reported instead of minted. A class derivation's
-      own mint_ids overrides this.
+      not derive. Defaults to false. An identifier that is neither derived nor minted
+      is an error, and no records are produced. A class derivation's own mint_ids
+      overrides this.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     domain_of:
@@ -671,9 +671,9 @@ attributes:
     name: mint_ids
     description: Whether to synthesize an identifier from a hash of the record's content
       when the target class has an identifier slot that the class derivation does
-      not derive. Defaults to true. Set to false when every identifier must be derived
-      explicitly, so a missing one is reported instead of minted. A class derivation's
-      own mint_ids overrides this.
+      not derive. Defaults to false. An identifier that is neither derived nor minted
+      is an error, and no records are produced. A class derivation's own mint_ids
+      overrides this.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     owner: TransformationSpecification

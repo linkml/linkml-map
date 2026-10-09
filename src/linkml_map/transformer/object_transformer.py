@@ -25,7 +25,7 @@ from linkml_map.datamodel.transformer_model import (
     SlotDerivation,
 )
 from linkml_map.functions.unit_conversion import perform_unit_conversion
-from linkml_map.transformer.content_id import ContentIdSynthesizer, mints_ids
+from linkml_map.transformer.content_id import ContentIdSynthesizer, mints_ids, missing_identifier_message
 from linkml_map.transformer.errors import TransformationError
 from linkml_map.transformer.pivot import perform_melt, perform_pivot_operation
 from linkml_map.transformer.transformer import OBJECT_TYPE, Transformer
@@ -282,6 +282,14 @@ class ObjectTransformer(Transformer):
     :func:`~linkml_map.utils.extensions.load_extensions`.
     """
 
+    emit_without_identifiers: bool = False
+    """Emit records whose identifier is neither derived nor minted, instead of raising.
+
+    For ``--continue-on-error`` runs, whose purpose is to surface every problem even at
+    the cost of bad output; the caller reports the missing identifiers once, up front
+    (see :meth:`missing_identifiers`).
+    """
+
     _content_ids: ContentIdSynthesizer | None = field(default=None, repr=False)
     """Synthesizer for identifiers the spec doesn't derive, rebuilt if the target schema changes."""
 
@@ -423,20 +431,63 @@ class ObjectTransformer(Transformer):
         return self._with_synthesized_id(tgt_attrs, class_deriv)
 
     def _with_synthesized_id(self, record: dict[str, Any], class_deriv: ClassDerivation) -> dict[str, Any]:
-        """Prepend a content-hash id when the target class has an identifier the spec doesn't derive.
+        """Prepend a content-hash id when the target identifier is minted rather than derived.
 
-        See :mod:`linkml_map.transformer.content_id`.  An explicit derivation of the
-        identifier slot always wins, nothing is synthesized without a target schema,
-        and ``mint_ids: false`` turns minting off.
+        See :mod:`linkml_map.transformer.content_id`.
+
+        :raises TransformationError: If the identifier is neither derived nor minted.
         """
-        if self.target_schemaview is None or not mints_ids(self.specification.mint_ids, class_deriv.mint_ids):
+        id_slot = self._underived_identifier(class_deriv)
+        if id_slot is None:
             return record
+        if not mints_ids(self.specification.mint_ids, class_deriv.mint_ids):
+            if self.emit_without_identifiers:
+                return record
+            raise TransformationError(
+                message=missing_identifier_message(class_deriv.name, id_slot),
+                class_derivation_name=class_deriv.name,
+                class_populated_from=class_deriv.populated_from,
+            )
+        return {id_slot: self._content_ids.content_id(record, class_deriv.name), **record}
+
+    def _underived_identifier(self, class_deriv: ClassDerivation) -> str | None:
+        """The target class's identifier slot when *class_deriv* doesn't derive it, else ``None``.
+
+        Always ``None`` without a target schema, since there is no identifier slot to know of.
+        """
+        if self.target_schemaview is None:
+            return None
         if self._content_ids is None or self._content_ids.schemaview is not self.target_schemaview:
             self._content_ids = ContentIdSynthesizer(self.target_schemaview)
         id_slot = self._content_ids.identifier_slot(class_deriv.name)
         if id_slot is None or id_slot in class_deriv.slot_derivations:
-            return record
-        return {id_slot: self._content_ids.content_id(record, class_deriv.name), **record}
+            return None
+        return id_slot
+
+    def missing_identifiers(self) -> list[str]:
+        """Describe every class derivation that would emit records without their identifier.
+
+        Checks the whole specification, nested class derivations included: each target
+        identifier slot must be derived explicitly or minted (``mint_ids: true``).
+
+        :return: One message per offending class derivation; empty when all are covered.
+        """
+        top_level = [self._with_inherited_fields(cd) for cd in self.specification.class_derivations]
+        return [
+            missing_identifier_message(cd.name, id_slot)
+            for cd in _all_class_derivations(top_level)
+            if (id_slot := self._underived_identifier(cd)) is not None
+            and not mints_ids(self.specification.mint_ids, cd.mint_ids)
+        ]
+
+    def check_identifiers(self) -> None:
+        """Fail before any output if a class derivation would emit records without their identifier.
+
+        :raises ValueError: Listing every problem from :meth:`missing_identifiers`.
+        """
+        problems = self.missing_identifiers()
+        if problems:
+            raise ValueError("\n".join(problems))
 
     @contextmanager
     def _slot_error_context(
@@ -1260,3 +1311,12 @@ class ObjectTransformer(Transformer):
             if enum_deriv.mirror_source:
                 return str(source_value)
         return None
+
+
+def _all_class_derivations(class_derivations: list[ClassDerivation]) -> Iterator[ClassDerivation]:
+    """Yield *class_derivations* and every class derivation nested under their slots."""
+    for cd in class_derivations:
+        yield cd
+        for sd in cd.slot_derivations.values():
+            if sd.class_derivations:
+                yield from _all_class_derivations(sd.class_derivations)
