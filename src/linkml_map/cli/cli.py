@@ -8,7 +8,6 @@ from typing import Any
 import click
 import yaml
 from linkml_runtime import SchemaView
-from linkml_runtime.dumpers import yaml_dumper
 from more_itertools import chunked
 
 from linkml_map.compiler.markdown_compiler import MarkdownCompiler
@@ -881,6 +880,28 @@ def _validate_spec_merged(
             click.echo(f"Wrote resolved spec to {emit_spec}")
 
 
+def _strip_empty(obj: Any) -> Any:
+    """Recursively drop ``None``, empty lists and empty dicts, keeping the outer container.
+
+    Matches what linkml's ``yaml_dumper`` removes from plain data, without its conversion
+    of decimals to floats.  A stopgap until one output policy covers every writer (#354).
+
+    >>> _strip_empty({"a": [], "b": {"c": None}, "d": [{}, 1]})
+    {'d': [1]}
+    """
+    if isinstance(obj, dict):
+        stripped = ((k, _strip_empty(v)) for k, v in obj.items())
+        return {k: v for k, v in stripped if not _is_empty(v)}
+    if isinstance(obj, list):
+        return [v for v in map(_strip_empty, obj) if not _is_empty(v)]
+    return obj
+
+
+def _is_empty(value: Any) -> bool:
+    """Whether *value* is ``None`` or an empty list or dict."""
+    return value is None or (isinstance(value, dict | list) and not value)
+
+
 def dump_output(
     output_data: dict[str, Any] | list[Any] | str,
     output_format: str | None = None,
@@ -896,7 +917,7 @@ def dump_output(
     :param file_path: path to an output file, defaults to None
     :type file_path: Optional[str], optional
     """
-    import json
+    from decimal import Decimal
 
     from flatten_dict import flatten
     from flatten_dict.reducers import make_reducer
@@ -905,18 +926,24 @@ def dump_output(
         msg = "No output to be printed"
         raise ValueError(msg)
 
+    from linkml_map.utils.serialization import dump_yaml, dumps_json, format_decimal
     from linkml_map.writers.output_streams import _strip_nulls
 
     text_dump = output_data
     if output_format == "yaml":
-        text_dump = yaml_dumper.dumps(output_data)
+        if isinstance(output_data, dict | list):
+            text_dump = dump_yaml(_strip_empty(output_data), sort_keys=False)
+        else:
+            from linkml_runtime.dumpers import yaml_dumper
+
+            text_dump = yaml_dumper.dumps(output_data)
     elif output_format == "json":
-        text_dump = json.dumps(_strip_nulls(output_data), indent=2, ensure_ascii=False) + "\n"
+        text_dump = dumps_json(_strip_nulls(output_data), indent=2) + "\n"
     elif output_format == "jsonl":
         if isinstance(output_data, list):
-            text_dump = "\n".join(json.dumps(_strip_nulls(item), ensure_ascii=False) for item in output_data) + "\n"
+            text_dump = "\n".join(dumps_json(_strip_nulls(item)) for item in output_data) + "\n"
         else:
-            text_dump = json.dumps(_strip_nulls(output_data), ensure_ascii=False) + "\n"
+            text_dump = dumps_json(_strip_nulls(output_data)) + "\n"
     elif output_format in ("tsv", "csv"):
         separator = "\t" if output_format == "tsv" else ","
         reducer = make_reducer("__")
@@ -932,7 +959,8 @@ def dump_output(
                         headers.append(k)
             lines = [separator.join(headers)]
             for row in rows:
-                lines.append(separator.join(str(row.get(h, "")) for h in headers))
+                cells = (row.get(h, "") for h in headers)
+                lines.append(separator.join(format_decimal(c) if isinstance(c, Decimal) else str(c) for c in cells))
             text_dump = "\n".join(lines) + "\n"
         else:
             text_dump = ""
