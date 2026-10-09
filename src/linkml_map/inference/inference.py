@@ -28,7 +28,7 @@ def induce_missing_values(specification: TransformationSpecification, source_sch
                 continue
             # for null mappings, assume that the slot is copied from the same slot in the source
             # TODO: decide if this is the desired behavior
-            if sd.populated_from is None and sd.expr is None:
+            if sd.populated_from is None and sd.expr is None and sd.value is None:
                 sd.populated_from = sd.name
             if sd.range is None and sd.value is not None:
                 sd.range = "string"
