@@ -34,6 +34,7 @@ from linkml_map.datamodel import TR_SCHEMA
 from linkml_map.spec_normalizer import normalize_spec
 from linkml_map.spec_scan import ValidationMessage, iter_derivation_dicts
 from linkml_map.spec_scan import check_deprecated_fields as check_deprecated_fields  # re-export
+from linkml_map.transformer.content_id import mints_ids
 from linkml_map.utils.eval_utils import FUNCTIONS
 from linkml_map.utils.join_utils import resolve_join
 
@@ -554,6 +555,7 @@ def validate_spec_semantics(
             derivation_pool=derivation_pool,
             source_all_classes=source_all_classes,
             target_all_classes=target_all_classes,
+            spec_mint_ids=data.get("mint_ids"),
         )
 
     # Validate enum_derivations
@@ -609,6 +611,7 @@ def _validate_class_derivation(
     derivation_pool: set[str] | None = None,
     source_all_classes: set[str] | None = None,
     target_all_classes: set[str] | None = None,
+    spec_mint_ids: bool | None = None,
 ) -> None:
     """Validate a single class derivation against schemas.
 
@@ -737,6 +740,7 @@ def _validate_class_derivation(
                 derivation_pool=derivation_pool,
                 source_all_classes=source_all_classes,
                 target_all_classes=target_all_classes,
+                spec_mint_ids=spec_mint_ids,
             )
 
     # Warning: target class has required slots with no derivation
@@ -745,7 +749,7 @@ def _validate_class_derivation(
         for slot in target_sv.class_induced_slots(cd_name):
             if slot.name in derived_slot_names:
                 continue
-            if slot.identifier:
+            if slot.identifier and mints_ids(spec_mint_ids, cd.get("mint_ids")):
                 messages.append(
                     ValidationMessage(
                         severity="info",
@@ -754,6 +758,14 @@ def _validate_class_derivation(
                             f"Identifier slot '{slot.name}' has no derivation; "
                             "it will be synthesized from a hash of the record's content"
                         ),
+                    )
+                )
+            elif slot.identifier:
+                messages.append(
+                    ValidationMessage(
+                        severity="warning",
+                        path=cd_path,
+                        message=f"Identifier slot '{slot.name}' has no derivation, and mint_ids is false",
                     )
                 )
             elif slot.required:

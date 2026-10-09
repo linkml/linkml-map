@@ -98,6 +98,8 @@ URI: [linkmlmap:TransformationSpecification](https://w3id.org/linkml/transformer
         
       TransformationSpecification : mapping_method
         
+      TransformationSpecification : mint_ids
+        
       TransformationSpecification : prefixes
         
           
@@ -209,6 +211,7 @@ URI: [linkmlmap:TransformationSpecification](https://w3id.org/linkml/transformer
 | [mapping_method](mapping_method.md) | 0..1 <br/> [Uriorcurie](Uriorcurie.md) | The method used to create this mapping, e | direct |
 | [documentation](documentation.md) | 0..1 <br/> [Uri](Uri.md) | URL or reference to documentation for the mapping specification | direct |
 | [content_url](content_url.md) | 0..1 <br/> [Uri](Uri.md) | Reference to the actual content of the mapping specification | direct |
+| [mint_ids](mint_ids.md) | 0..1 <br/> [Boolean](Boolean.md) | Whether to synthesize an identifier from a hash of the record's content when ... | direct |
 | [class_derivations](class_derivations.md) | * <br/> [ClassDerivation](ClassDerivation.md) | Instructions on how to derive a set of classes in the target schema from clas... | direct |
 | [enum_derivations](enum_derivations.md) | * <br/> [EnumDerivation](EnumDerivation.md) | Instructions on how to derive a set of enums in the target schema | direct |
 | [slot_derivations](slot_derivations.md) | * <br/> [SlotDerivation](SlotDerivation.md) | Instructions on how to derive a set of top level slots in the target schema | direct |
@@ -425,6 +428,19 @@ attributes:
     domain_of:
     - TransformationSpecification
     range: uri
+  mint_ids:
+    name: mint_ids
+    description: Whether to synthesize an identifier from a hash of the record's content
+      when the target class has an identifier slot that the class derivation does
+      not derive. Defaults to true. Set to false when every identifier must be derived
+      explicitly, so a missing one is reported instead of minted. A class derivation's
+      own mint_ids overrides this.
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    domain_of:
+    - TransformationSpecification
+    - ClassDerivation
+    range: boolean
   class_derivations:
     name: class_derivations
     description: Instructions on how to derive a set of classes in the target schema
@@ -651,6 +667,20 @@ attributes:
     domain_of:
     - TransformationSpecification
     range: uri
+  mint_ids:
+    name: mint_ids
+    description: Whether to synthesize an identifier from a hash of the record's content
+      when the target class has an identifier slot that the class derivation does
+      not derive. Defaults to true. Set to false when every identifier must be derived
+      explicitly, so a missing one is reported instead of minted. A class derivation's
+      own mint_ids overrides this.
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    owner: TransformationSpecification
+    domain_of:
+    - TransformationSpecification
+    - ClassDerivation
+    range: boolean
   class_derivations:
     name: class_derivations
     description: Instructions on how to derive a set of classes in the target schema

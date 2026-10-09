@@ -189,6 +189,7 @@ class TransformationSpecification(SpecificationComponent):
     mapping_method: Optional[str] = Field(default=None, description="""The method used to create this mapping, e.g. manual curation, automated mapping, etc.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification']} })
     documentation: Optional[str] = Field(default=None, description="""URL or reference to documentation for the mapping specification""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification']} })
     content_url: Optional[str] = Field(default=None, description="""Reference to the actual content of the mapping specification""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification']} })
+    mint_ids: Optional[bool] = Field(default=None, description="""Whether to synthesize an identifier from a hash of the record's content when the target class has an identifier slot that the class derivation does not derive. Defaults to true. Set to false when every identifier must be derived explicitly, so a missing one is reported instead of minted. A class derivation's own mint_ids overrides this.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'ClassDerivation']} })
     class_derivations: Optional[list[ClassDerivation]] = Field(default_factory=list, description="""Instructions on how to derive a set of classes in the target schema from classes in the source schema.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification',
                        'ObjectDerivation',
                        'SlotDerivation']} })
@@ -293,6 +294,7 @@ class ClassDerivation(ElementDerivation):
     target_definition: Optional[Any] = Field(default=None, description="""LinkML class definition object for this slot.""", json_schema_extra = { "linkml_meta": {'comments': ['currently defined as Any to avoid coupling with metamodel'],
          'domain_of': ['ClassDerivation', 'SlotDerivation']} })
     pivot_operation: Optional[PivotOperation] = Field(default=None, description="""Configuration for pivot (unmelt) operations at class level""", json_schema_extra = { "linkml_meta": {'domain_of': ['ClassDerivation', 'SlotDerivation']} })
+    mint_ids: Optional[bool] = Field(default=None, description="""Overrides the specification's mint_ids for this class derivation. Set to false on classes whose identifiers other records reference, so a missing derivation is reported rather than replaced by a content hash.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification', 'ClassDerivation']} })
     name: str = Field(default=..., description="""Name of the element in the target schema""", json_schema_extra = { "linkml_meta": {'domain_of': ['SchemaReference',
                        'ElementDerivation',
                        'ObjectDerivation',

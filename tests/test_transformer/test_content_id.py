@@ -194,3 +194,48 @@ def test_validator_reports_synthesis_instead_of_missing_derivation() -> None:
     assert [(m.severity, m.message) for m in about_id] == [
         ("info", "Identifier slot 'id' has no derivation; it will be synthesized from a hash of the record's content")
     ]
+
+
+def _spec_with(spec_mint_ids: bool | None = None, class_mint_ids: bool | None = None) -> dict[str, Any]:
+    spec = copy.deepcopy(SPEC)
+    if spec_mint_ids is not None:
+        spec["mint_ids"] = spec_mint_ids
+    if class_mint_ids is not None:
+        spec["class_derivations"]["Measurement"]["mint_ids"] = class_mint_ids
+    return spec
+
+
+@pytest.mark.parametrize(
+    ("spec_mint_ids", "class_mint_ids", "minted"),
+    [
+        (None, None, True),
+        (False, None, False),
+        (None, False, False),
+        (False, True, True),
+        (True, False, False),
+    ],
+)
+def test_mint_ids_setting(spec_mint_ids: bool | None, class_mint_ids: bool | None, minted: bool) -> None:
+    """``mint_ids`` turns minting off; a class derivation's setting overrides the spec's."""
+    out = _transform(ROW, _spec_with(spec_mint_ids, class_mint_ids))
+    assert ("id" in out) is minted
+
+
+def test_nested_derivation_follows_the_spec_not_its_parent() -> None:
+    """A nested class derivation without its own setting inherits the spec's, not the parent class's."""
+    out = _transform(ROW, _spec_with(class_mint_ids=False))
+    assert "id" not in out
+    assert "id" in out["value_quantity"]
+
+
+def test_validator_warns_when_minting_is_off() -> None:
+    """With minting off, an underived identifier is a warning again, so --strict fails on it."""
+    messages = validate_spec_semantics(
+        _spec_with(class_mint_ids=False),
+        source_schemaview=SchemaView(SOURCE_SCHEMA),
+        target_schemaview=SchemaView(TARGET_SCHEMA),
+    )
+    about_id = [m for m in messages if "'id'" in m.message and m.path.endswith("[Measurement]")]
+    assert [(m.severity, m.message) for m in about_id] == [
+        ("warning", "Identifier slot 'id' has no derivation, and mint_ids is false")
+    ]

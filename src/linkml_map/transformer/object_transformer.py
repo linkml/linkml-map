@@ -25,7 +25,7 @@ from linkml_map.datamodel.transformer_model import (
     SlotDerivation,
 )
 from linkml_map.functions.unit_conversion import perform_unit_conversion
-from linkml_map.transformer.content_id import ContentIdSynthesizer
+from linkml_map.transformer.content_id import ContentIdSynthesizer, mints_ids
 from linkml_map.transformer.errors import TransformationError
 from linkml_map.transformer.pivot import perform_melt, perform_pivot_operation
 from linkml_map.transformer.transformer import OBJECT_TYPE, Transformer
@@ -426,9 +426,10 @@ class ObjectTransformer(Transformer):
         """Prepend a content-hash id when the target class has an identifier the spec doesn't derive.
 
         See :mod:`linkml_map.transformer.content_id`.  An explicit derivation of the
-        identifier slot always wins, and nothing is synthesized without a target schema.
+        identifier slot always wins, nothing is synthesized without a target schema,
+        and ``mint_ids: false`` turns minting off.
         """
-        if self.target_schemaview is None:
+        if self.target_schemaview is None or not mints_ids(self.specification.mint_ids, class_deriv.mint_ids):
             return record
         if self._content_ids is None or self._content_ids.schemaview is not self.target_schemaview:
             self._content_ids = ContentIdSynthesizer(self.target_schemaview)

@@ -8,7 +8,9 @@ id is a UUID5 hash of the record itself::
 The same harmonized record always gets the same id, and different records get
 different ids, independent of row order, chunking, or parallel execution.  These
 are content hashes, not stable identifiers: any change to a derived value changes
-the id.  An explicit derivation of the identifier slot always wins.
+the id.  An explicit derivation of the identifier slot always wins, and ``mint_ids:
+false`` on the specification or a class derivation turns minting off (see
+:func:`mints_ids`).
 
 The canonical form is a contract — changing it changes every synthesized id:
 
@@ -32,6 +34,17 @@ from typing import Any
 from linkml_runtime import SchemaView
 
 from linkml_map.utils.eval_utils import _uuid5
+
+
+def mints_ids(spec_mint_ids: bool | None, class_mint_ids: bool | None) -> bool:
+    """Whether a class derivation mints ids: its own setting, else the spec's, else on.
+
+    >>> mints_ids(None, None), mints_ids(False, None), mints_ids(False, True)
+    (True, False, True)
+    """
+    if class_mint_ids is not None:
+        return class_mint_ids
+    return spec_mint_ids is not False
 
 
 def canonical_json(value: Any, slot_order: dict[str, tuple[bool, str | None]] | None = None) -> str:
