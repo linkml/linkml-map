@@ -21,6 +21,7 @@ URI: [linkmlmap:mint_ids](https://w3id.org/linkml/transformer/mint_ids)
 | Name | Description | Modifies Slot |
 | --- | --- | --- |
 | [TransformationSpecification](TransformationSpecification.md) | A collection of mappings between source and target classes |  no  |
+| [ClassDefault](ClassDefault.md) | Settings applied to every class derivation that targets this class, unless th... |  no  |
 | [ClassDerivation](ClassDerivation.md) | A specification of how to derive a target class from a source class |  no  |
 
 
@@ -35,7 +36,7 @@ URI: [linkmlmap:mint_ids](https://w3id.org/linkml/transformer/mint_ids)
 | Property | Value |
 | --- | --- |
 | Range | NONE |
-| Domain Of | [TransformationSpecification](TransformationSpecification.md), [ClassDerivation](ClassDerivation.md) |
+| Domain Of | [TransformationSpecification](TransformationSpecification.md), [ClassDefault](ClassDefault.md), [ClassDerivation](ClassDerivation.md) |
 
 ### Cardinality and Requirements
 
@@ -75,6 +76,7 @@ URI: [linkmlmap:mint_ids](https://w3id.org/linkml/transformer/mint_ids)
 name: mint_ids
 domain_of:
 - TransformationSpecification
+- ClassDefault
 - ClassDerivation
 
 ```

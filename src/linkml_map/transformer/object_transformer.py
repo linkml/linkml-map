@@ -440,7 +440,7 @@ class ObjectTransformer(Transformer):
         id_slot = self._underived_identifier(class_deriv)
         if id_slot is None:
             return record
-        if not mints_ids(self.specification.mint_ids, class_deriv.mint_ids):
+        if not self._mints_ids(class_deriv):
             if self.emit_without_identifiers:
                 return record
             raise TransformationError(
@@ -449,6 +449,12 @@ class ObjectTransformer(Transformer):
                 class_populated_from=class_deriv.populated_from,
             )
         return {id_slot: self._content_ids.content_id(record, class_deriv.name), **record}
+
+    def _mints_ids(self, class_deriv: ClassDerivation) -> bool:
+        """Whether *class_deriv* mints ids, per :func:`~linkml_map.transformer.content_id.mints_ids`."""
+        spec = self.specification
+        default = spec.class_defaults.get(class_deriv.name) if spec.class_defaults else None
+        return mints_ids(spec.mint_ids, default.mint_ids if default else None, class_deriv.mint_ids)
 
     def _underived_identifier(self, class_deriv: ClassDerivation) -> str | None:
         """The target class's identifier slot when *class_deriv* doesn't derive it, else ``None``.
@@ -476,8 +482,7 @@ class ObjectTransformer(Transformer):
         return [
             missing_identifier_message(cd.name, id_slot)
             for cd in _all_class_derivations(top_level)
-            if (id_slot := self._underived_identifier(cd)) is not None
-            and not mints_ids(self.specification.mint_ids, cd.mint_ids)
+            if (id_slot := self._underived_identifier(cd)) is not None and not self._mints_ids(cd)
         ]
 
     def check_identifiers(self) -> None:

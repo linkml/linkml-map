@@ -391,3 +391,47 @@ def test_continue_on_error_reports_once_and_still_writes(tmp_path: Path) -> None
         {"associated_participant": "P1", "observation_type": "OBA:1"},
         {"associated_participant": "P2", "observation_type": "OBA:2"},
     ]
+
+
+@pytest.mark.parametrize(
+    ("spec_mint_ids", "class_default", "class_mint_ids", "minted"),
+    [
+        (None, {"mint_ids": True}, None, True),
+        (False, {"mint_ids": True}, None, True),
+        (True, {"mint_ids": False}, None, False),
+        (None, {"mint_ids": True}, False, False),
+        (None, {"mint_ids": False}, True, True),
+        (None, True, None, True),
+    ],
+)
+def test_class_defaults_precedence(
+    spec_mint_ids: bool | None, class_default: Any, class_mint_ids: bool | None, minted: bool
+) -> None:
+    """A target class's default beats the spec's setting; a derivation's own beats both.
+
+    The last case is the compact ``Class: true`` form.
+    """
+    spec = _spec_with(spec_mint_ids, class_mint_ids)
+    spec["class_defaults"] = {"Measurement": class_default}
+    if minted:
+        assert "id" in _transform(ROW, spec)
+    else:
+        with pytest.raises(TransformationError, match="mint_ids is not true"):
+            _transform(ROW, spec)
+
+
+def test_validator_honors_class_defaults_and_rejects_unknown_classes() -> None:
+    """class_defaults counts toward minting, and naming a class the target lacks is an error."""
+    spec = _spec_with(None, None)
+    spec["class_defaults"] = {"Measurement": {"mint_ids": True}, "Measurment": {"mint_ids": True}}
+    messages = _validate(spec)
+    assert _about_id(messages) == [
+        ("info", "Identifier slot 'id' has no derivation; it will be synthesized from a hash of the record's content")
+    ]
+    assert [(m.severity, m.path, m.message) for m in messages if m.path.startswith("class_defaults")] == [
+        (
+            "error",
+            "class_defaults[Measurment]",
+            "class_defaults names 'Measurment', which is not a class in the target schema",
+        )
+    ]

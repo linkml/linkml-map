@@ -96,8 +96,8 @@ def merge_spec_dicts(spec_dicts: list[dict[str, Any]]) -> dict[str, Any]:
 
     - ``class_derivations``: appended in order (list or dict values are
       accumulated into a single list).
-    - ``enum_derivations``: merged by name (dict union). Raises on duplicate
-      enum names with conflicting definitions.
+    - ``class_defaults`` and ``enum_derivations``: merged by name (dict union).
+      Raises on duplicate names with conflicting definitions.
     - ``slot_derivations``: merged by name (dict union). Raises on duplicate
       slot names with conflicting definitions.
     - Scalar fields (``title``, ``source_schema``, etc.): first non-None value
@@ -117,9 +117,10 @@ def merge_spec_dicts(spec_dicts: list[dict[str, Any]]) -> dict[str, Any]:
     merged: dict[str, Any] = {}
     merged_class_derivations: list = []
     merged_enum_derivations: dict[str, Any] = {}
+    merged_class_defaults: dict[str, Any] = {}
     merged_slot_derivations: dict[str, Any] = {}
 
-    _COLLECTION_KEYS = {"class_derivations", "enum_derivations", "slot_derivations"}
+    _COLLECTION_KEYS = {"class_derivations", "class_defaults", "enum_derivations", "slot_derivations"}
 
     for spec in spec_dicts:
         # Accumulate class_derivations
@@ -130,6 +131,15 @@ def merge_spec_dicts(spec_dicts: list[dict[str, Any]]) -> dict[str, Any]:
             elif isinstance(cd, dict):
                 for name, body in cd.items():
                     merged_class_derivations.append({name: body} if body is not None else {name: {}})
+
+        # Union class_defaults by name
+        defaults = spec.get("class_defaults")
+        if isinstance(defaults, dict):
+            for name, body in defaults.items():
+                if name in merged_class_defaults and merged_class_defaults[name] != body:
+                    msg = f"Conflicting class_defaults for '{name}'"
+                    raise SpecMergeError(msg)
+                merged_class_defaults[name] = body
 
         # Union enum_derivations by name
         ed = spec.get("enum_derivations")
@@ -159,6 +169,8 @@ def merge_spec_dicts(spec_dicts: list[dict[str, Any]]) -> dict[str, Any]:
 
     if merged_class_derivations:
         merged["class_derivations"] = merged_class_derivations
+    if merged_class_defaults:
+        merged["class_defaults"] = merged_class_defaults
     if merged_enum_derivations:
         merged["enum_derivations"] = merged_enum_derivations
     if merged_slot_derivations:

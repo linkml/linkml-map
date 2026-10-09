@@ -8,10 +8,11 @@ id is a UUID5 hash of the record itself::
 The same harmonized record always gets the same id, and different records get
 different ids, independent of row order, chunking, or parallel execution.  These
 are content hashes, not stable identifiers: any change to a derived value changes
-the id.  Minting is opt-in with ``mint_ids: true`` on the specification or a class
-derivation (see :func:`mints_ids`), and an explicit derivation of the identifier slot
-always wins.  An identifier that is neither derived nor minted is an error: the
-transformer refuses to emit records without it.
+the id.  Minting is opt-in with ``mint_ids: true`` on the specification, a target
+class's entry in ``class_defaults``, or a class derivation (see :func:`mints_ids`), and
+an explicit derivation of the identifier slot always wins.  An identifier that is
+neither derived nor minted is an error: the transformer refuses to emit records
+without it.
 
 The canonical form is a contract — changing it changes every synthesized id:
 
@@ -37,15 +38,21 @@ from typing import Any
 from linkml_runtime import SchemaView
 
 
-def mints_ids(spec_mint_ids: bool | None, class_mint_ids: bool | None) -> bool:
-    """Whether a class derivation mints ids: its own setting, else the spec's, else off.
+def mints_ids(spec_mint_ids: bool | None, default_mint_ids: bool | None, class_mint_ids: bool | None) -> bool:
+    """Whether a class derivation mints ids.
 
-    >>> mints_ids(None, None), mints_ids(True, None), mints_ids(True, False)
-    (False, True, False)
+    The first setting given wins: the derivation's own, then its target class's entry in
+    ``class_defaults``, then the specification's; with none given, minting is off.
+
+    >>> mints_ids(None, None, None), mints_ids(True, None, None)
+    (False, True)
+    >>> mints_ids(False, True, None), mints_ids(False, True, False)
+    (True, False)
     """
-    if class_mint_ids is not None:
-        return class_mint_ids
-    return spec_mint_ids is True
+    for setting in (class_mint_ids, default_mint_ids, spec_mint_ids):
+        if setting is not None:
+            return setting
+    return False
 
 
 def missing_identifier_message(class_name: str, id_slot: str) -> str:

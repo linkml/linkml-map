@@ -160,6 +160,18 @@ class TestMergeSpecDicts:
         assert merge_spec_dicts([body, header])["mint_ids"] is True
         assert merge_spec_dicts([header, body, header])["mint_ids"] is True
 
+    def test_class_defaults_unioned(self):
+        """Per-study fragments can each name classes; identical repeats are fine."""
+        s1 = {"class_defaults": {"A": {"mint_ids": True}}}
+        s2 = {"class_defaults": {"B": {"mint_ids": True}, "A": {"mint_ids": True}}}
+        assert merge_spec_dicts([s1, s2])["class_defaults"] == {"A": {"mint_ids": True}, "B": {"mint_ids": True}}
+
+    def test_class_defaults_conflict_raises(self):
+        s1 = {"class_defaults": {"A": {"mint_ids": True}}}
+        s2 = {"class_defaults": {"A": {"mint_ids": False}}}
+        with pytest.raises(SpecMergeError, match="Conflicting class_defaults for 'A'"):
+            merge_spec_dicts([s1, s2])
+
     def test_mixed_list_and_dict_class_derivations(self):
         s1 = {"class_derivations": [{"name": "A"}]}
         s2 = {"class_derivations": {"B": {"populated_from": "Y"}}}

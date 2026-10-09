@@ -544,6 +544,18 @@ def validate_spec_semantics(
     source_all_classes = set(source_sv.all_classes()) if source_sv is not None else set()
     target_all_classes = set(target_sv.all_classes()) if target_sv is not None else set()
 
+    class_default_mint_ids = _class_default_mint_ids(data.get("class_defaults"))
+    if target_sv is not None:
+        for name in class_default_mint_ids:
+            if name not in target_all_classes:
+                messages.append(
+                    ValidationMessage(
+                        severity="error",
+                        path=f"class_defaults[{name}]",
+                        message=f"class_defaults names {name!r}, which is not a class in the target schema",
+                    )
+                )
+
     # Validate class_derivations (recurses into nested CDs internally)
     for cd in iter_derivation_dicts(data.get("class_derivations", [])):
         _validate_class_derivation(
@@ -556,6 +568,7 @@ def validate_spec_semantics(
             source_all_classes=source_all_classes,
             target_all_classes=target_all_classes,
             spec_mint_ids=data.get("mint_ids"),
+            class_default_mint_ids=class_default_mint_ids,
         )
 
     # Validate enum_derivations
@@ -612,6 +625,7 @@ def _validate_class_derivation(
     source_all_classes: set[str] | None = None,
     target_all_classes: set[str] | None = None,
     spec_mint_ids: bool | None = None,
+    class_default_mint_ids: dict[str, bool | None] | None = None,
 ) -> None:
     """Validate a single class derivation against schemas.
 
@@ -741,6 +755,7 @@ def _validate_class_derivation(
                 source_all_classes=source_all_classes,
                 target_all_classes=target_all_classes,
                 spec_mint_ids=spec_mint_ids,
+                class_default_mint_ids=class_default_mint_ids,
             )
 
     # Warning: target class has required slots with no derivation
@@ -753,7 +768,8 @@ def _validate_class_derivation(
                 continue
             if slot.identifier and not instantiable:
                 continue
-            if slot.identifier and mints_ids(spec_mint_ids, class_mint_ids):
+            default_mint_ids = (class_default_mint_ids or {}).get(cd_name)
+            if slot.identifier and mints_ids(spec_mint_ids, default_mint_ids, class_mint_ids):
                 messages.append(
                     ValidationMessage(
                         severity="info",
@@ -780,6 +796,17 @@ def _validate_class_derivation(
                         message=f"Required target slot '{slot.name}' has no derivation",
                     )
                 )
+
+
+def _class_default_mint_ids(raw: Any) -> dict[str, bool | None]:
+    """``mint_ids`` per target class from a raw ``class_defaults`` section.
+
+    Accepts the dict form, including the compact ``Class: true`` shorthand, and the
+    list form with explicit names.
+    """
+    if isinstance(raw, dict):
+        return {name: body if isinstance(body, bool) else (body or {}).get("mint_ids") for name, body in raw.items()}
+    return {d["name"]: d.get("mint_ids") for d in iter_derivation_dicts(raw) if "name" in d}
 
 
 def _with_inherited_derivations(

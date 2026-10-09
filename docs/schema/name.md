@@ -22,6 +22,7 @@ URI: [linkmlmap:name](https://w3id.org/linkml/transformer/name)
 | --- | --- | --- |
 | [SchemaReference](SchemaReference.md) | A reference to a LinkML schema, with optional version and locator metadata |  no  |
 | [ElementDerivation](ElementDerivation.md) | An abstract grouping for classes that provide a specification of how to deriv... |  no  |
+| [ClassDefault](ClassDefault.md) | Settings applied to every class derivation that targets this class, unless th... |  no  |
 | [ClassDerivation](ClassDerivation.md) | A specification of how to derive a target class from a source class |  no  |
 | [ObjectDerivation](ObjectDerivation.md) | Deprecated |  no  |
 | [SlotDerivation](SlotDerivation.md) | A specification of how to derive the value of a target slot from a source slo... |  no  |
@@ -45,7 +46,7 @@ URI: [linkmlmap:name](https://w3id.org/linkml/transformer/name)
 | Property | Value |
 | --- | --- |
 | Range | NONE |
-| Domain Of | [SchemaReference](SchemaReference.md), [ElementDerivation](ElementDerivation.md), [ObjectDerivation](ObjectDerivation.md), [SlotDerivation](SlotDerivation.md), [EnumDerivation](EnumDerivation.md), [PermissibleValueDerivation](PermissibleValueDerivation.md), [Agent](Agent.md) |
+| Domain Of | [SchemaReference](SchemaReference.md), [ElementDerivation](ElementDerivation.md), [ClassDefault](ClassDefault.md), [ObjectDerivation](ObjectDerivation.md), [SlotDerivation](SlotDerivation.md), [EnumDerivation](EnumDerivation.md), [PermissibleValueDerivation](PermissibleValueDerivation.md), [Agent](Agent.md) |
 
 ### Cardinality and Requirements
 
@@ -86,6 +87,7 @@ name: name
 domain_of:
 - SchemaReference
 - ElementDerivation
+- ClassDefault
 - ObjectDerivation
 - SlotDerivation
 - EnumDerivation

@@ -38,6 +38,17 @@ URI: [linkmlmap:TransformationSpecification](https://w3id.org/linkml/transformer
     
 
         
+      TransformationSpecification : class_defaults
+        
+          
+    
+        
+        
+        TransformationSpecification --> "*" ClassDefault : class_defaults
+        click ClassDefault href "../ClassDefault/"
+    
+
+        
       TransformationSpecification : class_derivations
         
           
@@ -212,6 +223,7 @@ URI: [linkmlmap:TransformationSpecification](https://w3id.org/linkml/transformer
 | [documentation](documentation.md) | 0..1 <br/> [Uri](Uri.md) | URL or reference to documentation for the mapping specification | direct |
 | [content_url](content_url.md) | 0..1 <br/> [Uri](Uri.md) | Reference to the actual content of the mapping specification | direct |
 | [mint_ids](mint_ids.md) | 0..1 <br/> [Boolean](Boolean.md) | Whether to synthesize an identifier from a hash of the record's content when ... | direct |
+| [class_defaults](class_defaults.md) | * <br/> [ClassDefault](ClassDefault.md) | Settings for every class derivation whose target is the named class, unless t... | direct |
 | [class_derivations](class_derivations.md) | * <br/> [ClassDerivation](ClassDerivation.md) | Instructions on how to derive a set of classes in the target schema from clas... | direct |
 | [enum_derivations](enum_derivations.md) | * <br/> [EnumDerivation](EnumDerivation.md) | Instructions on how to derive a set of enums in the target schema | direct |
 | [slot_derivations](slot_derivations.md) | * <br/> [SlotDerivation](SlotDerivation.md) | Instructions on how to derive a set of top level slots in the target schema | direct |
@@ -433,14 +445,26 @@ attributes:
     description: Whether to synthesize an identifier from a hash of the record's content
       when the target class has an identifier slot that the class derivation does
       not derive. Defaults to false. An identifier that is neither derived nor minted
-      is an error, and no records are produced. A class derivation's own mint_ids
-      overrides this.
+      is an error, and no records are produced. Overridden by the target class's entry
+      in class_defaults, and by a class derivation's own mint_ids.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     domain_of:
     - TransformationSpecification
+    - ClassDefault
     - ClassDerivation
     range: boolean
+  class_defaults:
+    name: class_defaults
+    description: Settings for every class derivation whose target is the named class,
+      unless the derivation sets its own.
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    domain_of:
+    - TransformationSpecification
+    range: ClassDefault
+    multivalued: true
+    inlined: true
   class_derivations:
     name: class_derivations
     description: Instructions on how to derive a set of classes in the target schema
@@ -672,15 +696,28 @@ attributes:
     description: Whether to synthesize an identifier from a hash of the record's content
       when the target class has an identifier slot that the class derivation does
       not derive. Defaults to false. An identifier that is neither derived nor minted
-      is an error, and no records are produced. A class derivation's own mint_ids
-      overrides this.
+      is an error, and no records are produced. Overridden by the target class's entry
+      in class_defaults, and by a class derivation's own mint_ids.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     owner: TransformationSpecification
     domain_of:
     - TransformationSpecification
+    - ClassDefault
     - ClassDerivation
     range: boolean
+  class_defaults:
+    name: class_defaults
+    description: Settings for every class derivation whose target is the named class,
+      unless the derivation sets its own.
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    owner: TransformationSpecification
+    domain_of:
+    - TransformationSpecification
+    range: ClassDefault
+    multivalued: true
+    inlined: true
   class_derivations:
     name: class_derivations
     description: Instructions on how to derive a set of classes in the target schema
