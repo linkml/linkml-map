@@ -423,7 +423,7 @@ def test_class_defaults_precedence(
 def test_validator_honors_class_defaults_and_rejects_unknown_classes() -> None:
     """class_defaults counts toward minting, and naming a class the target lacks is an error."""
     spec = _spec_with(None, None)
-    spec["class_defaults"] = {"Measurement": {"mint_ids": True}, "Measurment": {"mint_ids": True}}
+    spec["class_defaults"] = {"Measurement": {"mint_ids": True}, "NoSuchClass": {"mint_ids": True}}
     messages = _validate(spec)
     assert _about_id(messages) == [
         ("info", "Identifier slot 'id' has no derivation; it will be synthesized from a hash of the record's content")
@@ -431,7 +431,7 @@ def test_validator_honors_class_defaults_and_rejects_unknown_classes() -> None:
     assert [(m.severity, m.path, m.message) for m in messages if m.path.startswith("class_defaults")] == [
         (
             "error",
-            "class_defaults[Measurment]",
-            "class_defaults names 'Measurment', which is not a class in the target schema",
+            "class_defaults[NoSuchClass]",
+            "class_defaults names 'NoSuchClass', which is not a class in the target schema",
         )
     ]
