@@ -151,6 +151,23 @@ classes:
       content_url:
         description: Reference to the actual content of the mapping specification
         range: uri
+      mint_ids:
+        range: boolean
+        description: >-
+          Whether to synthesize an identifier from a hash of the record's
+          content when the target class has an identifier slot that the class
+          derivation does not derive. Defaults to false. An identifier that is
+          neither derived nor minted is an error, and no records are produced.
+          Overridden by the target class's entry in class_defaults, and by a
+          class derivation's own mint_ids.
+      class_defaults:
+        description: >-
+          Settings for every class derivation whose target is the named class,
+          unless the derivation sets its own. Holds per-class policy settings
+          only; derivation content belongs in class_derivations.
+        range: ClassDefault
+        multivalued: true
+        inlined: true
       class_derivations:
         description: >-
           Instructions on how to derive a set of classes in the target schema
@@ -277,6 +294,21 @@ classes:
         range: boolean
 
 
+  ClassDefault:
+    description: >-
+      Settings applied to every class derivation that targets this class,
+      unless the derivation sets its own.
+    attributes:
+      name:
+        identifier: true
+        description: Name of the class in the target schema
+      mint_ids:
+        range: boolean
+        description: >-
+          Whether derivations of this class mint content-hash identifiers.
+          Takes precedence over the specification's mint_ids; a class
+          derivation's own mint_ids takes precedence over this.
+
   ClassDerivation:
     is_a: ElementDerivation
     description: >-
@@ -321,6 +353,13 @@ classes:
       pivot_operation:
         range: PivotOperation
         description: Configuration for pivot (unmelt) operations at class level
+      mint_ids:
+        range: boolean
+        description: >-
+          Overrides the specification's mint_ids, and the target class's entry
+          in class_defaults, for this class derivation.
+          Set to false on classes whose identifiers other records reference,
+          so a missing derivation is an error rather than a content hash.
 
   ObjectDerivation:
     is_a: ElementDerivation

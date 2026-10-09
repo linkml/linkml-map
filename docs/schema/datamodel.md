@@ -30,6 +30,7 @@ Name: linkml-map
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Software](Software.md) | A software tool or system used in creating mappings |
 | [AliasedClass](AliasedClass.md) | alias-class key value pairs for classes |
 | [Any](Any.md) | A wildcard type that accepts any value |
+| [ClassDefault](ClassDefault.md) | Settings applied to every class derivation that targets this class, unless th... |
 | [CopyDirective](CopyDirective.md) | Instructs a Schema Mapper in how to map to a target schema |
 | [Inverse](Inverse.md) | Used for back references in mapping to relational model |
 | [KeyVal](KeyVal.md) | A generic key-value pair |
@@ -63,6 +64,7 @@ Name: linkml-map
 | [alias](alias.md) | name of the class to be aliased |
 | [author](author.md) | A list of authors of this transformation specification |
 | [cast_collection_as](cast_collection_as.md) | Coerce the derived slot's collection form (for example single-valued, list, o... |
+| [class_defaults](class_defaults.md) | Settings for every class derivation whose target is the named class, unless t... |
 | [class_derivations](class_derivations.md) | Instructions on how to derive a set of classes in the target schema from clas... |
 | [class_name](class_name.md) | Name of the class that holds the back-reference (foreign key) slot |
 | [class_named](class_named.md) | local alias for the class |
@@ -99,6 +101,7 @@ Name: linkml-map
 | [license](license.md) | license under which this transformation specification is published |
 | [lookup_key](lookup_key.md) | column in the secondary (joined) table used as the join key |
 | [mapping_method](mapping_method.md) | The method used to create this mapping, e |
+| [mint_ids](mint_ids.md) | Whether to synthesize an identifier from a hash of the record's content when ... |
 | [mirror_source](mirror_source.md) | If true, pass the source value through unchanged instead of transforming it |
 | [missing_values](missing_values.md) | Source values to treat as missing and emit as null instead of the literal val... |
 | [mixins](mixins.md) | Mixin elements applied to the derived target element |

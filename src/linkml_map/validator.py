@@ -34,6 +34,7 @@ from linkml_map.datamodel import TR_SCHEMA
 from linkml_map.spec_normalizer import normalize_spec
 from linkml_map.spec_scan import ValidationMessage, iter_derivation_dicts
 from linkml_map.spec_scan import check_deprecated_fields as check_deprecated_fields  # re-export
+from linkml_map.transformer.content_id import mints_ids, missing_identifier_message
 from linkml_map.utils.eval_utils import FUNCTIONS
 from linkml_map.utils.join_utils import resolve_join
 
@@ -543,6 +544,18 @@ def validate_spec_semantics(
     source_all_classes = set(source_sv.all_classes()) if source_sv is not None else set()
     target_all_classes = set(target_sv.all_classes()) if target_sv is not None else set()
 
+    class_default_mint_ids = _class_default_mint_ids(data.get("class_defaults"))
+    if target_sv is not None:
+        for name in class_default_mint_ids:
+            if name not in target_all_classes:
+                messages.append(
+                    ValidationMessage(
+                        severity="error",
+                        path=f"class_defaults[{name}]",
+                        message=f"class_defaults names {name!r}, which is not a class in the target schema",
+                    )
+                )
+
     # Validate class_derivations (recurses into nested CDs internally)
     for cd in iter_derivation_dicts(data.get("class_derivations", [])):
         _validate_class_derivation(
@@ -554,6 +567,8 @@ def validate_spec_semantics(
             derivation_pool=derivation_pool,
             source_all_classes=source_all_classes,
             target_all_classes=target_all_classes,
+            spec_mint_ids=data.get("mint_ids"),
+            class_default_mint_ids=class_default_mint_ids,
         )
 
     # Validate enum_derivations
@@ -563,8 +578,8 @@ def validate_spec_semantics(
     return messages
 
 
-def _collect_class_derivation_pool(data: dict[str, Any]) -> set[str]:
-    """Names of all top-level class_derivations in the spec.
+def _collect_class_derivation_pool(data: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """All top-level class_derivations in the spec, by name.
 
     This is the pool used to resolve ``is_a`` and ``mixins`` references
     against spec-internal derivations (#219). Only top-level CDs are
@@ -572,7 +587,7 @@ def _collect_class_derivation_pool(data: dict[str, Any]) -> set[str]:
     :meth:`~linkml_map.transformer.transformer.Transformer._find_class_derivation_by_name`
     which raises ``KeyError`` for anything not at the top level.
     """
-    return {cd.get("name") for cd in iter_derivation_dicts(data.get("class_derivations", [])) if cd.get("name")}
+    return {cd["name"]: cd for cd in iter_derivation_dicts(data.get("class_derivations", [])) if cd.get("name")}
 
 
 def _slot_is_string_typed(sv: SchemaView, range_name: str | None) -> bool:
@@ -606,9 +621,11 @@ def _validate_class_derivation(
     messages: list[ValidationMessage],
     parent_class_deriv: dict[str, Any] | None = None,
     parent_path: str = "",
-    derivation_pool: set[str] | None = None,
+    derivation_pool: dict[str, dict[str, Any]] | None = None,
     source_all_classes: set[str] | None = None,
     target_all_classes: set[str] | None = None,
+    spec_mint_ids: bool | None = None,
+    class_default_mint_ids: dict[str, bool | None] | None = None,
 ) -> None:
     """Validate a single class derivation against schemas.
 
@@ -737,13 +754,41 @@ def _validate_class_derivation(
                 derivation_pool=derivation_pool,
                 source_all_classes=source_all_classes,
                 target_all_classes=target_all_classes,
+                spec_mint_ids=spec_mint_ids,
+                class_default_mint_ids=class_default_mint_ids,
             )
 
     # Warning: target class has required slots with no derivation
     if target_sv is not None and target_class_slots is not None:
-        derived_slot_names = {sd.get("name") for sd in slot_derivation_dicts if "name" in sd}
+        derived_slot_names, class_mint_ids = _with_inherited_derivations(cd, derivation_pool or {})
+        target_class = target_sv.get_class(cd_name)
+        instantiable = not (target_class.abstract or target_class.mixin)
         for slot in target_sv.class_induced_slots(cd_name):
-            if slot.required and slot.name not in derived_slot_names:
+            if slot.name in derived_slot_names:
+                continue
+            if slot.identifier and not instantiable:
+                continue
+            default_mint_ids = (class_default_mint_ids or {}).get(cd_name)
+            if slot.identifier and mints_ids(spec_mint_ids, default_mint_ids, class_mint_ids):
+                messages.append(
+                    ValidationMessage(
+                        severity="info",
+                        path=cd_path,
+                        message=(
+                            f"Identifier slot '{slot.name}' has no derivation; "
+                            "it will be synthesized from a hash of the record's content"
+                        ),
+                    )
+                )
+            elif slot.identifier:
+                messages.append(
+                    ValidationMessage(
+                        severity="error",
+                        path=cd_path,
+                        message=missing_identifier_message(cd_name, slot.name),
+                    )
+                )
+            elif slot.required:
                 messages.append(
                     ValidationMessage(
                         severity="warning",
@@ -751,6 +796,52 @@ def _validate_class_derivation(
                         message=f"Required target slot '{slot.name}' has no derivation",
                     )
                 )
+
+
+def _class_default_mint_ids(raw: Any) -> dict[str, bool | None]:
+    """``mint_ids`` per target class from a raw ``class_defaults`` section.
+
+    Accepts the dict form, including the compact ``Class: true`` shorthand, and the
+    list form with explicit names.
+    """
+    if isinstance(raw, dict):
+        return {name: body if isinstance(body, bool) else (body or {}).get("mint_ids") for name, body in raw.items()}
+    return {d["name"]: d.get("mint_ids") for d in iter_derivation_dicts(raw) if "name" in d}
+
+
+def _with_inherited_derivations(
+    cd: dict[str, Any], derivation_pool: dict[str, dict[str, Any]]
+) -> tuple[set[str], bool | None]:
+    """Slot-derivation names and ``mint_ids`` of *cd*, including what it inherits.
+
+    Mirrors the runtime's ancestor merge: ``mixins`` then ``is_a``, depth-first, with
+    *cd*'s own ``mint_ids`` taking precedence over the first ancestor that sets one.
+    Parents that aren't top-level class derivations (e.g. target schema classes)
+    contribute nothing.
+
+    :param cd: A class derivation dict.
+    :param derivation_pool: Top-level class derivations by name.
+    :return: The derived slot names and the effective class-level ``mint_ids``.
+    """
+    names: set[str] = set()
+    mint_ids: bool | None = None
+    seen: set[int] = set()
+
+    def visit(node: dict[str, Any]) -> None:
+        nonlocal mint_ids
+        if id(node) in seen:
+            return
+        seen.add(id(node))
+        names.update(sd["name"] for sd in iter_derivation_dicts(node.get("slot_derivations", [])) if "name" in sd)
+        if mint_ids is None:
+            mint_ids = node.get("mint_ids")
+        parents = list(node.get("mixins") or []) + ([node["is_a"]] if node.get("is_a") else [])
+        for parent in parents:
+            if parent in derivation_pool:
+                visit(derivation_pool[parent])
+
+    visit(cd)
+    return names, mint_ids
 
 
 def _build_joined_class_map(
@@ -944,7 +1035,7 @@ def _check_cross_table_join(
 def _check_class_inheritance_refs(
     cd: dict[str, Any],
     cd_path: str,
-    derivation_pool: set[str],
+    derivation_pool: dict[str, dict[str, Any]],
     target_sv: SchemaView | None,
     messages: list[ValidationMessage],
     target_all_classes: set[str],

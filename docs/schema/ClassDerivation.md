@@ -99,6 +99,8 @@ URI: [linkmlmap:ClassDerivation](https://w3id.org/linkml/transformer/ClassDeriva
     
 
         
+      ClassDerivation : mint_ids
+        
       ClassDerivation : mirror_source
         
       ClassDerivation : mixins
@@ -196,6 +198,7 @@ URI: [linkmlmap:ClassDerivation](https://w3id.org/linkml/transformer/ClassDeriva
 | [slot_derivations](slot_derivations.md) | * <br/> [SlotDerivation](SlotDerivation.md) | Instructions on how to derive the slots of this target class from source data | direct |
 | [target_definition](target_definition.md) | 0..1 <br/> [Any](Any.md) | LinkML class definition object for this slot | direct |
 | [pivot_operation](pivot_operation.md) | 0..1 <br/> [PivotOperation](PivotOperation.md) | Configuration for pivot (unmelt) operations at class level | direct |
+| [mint_ids](mint_ids.md) | 0..1 <br/> [Boolean](Boolean.md) | Overrides the specification's mint_ids, and the target class's entry in class... | direct |
 | [name](name.md) | 1 <br/> [String](String.md) | Name of the element in the target schema | [ElementDerivation](ElementDerivation.md) |
 | [copy_directives](copy_directives.md) | * <br/> [CopyDirective](CopyDirective.md) | Directives controlling which sub-elements of the source element are copied in... | [ElementDerivation](ElementDerivation.md) |
 | [overrides](overrides.md) | 0..1 <br/> [Any](Any.md) | overrides source schema slots | [ElementDerivation](ElementDerivation.md) |
@@ -341,6 +344,18 @@ attributes:
     - ClassDerivation
     - SlotDerivation
     range: PivotOperation
+  mint_ids:
+    name: mint_ids
+    description: Overrides the specification's mint_ids, and the target class's entry
+      in class_defaults, for this class derivation. Set to false on classes whose
+      identifiers other records reference, so a missing derivation is an error rather
+      than a content hash.
+    from_schema: https://w3id.org/linkml/transformer
+    domain_of:
+    - TransformationSpecification
+    - ClassDefault
+    - ClassDerivation
+    range: boolean
 
 ```
 </details>
@@ -429,6 +444,19 @@ attributes:
     - ClassDerivation
     - SlotDerivation
     range: PivotOperation
+  mint_ids:
+    name: mint_ids
+    description: Overrides the specification's mint_ids, and the target class's entry
+      in class_defaults, for this class derivation. Set to false on classes whose
+      identifiers other records reference, so a missing derivation is an error rather
+      than a content hash.
+    from_schema: https://w3id.org/linkml/transformer
+    owner: ClassDerivation
+    domain_of:
+    - TransformationSpecification
+    - ClassDefault
+    - ClassDerivation
+    range: boolean
   name:
     name: name
     description: Name of the element in the target schema
@@ -438,6 +466,7 @@ attributes:
     domain_of:
     - SchemaReference
     - ElementDerivation
+    - ClassDefault
     - ObjectDerivation
     - SlotDerivation
     - EnumDerivation

@@ -238,6 +238,7 @@ attributes:
     domain_of:
     - SchemaReference
     - ElementDerivation
+    - ClassDefault
     - ObjectDerivation
     - SlotDerivation
     - EnumDerivation
@@ -280,6 +281,7 @@ attributes:
     domain_of:
     - SchemaReference
     - ElementDerivation
+    - ClassDefault
     - ObjectDerivation
     - SlotDerivation
     - EnumDerivation

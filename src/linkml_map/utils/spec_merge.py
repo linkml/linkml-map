@@ -37,6 +37,11 @@ class SpecMergeError(ValueError):
     """
 
 
+#: Spec-level fields whose value changes what is emitted, so fragments must agree on them
+#: rather than letting file order pick one.
+_MUST_AGREE_KEYS = frozenset({"mint_ids"})
+
+
 def resolve_spec_paths(paths: tuple[str | Path, ...]) -> list[Path]:
     """Resolve a mix of file paths and directories to a flat list of YAML files.
 
@@ -91,16 +96,18 @@ def merge_spec_dicts(spec_dicts: list[dict[str, Any]]) -> dict[str, Any]:
 
     - ``class_derivations``: appended in order (list or dict values are
       accumulated into a single list).
-    - ``enum_derivations``: merged by name (dict union). Raises on duplicate
-      enum names with conflicting definitions.
+    - ``class_defaults`` and ``enum_derivations``: merged by name (dict union).
+      Raises on duplicate names with conflicting definitions.
     - ``slot_derivations``: merged by name (dict union). Raises on duplicate
       slot names with conflicting definitions.
     - Scalar fields (``title``, ``source_schema``, etc.): first non-None value
-      wins.
+      wins, so file order decides between differing values.  Fields in
+      ``_MUST_AGREE_KEYS`` change the output, so differing values raise instead.
 
     :param spec_dicts: A list of raw spec dicts to merge.
     :returns: A single merged spec dict.
-    :raises SpecMergeError: If enum or slot derivations conflict on the same name.
+    :raises SpecMergeError: If enum or slot derivations conflict on the same name, or
+        fragments disagree on a field in ``_MUST_AGREE_KEYS``.
     """
     if not spec_dicts:
         return {}
@@ -110,9 +117,10 @@ def merge_spec_dicts(spec_dicts: list[dict[str, Any]]) -> dict[str, Any]:
     merged: dict[str, Any] = {}
     merged_class_derivations: list = []
     merged_enum_derivations: dict[str, Any] = {}
+    merged_class_defaults: dict[str, Any] = {}
     merged_slot_derivations: dict[str, Any] = {}
 
-    _COLLECTION_KEYS = {"class_derivations", "enum_derivations", "slot_derivations"}
+    _COLLECTION_KEYS = {"class_derivations", "class_defaults", "enum_derivations", "slot_derivations"}
 
     for spec in spec_dicts:
         # Accumulate class_derivations
@@ -123,6 +131,15 @@ def merge_spec_dicts(spec_dicts: list[dict[str, Any]]) -> dict[str, Any]:
             elif isinstance(cd, dict):
                 for name, body in cd.items():
                     merged_class_derivations.append({name: body} if body is not None else {name: {}})
+
+        # Union class_defaults by name
+        defaults = spec.get("class_defaults")
+        if isinstance(defaults, dict):
+            for name, body in defaults.items():
+                if name in merged_class_defaults and merged_class_defaults[name] != body:
+                    msg = f"Conflicting class_defaults for '{name}'"
+                    raise SpecMergeError(msg)
+                merged_class_defaults[name] = body
 
         # Union enum_derivations by name
         ed = spec.get("enum_derivations")
@@ -142,13 +159,18 @@ def merge_spec_dicts(spec_dicts: list[dict[str, Any]]) -> dict[str, Any]:
                     raise SpecMergeError(msg)
                 merged_slot_derivations[name] = body
 
-        # Scalar fields: first non-None wins
+        # Scalar fields: first non-None wins, except where a disagreement changes the output
         for key, value in spec.items():
+            if key in _MUST_AGREE_KEYS and key in merged and value is not None and merged[key] != value:
+                msg = f"Conflicting values for '{key}' across spec files: {merged[key]!r} and {value!r}"
+                raise SpecMergeError(msg)
             if key not in _COLLECTION_KEYS and key not in merged and value is not None:
                 merged[key] = value
 
     if merged_class_derivations:
         merged["class_derivations"] = merged_class_derivations
+    if merged_class_defaults:
+        merged["class_defaults"] = merged_class_defaults
     if merged_enum_derivations:
         merged["enum_derivations"] = merged_enum_derivations
     if merged_slot_derivations:
