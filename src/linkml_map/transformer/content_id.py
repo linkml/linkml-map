@@ -63,7 +63,7 @@ def missing_identifier_message(class_name: str, id_slot: str) -> str:
     )
 
 
-def canonical_json(value: Any, slot_order: dict[str, tuple[bool, str | None]] | None = None) -> str:
+def canonical_json(value: Any) -> str:
     """Encode *value* in the canonical form, ignoring any schema-declared list order.
 
     >>> canonical_json({"b": 5.0, "a": None, "c": [], "d": ["y", "x"]})

@@ -12,6 +12,7 @@ from click.testing import CliRunner
 from linkml_runtime import SchemaView
 
 from linkml_map.cli.cli import main
+from linkml_map.datamodel.transformer_model import ClassDerivation, TransformationSpecification
 from linkml_map.transformer.errors import TransformationError
 from linkml_map.transformer.object_transformer import ObjectTransformer
 from linkml_map.validator import validate_spec_semantics
@@ -435,3 +436,23 @@ def test_validator_honors_class_defaults_and_rejects_unknown_classes() -> None:
             "class_defaults names 'NoSuchClass', which is not a class in the target schema",
         )
     ]
+
+
+def test_class_defaults_compact_form_on_a_directly_built_spec() -> None:
+    """A spec constructed in Python keeps ``Class: bool`` unexpanded; both values must still apply."""
+    spec = TransformationSpecification(
+        id="direct",
+        mint_ids=True,
+        class_defaults={"Measurement": False, "Quantity": True},
+        class_derivations=[
+            ClassDerivation(name="Measurement", populated_from="Row"),
+            ClassDerivation(name="Quantity", populated_from="Row"),
+        ],
+    )
+    tr = ObjectTransformer()
+    tr.source_schemaview = SchemaView(SOURCE_SCHEMA)
+    tr.target_schemaview = SchemaView(TARGET_SCHEMA)
+    tr.specification = spec
+    measurement, quantity = spec.class_derivations
+    assert tr._mints_ids(measurement) is False
+    assert tr._mints_ids(quantity) is True

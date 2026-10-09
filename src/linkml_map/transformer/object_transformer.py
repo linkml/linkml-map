@@ -454,7 +454,9 @@ class ObjectTransformer(Transformer):
         """Whether *class_deriv* mints ids, per :func:`~linkml_map.transformer.content_id.mints_ids`."""
         spec = self.specification
         default = spec.class_defaults.get(class_deriv.name) if spec.class_defaults else None
-        return mints_ids(spec.mint_ids, default.mint_ids if default else None, class_deriv.mint_ids)
+        # A spec built directly in Python keeps the compact ``Class: true`` form as a bare bool.
+        default_mint_ids = default if isinstance(default, bool) or default is None else default.mint_ids
+        return mints_ids(spec.mint_ids, default_mint_ids, class_deriv.mint_ids)
 
     def _underived_identifier(self, class_deriv: ClassDerivation) -> str | None:
         """The target class's identifier slot when *class_deriv* doesn't derive it, else ``None``.
