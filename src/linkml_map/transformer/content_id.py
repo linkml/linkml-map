@@ -28,13 +28,13 @@ The canonical form is a contract — changing it changes every synthesized id:
 """
 
 import json
+import uuid
 from dataclasses import dataclass, field
 from decimal import Decimal
+from json.encoder import encode_basestring
 from typing import Any
 
 from linkml_runtime import SchemaView
-
-from linkml_map.utils.eval_utils import _uuid5
 
 
 def mints_ids(spec_mint_ids: bool | None, class_mint_ids: bool | None) -> bool:
@@ -126,7 +126,10 @@ def _encode(value: Any) -> str:
         return "[" + ",".join(_encode(v) for v in value) + "]"
     if isinstance(value, Decimal):
         return format(value, "f")
-    return json.dumps(value, ensure_ascii=False)
+    if isinstance(value, str):
+        # What json.dumps(value, ensure_ascii=False) does for a string, minus its overhead.
+        return encode_basestring(value)
+    return json.dumps(value)
 
 
 @dataclass
@@ -138,6 +141,7 @@ class ContentIdSynthesizer:
 
     _identifier_slots: dict[str, str | None] = field(default_factory=dict, repr=False)
     _slot_descriptions: dict[str, dict[str, tuple[bool, str | None]]] = field(default_factory=dict, repr=False)
+    _namespaces: dict[str, uuid.UUID] = field(default_factory=dict, repr=False)
 
     def identifier_slot(self, class_name: str) -> str | None:
         """The identifier slot of *class_name*, if records of it need one.
@@ -155,8 +159,12 @@ class ContentIdSynthesizer:
 
     def content_id(self, record: dict[str, Any], class_name: str) -> str:
         """Hash *record*, an instance of target class *class_name*, into a UUID5 string."""
-        namespace = f"{self.schemaview.schema.id}/{class_name}"
-        return _uuid5(namespace, _encode(_canonical(record, False, self._describe, class_name)))
+        if class_name not in self._namespaces:
+            # Same two-level scheme as the uuid5() expression function.
+            self._namespaces[class_name] = uuid.uuid5(uuid.NAMESPACE_URL, f"{self.schemaview.schema.id}/{class_name}")
+        return str(
+            uuid.uuid5(self._namespaces[class_name], _encode(_canonical(record, False, self._describe, class_name)))
+        )
 
     def _describe(self, class_name: str) -> dict[str, tuple[bool, str | None]]:
         """``{slot: (list_elements_ordered, range class or None)}`` for *class_name*, cached."""
