@@ -192,7 +192,7 @@ class TransformationSpecification(SpecificationComponent):
     mint_ids: Optional[bool] = Field(default=None, description="""Whether to synthesize an identifier from a hash of the record's content when the target class has an identifier slot that the class derivation does not derive. Defaults to false. An identifier that is neither derived nor minted is an error, and no records are produced. Overridden by the target class's entry in class_defaults, and by a class derivation's own mint_ids.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification',
                        'ClassDefault',
                        'ClassDerivation']} })
-    class_defaults: Optional[dict[str, Union[bool, ClassDefault]]] = Field(default_factory=dict, description="""Settings for every class derivation whose target is the named class, unless the derivation sets its own.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification']} })
+    class_defaults: Optional[dict[str, Union[bool, ClassDefault]]] = Field(default_factory=dict, description="""Settings for every class derivation whose target is the named class, unless the derivation sets its own. Holds per-class policy settings only; derivation content belongs in class_derivations.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification']} })
     class_derivations: Optional[list[ClassDerivation]] = Field(default_factory=list, description="""Instructions on how to derive a set of classes in the target schema from classes in the source schema.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification',
                        'ObjectDerivation',
                        'SlotDerivation']} })

@@ -457,7 +457,8 @@ attributes:
   class_defaults:
     name: class_defaults
     description: Settings for every class derivation whose target is the named class,
-      unless the derivation sets its own.
+      unless the derivation sets its own. Holds per-class policy settings only; derivation
+      content belongs in class_derivations.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     domain_of:
@@ -709,7 +710,8 @@ attributes:
   class_defaults:
     name: class_defaults
     description: Settings for every class derivation whose target is the named class,
-      unless the derivation sets its own.
+      unless the derivation sets its own. Holds per-class policy settings only; derivation
+      content belongs in class_derivations.
     from_schema: https://w3id.org/linkml/transformer
     rank: 1000
     owner: TransformationSpecification

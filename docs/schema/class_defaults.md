@@ -6,7 +6,7 @@ search:
 # Slot: class_defaults 
 
 
-_Settings for every class derivation whose target is the named class, unless the derivation sets its own._
+_Settings for every class derivation whose target is the named class, unless the derivation sets its own. Holds per-class policy settings only; derivation content belongs in class_derivations._
 
 
 
@@ -93,7 +93,8 @@ URI: [linkmlmap:class_defaults](https://w3id.org/linkml/transformer/class_defaul
 ```yaml
 name: class_defaults
 description: Settings for every class derivation whose target is the named class,
-  unless the derivation sets its own.
+  unless the derivation sets its own. Holds per-class policy settings only; derivation
+  content belongs in class_derivations.
 from_schema: https://w3id.org/linkml/transformer
 rank: 1000
 owner: TransformationSpecification
