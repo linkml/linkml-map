@@ -743,7 +743,20 @@ def _validate_class_derivation(
     if target_sv is not None and target_class_slots is not None:
         derived_slot_names = {sd.get("name") for sd in slot_derivation_dicts if "name" in sd}
         for slot in target_sv.class_induced_slots(cd_name):
-            if slot.required and slot.name not in derived_slot_names:
+            if slot.name in derived_slot_names:
+                continue
+            if slot.identifier:
+                messages.append(
+                    ValidationMessage(
+                        severity="info",
+                        path=cd_path,
+                        message=(
+                            f"Identifier slot '{slot.name}' has no derivation; "
+                            "it will be synthesized from a hash of the record's content"
+                        ),
+                    )
+                )
+            elif slot.required:
                 messages.append(
                     ValidationMessage(
                         severity="warning",

@@ -25,6 +25,7 @@ from linkml_map.datamodel.transformer_model import (
     SlotDerivation,
 )
 from linkml_map.functions.unit_conversion import perform_unit_conversion
+from linkml_map.transformer.content_id import ContentIdSynthesizer
 from linkml_map.transformer.errors import TransformationError
 from linkml_map.transformer.pivot import perform_melt, perform_pivot_operation
 from linkml_map.transformer.transformer import OBJECT_TYPE, Transformer
@@ -281,6 +282,9 @@ class ObjectTransformer(Transformer):
     :func:`~linkml_map.utils.extensions.load_extensions`.
     """
 
+    _content_ids: ContentIdSynthesizer | None = field(default=None, repr=False)
+    """Synthesizer for identifiers the spec doesn't derive, rebuilt if the target schema changes."""
+
     _warned_unbound_names: set[str] = field(default_factory=set, repr=False)
     """Names already warned about in non-strict mode.
 
@@ -416,7 +420,22 @@ class ObjectTransformer(Transformer):
         for slot_deriv in class_deriv.slot_derivations.values():
             if slot_deriv.hide:
                 tgt_attrs.pop(str(slot_deriv.name), None)
-        return tgt_attrs
+        return self._with_synthesized_id(tgt_attrs, class_deriv)
+
+    def _with_synthesized_id(self, record: dict[str, Any], class_deriv: ClassDerivation) -> dict[str, Any]:
+        """Prepend a content-hash id when the target class has an identifier the spec doesn't derive.
+
+        See :mod:`linkml_map.transformer.content_id`.  An explicit derivation of the
+        identifier slot always wins, and nothing is synthesized without a target schema.
+        """
+        if self.target_schemaview is None:
+            return record
+        if self._content_ids is None or self._content_ids.schemaview is not self.target_schemaview:
+            self._content_ids = ContentIdSynthesizer(self.target_schemaview)
+        id_slot = self._content_ids.identifier_slot(class_deriv.name)
+        if id_slot is None or id_slot in class_deriv.slot_derivations:
+            return record
+        return {id_slot: self._content_ids.content_id(record, class_deriv.name), **record}
 
     @contextmanager
     def _slot_error_context(
