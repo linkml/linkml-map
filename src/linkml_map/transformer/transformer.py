@@ -69,6 +69,35 @@ def _to_decimal(v: Any) -> Decimal:
     return d
 
 
+_BOOLEAN_STRINGS = {"true": True, "false": False, "1": True, "0": False}
+
+
+def _to_bool(v: Any) -> bool:
+    """Convert *v* to a boolean, parsing strings rather than testing their truthiness.
+
+    >>> _to_bool("False")
+    False
+    >>> _to_bool("1")
+    True
+    >>> _to_bool(5)
+    True
+    >>> _to_bool("maybe")
+    Traceback (most recent call last):
+    ...
+    ValueError: Cannot convert 'maybe' to boolean
+    """
+    if not isinstance(v, str):
+        return bool(v)
+    key = v.strip().lower()
+    if key not in _BOOLEAN_STRINGS:
+        msg = f"Cannot convert {v!r} to boolean"
+        raise ValueError(msg)
+    return _BOOLEAN_STRINGS[key]
+
+
+_COERCIBLE_TYPES = {"integer", "float", "decimal", "string", "boolean"}
+
+
 @dataclass
 class Transformer(ABC):
     """
@@ -127,6 +156,8 @@ class Transformer(ABC):
     """
 
     _curie_converter: Converter = None
+
+    _target_datatype_cache: dict[tuple[str, str], str | None] = field(default_factory=dict, repr=False)
 
     spec_messages: list[Any] = field(default_factory=list)
     """Scan messages captured at spec-load time.
@@ -575,6 +606,31 @@ class Transformer(ABC):
                 return True
         return False
 
+    def _target_slot_datatype(self, class_name: str, slot_name: str) -> str | None:
+        """Return the built-in datatype the target schema declares for a slot.
+
+        Custom types resolve through their ``typeof`` ancestry. Returns ``None``
+        when there is no target schema, or the range is a class, an enum, or a
+        type with no coercible built-in ancestor.
+
+        :param class_name: Target class name.
+        :param slot_name: Target slot name.
+        :return: One of ``integer``, ``float``, ``decimal``, ``string``, ``boolean``, or ``None``.
+        """
+        key = (class_name, slot_name)
+        if key not in self._target_datatype_cache:
+            self._target_datatype_cache[key] = self._resolve_target_slot_datatype(class_name, slot_name)
+        return self._target_datatype_cache[key]
+
+    def _resolve_target_slot_datatype(self, class_name: str, slot_name: str) -> str | None:
+        sv = self.target_schemaview
+        if sv is None:
+            return None
+        slot_range = sv.induced_slot(slot_name, class_name).range
+        if slot_range not in sv.all_types():
+            return None
+        return next((t for t in sv.type_ancestors(slot_range) if t in _COERCIBLE_TYPES), None)
+
     def _coerce_datatype(self, v: Any, target_range: str | None) -> Any:
         if target_range is None:
             return v
@@ -584,11 +640,12 @@ class Transformer(ABC):
             return {k: self._coerce_datatype(v1, target_range) for k, v1 in v.items()}
         if target_range == "decimal":
             return _to_decimal(v)
+        if target_range == "boolean":
+            return _to_bool(v)
         cmap = {
             "integer": int,
             "float": float,
             "string": str,
-            "boolean": bool,
         }
         cls = cmap.get(target_range)
         if not cls:
