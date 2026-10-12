@@ -167,7 +167,7 @@ class MultiFileTransformer:
         if isinstance(root_directory, str):
             root_directory = Path(root_directory)
         if isinstance(output_directory, str):
-            root_directory = Path(output_directory)
+            output_directory = Path(output_directory)
         if not output_directory:
             output_directory = root_directory
         logging.info(f"Processing: {instructions.description}")

@@ -27,6 +27,7 @@ dependencies = [
     "python-slugify>=8.0.4",
     "pyyaml",
     "simpleeval>=1.0.3",
+    "simplejson>=4.2.0",
     "ucumvert>=0.2",
 ]
 
