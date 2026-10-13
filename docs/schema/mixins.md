@@ -47,12 +47,13 @@ URI: [linkml:mixins](https://w3id.org/linkml/mixins)
 | Range | [ElementDerivation](ElementDerivation.md) |
 | Domain Of | [ElementDerivation](ElementDerivation.md) |
 | Slot URI | [linkml:mixins](https://w3id.org/linkml/mixins) |
-
 ### Cardinality and Requirements
 
 | Property | Value |
 | --- | --- |
 | Multivalued | Yes |
+
+
 ### Slot Characteristics
 
 | Property | Value |

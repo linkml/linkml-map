@@ -40,12 +40,13 @@ URI: [linkmlmap:class_defaults](https://w3id.org/linkml/transformer/class_defaul
 | --- | --- |
 | Range | [ClassDefault](ClassDefault.md) |
 | Domain Of | [TransformationSpecification](TransformationSpecification.md) |
-
 ### Cardinality and Requirements
 
 | Property | Value |
 | --- | --- |
 | Multivalued | Yes |
+
+
 ### Slot Characteristics
 
 | Property | Value |

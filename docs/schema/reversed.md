@@ -40,11 +40,6 @@ URI: [linkmlmap:reversed](https://w3id.org/linkml/transformer/reversed)
 | --- | --- |
 | Range | [Boolean](Boolean.md) |
 | Domain Of | [StringificationConfiguration](StringificationConfiguration.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

@@ -38,11 +38,6 @@ URI: [linkmlmap:hide](https://w3id.org/linkml/transformer/hide)
 | Range | NONE |
 | Domain Of | [SlotDerivation](SlotDerivation.md), [EnumDerivation](EnumDerivation.md), [PermissibleValueDerivation](PermissibleValueDerivation.md) |
 
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
-
 
 
 

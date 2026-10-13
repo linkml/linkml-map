@@ -40,11 +40,6 @@ URI: [linkmlmap:slot_name](https://w3id.org/linkml/transformer/slot_name)
 | --- | --- |
 | Range | NONE |
 | Domain Of | [Inverse](Inverse.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

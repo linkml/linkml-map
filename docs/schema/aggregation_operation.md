@@ -40,11 +40,6 @@ URI: [linkmlmap:aggregation_operation](https://w3id.org/linkml/transformer/aggre
 | --- | --- |
 | Range | [AggregationOperation](AggregationOperation.md) |
 | Domain Of | [SlotDerivation](SlotDerivation.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |
