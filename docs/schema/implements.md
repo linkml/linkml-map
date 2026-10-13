@@ -48,12 +48,13 @@ URI: [linkmlmap:implements](https://w3id.org/linkml/transformer/implements)
 | --- | --- |
 | Range | [Uriorcurie](Uriorcurie.md) |
 | Domain Of | [SpecificationComponent](SpecificationComponent.md) |
-
 ### Cardinality and Requirements
 
 | Property | Value |
 | --- | --- |
 | Multivalued | Yes |
+
+
 ### Slot Characteristics
 
 | Property | Value |

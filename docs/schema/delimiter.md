@@ -40,11 +40,6 @@ URI: [linkmlmap:delimiter](https://w3id.org/linkml/transformer/delimiter)
 | --- | --- |
 | Range | [String](String.md) |
 | Domain Of | [StringificationConfiguration](StringificationConfiguration.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

@@ -40,11 +40,6 @@ URI: [linkmlmap:id](https://w3id.org/linkml/transformer/id)
 | Range | NONE |
 | Domain Of | [TransformationSpecification](TransformationSpecification.md), [Agent](Agent.md) |
 
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
-
 
 
 

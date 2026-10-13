@@ -40,11 +40,6 @@ URI: [linkmlmap:type_designator](https://w3id.org/linkml/transformer/type_design
 | --- | --- |
 | Range | [Boolean](Boolean.md) |
 | Domain Of | [SlotDerivation](SlotDerivation.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

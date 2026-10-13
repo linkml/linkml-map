@@ -40,11 +40,6 @@ URI: [linkmlmap:dictionary_key](https://w3id.org/linkml/transformer/dictionary_k
 | --- | --- |
 | Range | [String](String.md) |
 | Domain Of | [SlotDerivation](SlotDerivation.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

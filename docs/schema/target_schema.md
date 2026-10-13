@@ -40,11 +40,6 @@ URI: [linkmlmap:target_schema](https://w3id.org/linkml/transformer/target_schema
 | --- | --- |
 | Range | [SchemaReference](SchemaReference.md) |
 | Domain Of | [TransformationSpecification](TransformationSpecification.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

@@ -43,11 +43,6 @@ URI: [linkmlmap:copy_directives](https://w3id.org/linkml/transformer/copy_direct
 | Range | NONE |
 | Domain Of | [TransformationSpecification](TransformationSpecification.md), [ElementDerivation](ElementDerivation.md) |
 
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
-
 
 
 

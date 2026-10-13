@@ -41,12 +41,13 @@ URI: [dcterms:creator](http://purl.org/dc/terms/creator)
 | Range | [Agent](Agent.md) |
 | Domain Of | [TransformationSpecification](TransformationSpecification.md) |
 | Slot URI | [dcterms:creator](http://purl.org/dc/terms/creator) |
-
 ### Cardinality and Requirements
 
 | Property | Value |
 | --- | --- |
 | Multivalued | Yes |
+
+
 ### Slot Characteristics
 
 | Property | Value |

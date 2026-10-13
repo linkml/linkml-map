@@ -40,11 +40,6 @@ URI: [linkmlmap:source_schema_patches](https://w3id.org/linkml/transformer/sourc
 | --- | --- |
 | Range | [Any](Any.md) |
 | Domain Of | [TransformationSpecification](TransformationSpecification.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

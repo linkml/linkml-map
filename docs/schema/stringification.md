@@ -40,11 +40,6 @@ URI: [linkmlmap:stringification](https://w3id.org/linkml/transformer/stringifica
 | --- | --- |
 | Range | [StringificationConfiguration](StringificationConfiguration.md) |
 | Domain Of | [SlotDerivation](SlotDerivation.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

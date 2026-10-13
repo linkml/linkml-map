@@ -40,12 +40,13 @@ URI: [linkmlmap:joins](https://w3id.org/linkml/transformer/joins)
 | --- | --- |
 | Range | [AliasedClass](AliasedClass.md) |
 | Domain Of | [ClassDerivation](ClassDerivation.md) |
-
 ### Cardinality and Requirements
 
 | Property | Value |
 | --- | --- |
 | Multivalued | Yes |
+
+
 ### Slot Characteristics
 
 | Property | Value |

@@ -40,12 +40,13 @@ URI: [linkmlmap:element_name](https://w3id.org/linkml/transformer/element_name)
 | --- | --- |
 | Range | NONE |
 | Domain Of | [CopyDirective](CopyDirective.md) |
-
 ### Cardinality and Requirements
 
 | Property | Value |
 | --- | --- |
 | Required | Yes |
+
+
 ### Slot Characteristics
 
 | Property | Value |

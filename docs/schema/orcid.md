@@ -40,11 +40,6 @@ URI: [linkmlmap:orcid](https://w3id.org/linkml/transformer/orcid)
 | --- | --- |
 | Range | [Uriorcurie](Uriorcurie.md) |
 | Domain Of | [Person](Person.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |
