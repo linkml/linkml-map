@@ -146,6 +146,32 @@ class TestMergeSpecDicts:
         merged = merge_spec_dicts([s1, s2])
         assert merged["title"] == "Second"
 
+    def test_mint_ids_conflict_raises(self):
+        """File order must not decide whether ids are minted."""
+        s1 = {"mint_ids": True, "class_derivations": []}
+        s2 = {"mint_ids": False, "class_derivations": []}
+        with pytest.raises(SpecMergeError, match="Conflicting values for 'mint_ids'"):
+            merge_spec_dicts([s1, s2])
+
+    def test_mint_ids_from_one_fragment_applies(self):
+        """A single per-study fragment sets mint_ids for everything merged with it."""
+        header = {"mint_ids": True}
+        body = {"class_derivations": [{"name": "A"}]}
+        assert merge_spec_dicts([body, header])["mint_ids"] is True
+        assert merge_spec_dicts([header, body, header])["mint_ids"] is True
+
+    def test_class_defaults_unioned(self):
+        """Per-study fragments can each name classes; identical repeats are fine."""
+        s1 = {"class_defaults": {"A": {"mint_ids": True}}}
+        s2 = {"class_defaults": {"B": {"mint_ids": True}, "A": {"mint_ids": True}}}
+        assert merge_spec_dicts([s1, s2])["class_defaults"] == {"A": {"mint_ids": True}, "B": {"mint_ids": True}}
+
+    def test_class_defaults_conflict_raises(self):
+        s1 = {"class_defaults": {"A": {"mint_ids": True}}}
+        s2 = {"class_defaults": {"A": {"mint_ids": False}}}
+        with pytest.raises(SpecMergeError, match="Conflicting class_defaults for 'A'"):
+            merge_spec_dicts([s1, s2])
+
     def test_mixed_list_and_dict_class_derivations(self):
         s1 = {"class_derivations": [{"name": "A"}]}
         s2 = {"class_derivations": {"B": {"populated_from": "Y"}}}

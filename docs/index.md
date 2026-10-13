@@ -313,6 +313,68 @@ class_derivations:
 The patches use standard LinkML schema YAML structure and are applied before transformation runs.
 This keeps your auto-generated schemas reproducible while adding semantic information discovered during transform design.
 
+## Identifiers
+
+When the target schema gives a class an identifier slot (`identifier: true`), every record
+of that class needs a value for it. A class derivation provides one in one of two ways:
+
+- **Derive it** like any other slot. Use this when other records refer to the id — a
+  natural key that a referring spec can recompute, e.g.
+  `uuid5("https://example.org/Visit", str({participant}) + ":" + str({visit}))`.
+- **Mint it** with `mint_ids: true`. The id becomes a UUID5 hash of the record's own
+  content. Use this for records nothing refers to.
+
+If a derivation does neither, linkml-map refuses to produce output and names the class
+derivation. With `--continue-on-error`, it reports the problem once, writes the records
+without ids, and exits non-zero. Without a target schema there is no identifier to check.
+
+### Turning minting on
+
+Minting is off unless asked for. It can be turned on, or off again, at three levels;
+the most specific setting wins:
+
+```yaml
+mint_ids: false              # 1. the whole specification (also the default)
+
+class_defaults:              # 2. every derivation of a target class
+  MeasurementObservation: {mint_ids: true}
+  Quantity: {mint_ids: true}
+
+class_derivations:
+  MeasurementObservation:
+    populated_from: lab_results
+    mint_ids: false          # 3. this derivation only
+    slot_derivations:
+      ...
+```
+
+Abstract and mixin target classes are skipped, since they have no records of their own.
+An `id` derived by an ancestor derivation (`is_a`) counts as derived.
+
+When specifications are merged from several files, `mint_ids` and `class_defaults` must
+agree across them: conflicting values are an error rather than being decided by file
+order. A single file per directory holding these settings applies to everything merged
+with it.
+
+### What a minted id is
+
+```
+id = uuid5(uuid5(NAMESPACE_URL, "<target schema id>/<TargetClass>"), canonical(record))
+```
+
+The record is hashed as emitted — after derivation, without hidden slots or the id itself.
+Its canonical form sorts keys; drops nulls, empty lists, and empty objects; sorts list
+items unless the target slot is `list_elements_ordered`; writes every number in one
+fixed-point form (so `5`, `5.0`, and `5.00` agree, and floats are rounded to 15
+significant digits first); and includes nested objects with their own minted ids.
+
+The same record always gets the same id, whatever the row order, chunking, or parallelism,
+and identical records get identical ids, so duplicates are easy to find. But these are
+**content hashes, not stable identifiers**: changing any emitted value — or adding a slot
+that has a value — changes the id. Don't mint ids for classes other records refer to; give
+those `mint_ids: false` so a forgotten derivation is caught. The background is in
+[#342](https://github.com/linkml/linkml-map/issues/342).
+
 ## Data Model
 
 The data model for transformations mirrors the data model for schemas:
