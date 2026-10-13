@@ -147,6 +147,8 @@ URI: [linkmlmap:ClassDerivation](https://w3id.org/linkml/transformer/ClassDeriva
 
 
 
+      ClassDerivation : mint_ids
+
       ClassDerivation : mirror_source
 
       ClassDerivation : mixins
@@ -240,6 +242,7 @@ URI: [linkmlmap:ClassDerivation](https://w3id.org/linkml/transformer/ClassDeriva
 | [slot_derivations](slot_derivations.md) | * <br/> [SlotDerivation](SlotDerivation.md) | Instructions on how to derive the slots of this target class from source data | direct |
 | [target_definition](target_definition.md) | 0..1 <br/> [Any](Any.md) | LinkML class definition object for this slot | direct |
 | [pivot_operation](pivot_operation.md) | 0..1 <br/> [PivotOperation](PivotOperation.md) | Configuration for pivot (unmelt) operations at class level | direct |
+| [mint_ids](mint_ids.md) | 0..1 <br/> [Boolean](Boolean.md) | Overrides the specification's mint_ids, and the target class's entry in class... | direct |
 | [name](name.md) | 1 <br/> [String](String.md) | Name of the element in the target schema | [ElementDerivation](ElementDerivation.md) |
 | [copy_directives](copy_directives.md) | * <br/> [CopyDirective](CopyDirective.md) | Directives controlling which sub-elements of the source element are copied in... | [ElementDerivation](ElementDerivation.md) |
 | [overrides](overrides.md) | 0..1 <br/> [Any](Any.md) | overrides source schema slots | [ElementDerivation](ElementDerivation.md) |
@@ -384,6 +387,18 @@ URI: [linkmlmap:ClassDerivation](https://w3id.org/linkml/transformer/ClassDeriva
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ClassDerivation</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SlotDerivation</span>
 <span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PivotOperation</span>
+<span class="w">  </span><span class="nt">mint_ids</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mint_ids</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Overrides the specification&#39;s mint_ids, and the target class&#39;s entry</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">in class_defaults, for this class derivation. Set to false on classes whose</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">identifiers other records reference, so a missing derivation is an error rather</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">than a content hash.</span>
+<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TransformationSpecification</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ClassDefault</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ClassDerivation</span>
+<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">boolean</span>
 </code></pre></div>
 </details>
 
@@ -470,6 +485,19 @@ URI: [linkmlmap:ClassDerivation](https://w3id.org/linkml/transformer/ClassDeriva
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ClassDerivation</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SlotDerivation</span>
 <span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PivotOperation</span>
+<span class="w">  </span><span class="nt">mint_ids</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mint_ids</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Overrides the specification&#39;s mint_ids, and the target class&#39;s entry</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">in class_defaults, for this class derivation. Set to false on classes whose</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">identifiers other records reference, so a missing derivation is an error rather</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">than a content hash.</span>
+<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/transformer</span>
+<span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ClassDerivation</span>
+<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TransformationSpecification</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ClassDefault</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ClassDerivation</span>
+<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">boolean</span>
 <span class="w">  </span><span class="nt">name</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">name</span>
 <span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Name of the element in the target schema</span>
@@ -479,6 +507,7 @@ URI: [linkmlmap:ClassDerivation](https://w3id.org/linkml/transformer/ClassDeriva
 <span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SchemaReference</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ElementDerivation</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ClassDefault</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ObjectDerivation</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SlotDerivation</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">EnumDerivation</span>

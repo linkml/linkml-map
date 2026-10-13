@@ -45,6 +45,7 @@
               {title: "Transform your own data", url: "#transform-your-own-data" },
               {title: "Details", url: "#details" },
               {title: "Working with Auto-Generated Schemas", url: "#working-with-auto-generated-schemas" },
+              {title: "Identifiers", url: "#identifiers" },
               {title: "Data Model", url: "#data-model" },
               {title: "Conformance Suite", url: "#conformance-suite" },
               {title: "Running the code", url: "#running-the-code" },
@@ -442,6 +443,55 @@ use <code>source_schema_patches</code> to add them:</p>
 </code></pre></div>
 <p>The patches use standard LinkML schema YAML structure and are applied before transformation runs.
 This keeps your auto-generated schemas reproducible while adding semantic information discovered during transform design.</p>
+<h2 id="identifiers">Identifiers</h2>
+<p>When the target schema gives a class an identifier slot (<code>identifier: true</code>), every record
+of that class needs a value for it. A class derivation provides one in one of two ways:</p>
+<ul>
+<li><strong>Derive it</strong> like any other slot. Use this when other records refer to the id — a
+  natural key that a referring spec can recompute, e.g.
+  <code>uuid5("https://example.org/Visit", str({participant}) + ":" + str({visit}))</code>.</li>
+<li><strong>Mint it</strong> with <code>mint_ids: true</code>. The id becomes a UUID5 hash of the record's own
+  content. Use this for records nothing refers to.</li>
+</ul>
+<p>If a derivation does neither, linkml-map refuses to produce output and names the class
+derivation. With <code>--continue-on-error</code>, it reports the problem once, writes the records
+without ids, and exits non-zero. Without a target schema there is no identifier to check.</p>
+<h3 id="turning-minting-on">Turning minting on</h3>
+<p>Minting is off unless asked for. It can be turned on, or off again, at three levels;
+the most specific setting wins:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">mint_ids</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">              </span><span class="c1"># 1. the whole specification (also the default)</span>
+
+<span class="nt">class_defaults</span><span class="p">:</span><span class="w">              </span><span class="c1"># 2. every derivation of a target class</span>
+<span class="w">  </span><span class="nt">MeasurementObservation</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">mint_ids</span><span class="p">:</span><span class="w"> </span><span class="nv">true</span><span class="p p-Indicator">}</span>
+<span class="w">  </span><span class="nt">Quantity</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">mint_ids</span><span class="p">:</span><span class="w"> </span><span class="nv">true</span><span class="p p-Indicator">}</span>
+
+<span class="nt">class_derivations</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">MeasurementObservation</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lab_results</span>
+<span class="w">    </span><span class="nt">mint_ids</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">          </span><span class="c1"># 3. this derivation only</span>
+<span class="w">    </span><span class="nt">slot_derivations</span><span class="p">:</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+</code></pre></div>
+<p>Abstract and mixin target classes are skipped, since they have no records of their own.
+An <code>id</code> derived by an ancestor derivation (<code>is_a</code>) counts as derived.</p>
+<p>When specifications are merged from several files, <code>mint_ids</code> and <code>class_defaults</code> must
+agree across them: conflicting values are an error rather than being decided by file
+order. A single file per directory holding these settings applies to everything merged
+with it.</p>
+<h3 id="what-a-minted-id-is">What a minted id is</h3>
+<div class="highlight"><pre><span></span><code>id = uuid5(uuid5(NAMESPACE_URL, &quot;&lt;target schema id&gt;/&lt;TargetClass&gt;&quot;), canonical(record))
+</code></pre></div>
+<p>The record is hashed as emitted — after derivation, without hidden slots or the id itself.
+Its canonical form sorts keys; drops nulls, empty lists, and empty objects; sorts list
+items unless the target slot is <code>list_elements_ordered</code>; writes every number in one
+fixed-point form (so <code>5</code>, <code>5.0</code>, and <code>5.00</code> agree, and floats are rounded to 15
+significant digits first); and includes nested objects with their own minted ids.</p>
+<p>The same record always gets the same id, whatever the row order, chunking, or parallelism,
+and identical records get identical ids, so duplicates are easy to find. But these are
+<strong>content hashes, not stable identifiers</strong>: changing any emitted value — or adding a slot
+that has a value — changes the id. Don't mint ids for classes other records refer to; give
+those <code>mint_ids: false</code> so a forgotten derivation is caught. The background is in
+<a href="https://github.com/linkml/linkml-map/issues/342">#342</a>.</p>
 <h2 id="data-model">Data Model</h2>
 <p>The data model for transformations mirrors the data model for schemas:</p>
 <ul>
@@ -613,5 +663,5 @@ Edit on GitHub</a>
 </html>
 <!--
 MkDocs version : 1.6.1
-Build Date UTC : 2026-08-25 17:46:51.092628+00:00
+Build Date UTC : 2026-10-13 13:43:52.955188+00:00
 -->
