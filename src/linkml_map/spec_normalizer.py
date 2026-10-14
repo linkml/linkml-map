@@ -149,8 +149,6 @@ def normalize_transform_spec(obj: dict[str, Any], normalizer: ReferenceValidator
             continue
         slot_derivations = class_spec.get("slot_derivations", {})
         for slot_name, slot_spec in slot_derivations.items():
-            if slot_spec.get("value") is not None and slot_spec.get("range") is None:
-                slot_spec["range"] = "string"
             _normalize_slot_class_derivations(slot_name, slot_spec, normalizer)
     return obj
 
