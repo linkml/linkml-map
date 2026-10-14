@@ -228,7 +228,7 @@ class YAMLStreamWriter(StreamWriter):
             return
 
         if self.key_name:
-            yaml_str = dump_yaml({self.key_name: chunk})
+            yaml_str = dump_yaml({self.key_name: _strip_nulls(chunk)})
             if self._first_chunk:
                 yield yaml_str
                 self._first_chunk = False
@@ -237,7 +237,7 @@ class YAMLStreamWriter(StreamWriter):
                 yield "\n".join(lines[1:]) + "\n"
         else:
             for obj in chunk:
-                yield dump_yaml(obj)
+                yield dump_yaml(_strip_nulls(obj))
                 yield "---\n"
 
     def finalize(self) -> Iterator[str]:
@@ -272,7 +272,7 @@ def yaml_stream(
     if key_name:
         first_chunk = True
         for chunk in chunks:
-            yaml_str = dump_yaml({key_name: chunk})
+            yaml_str = dump_yaml({key_name: _strip_nulls(chunk)})
             if first_chunk:
                 yield yaml_str
                 first_chunk = False
@@ -283,7 +283,7 @@ def yaml_stream(
     else:
         for chunk in chunks:
             for obj in chunk:
-                yield dump_yaml(obj)
+                yield dump_yaml(_strip_nulls(obj))
                 yield "---\n"
 
 
