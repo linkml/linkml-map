@@ -625,6 +625,12 @@ class ObjectTransformer(Transformer):
                 v, target_range or self._target_slot_datatype(context.class_deriv.name, slot_derivation.name)
             )
             v = self._reshape_collection(v, slot_derivation, source_class_slot)
+        elif (slot_derivation.value is not None or slot_derivation.expr) and v is not None and not slot_derivation.hide:
+            v = self._coerce_cardinality(v, slot_derivation, context.class_deriv)
+            v = self._coerce_datatype(
+                v,
+                slot_derivation.range or self._target_slot_datatype(context.class_deriv.name, slot_derivation.name),
+            )
         return v
 
     @staticmethod

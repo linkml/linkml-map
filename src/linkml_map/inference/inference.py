@@ -30,8 +30,6 @@ def induce_missing_values(specification: TransformationSpecification, source_sch
             # TODO: decide if this is the desired behavior
             if sd.populated_from is None and sd.expr is None and sd.value is None:
                 sd.populated_from = sd.name
-            if sd.range is None and sd.value is not None:
-                sd.range = "string"
             if not sd.range and sd.populated_from:
                 # auto-populate range field
                 if cd.populated_from not in source_schemaview.all_classes():
