@@ -663,3 +663,34 @@ def test_multi_stream_writer_with_file_handle_target(tmp_path):
     # Path target should have JSON content
     json_data = json.loads(json_path.read_text())
     assert len(json_data) == 3
+
+
+NULL_ROW = {"id": "p1", "n": None, "q": {"unit": "mg", "value": None}, "tags": ["a", None]}
+NULLS_DROPPED = {"id": "p1", "q": {"unit": "mg"}, "tags": ["a", None]}
+
+
+def _load(output_format: OutputFormat, text: str) -> list[dict]:
+    if output_format == OutputFormat.JSONL:
+        return [json.loads(line) for line in text.splitlines()]
+    if output_format == OutputFormat.JSON:
+        loaded = json.loads(text)
+        return loaded["rows"] if isinstance(loaded, dict) else loaded
+    docs = [d for d in yaml.safe_load_all(text) if d is not None]
+    return docs[0]["rows"] if "rows" in docs[0] else docs
+
+
+@pytest.mark.parametrize(
+    ("output_format", "key_name"),
+    [
+        (OutputFormat.YAML, None),
+        (OutputFormat.YAML, "rows"),
+        (OutputFormat.JSON, None),
+        (OutputFormat.JSON, "rows"),
+        (OutputFormat.JSONL, None),
+    ],
+)
+def test_writers_drop_null_slots(output_format: OutputFormat, key_name: str | None) -> None:
+    """Every writer drops null-valued keys, nested ones included, so formats agree (#354)."""
+    writer = make_stream_writer(output_format, key_name=key_name)
+    text = "".join(writer.process(iter([[NULL_ROW]])))
+    assert _load(output_format, text) == [NULLS_DROPPED]
