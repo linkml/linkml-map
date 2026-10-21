@@ -52,7 +52,7 @@ URI: [xsd:boolean](http://www.w3.org/2001/XMLSchema#boolean)
 | Mapping Type | Mapped Value |
 | ---  | ---  |
 | self | xsd:boolean |
-| native | linkmlmap:boolean |
+| native | linkmlmap:Boolean |
 | exact | schema:Boolean |
 
 

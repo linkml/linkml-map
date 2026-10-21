@@ -46,11 +46,6 @@ URI: [linkmlmap:overrides](https://w3id.org/linkml/transformer/overrides)
 | --- | --- |
 | Range | [Any](Any.md) |
 | Domain Of | [ElementDerivation](ElementDerivation.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

@@ -40,12 +40,13 @@ URI: [linkmlmap:object_derivations](https://w3id.org/linkml/transformer/object_d
 | --- | --- |
 | Range | [ObjectDerivation](ObjectDerivation.md) |
 | Domain Of | [SlotDerivation](SlotDerivation.md) |
-
 ### Cardinality and Requirements
 
 | Property | Value |
 | --- | --- |
 | Multivalued | Yes |
+
+
 ### Slot Characteristics
 
 | Property | Value |

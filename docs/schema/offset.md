@@ -40,11 +40,6 @@ URI: [linkmlmap:offset](https://w3id.org/linkml/transformer/offset)
 | --- | --- |
 | Range | [Offset](Offset.md) |
 | Domain Of | [SlotDerivation](SlotDerivation.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

@@ -40,11 +40,6 @@ URI: [linkmlmap:join_on](https://w3id.org/linkml/transformer/join_on)
 | --- | --- |
 | Range | NONE |
 | Domain Of | [AliasedClass](AliasedClass.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

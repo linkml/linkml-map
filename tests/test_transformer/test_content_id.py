@@ -15,6 +15,7 @@ from linkml_map.cli.cli import main
 from linkml_map.datamodel.transformer_model import ClassDerivation, TransformationSpecification
 from linkml_map.transformer.errors import TransformationError
 from linkml_map.transformer.object_transformer import ObjectTransformer
+from linkml_map.utils.serialization import dump_yaml
 from linkml_map.validator import validate_spec_semantics
 
 SOURCE_SCHEMA = textwrap.dedent("""\
@@ -131,6 +132,14 @@ def test_synthesized_id_is_pinned() -> None:
     assert out["id"] == "e2f19c73-a77b-5b80-90b8-3394ef6f96d3"
     assert out["value_quantity"]["id"] == "199f65b6-2954-565e-912a-b814c2568cd9"
     assert next(iter(out)) == "id"
+
+
+def test_minted_record_round_trips_through_yaml() -> None:
+    """The minted id key is a plain ``str``, so YAML output loads with ``safe_load`` (#363)."""
+    out = _transform(ROW)
+    loaded = yaml.safe_load(dump_yaml(out))
+    assert loaded["id"] == out["id"]
+    assert loaded["value_quantity"]["id"] == out["value_quantity"]["id"]
 
 
 def test_same_content_same_id_across_transformers() -> None:

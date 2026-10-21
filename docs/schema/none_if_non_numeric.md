@@ -40,11 +40,6 @@ URI: [linkmlmap:none_if_non_numeric](https://w3id.org/linkml/transformer/none_if
 | --- | --- |
 | Range | [Boolean](Boolean.md) |
 | Domain Of | [UnitConversionConfiguration](UnitConversionConfiguration.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

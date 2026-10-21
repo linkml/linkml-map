@@ -40,12 +40,13 @@ URI: [linkmlmap:operator](https://w3id.org/linkml/transformer/operator)
 | --- | --- |
 | Range | [AggregationType](AggregationType.md) |
 | Domain Of | [AggregationOperation](AggregationOperation.md) |
-
 ### Cardinality and Requirements
 
 | Property | Value |
 | --- | --- |
 | Required | Yes |
+
+
 ### Slot Characteristics
 
 | Property | Value |

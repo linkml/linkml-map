@@ -40,11 +40,6 @@ URI: [linkmlmap:slot_name_template](https://w3id.org/linkml/transformer/slot_nam
 | --- | --- |
 | Range | [String](String.md) |
 | Domain Of | [PivotOperation](PivotOperation.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

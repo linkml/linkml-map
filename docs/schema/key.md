@@ -40,12 +40,13 @@ URI: [linkmlmap:key](https://w3id.org/linkml/transformer/key)
 | --- | --- |
 | Range | NONE |
 | Domain Of | [KeyVal](KeyVal.md) |
-
 ### Cardinality and Requirements
 
 | Property | Value |
 | --- | --- |
 | Required | Yes |
+
+
 ### Slot Characteristics
 
 | Property | Value |
