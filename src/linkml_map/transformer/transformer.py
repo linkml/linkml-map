@@ -24,6 +24,7 @@ from linkml_map.datamodel.transformer_model import (
 )
 from linkml_map.inference.inference import induce_missing_values
 from linkml_map.spec_normalizer import normalize_spec
+from linkml_map.utils.enum_index import EnumIndex, enum_index
 from linkml_map.utils.eval_utils import FUNCTIONS, INJECTED_EVAL_NAMES
 from linkml_map.utils.expression_locations import (
     extract_braced_reference_roots,
@@ -153,11 +154,20 @@ class Transformer(ABC):
     :class:`~linkml_map.transformer.errors.TransformationError`, which
     surfaces typos, stale references, and wrong-table accesses that
     would otherwise produce silent nulls in the output.
+
+    It also governs enum-ranged target slots: a value that matches no
+    permissible value of the target enum, or more than one, raises when
+    ``True`` and passes through with a warning when ``False``.
     """
 
     _curie_converter: Converter = None
 
     _target_datatype_cache: dict[tuple[str, str], str | None] = field(default_factory=dict, repr=False)
+
+    _target_enum_cache: dict[tuple[str, str, str | None], EnumIndex | None] = field(default_factory=dict, repr=False)
+
+    _warned_unresolved_enum_values: set[tuple[str, str]] = field(default_factory=set, repr=False)
+    """``(enum, value)`` pairs already warned about in non-strict mode, so each logs once."""
 
     spec_messages: list[Any] = field(default_factory=list)
     """Scan messages captured at spec-load time.
@@ -661,6 +671,58 @@ class Transformer(ABC):
         if isinstance(v, cls):
             return v
         return cls(v)
+
+    def _target_enum_index(self, class_name: str, slot_derivation: SlotDerivation) -> EnumIndex | None:
+        """Return the index of the target enum a slot's values must resolve to.
+
+        The spec's ``range`` wins over the target schema's, as for datatypes. Returns
+        ``None`` when there is no target schema, the range is not an enum, or the enum
+        has no closed list of permissible values.
+
+        :param class_name: Target class name.
+        :param slot_derivation: The slot derivation.
+        :return: The enum index, or ``None``.
+        """
+        key = (class_name, slot_derivation.name, slot_derivation.range)
+        if key not in self._target_enum_cache:
+            sv = self.target_schemaview
+            index = None
+            if sv is not None:
+                slot_range = slot_derivation.range or sv.induced_slot(slot_derivation.name, class_name).range
+                if slot_range in sv.all_enums():
+                    index = enum_index(sv, slot_range)
+            self._target_enum_cache[key] = index
+        return self._target_enum_cache[key]
+
+    def _resolve_enum_value(self, v: Any, index: EnumIndex | None) -> Any:
+        """Replace *v* with the key of the permissible value it spells.
+
+        A value matching no permissible value, or more than one, raises in strict mode
+        and otherwise passes through with a warning.
+
+        :param v: A slot value, or a list or dict of them.
+        :param index: The target enum's index; ``None`` leaves *v* unchanged.
+        :return: The resolved value.
+        """
+        if index is None:
+            return v
+        if isinstance(v, list):
+            return [self._resolve_enum_value(v1, index) for v1 in v]
+        if isinstance(v, dict):
+            return {k: self._resolve_enum_value(v1, index) for k, v1 in v.items()}
+        keys = index.match(str(v))
+        if len(keys) == 1:
+            return next(iter(keys))
+        if keys:
+            msg = f"{v!r} matches more than one permissible value of enum {index.enum_name}: {sorted(keys)}"
+        else:
+            msg = f"{v!r} is not a permissible value of enum {index.enum_name}"
+        if self.strict:
+            raise ValueError(msg)
+        if (index.enum_name, str(v)) not in self._warned_unresolved_enum_values:
+            self._warned_unresolved_enum_values.add((index.enum_name, str(v)))
+            logger.warning(msg)
+        return v
 
     @property
     def curie_converter(self) -> Converter:
