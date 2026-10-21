@@ -46,11 +46,6 @@ URI: [linkmlmap:mirror_source](https://w3id.org/linkml/transformer/mirror_source
 | --- | --- |
 | Range | [Boolean](Boolean.md) |
 | Domain Of | [ElementDerivation](ElementDerivation.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

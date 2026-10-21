@@ -40,11 +40,6 @@ URI: [linkmlmap:inverse_of](https://w3id.org/linkml/transformer/inverse_of)
 | --- | --- |
 | Range | [Inverse](Inverse.md) |
 | Domain Of | [SlotDerivation](SlotDerivation.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

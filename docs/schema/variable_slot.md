@@ -40,11 +40,6 @@ URI: [linkmlmap:variable_slot](https://w3id.org/linkml/transformer/variable_slot
 | --- | --- |
 | Range | [SlotReference](SlotReference.md) |
 | Domain Of | [PivotOperation](PivotOperation.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

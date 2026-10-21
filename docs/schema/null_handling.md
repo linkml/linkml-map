@@ -37,11 +37,6 @@ URI: [linkmlmap:null_handling](https://w3id.org/linkml/transformer/null_handling
 | Range | NONE |
 | Domain Of | [AggregationOperation](AggregationOperation.md), [GroupingOperation](GroupingOperation.md) |
 
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
-
 
 
 

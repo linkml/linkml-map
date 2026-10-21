@@ -40,11 +40,6 @@ URI: [linkmlmap:exclude_all](https://w3id.org/linkml/transformer/exclude_all)
 | --- | --- |
 | Range | [Boolean](Boolean.md) |
 | Domain Of | [CopyDirective](CopyDirective.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

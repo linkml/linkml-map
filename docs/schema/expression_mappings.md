@@ -46,12 +46,13 @@ URI: [linkmlmap:expression_mappings](https://w3id.org/linkml/transformer/express
 | --- | --- |
 | Range | [KeyVal](KeyVal.md) |
 | Domain Of | [ElementDerivation](ElementDerivation.md) |
-
 ### Cardinality and Requirements
 
 | Property | Value |
 | --- | --- |
 | Multivalued | Yes |
+
+
 ### Slot Characteristics
 
 | Property | Value |

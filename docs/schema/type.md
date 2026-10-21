@@ -43,11 +43,6 @@ URI: [linkmlmap:type](https://w3id.org/linkml/transformer/type)
 | --- | --- |
 | Range | [String](String.md) |
 | Domain Of | [Agent](Agent.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

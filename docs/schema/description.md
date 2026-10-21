@@ -49,11 +49,6 @@ URI: [dcterms:description](http://purl.org/dc/terms/description)
 | Range | NONE |
 | Domain Of | [SpecificationComponent](SpecificationComponent.md) |
 | Slot URI | [dcterms:description](http://purl.org/dc/terms/description) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

@@ -40,11 +40,6 @@ URI: [linkmlmap:target_unit_slot](https://w3id.org/linkml/transformer/target_uni
 | --- | --- |
 | Range | NONE |
 | Domain Of | [UnitConversionConfiguration](UnitConversionConfiguration.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

@@ -52,7 +52,7 @@ URI: [linkml:DateOrDatetime](https://w3id.org/linkml/DateOrDatetime)
 | Mapping Type | Mapped Value |
 | ---  | ---  |
 | self | linkml:DateOrDatetime |
-| native | linkmlmap:date_or_datetime |
+| native | linkmlmap:DateOrDatetime |
 
 
 
