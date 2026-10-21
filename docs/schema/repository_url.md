@@ -40,11 +40,6 @@ URI: [linkmlmap:repository_url](https://w3id.org/linkml/transformer/repository_u
 | --- | --- |
 | Range | [Uri](Uri.md) |
 | Domain Of | [Software](Software.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

@@ -40,11 +40,6 @@ URI: [linkmlmap:content_url](https://w3id.org/linkml/transformer/content_url)
 | --- | --- |
 | Range | [Uri](Uri.md) |
 | Domain Of | [TransformationSpecification](TransformationSpecification.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

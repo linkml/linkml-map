@@ -40,11 +40,6 @@ URI: [linkmlmap:lookup_key](https://w3id.org/linkml/transformer/lookup_key)
 | --- | --- |
 | Range | NONE |
 | Domain Of | [AliasedClass](AliasedClass.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

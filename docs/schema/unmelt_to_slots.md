@@ -40,12 +40,13 @@ URI: [linkmlmap:unmelt_to_slots](https://w3id.org/linkml/transformer/unmelt_to_s
 | --- | --- |
 | Range | [SlotReference](SlotReference.md) |
 | Domain Of | [PivotOperation](PivotOperation.md) |
-
 ### Cardinality and Requirements
 
 | Property | Value |
 | --- | --- |
 | Multivalued | Yes |
+
+
 ### Slot Characteristics
 
 | Property | Value |

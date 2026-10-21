@@ -39,11 +39,6 @@ URI: [linkmlmap:populated_from](https://w3id.org/linkml/transformer/populated_fr
 | Range | NONE |
 | Domain Of | [ClassDerivation](ClassDerivation.md), [SlotDerivation](SlotDerivation.md), [EnumDerivation](EnumDerivation.md), [PermissibleValueDerivation](PermissibleValueDerivation.md) |
 
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
-
 
 
 

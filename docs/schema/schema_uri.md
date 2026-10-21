@@ -40,11 +40,6 @@ URI: [linkmlmap:schema_uri](https://w3id.org/linkml/transformer/schema_uri)
 | --- | --- |
 | Range | [Uri](Uri.md) |
 | Domain Of | [SchemaReference](SchemaReference.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

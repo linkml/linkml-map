@@ -40,11 +40,6 @@ URI: [linkmlmap:affiliation](https://w3id.org/linkml/transformer/affiliation)
 | --- | --- |
 | Range | [String](String.md) |
 | Domain Of | [Person](Person.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

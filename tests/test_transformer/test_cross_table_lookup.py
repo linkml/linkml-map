@@ -66,8 +66,8 @@ TARGET_SCHEMA_YAML = textwrap.dedent("""\
         attributes:
           sample_id:
             identifier: true
-          analyte_value: {}
-          age_at_observation: {}
+          analyte_value: {range: float}
+          age_at_observation: {range: integer}
           participant_sex: {}
           site_name: {}
 """)

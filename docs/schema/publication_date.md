@@ -41,11 +41,6 @@ URI: [dcterms:issued](http://purl.org/dc/terms/issued)
 | Range | [Date](Date.md) |
 | Domain Of | [TransformationSpecification](TransformationSpecification.md) |
 | Slot URI | [dcterms:issued](http://purl.org/dc/terms/issued) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

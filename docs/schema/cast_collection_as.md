@@ -40,11 +40,6 @@ URI: [linkmlmap:cast_collection_as](https://w3id.org/linkml/transformer/cast_col
 | --- | --- |
 | Range | [CollectionType](CollectionType.md) |
 | Domain Of | [SlotDerivation](SlotDerivation.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |
