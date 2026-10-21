@@ -710,18 +710,14 @@ class Transformer(ABC):
             return [self._resolve_enum_value(v1, index) for v1 in v]
         if isinstance(v, dict):
             return {k: self._resolve_enum_value(v1, index) for k, v1 in v.items()}
-        keys = index.match(str(v))
-        if len(keys) == 1:
-            return next(iter(keys))
-        if keys:
-            msg = f"{v!r} matches more than one permissible value of enum {index.enum_name}: {sorted(keys)}"
-        else:
-            msg = f"{v!r} is not a permissible value of enum {index.enum_name}"
+        key, problem = index.resolve(str(v))
+        if key is not None:
+            return key
         if self.strict:
-            raise ValueError(msg)
+            raise ValueError(problem)
         if (index.enum_name, str(v)) not in self._warned_unresolved_enum_values:
             self._warned_unresolved_enum_values.add((index.enum_name, str(v)))
-            logger.warning(msg)
+            logger.warning(problem)
         return v
 
     @property

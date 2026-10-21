@@ -75,6 +75,29 @@ class EnumIndex:
                 return tier[spelling]
         return frozenset()
 
+    def resolve(self, value: str) -> tuple[str | None, str | None]:
+        """Return the key *value* resolves to, or why it doesn't resolve to exactly one.
+
+        >>> from linkml_runtime.linkml_model.meta import EnumDefinition
+        >>> enum = EnumDefinition("Color", permissible_values={"R": {"title": "red"}, "r": {"title": "red"}})
+        >>> index = EnumIndex.from_enum(enum, expand=lambda c: c)
+        >>> index.resolve("R")
+        ('R', None)
+        >>> index.resolve("red")
+        (None, "'red' matches more than one permissible value of enum Color: ['R', 'r']")
+        >>> index.resolve("blue")
+        (None, "'blue' is not a permissible value of enum Color")
+
+        :param value: A spelling from the spec or the data.
+        :return: ``(key, None)`` on a unique match, else ``(None, problem)``.
+        """
+        keys = self.match(value)
+        if len(keys) == 1:
+            return next(iter(keys)), None
+        if keys:
+            return None, f"{value!r} matches more than one permissible value of enum {self.enum_name}: {sorted(keys)}"
+        return None, f"{value!r} is not a permissible value of enum {self.enum_name}"
+
 
 def enum_index(sv: SchemaView, enum_name: str) -> EnumIndex | None:
     """Build the index for a schema's enum, or ``None`` if its values aren't all listed.
