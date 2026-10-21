@@ -33,7 +33,7 @@ def _warn_deprecated(name: str, replacement: str) -> None:
 
 
 def _strip_nulls(obj: Any) -> Any:
-    """Remove None values from dicts so JSON output matches YAML behavior.
+    """Drop None-valued dict keys, recursively; None elements in lists are kept.
 
     :param obj: Object to strip nulls from.
     :returns: Cleaned object with None values removed from dicts.
