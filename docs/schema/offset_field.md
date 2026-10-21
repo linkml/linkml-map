@@ -40,12 +40,13 @@ URI: [linkmlmap:offset_field](https://w3id.org/linkml/transformer/offset_field)
 | --- | --- |
 | Range | [String](String.md) |
 | Domain Of | [Offset](Offset.md) |
-
 ### Cardinality and Requirements
 
 | Property | Value |
 | --- | --- |
 | Required | Yes |
+
+
 ### Slot Characteristics
 
 | Property | Value |

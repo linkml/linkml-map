@@ -37,11 +37,6 @@ URI: [linkmlmap:slot_derivations](https://w3id.org/linkml/transformer/slot_deriv
 | Range | NONE |
 | Domain Of | [TransformationSpecification](TransformationSpecification.md), [ClassDerivation](ClassDerivation.md) |
 
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
-
 
 
 

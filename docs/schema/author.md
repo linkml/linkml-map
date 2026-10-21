@@ -40,12 +40,13 @@ URI: [linkmlmap:author](https://w3id.org/linkml/transformer/author)
 | --- | --- |
 | Range | [Agent](Agent.md) |
 | Domain Of | [TransformationSpecification](TransformationSpecification.md) |
-
 ### Cardinality and Requirements
 
 | Property | Value |
 | --- | --- |
 | Multivalued | Yes |
+
+
 ### Slot Characteristics
 
 | Property | Value |

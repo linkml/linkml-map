@@ -40,11 +40,6 @@ URI: [linkmlmap:source_unit](https://w3id.org/linkml/transformer/source_unit)
 | --- | --- |
 | Range | NONE |
 | Domain Of | [UnitConversionConfiguration](UnitConversionConfiguration.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

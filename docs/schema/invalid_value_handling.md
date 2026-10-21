@@ -40,11 +40,6 @@ URI: [linkmlmap:invalid_value_handling](https://w3id.org/linkml/transformer/inva
 | --- | --- |
 | Range | [InvalidValueHandlingStrategy](InvalidValueHandlingStrategy.md) |
 | Domain Of | [AggregationOperation](AggregationOperation.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

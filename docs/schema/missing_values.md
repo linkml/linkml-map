@@ -40,12 +40,13 @@ URI: [linkmlmap:missing_values](https://w3id.org/linkml/transformer/missing_valu
 | --- | --- |
 | Range | [Any](Any.md) |
 | Domain Of | [SlotDerivation](SlotDerivation.md) |
-
 ### Cardinality and Requirements
 
 | Property | Value |
 | --- | --- |
 | Multivalued | Yes |
+
+
 ### Slot Characteristics
 
 | Property | Value |

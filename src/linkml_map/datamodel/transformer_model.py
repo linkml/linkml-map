@@ -29,7 +29,7 @@ from pydantic import (
 )
 
 
-metamodel_version = "1.11.0"
+metamodel_version = "1.12.0"
 version = "None"
 
 
@@ -183,9 +183,9 @@ class TransformationSpecification(SpecificationComponent):
     source_schema: Optional[SchemaReference] = Field(default=None, description="""Reference to the schema that describes the source (input) objects.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification']} })
     target_schema: Optional[SchemaReference] = Field(default=None, description="""Reference to the schema that describes the target (output) objects.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification']} })
     source_schema_patches: Optional[Any] = Field(default=None, description="""Schema patches to apply to the source schema before transformation. Useful for adding foreign key relationships to auto-generated schemas. Uses LinkML schema YAML structure (classes, slots, attributes, etc.).""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification']} })
-    creator: Optional[list[Union[Agent,Person,Organization,Software]]] = Field(default_factory=list, description="""A list of creators of this transformation specification""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification'], 'slot_uri': 'dcterms:creator'} })
-    author: Optional[list[Union[Agent,Person,Organization,Software]]] = Field(default_factory=list, description="""A list of authors of this transformation specification""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification']} })
-    reviewer: Optional[list[Union[Agent,Person,Organization,Software]]] = Field(default_factory=list, description="""A list of reviewers of this transformation specification""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification']} })
+    creator: Optional[list[Union[Person,Organization,Software]]] = Field(default_factory=list, description="""A list of creators of this transformation specification""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification'], 'slot_uri': 'dcterms:creator'} })
+    author: Optional[list[Union[Person,Organization,Software]]] = Field(default_factory=list, description="""A list of authors of this transformation specification""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification']} })
+    reviewer: Optional[list[Union[Person,Organization,Software]]] = Field(default_factory=list, description="""A list of reviewers of this transformation specification""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification']} })
     mapping_method: Optional[str] = Field(default=None, description="""The method used to create this mapping, e.g. manual curation, automated mapping, etc.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification']} })
     documentation: Optional[str] = Field(default=None, description="""URL or reference to documentation for the mapping specification""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification']} })
     content_url: Optional[str] = Field(default=None, description="""Reference to the actual content of the mapping specification""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransformationSpecification']} })
