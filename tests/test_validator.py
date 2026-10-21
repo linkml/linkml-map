@@ -1731,3 +1731,77 @@ def test_joined_class_attr_error_uses_class_named_when_aliased():
     msg = warnings[0].message
     assert "joined class 'Reading'" in msg
     assert "alias 'readings'" in msg
+
+
+# ---------------------------------------------------------------------------
+# Enum literals against the target enum (#360)
+# ---------------------------------------------------------------------------
+
+_ENUM_TARGET_SCHEMA = textwrap.dedent(
+    """
+    id: https://example.org/enum-target
+    name: enum-target
+    prefixes:
+      linkml: 'https://w3id.org/linkml/'
+      OMOP: 'https://athena.ohdsi.org/search-terms/terms/'
+    imports: [linkml:types]
+    default_range: string
+    enums:
+      SexEnum:
+        permissible_values:
+          "OMOP:8532": {title: FEMALE, meaning: "OMOP:8532"}
+          "OMOP:8507": {title: MALE, meaning: "OMOP:8507"}
+      Open:
+        reachable_from:
+          source_ontology: obo:mondo
+          source_nodes: ["MONDO:0000001"]
+    classes:
+      Participant:
+        attributes:
+          sex: {range: SexEnum}
+          disease: {range: Open}
+          note: {}
+    """
+)
+
+
+def _enum_literal_msgs(slot_derivation: dict, *, strict: bool = False) -> list[ValidationMessage]:
+    spec = normalize_spec_dict({"class_derivations": {"Participant": {"slot_derivations": slot_derivation}}})
+    msgs = validate_spec_semantics(spec, target_schemaview=SchemaView(_ENUM_TARGET_SCHEMA), strict=strict)
+    return [m for m in msgs if "permissible value" in m.message]
+
+
+@pytest.mark.parametrize(
+    "slot_derivation",
+    [
+        {"sex": {"value": "FEMALE"}},
+        {"sex": {"value": "OMOP:8507"}},
+        {"sex": {"value": "https://athena.ohdsi.org/search-terms/terms/8507"}},
+        {"sex": {"populated_from": "gender", "value_mappings": {"f": "FEMALE", "m": "OMOP:8507", "u": None}}},
+        {"disease": {"value": "anything"}},
+        {"note": {"value": "anything"}},
+        {"sex": {"value": "female", "range": "string"}},
+    ],
+    ids=["title", "key", "meaning-uri", "value-mappings", "open-enum", "non-enum", "spec-range-wins"],
+)
+def test_semantics_enum_literals_that_resolve(slot_derivation):
+    """Any spelling the runtime resolves passes; open enums and non-enum ranges are not checked."""
+    assert _enum_literal_msgs(slot_derivation) == []
+
+
+def test_semantics_unresolved_enum_literals_warn():
+    """A value or value_mappings target that names no permissible value is reported."""
+    msgs = _enum_literal_msgs(
+        {"sex": {"populated_from": "gender", "value_mappings": {"f": "FEMALE", "x": "OTHER"}}},
+    )
+    assert [(m.severity, m.message) for m in msgs] == [
+        ("warning", "value_mappings[x]: 'OTHER' is not a permissible value of enum SexEnum"),
+    ]
+
+
+def test_semantics_unresolved_enum_literal_strict_error():
+    """Under strict, an unresolved literal is an error."""
+    msgs = _enum_literal_msgs({"sex": {"value": "female"}}, strict=True)
+    assert [(m.severity, m.message) for m in msgs] == [
+        ("error", "value: 'female' is not a permissible value of enum SexEnum"),
+    ]

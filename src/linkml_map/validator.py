@@ -35,6 +35,7 @@ from linkml_map.spec_normalizer import normalize_spec
 from linkml_map.spec_scan import ValidationMessage, iter_derivation_dicts
 from linkml_map.spec_scan import check_deprecated_fields as check_deprecated_fields  # re-export
 from linkml_map.transformer.content_id import mints_ids, missing_identifier_message
+from linkml_map.utils.enum_index import enum_index
 from linkml_map.utils.eval_utils import FUNCTIONS
 from linkml_map.utils.join_utils import resolve_join
 
@@ -740,6 +741,8 @@ def _validate_class_derivation(
             strict,
             messages,
         )
+        if target_class_slots is not None and sd_name in target_class_slots:
+            _check_enum_literals(sd, cd_name, target_sv, sd_path, strict, messages)
 
         # Recurse into nested class_derivations declared on this slot.
         for nested_cd in iter_derivation_dicts(sd.get("class_derivations", [])):
@@ -1204,6 +1207,51 @@ def _validate_slot_derivation(
                         ),
                     )
                 )
+
+
+def _check_enum_literals(
+    sd: dict[str, Any],
+    class_name: str,
+    target_sv: SchemaView,
+    sd_path: str,
+    strict: bool,
+    messages: list[ValidationMessage],
+) -> None:
+    """Check that a slot's ``value`` and ``value_mappings`` targets name values of its target enum.
+
+    These literals are known before any data is read, so a spelling the runtime
+    can't resolve to a permissible value (#360) is reported here instead of in
+    the output.
+
+    :param sd: The normalized slot derivation.
+    :param class_name: Target class the slot belongs to.
+    :param target_sv: The target schema.
+    :param sd_path: Path of the slot derivation, for messages.
+    :param strict: If ``True``, unresolved values are errors instead of warnings.
+    :param messages: List to append findings to.
+    """
+    slot_range = sd.get("range") or target_sv.induced_slot(sd["name"], class_name).range
+    if slot_range not in target_sv.all_enums():
+        return
+    index = enum_index(target_sv, slot_range)
+    if index is None:
+        return
+    literals = [("value", sd["value"])] if sd.get("value") is not None else []
+    literals += [
+        (f"value_mappings[{vm['key']}]", vm["value"])
+        for vm in sd.get("value_mappings", {}).values()
+        if vm.get("value") is not None
+    ]
+    for field, literal in literals:
+        _, problem = index.resolve(str(literal))
+        if problem:
+            messages.append(
+                ValidationMessage(
+                    severity="error" if strict else "warning",
+                    path=sd_path,
+                    message=f"{field}: {problem}",
+                )
+            )
 
 
 def _validate_enum_derivation(
