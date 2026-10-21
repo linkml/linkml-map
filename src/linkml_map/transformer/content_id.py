@@ -161,7 +161,7 @@ class ContentIdSynthesizer:
             cls = self.schemaview.all_classes().get(class_name)
             if cls is not None and not cls.abstract and not cls.mixin:
                 slot = self.schemaview.get_identifier_slot(class_name)
-            self._identifier_slots[class_name] = slot.name if slot else None
+            self._identifier_slots[class_name] = str(slot.name) if slot else None
         return self._identifier_slots[class_name]
 
     def content_id(self, record: dict[str, Any], class_name: str) -> str:
