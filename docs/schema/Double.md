@@ -51,7 +51,7 @@ URI: [xsd:double](http://www.w3.org/2001/XMLSchema#double)
 | Mapping Type | Mapped Value |
 | ---  | ---  |
 | self | xsd:double |
-| native | linkmlmap:double |
+| native | linkmlmap:Double |
 | close | schema:Float |
 
 

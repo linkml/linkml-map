@@ -40,11 +40,6 @@ URI: [linkmlmap:source_file](https://w3id.org/linkml/transformer/source_file)
 | --- | --- |
 | Range | [String](String.md) |
 | Domain Of | [SchemaReference](SchemaReference.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

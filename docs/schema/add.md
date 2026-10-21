@@ -40,11 +40,6 @@ URI: [linkmlmap:add](https://w3id.org/linkml/transformer/add)
 | --- | --- |
 | Range | [Any](Any.md) |
 | Domain Of | [CopyDirective](CopyDirective.md) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

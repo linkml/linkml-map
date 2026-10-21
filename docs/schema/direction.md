@@ -40,12 +40,13 @@ URI: [linkmlmap:direction](https://w3id.org/linkml/transformer/direction)
 | --- | --- |
 | Range | [PivotDirectionType](PivotDirectionType.md) |
 | Domain Of | [PivotOperation](PivotOperation.md) |
-
 ### Cardinality and Requirements
 
 | Property | Value |
 | --- | --- |
 | Required | Yes |
+
+
 ### Slot Characteristics
 
 | Property | Value |

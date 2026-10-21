@@ -41,11 +41,6 @@ URI: [linkml:range](https://w3id.org/linkml/range)
 | Range | [String](String.md) |
 | Domain Of | [SlotDerivation](SlotDerivation.md) |
 | Slot URI | [linkml:range](https://w3id.org/linkml/range) |
-
-### Cardinality and Requirements
-
-| Property | Value |
-| --- | --- |
 ### Slot Characteristics
 
 | Property | Value |

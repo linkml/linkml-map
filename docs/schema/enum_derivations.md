@@ -40,12 +40,13 @@ URI: [linkmlmap:enum_derivations](https://w3id.org/linkml/transformer/enum_deriv
 | --- | --- |
 | Range | [EnumDerivation](EnumDerivation.md) |
 | Domain Of | [TransformationSpecification](TransformationSpecification.md) |
-
 ### Cardinality and Requirements
 
 | Property | Value |
 | --- | --- |
 | Multivalued | Yes |
+
+
 ### Slot Characteristics
 
 | Property | Value |

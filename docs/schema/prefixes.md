@@ -41,12 +41,13 @@ URI: [sh:declare](http://www.w3.org/ns/shacl#declare)
 | Range | [KeyVal](KeyVal.md) |
 | Domain Of | [TransformationSpecification](TransformationSpecification.md) |
 | Slot URI | [sh:declare](http://www.w3.org/ns/shacl#declare) |
-
 ### Cardinality and Requirements
 
 | Property | Value |
 | --- | --- |
 | Multivalued | Yes |
+
+
 ### Slot Characteristics
 
 | Property | Value |
