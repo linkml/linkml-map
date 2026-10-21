@@ -88,8 +88,9 @@ def main(verbose: int, quiet: bool) -> None:
     show_default=True,
     help=(
         "Raise an error when an expression references a name that is not a slot "
-        "on the source class. Recommended for real data transforms; the default "
-        "warns and returns None for backward compatibility."
+        "on the source class, or a value for an enum-ranged target slot matches no "
+        "permissible value, or more than one. Recommended for real data transforms; "
+        "the default warns and carries on for backward compatibility."
     ),
 )
 @click.option(
