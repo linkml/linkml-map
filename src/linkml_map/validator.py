@@ -35,6 +35,7 @@ from linkml_map.spec_normalizer import normalize_spec
 from linkml_map.spec_scan import ValidationMessage, iter_derivation_dicts
 from linkml_map.spec_scan import check_deprecated_fields as check_deprecated_fields  # re-export
 from linkml_map.transformer.content_id import mints_ids, missing_identifier_message
+from linkml_map.transformer.transformer import coercible_datatype
 from linkml_map.utils.enum_index import enum_index
 from linkml_map.utils.eval_utils import FUNCTIONS
 from linkml_map.utils.join_utils import resolve_join
@@ -742,6 +743,7 @@ def _validate_class_derivation(
             messages,
         )
         if target_class_slots is not None and sd_name in target_class_slots:
+            _check_range_override(sd, cd_name, target_sv, sd_path, strict, messages)
             _check_enum_literals(sd, cd_name, target_sv, sd_path, strict, messages)
 
         # Recurse into nested class_derivations declared on this slot.
@@ -1207,6 +1209,78 @@ def _validate_slot_derivation(
                         ),
                     )
                 )
+
+
+_NUMERIC_DATATYPES = {"integer", "float", "decimal"}
+
+
+def _datatype_fits(spec_datatype: str | None, target_datatype: str) -> bool:
+    """Whether values coerced to *spec_datatype* still validate against *target_datatype*.
+
+    Integers and floats are valid wherever a float or decimal is; anything that isn't
+    a number or a boolean stays a string. ``None`` is a range with no coercion, whose
+    values pass through as the strings they arrived as.
+
+    >>> _datatype_fits("integer", "decimal"), _datatype_fits("float", "integer")
+    (True, False)
+    >>> _datatype_fits(None, "string"), _datatype_fits("integer", "string")
+    (True, False)
+    >>> _datatype_fits("string", "decimal"), _datatype_fits(None, "boolean")
+    (False, False)
+    """
+    if target_datatype == "string":
+        return spec_datatype not in _NUMERIC_DATATYPES | {"boolean"}
+    if target_datatype in ("float", "decimal"):
+        return spec_datatype in _NUMERIC_DATATYPES
+    return spec_datatype == target_datatype
+
+
+def _check_range_override(
+    sd: dict[str, Any],
+    class_name: str,
+    target_sv: SchemaView,
+    sd_path: str,
+    strict: bool,
+    messages: list[ValidationMessage],
+) -> None:
+    """Report a slot derivation ``range`` that keeps values from matching the target slot's range.
+
+    An explicit ``range`` wins over the target schema's, so values are coerced to it
+    instead (#361) and not resolved against a target enum (#360). That is only a
+    problem when the two disagree: a ``range: string`` on a slot whose target range is
+    an enum or a decimal leaves the output invalid with no other sign of why.
+
+    :param sd: The normalized slot derivation.
+    :param class_name: Target class the slot belongs to.
+    :param target_sv: The target schema.
+    :param sd_path: Path of the slot derivation, for messages.
+    :param strict: If ``True``, a conflicting range is an error instead of a warning.
+    :param messages: List to append findings to.
+    """
+    spec_range = sd.get("range")
+    target_range = target_sv.induced_slot(sd["name"], class_name).range
+    if spec_range is None or target_range is None or spec_range == target_range:
+        return
+    all_enums = target_sv.all_enums()
+    if target_range in all_enums:
+        consequence = "its values aren't resolved to the target enum's permissible values"
+    else:
+        target_datatype = coercible_datatype(target_sv, target_range)
+        spec_datatype = "string" if spec_range in all_enums else coercible_datatype(target_sv, spec_range)
+        if target_datatype is None or _datatype_fits(spec_datatype, target_datatype):
+            return
+        consequence = f"its values aren't coerced to {target_datatype}"
+    messages.append(
+        ValidationMessage(
+            severity="error" if strict else "warning",
+            path=sd_path,
+            message=(
+                f"range '{spec_range}' overrides the target slot's range '{target_range}', "
+                f"so {consequence}. Remove the range to use the target schema's."
+            ),
+            category="range-override",
+        )
+    )
 
 
 def _check_enum_literals(

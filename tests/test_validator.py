@@ -1768,7 +1768,7 @@ _ENUM_TARGET_SCHEMA = textwrap.dedent(
 def _enum_literal_msgs(slot_derivation: dict, *, strict: bool = False) -> list[ValidationMessage]:
     spec = normalize_spec_dict({"class_derivations": {"Participant": {"slot_derivations": slot_derivation}}})
     msgs = validate_spec_semantics(spec, target_schemaview=SchemaView(_ENUM_TARGET_SCHEMA), strict=strict)
-    return [m for m in msgs if "permissible value" in m.message]
+    return [m for m in msgs if "permissible value" in m.message and m.category != "range-override"]
 
 
 @pytest.mark.parametrize(
@@ -1805,3 +1805,119 @@ def test_semantics_unresolved_enum_literal_strict_error():
     assert [(m.severity, m.message) for m in msgs] == [
         ("error", "value: 'female' is not a permissible value of enum SexEnum"),
     ]
+
+
+# ---------------------------------------------------------------------------
+# Spec range overriding the target slot's range
+# ---------------------------------------------------------------------------
+
+_RANGE_TARGET_SCHEMA = textwrap.dedent(
+    """
+    id: https://example.org/range-target
+    name: range-target
+    prefixes: {linkml: 'https://w3id.org/linkml/'}
+    imports: [linkml:types]
+    default_range: string
+    types:
+      Score:
+        typeof: decimal
+    enums:
+      Relationship:
+        permissible_values:
+          ONESELF: {}
+    classes:
+      Site:
+        attributes:
+          id: {identifier: true}
+      Participant:
+        attributes:
+          relationship: {range: Relationship}
+          amount: {range: decimal}
+          score: {range: Score}
+          ratio: {range: float}
+          count: {range: integer}
+          flag: {range: boolean}
+          note: {range: string}
+          site: {range: Site}
+    """
+)
+
+
+def _range_override_msgs(slot_derivation: dict, *, strict: bool = False) -> list[ValidationMessage]:
+    spec = normalize_spec_dict({"class_derivations": {"Participant": {"slot_derivations": slot_derivation}}})
+    msgs = validate_spec_semantics(spec, target_schemaview=SchemaView(_RANGE_TARGET_SCHEMA), strict=strict)
+    return [m for m in msgs if m.category == "range-override"]
+
+
+@pytest.mark.parametrize(
+    ("slot_derivation", "message"),
+    [
+        (
+            {"relationship": {"value": "ONESELF", "range": "string"}},
+            "range 'string' overrides the target slot's range 'Relationship', so its values aren't resolved "
+            "to the target enum's permissible values. Remove the range to use the target schema's.",
+        ),
+        (
+            {"amount": {"value": "1.5", "range": "string"}},
+            "range 'string' overrides the target slot's range 'decimal', so its values aren't coerced to "
+            "decimal. Remove the range to use the target schema's.",
+        ),
+        (
+            {"note": {"value": "1", "range": "integer"}},
+            "range 'integer' overrides the target slot's range 'string', so its values aren't coerced to "
+            "string. Remove the range to use the target schema's.",
+        ),
+        (
+            {"count": {"value": "1.5", "range": "float"}},
+            "range 'float' overrides the target slot's range 'integer', so its values aren't coerced to "
+            "integer. Remove the range to use the target schema's.",
+        ),
+        (
+            {"flag": {"value": "true", "range": "string"}},
+            "range 'string' overrides the target slot's range 'boolean', so its values aren't coerced to "
+            "boolean. Remove the range to use the target schema's.",
+        ),
+    ],
+    ids=["enum", "decimal", "string", "float-into-integer", "boolean"],
+)
+def test_semantics_conflicting_range_warns(slot_derivation, message):
+    """A spec range that keeps values from matching the target slot's range is reported."""
+    assert [(m.severity, m.message) for m in _range_override_msgs(slot_derivation)] == [("warning", message)]
+
+
+@pytest.mark.parametrize(
+    "slot_derivation",
+    [
+        {"relationship": {"value": "ONESELF"}},
+        {"relationship": {"value": "ONESELF", "range": "Relationship"}},
+        {"score": {"value": "0.1", "range": "decimal"}},
+        {"note": {"value": "ONESELF", "range": "Relationship"}},
+        {"site": {"value": "S1", "range": "string"}},
+        {"amount": {"value": "1", "range": "integer"}},
+        {"amount": {"value": "1.5", "range": "float"}},
+        {"ratio": {"value": "1", "range": "integer"}},
+        {"note": {"value": "2020-01-01", "range": "date"}},
+        {"note": {"value": "X:1", "range": "uriorcurie"}},
+    ],
+    ids=[
+        "no-range",
+        "same-range",
+        "same-datatype",
+        "enum-into-string",
+        "class-range",
+        "integer-into-decimal",
+        "float-into-decimal",
+        "integer-into-float",
+        "date-into-string",
+        "uriorcurie-into-string",
+    ],
+)
+def test_semantics_compatible_range_not_reported(slot_derivation):
+    """A range whose values still validate against the target slot's is fine; class ranges aren't checked."""
+    assert _range_override_msgs(slot_derivation) == []
+
+
+def test_semantics_conflicting_range_strict_error():
+    """Under strict, a conflicting range is an error."""
+    msgs = _range_override_msgs({"amount": {"value": "1.5", "range": "string"}}, strict=True)
+    assert [m.severity for m in msgs] == ["error"]
