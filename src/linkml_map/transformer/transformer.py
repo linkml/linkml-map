@@ -99,6 +99,21 @@ def _to_bool(v: Any) -> bool:
 _COERCIBLE_TYPES = {"integer", "float", "decimal", "string", "boolean"}
 
 
+def coercible_datatype(sv: SchemaView, range_name: str | None) -> str | None:
+    """Return the built-in datatype a range coerces values to.
+
+    Custom types resolve through their ``typeof`` ancestry.
+
+    :param sv: The schema declaring the range.
+    :param range_name: A slot range, or ``None``.
+    :return: One of ``integer``, ``float``, ``decimal``, ``string``, ``boolean``, or
+        ``None`` for a class, an enum, or a type with no coercible built-in ancestor.
+    """
+    if range_name not in sv.all_types():
+        return None
+    return next((t for t in sv.type_ancestors(range_name) if t in _COERCIBLE_TYPES), None)
+
+
 @dataclass
 class Transformer(ABC):
     """
@@ -643,10 +658,7 @@ class Transformer(ABC):
         sv = self.target_schemaview
         if sv is None:
             return None
-        slot_range = sv.induced_slot(slot_name, class_name).range
-        if slot_range not in sv.all_types():
-            return None
-        return next((t for t in sv.type_ancestors(slot_range) if t in _COERCIBLE_TYPES), None)
+        return coercible_datatype(sv, sv.induced_slot(slot_name, class_name).range)
 
     def _coerce_datatype(self, v: Any, target_range: str | None) -> Any:
         if target_range is None:
