@@ -1211,6 +1211,30 @@ def _validate_slot_derivation(
                 )
 
 
+_NUMERIC_DATATYPES = {"integer", "float", "decimal"}
+
+
+def _datatype_fits(spec_datatype: str | None, target_datatype: str) -> bool:
+    """Whether values coerced to *spec_datatype* still validate against *target_datatype*.
+
+    Integers and floats are valid wherever a float or decimal is; anything that isn't
+    a number or a boolean stays a string. ``None`` is a range with no coercion, whose
+    values pass through as the strings they arrived as.
+
+    >>> _datatype_fits("integer", "decimal"), _datatype_fits("float", "integer")
+    (True, False)
+    >>> _datatype_fits(None, "string"), _datatype_fits("integer", "string")
+    (True, False)
+    >>> _datatype_fits("string", "decimal"), _datatype_fits(None, "boolean")
+    (False, False)
+    """
+    if target_datatype == "string":
+        return spec_datatype not in _NUMERIC_DATATYPES | {"boolean"}
+    if target_datatype in ("float", "decimal"):
+        return spec_datatype in _NUMERIC_DATATYPES
+    return spec_datatype == target_datatype
+
+
 def _check_range_override(
     sd: dict[str, Any],
     class_name: str,
@@ -1243,7 +1267,7 @@ def _check_range_override(
     else:
         target_datatype = coercible_datatype(target_sv, target_range)
         spec_datatype = "string" if spec_range in all_enums else coercible_datatype(target_sv, spec_range)
-        if target_datatype is None or target_datatype == spec_datatype:
+        if target_datatype is None or _datatype_fits(spec_datatype, target_datatype):
             return
         consequence = f"its values aren't coerced to {target_datatype}"
     messages.append(

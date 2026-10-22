@@ -1834,6 +1834,9 @@ _RANGE_TARGET_SCHEMA = textwrap.dedent(
           relationship: {range: Relationship}
           amount: {range: decimal}
           score: {range: Score}
+          ratio: {range: float}
+          count: {range: integer}
+          flag: {range: boolean}
           note: {range: string}
           site: {range: Site}
     """
@@ -1864,8 +1867,18 @@ def _range_override_msgs(slot_derivation: dict, *, strict: bool = False) -> list
             "range 'integer' overrides the target slot's range 'string', so its values aren't coerced to "
             "string. Remove the range to use the target schema's.",
         ),
+        (
+            {"count": {"value": "1.5", "range": "float"}},
+            "range 'float' overrides the target slot's range 'integer', so its values aren't coerced to "
+            "integer. Remove the range to use the target schema's.",
+        ),
+        (
+            {"flag": {"value": "true", "range": "string"}},
+            "range 'string' overrides the target slot's range 'boolean', so its values aren't coerced to "
+            "boolean. Remove the range to use the target schema's.",
+        ),
     ],
-    ids=["enum", "decimal", "string"],
+    ids=["enum", "decimal", "string", "float-into-integer", "boolean"],
 )
 def test_semantics_conflicting_range_warns(slot_derivation, message):
     """A spec range that keeps values from matching the target slot's range is reported."""
@@ -1880,11 +1893,27 @@ def test_semantics_conflicting_range_warns(slot_derivation, message):
         {"score": {"value": "0.1", "range": "decimal"}},
         {"note": {"value": "ONESELF", "range": "Relationship"}},
         {"site": {"value": "S1", "range": "string"}},
+        {"amount": {"value": "1", "range": "integer"}},
+        {"amount": {"value": "1.5", "range": "float"}},
+        {"ratio": {"value": "1", "range": "integer"}},
+        {"note": {"value": "2020-01-01", "range": "date"}},
+        {"note": {"value": "X:1", "range": "uriorcurie"}},
     ],
-    ids=["no-range", "same-range", "same-datatype", "enum-into-string", "class-range"],
+    ids=[
+        "no-range",
+        "same-range",
+        "same-datatype",
+        "enum-into-string",
+        "class-range",
+        "integer-into-decimal",
+        "float-into-decimal",
+        "integer-into-float",
+        "date-into-string",
+        "uriorcurie-into-string",
+    ],
 )
 def test_semantics_compatible_range_not_reported(slot_derivation):
-    """No range, the same range, or one that coerces to the same datatype is fine; class ranges aren't checked."""
+    """A range whose values still validate against the target slot's is fine; class ranges aren't checked."""
     assert _range_override_msgs(slot_derivation) == []
 
 
