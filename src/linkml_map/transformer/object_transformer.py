@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import ast
 import json
 import logging
 from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from functools import cache
 from typing import Any
 
 import yaml
@@ -251,6 +253,22 @@ class Bindings(Mapping):
         raise RuntimeError(msg)
 
 
+@cache
+def _is_statement_block(expr: str) -> bool:
+    """Whether an expression is Python statements, which only the unrestricted evaluator runs.
+
+    >>> _is_statement_block("{age} * 12")
+    False
+    >>> _is_statement_block("if {age}:\\n    target = 1")
+    True
+    """
+    try:
+        ast.parse(expr.strip(), mode="eval")
+    except SyntaxError:
+        return True
+    return False
+
+
 @dataclass(frozen=True)
 class DerivationContext:
     """Immutable context for slot derivation within a single map_object call."""
@@ -402,7 +420,9 @@ class ObjectTransformer(Transformer):
             source_obj_typed = source_obj
             source_obj = vars(source_obj)
         if not isinstance(source_obj, dict):
-            logger.warning(f"Unexpected: {source_obj} for type {source_type}")
+            # A scalar for a class with an identifier is a reference to an object, kept as is.
+            if source_type in sv.all_classes() and sv.get_identifier_slot(source_type) is None:
+                logger.warning(f"Expected an object for {source_type}, which has no identifier, got: {source_obj!r}")
             return source_obj
         class_deriv = class_derivation or self._get_class_derivation(source_type)
 
@@ -668,6 +688,9 @@ class ObjectTransformer(Transformer):
         :param functions: Extra functions injected into the evaluator
             (e.g. ``slot`` for referencing previously derived target slots).
         """
+        if self.unrestricted_eval and _is_statement_block(expr):
+            ctxt_obj, _ = bindings.get_ctxt_obj_and_dict()
+            return self._unrestricted_eval(expr, ctxt_obj, functions=functions, raise_undefined=True)
         try:
             return eval_expr_with_mapping(
                 expr,
@@ -687,6 +710,7 @@ class ObjectTransformer(Transformer):
         expr: str,
         src: Any,
         functions: dict[str, Any] | None = None,
+        raise_undefined: bool = False,
     ) -> Any:
         """Evaluate *expr* with the unrestricted asteval interpreter.
 
@@ -697,12 +721,20 @@ class ObjectTransformer(Transformer):
         :param expr: The expression string to evaluate.
         :param src: Object exposed to the expression as ``src``.
         :param functions: Extra functions injected into the interpreter.
+        :param raise_undefined: Raise when the expression uses an undefined name, such as a
+            ``{slot}`` reference, which asteval can't resolve. Other errors, such as iterating
+            a missing value, still yield ``None``.
+        :raises ValueError: If ``raise_undefined`` and the expression uses an undefined name.
         """
         usersyms = {"src": src, "target": None, "uuid5": _uuid5}
         if functions:
             usersyms.update(functions)
         aeval = Interpreter(usersyms=usersyms)
         aeval(expr)
+        if raise_undefined and aeval.error and aeval.error[0].exc is NameError:
+            _, detail = aeval.error[0].get_error()
+            msg = f"Unrestricted expression uses an undefined name: {detail}. Statements read slots as src.<slot>."
+            raise ValueError(msg)
         return aeval.symtable["target"]
 
     def _apply_mappings(

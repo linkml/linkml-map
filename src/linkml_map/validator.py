@@ -546,6 +546,14 @@ def validate_spec_semantics(
     source_all_classes = set(source_sv.all_classes()) if source_sv is not None else set()
     target_all_classes = set(target_sv.all_classes()) if target_sv is not None else set()
 
+    # Names a slot derivation's ``range`` may use: elements of either schema, plus the
+    # spec's own derivations, which range inference assigns to nested-object slots.
+    known_ranges = set(derivation_pool)
+    known_ranges.update(ed.get("name") for ed in iter_derivation_dicts(data.get("enum_derivations", [])))
+    for sv in (source_sv, target_sv):
+        if sv is not None:
+            known_ranges.update(sv.all_types(), sv.all_classes(), sv.all_enums())
+
     class_default_mint_ids = _class_default_mint_ids(data.get("class_defaults"))
     if target_sv is not None:
         for name in class_default_mint_ids:
@@ -571,6 +579,7 @@ def validate_spec_semantics(
             target_all_classes=target_all_classes,
             spec_mint_ids=data.get("mint_ids"),
             class_default_mint_ids=class_default_mint_ids,
+            known_ranges=known_ranges,
         )
 
     # Validate enum_derivations
@@ -628,6 +637,7 @@ def _validate_class_derivation(
     target_all_classes: set[str] | None = None,
     spec_mint_ids: bool | None = None,
     class_default_mint_ids: dict[str, bool | None] | None = None,
+    known_ranges: set[str] | None = None,
 ) -> None:
     """Validate a single class derivation against schemas.
 
@@ -744,6 +754,7 @@ def _validate_class_derivation(
             strict,
             messages,
         )
+        _check_range_exists(sd, known_ranges, sd_path, strict, messages)
         if target_class_slots is not None and sd_name in target_class_slots:
             _check_range_override(sd, cd_name, target_sv, sd_path, strict, messages)
             _check_enum_literals(sd, cd_name, target_sv, sd_path, strict, messages)
@@ -763,6 +774,7 @@ def _validate_class_derivation(
                 target_all_classes=target_all_classes,
                 spec_mint_ids=spec_mint_ids,
                 class_default_mint_ids=class_default_mint_ids,
+                known_ranges=known_ranges,
             )
 
     # Warning: target class has required slots with no derivation
@@ -1286,6 +1298,34 @@ def _datatype_fits(spec_datatype: str | None, target_datatype: str) -> bool:
     if target_datatype in ("float", "decimal"):
         return spec_datatype in _NUMERIC_DATATYPES
     return spec_datatype == target_datatype
+
+
+def _check_range_exists(
+    sd: dict[str, Any],
+    known_ranges: set[str] | None,
+    sd_path: str,
+    strict: bool,
+    messages: list[ValidationMessage],
+) -> None:
+    """Report a slot derivation ``range`` that names nothing the schemas or spec define.
+
+    Values are coerced only to ranges the transformer recognizes; any other name passes
+    them through unchanged, so a misspelled ``range: integr`` would otherwise go unnoticed.
+
+    :param known_ranges: Types, classes and enums of both schemas, and the spec's own
+        derivation names. ``None`` skips the check.
+    """
+    range_name = sd.get("range")
+    if known_ranges is None or range_name is None or range_name in known_ranges:
+        return
+    messages.append(
+        ValidationMessage(
+            severity="error" if strict else "warning",
+            path=sd_path,
+            message=f"range '{range_name}' is not a type, class or enum in the source or target schema",
+            category="unknown-range",
+        )
+    )
 
 
 def _check_range_override(

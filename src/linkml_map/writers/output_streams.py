@@ -3,7 +3,6 @@
 import json
 import logging
 import os
-import warnings
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from decimal import Decimal
@@ -17,19 +16,6 @@ from flatten_dict.reducers import make_reducer
 from linkml_map.utils.serialization import dump_yaml, dumps_json, format_decimal
 
 logger = logging.getLogger(__name__)
-
-
-def _warn_deprecated(name: str, replacement: str) -> None:
-    """Emit a ``DeprecationWarning`` for a legacy function-based writer entry point.
-
-    :param name: The deprecated callable's name.
-    :param replacement: The class-based API to use instead.
-    """
-    warnings.warn(
-        f"{name} is deprecated and will be removed in a future version; use {replacement} instead.",
-        DeprecationWarning,
-        stacklevel=3,
-    )
 
 
 def _strip_nulls(obj: Any) -> Any:
@@ -249,105 +235,6 @@ class YAMLStreamWriter(StreamWriter):
         return iter(())
 
 
-def yaml_stream(
-    chunks: Iterator[list[dict[str, Any]]],
-    key_name: str | None = None,
-) -> Iterator[str]:
-    """
-    Convert chunks of objects to YAML format.
-
-    If key_name is provided, wraps all objects under that key as a list.
-    Otherwise, outputs each object as a separate YAML document.
-
-    .. deprecated::
-        Use ``make_stream_writer(OutputFormat.YAML)`` and drive it via
-        ``MultiStreamWriter`` or ``StreamWriter.process``. This function will be
-        removed in a future version.
-
-    :param chunks: Iterator of lists of dictionaries
-    :param key_name: Optional key name to wrap all objects
-    :yield: YAML formatted strings
-    """
-    _warn_deprecated("yaml_stream", "YAMLStreamWriter (via make_stream_writer)")
-    if key_name:
-        first_chunk = True
-        for chunk in chunks:
-            yaml_str = dump_yaml({key_name: _strip_nulls(chunk)})
-            if first_chunk:
-                yield yaml_str
-                first_chunk = False
-            else:
-                # Remove the key line and adjust indentation for continuation
-                lines = yaml_str.splitlines()
-                yield "\n".join(lines[1:]) + "\n"
-    else:
-        for chunk in chunks:
-            for obj in chunk:
-                yield dump_yaml(_strip_nulls(obj))
-                yield "---\n"
-
-
-def json_stream(
-    chunks: Iterator[list[dict[str, Any]]],
-    key_name: str | None = None,
-) -> Iterator[str]:
-    """
-    Convert chunks of objects to JSON format.
-
-    Outputs a single JSON object/array containing all transformed data.
-
-    .. deprecated::
-        Use ``make_stream_writer(OutputFormat.JSON)`` and drive it via
-        ``MultiStreamWriter`` or ``StreamWriter.process``. This function will be
-        removed in a future version.
-
-    :param chunks: Iterator of lists of dictionaries
-    :param key_name: Optional key name to wrap all objects
-    :yield: JSON formatted strings
-    """
-    _warn_deprecated("json_stream", "JSONStreamWriter (via make_stream_writer)")
-    first_chunk = True
-    if key_name:
-        yield f"{{{json.dumps(key_name)}: [\n"
-    else:
-        yield "[\n"
-
-    for chunk in chunks:
-        for obj in chunk:
-            prefix = "" if first_chunk else ",\n"
-            first_chunk = False
-            yield prefix + dumps_json(_strip_nulls(obj), indent=2)
-
-    if key_name:
-        yield "\n]}\n"
-    else:
-        yield "\n]\n"
-
-
-def jsonl_stream(
-    chunks: Iterator[list[dict[str, Any]]],
-    key_name: str | None = None,  # noqa: ARG001
-) -> Iterator[str]:
-    """
-    Convert chunks of objects to JSON Lines format.
-
-    Each object is written as a single line of JSON.
-
-    .. deprecated::
-        Use ``make_stream_writer(OutputFormat.JSONL)`` and drive it via
-        ``MultiStreamWriter`` or ``StreamWriter.process``. This function will be
-        removed in a future version.
-
-    :param chunks: Iterator of lists of dictionaries
-    :param key_name: Unused, kept for API consistency
-    :yield: JSONL formatted strings (one JSON object per line)
-    """
-    _warn_deprecated("jsonl_stream", "JSONLStreamWriter (via make_stream_writer)")
-    for chunk in chunks:
-        for obj in chunk:
-            yield dumps_json(_strip_nulls(obj)) + "\n"
-
-
 class TabularStreamWriter(StreamWriter):
     """
     Streaming writer for TSV/CSV output with dynamic header handling.
@@ -409,24 +296,6 @@ class TabularStreamWriter(StreamWriter):
             self._headers_changed = True
         return iter(())
 
-    def stream(
-        self,
-        chunks: Iterator[list[dict[str, Any]]],
-        key_name: str | None = None,  # noqa: ARG002
-    ) -> Iterator[str]:
-        """
-        Stream objects as tabular data. Backward-compatible alias for ``process``.
-
-        .. deprecated::
-            Use :meth:`process` instead. This alias will be removed in a future version.
-
-        :param chunks: Iterator of lists of dictionaries
-        :param key_name: Unused, kept for API consistency
-        :yield: TSV/CSV formatted strings
-        """
-        _warn_deprecated("TabularStreamWriter.stream", "TabularStreamWriter.process")
-        yield from self.process(chunks)
-
     def _escape_value(self, value: Any) -> str:
         """
         Escape a value for tabular output.
@@ -474,56 +343,6 @@ class TabularStreamWriter(StreamWriter):
             for line in rewrite_header_and_pad(iter(src), self.get_final_headers(), self.separator):
                 dst.write(line)
         os.replace(tmp_path, str(target))
-
-
-def tsv_stream(
-    chunks: Iterator[list[dict[str, Any]]],
-    key_name: str | None = None,
-) -> Iterator[str]:
-    """
-    Convert chunks of objects to TSV format.
-
-    .. deprecated::
-        Use ``make_stream_writer(OutputFormat.TSV)`` and drive it via
-        ``MultiStreamWriter`` or ``StreamWriter.process``. This function will be
-        removed in a future version.
-
-    :param chunks: Iterator of lists of dictionaries
-    :param key_name: Unused, kept for API consistency
-    :yield: TSV formatted strings
-    """
-    _warn_deprecated("tsv_stream", "TabularStreamWriter (via make_stream_writer)")
-    writer = TabularStreamWriter(separator="\t")
-    yield from writer.process(chunks)
-
-    # Store headers on the function for post-processing if needed
-    if writer.headers_changed:
-        tsv_stream.headers = writer.get_final_headers()  # type: ignore[attr-defined]
-
-
-def csv_stream(
-    chunks: Iterator[list[dict[str, Any]]],
-    key_name: str | None = None,
-) -> Iterator[str]:
-    """
-    Convert chunks of objects to CSV format.
-
-    .. deprecated::
-        Use ``make_stream_writer(OutputFormat.CSV)`` and drive it via
-        ``MultiStreamWriter`` or ``StreamWriter.process``. This function will be
-        removed in a future version.
-
-    :param chunks: Iterator of lists of dictionaries
-    :param key_name: Unused, kept for API consistency
-    :yield: CSV formatted strings
-    """
-    _warn_deprecated("csv_stream", "TabularStreamWriter (via make_stream_writer)")
-    writer = TabularStreamWriter(separator=",")
-    yield from writer.process(chunks)
-
-    # Store headers on the function for post-processing if needed
-    if writer.headers_changed:
-        csv_stream.headers = writer.get_final_headers()  # type: ignore[attr-defined]
 
 
 def rewrite_header_and_pad(
@@ -849,32 +668,6 @@ def _quote_identifier(name: str) -> str:
     :return: A double-quoted SQL identifier.
     """
     return '"' + name.replace('"', '""') + '"'
-
-
-def get_stream_writer(output_format: OutputFormat) -> Any:
-    """
-    Get the appropriate stream writer for the given format.
-
-    .. deprecated::
-        Use :func:`make_stream_writer`, which returns a ``StreamWriter`` instance.
-        This function will be removed in a future version.
-
-    :param output_format: The desired output format
-    :return: Stream writer function
-    """
-    _warn_deprecated("get_stream_writer", "make_stream_writer")
-    writers = {
-        OutputFormat.YAML: yaml_stream,
-        OutputFormat.JSON: json_stream,
-        OutputFormat.JSONL: jsonl_stream,
-        OutputFormat.TSV: tsv_stream,
-        OutputFormat.CSV: csv_stream,
-    }
-    writer = writers.get(output_format)
-    if writer is None:
-        msg = f"No stream writer available for format: {output_format}"
-        raise ValueError(msg)
-    return writer
 
 
 # Extension-to-format mapping used by make_stream_writer and CLI
