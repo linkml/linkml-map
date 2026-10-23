@@ -52,7 +52,7 @@ linkml-map map-data --unrestricted-eval \
   data/Container-001.yaml
 ```
 
-See the [Quick Start guide](https://linkml.io/linkml-map/#quick-start) for the expected output and next steps.
+See the [Quick Start guide](https://linkml.io/linkml-map/quickstart/) for the expected output and next steps.
 
 ## More
 

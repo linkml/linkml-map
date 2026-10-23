@@ -315,3 +315,11 @@ def test_no_warning_without_deprecated_fields():
 
     deprecation_warnings = [w for w in caught if issubclass(w.category, DeprecationWarning)]
     assert len(deprecation_warnings) == 0
+
+
+def test_session_warns_deprecated():
+    """Constructing a Session warns, pointing at ObjectTransformer."""
+    from linkml_map.session import Session
+
+    with pytest.warns(DeprecationWarning, match="construct an ObjectTransformer"):
+        Session()

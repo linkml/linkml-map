@@ -24,10 +24,14 @@ markdown_extensions:
 - pymdownx.superfences
 nav:
   - Index: index.md
+  - Quick Start: quickstart.md
+  - Python Tutorial: examples/Tutorial.ipynb
+  - Writing Specifications: writing-specs.md
+  - Command-Line Reference: cli.md
   - Examples:
-      - Tutorial: examples/Tutorial.ipynb
-      - Compilation to SQL: examples/Tutorial-SQLCompiler.ipynb
       - Metamodel Mapping: examples/MetamodelMapping.ipynb
+      - Deriving a Denormalized Schema: examples/denormalizing.ipynb
+      - Biolink Model Subsetting: examples/biolink-subsetting.ipynb
   - Specification:
       - Data Model: schema/datamodel.md
       - Compliance Suite: specification/compliance.md
