@@ -711,7 +711,7 @@ class Transformer(ABC):
         }
         cls = cmap.get(target_range)
         if not cls:
-            logger.warning(f"Unknown target range {target_range}")
+            # A class, an enum, or a type with no conversion (e.g. date): pass through.
             return v
         if isinstance(v, cls):
             return v

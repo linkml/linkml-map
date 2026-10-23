@@ -3,7 +3,7 @@
 ## Class Mappings
 {% for cd in spec.class_derivations %}
 
-### {{ cd.name }} `<-` {{ cd.populated_from }}
+### {{ cd.name }}{% if cd.populated_from %} `<-` {{ cd.populated_from }}{% endif %}
 
 | Target | Target Range | Source | Source Range | Info |
 | ------ | ------ | ---- | ---- | ---- |
