@@ -32,6 +32,7 @@ nav:
       - Data Model: schema/datamodel.md
       - Compliance Suite: specification/compliance.md
   - API:
+      - Spec Operations: api/spec_operations.md
       - Session: api/session.md
       - Transformer: api/transformer.md
       - Compiler: api/compiler.md
