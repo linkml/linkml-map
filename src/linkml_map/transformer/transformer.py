@@ -141,11 +141,23 @@ class Transformer(ABC):
        requires ``source_schemaview`` to be set.
     """
 
-    specification: TransformationSpecification = None
-    """A specification of how to generate target objects from source objects."""
+    specification: TransformationSpecification | dict[str, Any] | str | Path | None = None
+    """A specification of how to generate target objects from source objects.
 
-    source_schemaview: SchemaView = None
-    """A view over the schema describing the input/source object."""
+    The constructor also accepts a YAML file path or a dict, which it loads as
+    ``load_transformer_specification`` and ``create_transformer_specification`` do,
+    without modifying the dict. After construction it is always a loaded
+    ``TransformationSpecification`` or ``None``. Only the constructor loads;
+    to replace the spec later, call ``load_transformer_specification``.
+    """
+
+    source_schemaview: SchemaView | str | Path | None = None
+    """A view over the schema describing the input/source object.
+
+    The constructor also accepts a schema file path. After construction it is
+    always a ``SchemaView`` or ``None``. Only the constructor loads; to replace
+    the schema later, call ``load_source_schema``.
+    """
 
     _derived_specification: TransformationSpecification = None
     """A specification with inferred missing values."""
@@ -153,8 +165,13 @@ class Transformer(ABC):
     _source_schema_patched: bool = field(default=False)
     """Flag to track if source schema patches have been applied."""
 
-    target_schemaview: SchemaView | None = None
-    """A view over the schema describing the output/target object."""
+    target_schemaview: SchemaView | str | Path | None = None
+    """A view over the schema describing the output/target object.
+
+    The constructor also accepts a schema file path. After construction it is
+    always a ``SchemaView`` or ``None``. Only the constructor loads; to replace
+    the schema later, assign a ``SchemaView``.
+    """
 
     unrestricted_eval: bool = field(default=False)
     """Set to True to allow arbitrary evals as part of transformation."""
@@ -194,6 +211,17 @@ class Transformer(ABC):
     spec, so deprecations whose source fields were cleared by normalization
     (e.g., ``object_derivations``, PV ``sources``) are still surfaced.
     """
+
+    def __post_init__(self) -> None:
+        """Load a specification or schemas given to the constructor as paths or a dict."""
+        if isinstance(self.specification, (str, Path)):
+            self.load_transformer_specification(self.specification)
+        elif isinstance(self.specification, dict):
+            self.create_transformer_specification(deepcopy(self.specification))
+        if isinstance(self.source_schemaview, (str, Path)):
+            self.load_source_schema(self.source_schemaview)
+        if isinstance(self.target_schemaview, (str, Path)):
+            self.target_schemaview = SchemaView(str(self.target_schemaview))
 
     def map_object(self, obj: OBJECT_TYPE, source_type: str | None = None, **kwargs: Any) -> OBJECT_TYPE:
         """
