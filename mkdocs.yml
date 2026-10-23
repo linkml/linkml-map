@@ -25,10 +25,10 @@ markdown_extensions:
 nav:
   - Index: index.md
   - Quick Start: quickstart.md
+  - Python Tutorial: examples/Tutorial.ipynb
   - Writing Specifications: writing-specs.md
   - Command-Line Reference: cli.md
   - Examples:
-      - Tutorial: examples/Tutorial.ipynb
       - Metamodel Mapping: examples/MetamodelMapping.ipynb
   - Specification:
       - Data Model: schema/datamodel.md

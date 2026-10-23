@@ -168,4 +168,4 @@ linkml-map map-data \
   data.yaml
 ```
 
-For large datasets, add `--chunk-size N` for streaming output. See the [Command-Line Reference](cli.md) for the full set of CLI options per subcommand (including directory-mode input, tabular formats, and multi-format output), and the [Tutorial Notebook](examples/Tutorial.ipynb) for a deeper walk-through of the transformation language itself.
+For large datasets, add `--chunk-size N` for streaming output. See the [Command-Line Reference](cli.md) for the full set of CLI options per subcommand (including directory-mode input, tabular formats, and multi-format output), and the [Python Tutorial](examples/Tutorial.ipynb) for using linkml-map from Python.
