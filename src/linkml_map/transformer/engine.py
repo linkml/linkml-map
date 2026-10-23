@@ -117,6 +117,9 @@ def transform_spec(
             if table_name not in data_loader:
                 logger.debug("Skipping class_derivation %s: no data found", class_deriv.name)
                 continue
+            # map_object merges is_a/mixins ancestors only when it looks the derivation up
+            # itself; both paths below hand it one, so merge here, once per block.
+            class_deriv = transformer._with_inherited_fields(class_deriv)
 
             # Fast path: the set-based join engine, when the block is engine-capable.
             # The per-row point-lookup path below is the correctness fallback for
