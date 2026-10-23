@@ -1,5 +1,4 @@
 import logging
-import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -8,6 +7,7 @@ import yaml
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import yaml_dumper
 from linkml_runtime.linkml_model import SchemaDefinition
+from typing_extensions import deprecated
 
 from linkml_map import ObjectTransformer
 from linkml_map.datamodel.transformer_model import TransformationSpecification
@@ -19,6 +19,10 @@ from linkml_map.transformer.transformer import Transformer
 logger = logging.getLogger(__name__)
 
 
+@deprecated(
+    "Session is deprecated and will be removed; construct an ObjectTransformer instead. "
+    "See https://linkml.io/linkml-map/examples/Tutorial/"
+)
 @dataclass
 class Session:
     """
@@ -28,15 +32,6 @@ class Session:
     schemas instead, and use ``SchemaMapper``, ``TransformationSpecificationInverter`` and
     ``GraphvizCompiler`` for operations on the specification itself.
     """
-
-    def __post_init__(self) -> None:
-        """Warn that Session is deprecated."""
-        warnings.warn(
-            "Session is deprecated and will be removed; construct an ObjectTransformer instead. "
-            "See https://linkml.io/linkml-map/examples/Tutorial/",
-            DeprecationWarning,
-            stacklevel=3,
-        )
 
     transformer_specification: TransformationSpecification | None = None
     source_schemaview: SchemaView | None = None
