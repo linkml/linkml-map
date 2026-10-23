@@ -120,10 +120,10 @@ class_derivations:
           delimiter: '|'
 ```
 
-The schema mapping (aka [TransformationSpecification](schema/TransformationSpecification.md)) specifies how to transform the data model.
+The schema mapping (aka [TransformationSpecification](schema/classes/TransformationSpecification.md)) specifies how to transform the data model.
 
-The schema mapping is a collection of one or more [ClassDerivation](schema/ClassDerivation.md) objects,
-which themselves consist of one or more [SlotDerivation](schema/SlotDerivation.md) objects.
+The schema mapping is a collection of one or more [ClassDerivation](schema/classes/ClassDerivation.md) objects,
+which themselves consist of one or more [SlotDerivation](schema/classes/SlotDerivation.md) objects.
 
 A single specification can contain derivations for multiple target classes, and multiple
 derivations can target the same class (their slot derivations are merged).

@@ -56,7 +56,7 @@ deploy-gh-doc:
 	$(RUN) mkdocs gh-deploy
 
 gendoc:
-	$(RUN) gen-doc -d $(DOCDIR)/schema $(SOURCE_SCHEMA_PATH) --index-name datamodel
+	$(RUN) gen-doc -d $(DOCDIR)/schema $(SOURCE_SCHEMA_PATH) --index-name datamodel --subfolder-type-separation
 
 testdoc: gendoc serve
 

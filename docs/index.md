@@ -50,7 +50,7 @@ Not all parts of the model are implemented in the reference Python framework.
 
 This repo contains both:
 
-- A [data model](schema/) for a data model *transformation language*
+- A [data model](schema/datamodel.md) for a data model *transformation language*
 - A reference Python implementation (ObjectTransformer)
 - An experimental SQL compilation backend (SQLCompiler / DuckDBTransformer)
 
@@ -73,12 +73,12 @@ Use cases include:
 
 The data model for transformations mirrors the data model for schemas:
 
-- A top level [TransformationSpecification](schema/TransformationSpecification.md) class contains:
-   - Zero or more [ClassDerivation](schema/ClassDerivation.md) objects, specifying how to map to a class, containing
-       - Zero or more [SlotDerivation](schema/SlotDerivation.md) objects, specifying how to map to a slot
-   - Zero or more [EnumDerivation](schema/EnumDerivation.md) objects, specifying how to map to an enum
+- A top level [TransformationSpecification](schema/classes/TransformationSpecification.md) class contains:
+   - Zero or more [ClassDerivation](schema/classes/ClassDerivation.md) objects, specifying how to map to a class, containing
+       - Zero or more [SlotDerivation](schema/classes/SlotDerivation.md) objects, specifying how to map to a slot
+   - Zero or more [EnumDerivation](schema/classes/EnumDerivation.md) objects, specifying how to map to an enum
 
-See the [generated docs](schema/index.md)
+See the [generated docs](schema/datamodel.md)
 
 ## Conformance Suite
 

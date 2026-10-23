@@ -1,0 +1,99 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: unit_conversion 
+
+
+_Configuration for converting the source value's unit of measure when deriving this slot._
+
+
+
+<div data-search-exclude markdown="1">
+
+
+
+URI: [linkmlmap:slot/unit_conversion](https://w3id.org/linkml/transformer/slot/unit_conversion)
+<!-- no inheritance hierarchy -->
+
+
+
+
+
+## Applicable Classes
+
+| Name | Description | Modifies Slot |
+| --- | --- | --- |
+| [SlotDerivation](../classes/SlotDerivation.md) | A specification of how to derive the value of a target slot from a source slo... |  no  |
+
+
+
+
+
+
+## Properties
+
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | [UnitConversionConfiguration](../classes/UnitConversionConfiguration.md) |
+| Domain Of | [SlotDerivation](../classes/SlotDerivation.md) |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [SlotDerivation](../classes/SlotDerivation.md) |
+
+
+
+
+
+
+
+
+
+
+
+
+## Identifier and Mapping Information
+
+
+
+
+
+### Schema Source
+
+
+* from schema: https://w3id.org/linkml/transformer
+
+
+
+
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:unit_conversion |
+| native | linkmlmap:unit_conversion |
+
+
+
+
+## LinkML Source
+
+<details>
+```yaml
+name: unit_conversion
+description: Configuration for converting the source value's unit of measure when
+  deriving this slot.
+from_schema: https://w3id.org/linkml/transformer
+rank: 1000
+owner: SlotDerivation
+domain_of:
+- SlotDerivation
+range: UnitConversionConfiguration
+
+```
+</details></div>

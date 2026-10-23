@@ -1,0 +1,110 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: syntax 
+
+
+_Serialization syntax used to stringify the values when no delimiter is given._
+
+
+
+<div data-search-exclude markdown="1">
+
+
+
+URI: [linkmlmap:slot/syntax](https://w3id.org/linkml/transformer/slot/syntax)
+<!-- no inheritance hierarchy -->
+
+
+
+
+
+## Applicable Classes
+
+| Name | Description | Modifies Slot |
+| --- | --- | --- |
+| [StringificationConfiguration](../classes/StringificationConfiguration.md) | Configuration for collapsing multiple values into a single delimited or seria... |  no  |
+
+
+
+
+
+
+## Properties
+
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | [SerializationSyntaxType](../enums/SerializationSyntaxType.md) |
+| Domain Of | [StringificationConfiguration](../classes/StringificationConfiguration.md) |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [StringificationConfiguration](../classes/StringificationConfiguration.md) |
+
+
+
+
+
+
+
+
+
+
+
+## Examples
+
+| Value |
+| --- |
+| json |
+| yaml |
+
+
+
+## Identifier and Mapping Information
+
+
+
+
+
+### Schema Source
+
+
+* from schema: https://w3id.org/linkml/transformer
+
+
+
+
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:syntax |
+| native | linkmlmap:syntax |
+
+
+
+
+## LinkML Source
+
+<details>
+```yaml
+name: syntax
+description: Serialization syntax used to stringify the values when no delimiter is
+  given.
+examples:
+- value: json
+- value: yaml
+from_schema: https://w3id.org/linkml/transformer
+rank: 1000
+owner: StringificationConfiguration
+domain_of:
+- StringificationConfiguration
+range: SerializationSyntaxType
+
+```
+</details></div>
