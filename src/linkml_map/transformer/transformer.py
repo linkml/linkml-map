@@ -11,6 +11,7 @@ from typing import Any
 import yaml
 from curies import Converter
 from linkml_runtime import SchemaView
+from linkml_runtime.linkml_model import SchemaDefinition
 from linkml_runtime.utils.yamlutils import YAMLRoot
 from pydantic import BaseModel
 
@@ -151,10 +152,10 @@ class Transformer(ABC):
     to replace the spec later, call ``load_transformer_specification``.
     """
 
-    source_schemaview: SchemaView | str | Path | None = None
+    source_schemaview: SchemaView | SchemaDefinition | str | Path | None = None
     """A view over the schema describing the input/source object.
 
-    The constructor also accepts a schema file path. After construction it is
+    The constructor also accepts a schema file path or a ``SchemaDefinition``. After construction it is
     always a ``SchemaView`` or ``None``. Only the constructor loads; to replace
     the schema later, call ``load_source_schema``.
     """
@@ -165,10 +166,10 @@ class Transformer(ABC):
     _source_schema_patched: bool = field(default=False)
     """Flag to track if source schema patches have been applied."""
 
-    target_schemaview: SchemaView | str | Path | None = None
+    target_schemaview: SchemaView | SchemaDefinition | str | Path | None = None
     """A view over the schema describing the output/target object.
 
-    The constructor also accepts a schema file path. After construction it is
+    The constructor also accepts a schema file path or a ``SchemaDefinition``. After construction it is
     always a ``SchemaView`` or ``None``. Only the constructor loads; to replace
     the schema later, assign a ``SchemaView``.
     """
@@ -213,15 +214,19 @@ class Transformer(ABC):
     """
 
     def __post_init__(self) -> None:
-        """Load a specification or schemas given to the constructor as paths or a dict."""
+        """Load a specification given as a path or dict, and schemas given as paths or definitions."""
         if isinstance(self.specification, (str, Path)):
             self.load_transformer_specification(self.specification)
         elif isinstance(self.specification, dict):
             self.create_transformer_specification(deepcopy(self.specification))
         if isinstance(self.source_schemaview, (str, Path)):
             self.load_source_schema(self.source_schemaview)
+        elif isinstance(self.source_schemaview, SchemaDefinition):
+            self.source_schemaview = SchemaView(self.source_schemaview)
         if isinstance(self.target_schemaview, (str, Path)):
             self.target_schemaview = SchemaView(str(self.target_schemaview))
+        elif isinstance(self.target_schemaview, SchemaDefinition):
+            self.target_schemaview = SchemaView(self.target_schemaview)
 
     def map_object(self, obj: OBJECT_TYPE, source_type: str | None = None, **kwargs: Any) -> OBJECT_TYPE:
         """

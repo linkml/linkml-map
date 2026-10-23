@@ -92,10 +92,17 @@ def transform_spec(
         and passed to the callback. When ``None`` (default), errors propagate
         immediately (fail-fast).
     :returns: Iterator of transformed row dicts.
+    :raises FileNotFoundError: If no class derivation's ``populated_from`` table is in the data.
     """
     spec = transformer.derived_specification
     if spec is None:
         return
+
+    tables = {class_deriv.populated_from or class_deriv.name for class_deriv in spec.class_derivations}
+    if tables and not any(table in data_loader for table in tables):
+        available = [data_loader.identifier] if data_loader.is_single_file else data_loader.get_available_identifiers()
+        msg = f"No input data for any class derivation: expected one of {sorted(tables)}, found {available}"
+        raise FileNotFoundError(msg)
 
     sv = transformer.source_schemaview
     # A LookupIndex opens an in-memory DuckDB connection; create it lazily so an

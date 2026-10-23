@@ -897,3 +897,44 @@ class TestContinueOnError:
         # ...and the hard crash still surfaces rather than being masked.
         assert result.exit_code != 0
         assert isinstance(result.exception, OSError)
+
+
+@pytest.fixture
+def people_tsv(sample_tsv_data: Path) -> Path:
+    """The sample Person rows in a file not named after the class."""
+    return sample_tsv_data.rename(sample_tsv_data.with_name("people.tsv"))
+
+
+def test_source_type_names_single_file_rows(
+    runner: CliRunner, people_tsv: Path, sample_schema: Path, sample_transform: Path
+) -> None:
+    """``--source-type`` says which class a single file holds, whatever the file is called."""
+    result = runner.invoke(
+        main,
+        [
+            "map-data",
+            "-T",
+            str(sample_transform),
+            "-s",
+            str(sample_schema),
+            "--source-type",
+            "Person",
+            "-f",
+            "jsonl",
+            str(people_tsv),
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    rows = [json.loads(line) for line in result.stdout.splitlines()]
+    assert [(r["label"], r["age"]) for r in rows] == [("Alice", "30 years"), ("Bob", "25 years")]
+
+
+def test_no_data_for_any_class_derivation_fails(
+    runner: CliRunner, people_tsv: Path, sample_schema: Path, sample_transform: Path
+) -> None:
+    """A file no class derivation reads from fails the run instead of writing nothing."""
+    result = runner.invoke(
+        main, ["map-data", "-T", str(sample_transform), "-s", str(sample_schema), "-f", "jsonl", str(people_tsv)]
+    )
+    assert result.exit_code != 0
+    assert "expected one of ['Person'], found ['people']" in str(result.exception)
