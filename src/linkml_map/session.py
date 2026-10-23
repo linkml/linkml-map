@@ -1,4 +1,5 @@
 import logging
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -23,14 +24,19 @@ class Session:
     """
     A wrapper object for a transformer session.
 
-    Todo:
-    - rename to Manager?
-    - consolidate configuration
-    - include source and target database
-
-        - current spec, src_sv, tgt_sv all live in both this class and transformer
-
+    Deprecated: construct an :class:`~linkml_map.ObjectTransformer` from the specification and
+    schemas instead, and use ``SchemaMapper``, ``TransformationSpecificationInverter`` and
+    ``GraphvizCompiler`` for operations on the specification itself.
     """
+
+    def __post_init__(self) -> None:
+        """Warn that Session is deprecated."""
+        warnings.warn(
+            "Session is deprecated and will be removed; construct an ObjectTransformer instead. "
+            "See https://linkml.io/linkml-map/examples/Tutorial/",
+            DeprecationWarning,
+            stacklevel=3,
+        )
 
     transformer_specification: TransformationSpecification | None = None
     source_schemaview: SchemaView | None = None
