@@ -37,6 +37,9 @@ jobs:
         with:
           extra_args: --all-files
 
+      - name: Check imports against declared dependencies
+        run: uv run deptry .
+
   test:
     needs: [quality-checks]
     runs-on: ubuntu-latest
