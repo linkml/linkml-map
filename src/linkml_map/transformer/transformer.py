@@ -147,14 +147,16 @@ class Transformer(ABC):
     The constructor also accepts a YAML file path or a dict, which it loads as
     ``load_transformer_specification`` and ``create_transformer_specification`` do,
     without modifying the dict. After construction it is always a loaded
-    ``TransformationSpecification`` or ``None``.
+    ``TransformationSpecification`` or ``None``. Only the constructor loads;
+    to replace the spec later, call ``load_transformer_specification``.
     """
 
     source_schemaview: SchemaView | str | Path | None = None
     """A view over the schema describing the input/source object.
 
     The constructor also accepts a schema file path. After construction it is
-    always a ``SchemaView`` or ``None``.
+    always a ``SchemaView`` or ``None``. Only the constructor loads; to replace
+    the schema later, call ``load_source_schema``.
     """
 
     _derived_specification: TransformationSpecification = None
@@ -167,7 +169,8 @@ class Transformer(ABC):
     """A view over the schema describing the output/target object.
 
     The constructor also accepts a schema file path. After construction it is
-    always a ``SchemaView`` or ``None``.
+    always a ``SchemaView`` or ``None``. Only the constructor loads; to replace
+    the schema later, assign a ``SchemaView``.
     """
 
     unrestricted_eval: bool = field(default=False)
