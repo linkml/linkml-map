@@ -15,9 +15,9 @@ from linkml_map.utils.join_utils import join_keys
 from linkml_map.utils.lookup_index import LookupIndex, make_connection
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Iterable, Iterator
 
-    from linkml_map.datamodel.transformer_model import ClassDerivation
+    from linkml_map.datamodel.transformer_model import ClassDerivation, SlotDerivation
     from linkml_map.loaders.data_loaders import DataLoader
     from linkml_map.transformer.object_transformer import ObjectTransformer
 
@@ -53,6 +53,46 @@ def _collect_all_joins(class_deriv: ClassDerivation) -> dict[str, tuple[str, str
     return result
 
 
+def _reads_no_input(class_deriv: ClassDerivation) -> bool:
+    """Whether a block is built only from constant ``value:``s, so it maps to one object and needs no table.
+
+    Expects ``is_a``/``mixins`` already merged. A slot counts as constant only when it
+    sets ``value:`` or holds nested class derivations that are constant themselves.
+    """
+    if class_deriv.populated_from or class_deriv.joins or class_deriv.copy_directives:
+        return False
+    slots = class_deriv.slot_derivations.values()
+    return bool(slots) and all(_is_constant_slot(sd) for sd in slots)
+
+
+def _is_constant_slot(slot_deriv: SlotDerivation) -> bool:
+    """Whether a slot derivation sets its value without reading the source row."""
+    if slot_deriv.populated_from or slot_deriv.expr or slot_deriv.object_derivations:
+        return False
+    if slot_deriv.class_derivations:
+        return slot_deriv.value is None and all(_reads_no_input(cd) for cd in slot_deriv.class_derivations)
+    return slot_deriv.value is not None
+
+
+def _map_rows(
+    transformer: ObjectTransformer,
+    rows: Iterable[dict[str, Any]],
+    source_type: str,
+    class_deriv: ClassDerivation,
+    on_error: Callable[[TransformationError], None] | None,
+) -> Iterator[dict[str, Any]]:
+    """Map each row through *class_deriv*, routing row errors to *on_error* when given."""
+    for row_idx, row in enumerate(rows):
+        try:
+            yield transformer.map_object(row, source_type=source_type, class_derivation=class_deriv)
+        except TransformationError as err:
+            if on_error is None:
+                raise
+            err.row_index = row_idx
+            err.class_derivation_name = err.class_derivation_name or class_deriv.name
+            on_error(err)
+
+
 def transform_spec(
     transformer: ObjectTransformer,
     data_loader: DataLoader,
@@ -62,8 +102,9 @@ def transform_spec(
     """
     Iterate class_derivation blocks and stream transformed rows.
 
-    For each block whose ``populated_from`` names a loadable table, this
-    function:
+    A block built only from constant ``value:``s, with no ``populated_from``, reads
+    no table and yields one object. For each other block whose ``populated_from``
+    names a loadable table, this function:
 
     1. Registers any ``joins`` as secondary tables in a :class:`LookupIndex`,
        including joins synthesized during normalization for implicit cross-table
@@ -98,7 +139,13 @@ def transform_spec(
     if spec is None:
         return
 
-    tables = {class_deriv.populated_from or class_deriv.name for class_deriv in spec.class_derivations}
+    # map_object merges is_a/mixins ancestors only when it looks the derivation up
+    # itself; every path below hands it one, so merge here, once per block.
+    merged = [transformer._with_inherited_fields(class_deriv) for class_deriv in spec.class_derivations]
+    # A block other blocks inherit from is a template, not a record to emit.
+    parents = {name for cd in spec.class_derivations for name in [*cd.mixins, cd.is_a] if name}
+    blocks = [(class_deriv, class_deriv.name not in parents and _reads_no_input(class_deriv)) for class_deriv in merged]
+    tables = {class_deriv.populated_from or class_deriv.name for class_deriv, constant in blocks if not constant}
     if tables and not any(table in data_loader for table in tables):
         available = [data_loader.identifier] if data_loader.is_single_file else data_loader.get_available_identifiers()
         msg = f"No input data for any class derivation: expected one of {sorted(tables)}, found {available}"
@@ -112,14 +159,14 @@ def transform_spec(
     engine_con = None
 
     try:
-        for class_deriv in spec.class_derivations:
+        for class_deriv, constant in blocks:
+            if constant:
+                yield from _map_rows(transformer, [{}], source_type or class_deriv.name, class_deriv, on_error)
+                continue
             table_name = class_deriv.populated_from or class_deriv.name
             if table_name not in data_loader:
                 logger.debug("Skipping class_derivation %s: no data found", class_deriv.name)
                 continue
-            # map_object merges is_a/mixins ancestors only when it looks the derivation up
-            # itself; both paths below hand it one, so merge here, once per block.
-            class_deriv = transformer._with_inherited_fields(class_deriv)
 
             # Fast path: the set-based join engine, when the block is engine-capable.
             # The per-row point-lookup path below is the correctness fallback for
@@ -147,19 +194,9 @@ def transform_spec(
                         transformer.lookup_index.register_table(join_name, join_path, lookup_key)
                         joined_tables.append(join_name)
 
-                for row_idx, row in enumerate(data_loader[table_name]):
-                    try:
-                        yield transformer.map_object(
-                            row,
-                            source_type=source_type or table_name,
-                            class_derivation=class_deriv,
-                        )
-                    except TransformationError as err:
-                        if on_error is None:
-                            raise
-                        err.row_index = row_idx
-                        err.class_derivation_name = err.class_derivation_name or class_deriv.name
-                        on_error(err)
+                yield from _map_rows(
+                    transformer, data_loader[table_name], source_type or table_name, class_deriv, on_error
+                )
             finally:
                 for jt in joined_tables:
                     transformer.lookup_index.drop(jt)

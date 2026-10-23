@@ -1141,7 +1141,7 @@ class ObjectTransformer(Transformer):
 
             nested_result = self.map_object(
                 effective_obj,
-                source_type=cls_derivation.populated_from,
+                source_type=cls_derivation.populated_from or parent_source,
                 target_type=cls_derivation.name,
                 class_derivation=cls_derivation,
             )
