@@ -865,6 +865,9 @@ def _build_joined_class_map(
     2. Implicit join targets — nested ``class_derivations`` whose
        ``populated_from`` differs from this CD's, which the engine's
        normalization pass (#212) will auto-resolve.
+    3. Implicit join targets named by a dotted reference — ``populated_from:
+       Other.slot`` or ``{Other.slot}`` in an expression, where ``Other`` is
+       another source class rather than a slot. The engine joins these too.
 
     :param cd: This class derivation dict.
     :param source_sv: Source schema view, or ``None``.
@@ -909,6 +912,18 @@ def _build_joined_class_map(
                         result[nested_source] = (nested_source, slots)
                     else:
                         result[nested_source] = (nested_source, None)
+
+        source_slots = set()
+        if parent_source in source_all_classes:
+            source_slots = {s.name for s in source_sv.class_induced_slots(parent_source)}
+        for sd in slot_derivation_dicts:
+            bases = set(extract_expr_attribute_references(sd["expr"])) if sd.get("expr") else set()
+            populated_from = sd.get("populated_from")
+            if populated_from and "." in populated_from:
+                bases.add(populated_from.split(".", 1)[0])
+            for base in bases - source_slots - set(result) - {parent_source}:
+                if base in source_all_classes:
+                    result[base] = (base, {s.name for s in source_sv.class_induced_slots(base)})
 
     return result
 
@@ -1131,7 +1146,20 @@ def _validate_slot_derivation(
     # Source: populated_from slot should be valid on the source class
     populated_from = sd.get("populated_from")
     if source_class_slots is not None and populated_from is not None:
-        if populated_from not in source_class_slots:
+        base, _, attr = populated_from.partition(".")
+        if base in joined_class_slots and attr:
+            joined_class, joined_slots = joined_class_slots[base]
+            attr = attr.split(".", 1)[0]
+            if joined_slots is not None and attr not in joined_slots:
+                messages.append(
+                    ValidationMessage(
+                        severity="error",
+                        path=sd_path,
+                        message=f"Source slot '{populated_from}' (populated_from): '{attr}' is not a slot on "
+                        f"joined class '{joined_class}'",
+                    )
+                )
+        elif base not in source_class_slots:
             messages.append(
                 ValidationMessage(
                     severity="error",
