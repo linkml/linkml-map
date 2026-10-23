@@ -503,7 +503,7 @@ def _map_data_streaming(
         _emit_spec_to_file(tr, emit_spec)
 
     # Initialize data loader (schema enables type-preserving coercion for TSV/CSV)
-    data_loader = DataLoader(input_path, schemaview=tr.source_schemaview)
+    data_loader = DataLoader(input_path, schemaview=tr.source_schemaview, identifier=source_type)
 
     # When continue-on-error is enabled, report each row error as it occurs so
     # nothing is lost if a later write crashes; a count drives the exit code.

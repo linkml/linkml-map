@@ -12,6 +12,7 @@ See: https://github.com/linkml/linkml-map/pull/136
 
 import textwrap
 
+import pytest
 import yaml
 from linkml_runtime import SchemaView
 
@@ -106,7 +107,7 @@ def test_engine_no_joins(tmp_path):
 
 
 def test_engine_no_joins_no_data(tmp_path):
-    """transform_spec gracefully yields nothing when the data file doesn't exist."""
+    """transform_spec fails, rather than yielding nothing, when no class derivation has data."""
     spec = textwrap.dedent("""\
         class_derivations:
           FlatSample:
@@ -120,8 +121,8 @@ def test_engine_no_joins_no_data(tmp_path):
     tr = _make_transformer(source_sv, target_sv, spec)
     loader = DataLoader(tmp_path)  # no files in tmp_path
 
-    results = list(transform_spec(tr, loader))
-    assert results == []
+    with pytest.raises(FileNotFoundError, match=r"expected one of \['samples'\], found \[\]"):
+        list(transform_spec(tr, loader))
 
 
 # ---- empty joined table ----
