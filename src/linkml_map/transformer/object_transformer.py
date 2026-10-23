@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import ast
 import json
 import logging
 from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from functools import cache
 from typing import Any
 
 import yaml
@@ -251,6 +253,22 @@ class Bindings(Mapping):
         raise RuntimeError(msg)
 
 
+@cache
+def _is_statement_block(expr: str) -> bool:
+    """Whether an expression is Python statements, which only the unrestricted evaluator runs.
+
+    >>> _is_statement_block("{age} * 12")
+    False
+    >>> _is_statement_block("if {age}:\\n    target = 1")
+    True
+    """
+    try:
+        ast.parse(expr.strip(), mode="eval")
+    except SyntaxError:
+        return True
+    return False
+
+
 @dataclass(frozen=True)
 class DerivationContext:
     """Immutable context for slot derivation within a single map_object call."""
@@ -402,7 +420,7 @@ class ObjectTransformer(Transformer):
             source_obj_typed = source_obj
             source_obj = vars(source_obj)
         if not isinstance(source_obj, dict):
-            logger.warning(f"Unexpected: {source_obj} for type {source_type}")
+            # A scalar for a class is a reference to an object (its identifier), kept as is.
             return source_obj
         class_deriv = class_derivation or self._get_class_derivation(source_type)
 
@@ -668,6 +686,9 @@ class ObjectTransformer(Transformer):
         :param functions: Extra functions injected into the evaluator
             (e.g. ``slot`` for referencing previously derived target slots).
         """
+        if self.unrestricted_eval and _is_statement_block(expr):
+            ctxt_obj, _ = bindings.get_ctxt_obj_and_dict()
+            return self._unrestricted_eval(expr, ctxt_obj, functions=functions)
         try:
             return eval_expr_with_mapping(
                 expr,
