@@ -30,6 +30,8 @@ nav:
   - Command-Line Reference: cli.md
   - Examples:
       - Metamodel Mapping: examples/MetamodelMapping.ipynb
+      - Deriving a Denormalized Schema: examples/denormalizing.ipynb
+      - Biolink Model Subsetting: examples/biolink-subsetting.ipynb
   - Specification:
       - Data Model: schema/datamodel.md
       - Compliance Suite: specification/compliance.md
