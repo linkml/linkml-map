@@ -7,3 +7,7 @@
 ## ObjectTransformer
 
 ::: linkml_map.transformer.object_transformer.ObjectTransformer
+
+## Loading Specifications
+
+::: linkml_map.utils.loaders.load_specification
