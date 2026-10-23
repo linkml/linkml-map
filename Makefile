@@ -55,8 +55,10 @@ serve: mkd-serve
 deploy-gh-doc:
 	$(RUN) mkdocs gh-deploy
 
+# Regenerate from scratch, so a page for an element that no longer exists is removed.
 gendoc:
-	$(RUN) gen-doc -d $(DOCDIR)/schema $(SOURCE_SCHEMA_PATH) --index-name datamodel
+	rm -rf $(DOCDIR)/schema
+	$(RUN) gen-doc -d $(DOCDIR)/schema $(SOURCE_SCHEMA_PATH) --index-name datamodel --subfolder-type-separation
 
 testdoc: gendoc serve
 

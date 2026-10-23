@@ -1,0 +1,99 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: offset_reverse 
+
+
+_If true, subtract the offset from the baseline (baseline - offset). If false, add the offset to the baseline (baseline + offset). Defaults to false (addition)._
+
+
+
+<div data-search-exclude markdown="1">
+
+
+
+URI: [linkmlmap:slot/offset_reverse](https://w3id.org/linkml/transformer/slot/offset_reverse)
+<!-- no inheritance hierarchy -->
+
+
+
+
+
+## Applicable Classes
+
+| Name | Description | Modifies Slot |
+| --- | --- | --- |
+| [Offset](../classes/Offset.md) | Configuration for calculating a value by applying an offset to a baseline val... |  no  |
+
+
+
+
+
+
+## Properties
+
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | [Boolean](../types/Boolean.md) |
+| Domain Of | [Offset](../classes/Offset.md) |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [Offset](../classes/Offset.md) |
+
+
+
+
+
+
+
+
+
+
+
+
+## Identifier and Mapping Information
+
+
+
+
+
+### Schema Source
+
+
+* from schema: https://w3id.org/linkml/transformer
+
+
+
+
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:offset_reverse |
+| native | linkmlmap:offset_reverse |
+
+
+
+
+## LinkML Source
+
+<details>
+```yaml
+name: offset_reverse
+description: If true, subtract the offset from the baseline (baseline - offset). If
+  false, add the offset to the baseline (baseline + offset). Defaults to false (addition).
+from_schema: https://w3id.org/linkml/transformer
+rank: 1000
+owner: Offset
+domain_of:
+- Offset
+range: boolean
+
+```
+</details></div>

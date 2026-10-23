@@ -1,0 +1,105 @@
+---
+search:
+  boost: 5.0
+---
+
+# Slot: mirror_source 
+
+
+_If true, pass the source value through unchanged instead of transforming it._
+
+
+
+<div data-search-exclude markdown="1">
+
+
+
+URI: [linkmlmap:slot/mirror_source](https://w3id.org/linkml/transformer/slot/mirror_source)
+<!-- no inheritance hierarchy -->
+
+
+
+
+
+## Applicable Classes
+
+| Name | Description | Modifies Slot |
+| --- | --- | --- |
+| [ElementDerivation](../classes/ElementDerivation.md) | An abstract grouping for classes that provide a specification of how to deriv... |  no  |
+| [ClassDerivation](../classes/ClassDerivation.md) | A specification of how to derive a target class from a source class |  no  |
+| [ObjectDerivation](../classes/ObjectDerivation.md) | Deprecated |  no  |
+| [SlotDerivation](../classes/SlotDerivation.md) | A specification of how to derive the value of a target slot from a source slo... |  no  |
+| [EnumDerivation](../classes/EnumDerivation.md) | A specification of how to derive the value of a target enum from a source enu... |  no  |
+| [PermissibleValueDerivation](../classes/PermissibleValueDerivation.md) | A specification of how to derive the value of a PV from a source enum |  no  |
+| [PrefixDerivation](../classes/PrefixDerivation.md) | A specification of how to derive a target prefix declaration |  no  |
+
+
+
+
+
+
+## Properties
+
+### Type and Range
+
+| Property | Value |
+| --- | --- |
+| Range | [Boolean](../types/Boolean.md) |
+| Domain Of | [ElementDerivation](../classes/ElementDerivation.md) |
+### Slot Characteristics
+
+| Property | Value |
+| --- | --- |
+| Owner | [ElementDerivation](../classes/ElementDerivation.md) |
+
+
+
+
+
+
+
+
+
+
+
+
+## Identifier and Mapping Information
+
+
+
+
+
+### Schema Source
+
+
+* from schema: https://w3id.org/linkml/transformer
+
+
+
+
+## Mappings
+
+| Mapping Type | Mapped Value |
+| ---  | ---  |
+| self | linkmlmap:mirror_source |
+| native | linkmlmap:mirror_source |
+
+
+
+
+## LinkML Source
+
+<details>
+```yaml
+name: mirror_source
+description: If true, pass the source value through unchanged instead of transforming
+  it.
+from_schema: https://w3id.org/linkml/transformer
+rank: 1000
+owner: ElementDerivation
+domain_of:
+- ElementDerivation
+range: boolean
+
+```
+</details></div>

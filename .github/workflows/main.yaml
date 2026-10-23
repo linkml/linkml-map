@@ -88,6 +88,16 @@ jobs:
             exit 1
           fi
 
+      - name: Check for paths that collide on case-insensitive filesystems
+        if: github.event_name == 'pull_request' && matrix.python-version == '3.12'
+        run: |
+          collisions="$(git ls-files | sort -f | uniq -di)"
+          if [ -n "$collisions" ]; then
+            echo "::error::These paths differ only in case, so macOS and Windows checkouts can't hold both:"
+            echo "$collisions"
+            exit 1
+          fi
+
       - name: Regenerate compliance doc and check for drift
         if: github.event_name == 'pull_request' && matrix.python-version == '3.12'
         run: |
