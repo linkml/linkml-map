@@ -16,8 +16,9 @@ def induce_missing_values(specification: TransformationSpecification, source_sch
     :param source_schemaview:
     :return:
     """
+    source_classes = source_schemaview.all_classes()
     for cd in specification.class_derivations:
-        if not cd.populated_from:
+        if not cd.populated_from and cd.name in source_classes:
             cd.populated_from = cd.name
 
     for cd in specification.class_derivations:

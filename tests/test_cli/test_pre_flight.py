@@ -217,3 +217,27 @@ def test_clean_spec_emits_no_pre_flight_output(
     # output but no deprecation-style messages.
     assert "[warning]" not in combined
     assert "[error]" not in combined
+
+
+def test_parent_only_derivation_has_no_spurious_source_error(tmp_path):
+    """A derivation used only as an is_a parent isn't reported as reading a missing source class (#359)."""
+    schema = tmp_path / "schema.yaml"
+    schema.write_text(
+        "id: https://example.org/s\nname: s\nprefixes:\n  linkml: https://w3id.org/linkml/\n"
+        "imports:\n  - linkml:types\ndefault_range: string\n"
+        "classes:\n  Row:\n    attributes:\n      id:\n        identifier: true\n      label:\n"
+    )
+    spec = tmp_path / "spec.yaml"
+    spec.write_text(
+        "class_derivations:\n"
+        "  Base:\n    slot_derivations:\n      id:\n"
+        "  Child:\n    is_a: Base\n    populated_from: Row\n    slot_derivations:\n      label:\n"
+    )
+    data = tmp_path / "row.yaml"
+    data.write_text("id: R1\nlabel: one\n")
+    result = CliRunner().invoke(
+        main, ["map-data", "-T", str(spec), "-s", str(schema), "--source-type", "Row", str(data)]
+    )
+    assert result.exit_code == 0, result.output
+    assert "not found in source schema" not in result.output
+    assert "label: one" in result.stdout

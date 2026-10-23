@@ -9,7 +9,7 @@
 | ------ | ------ | ---- | ---- | ---- |
 | agents | | Agent |  persons  | . | . |
 
-### Entity `<-` Entity
+### Entity `<-` None
 
 | Target | Target Range | Source | Source Range | Info |
 | ------ | ------ | ---- | ---- | ---- |
