@@ -120,7 +120,7 @@ with `data/Visit.tsv` and `data/Participant.tsv` gives:
 ```json
 {"id": "V1", "weight": 70.5, "sex": "F", "born": 1980}
 {"id": "V2", "weight": 81, "sex": "M", "born": 1975}
-{"id": "V3"}
+{"id": "V3", "weight": 65}
 ```
 
 A row with no match in the joined table, like `V3`, gets no values from it.
