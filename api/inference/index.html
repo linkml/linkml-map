@@ -205,7 +205,8 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
 <span class="normal">67</span>
 <span class="normal">68</span>
 <span class="normal">69</span>
-<span class="normal">70</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">induce_missing_values</span><span class="p">(</span><span class="n">specification</span><span class="p">:</span> <span class="n">TransformationSpecification</span><span class="p">,</span> <span class="n">source_schemaview</span><span class="p">:</span> <span class="n">SchemaView</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">70</span>
+<span class="normal">71</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">induce_missing_values</span><span class="p">(</span><span class="n">specification</span><span class="p">:</span> <span class="n">TransformationSpecification</span><span class="p">,</span> <span class="n">source_schemaview</span><span class="p">:</span> <span class="n">SchemaView</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Infer missing values in a specification.</span>
 
@@ -215,8 +216,9 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
 <span class="sd">    :param source_schemaview:</span>
 <span class="sd">    :return:</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">source_classes</span> <span class="o">=</span> <span class="n">source_schemaview</span><span class="o">.</span><span class="n">all_classes</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">specification</span><span class="o">.</span><span class="n">class_derivations</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">cd</span><span class="o">.</span><span class="n">populated_from</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">cd</span><span class="o">.</span><span class="n">populated_from</span> <span class="ow">and</span> <span class="n">cd</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">source_classes</span><span class="p">:</span>
             <span class="n">cd</span><span class="o">.</span><span class="n">populated_from</span> <span class="o">=</span> <span class="n">cd</span><span class="o">.</span><span class="n">name</span>
 
     <span class="k">for</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">specification</span><span class="o">.</span><span class="n">class_derivations</span><span class="p">:</span>

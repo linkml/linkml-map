@@ -243,7 +243,7 @@ Not all parts of the model are implemented in the reference Python framework.</p
 <h2 id="details">Details</h2>
 <p>This repo contains both:</p>
 <ul>
-<li>A <a href="schema/">data model</a> for a data model <em>transformation language</em></li>
+<li>A <a href="schema/datamodel/">data model</a> for a data model <em>transformation language</em></li>
 <li>A reference Python implementation (ObjectTransformer)</li>
 <li>An experimental SQL compilation backend (SQLCompiler / DuckDBTransformer)</li>
 </ul>
@@ -264,14 +264,14 @@ can be interpreted in Python (full feature support) or compiled to SQL
 <h2 id="data-model">Data Model</h2>
 <p>The data model for transformations mirrors the data model for schemas:</p>
 <ul>
-<li>A top level <a href="schema/TransformationSpecification/">TransformationSpecification</a> class contains:</li>
-<li>Zero or more <a href="schema/ClassDerivation/">ClassDerivation</a> objects, specifying how to map to a class, containing<ul>
-<li>Zero or more <a href="schema/SlotDerivation/">SlotDerivation</a> objects, specifying how to map to a slot</li>
+<li>A top level <a href="schema/classes/TransformationSpecification/">TransformationSpecification</a> class contains:</li>
+<li>Zero or more <a href="schema/classes/ClassDerivation/">ClassDerivation</a> objects, specifying how to map to a class, containing<ul>
+<li>Zero or more <a href="schema/classes/SlotDerivation/">SlotDerivation</a> objects, specifying how to map to a slot</li>
 </ul>
 </li>
-<li>Zero or more <a href="schema/EnumDerivation/">EnumDerivation</a> objects, specifying how to map to an enum</li>
+<li>Zero or more <a href="schema/classes/EnumDerivation/">EnumDerivation</a> objects, specifying how to map to an enum</li>
 </ul>
-<p>See the <a href="schema/">generated docs</a></p>
+<p>See the <a href="schema/datamodel/">generated docs</a></p>
 <h2 id="conformance-suite">Conformance Suite</h2>
 <p>The Maps conformance suite contains a collection of tests for each feature of the language.</p>
 <p>See:</p>
@@ -316,5 +316,5 @@ Edit on GitHub</a>
 </html>
 <!--
 MkDocs version : 1.6.1
-Build Date UTC : 2026-10-23 16:03:28.278249+00:00
+Build Date UTC : 2026-10-23 17:33:35.920883+00:00
 -->

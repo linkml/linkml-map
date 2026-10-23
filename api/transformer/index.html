@@ -1417,7 +1417,7 @@ subclass this.</p>
         <span class="p">}</span>
         <span class="bp">cls</span> <span class="o">=</span> <span class="n">cmap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">target_range</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">cls</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown target range </span><span class="si">{</span><span class="n">target_range</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1"># A class, an enum, or a type with no conversion (e.g. date): pass through.</span>
             <span class="k">return</span> <span class="n">v</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">v</span>
@@ -2054,25 +2054,7 @@ set as <code>self.specification</code>.</p>
 
               <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/linkml_map/transformer/object_transformer.py</code></summary>
-                <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 265</span>
-<span class="normal"> 266</span>
-<span class="normal"> 267</span>
-<span class="normal"> 268</span>
-<span class="normal"> 269</span>
-<span class="normal"> 270</span>
-<span class="normal"> 271</span>
-<span class="normal"> 272</span>
-<span class="normal"> 273</span>
-<span class="normal"> 274</span>
-<span class="normal"> 275</span>
-<span class="normal"> 276</span>
-<span class="normal"> 277</span>
-<span class="normal"> 278</span>
-<span class="normal"> 279</span>
-<span class="normal"> 280</span>
-<span class="normal"> 281</span>
-<span class="normal"> 282</span>
-<span class="normal"> 283</span>
+                <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 283</span>
 <span class="normal"> 284</span>
 <span class="normal"> 285</span>
 <span class="normal"> 286</span>
@@ -3120,7 +3102,39 @@ set as <code>self.specification</code>.</p>
 <span class="normal">1328</span>
 <span class="normal">1329</span>
 <span class="normal">1330</span>
-<span class="normal">1331</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="normal">1331</span>
+<span class="normal">1332</span>
+<span class="normal">1333</span>
+<span class="normal">1334</span>
+<span class="normal">1335</span>
+<span class="normal">1336</span>
+<span class="normal">1337</span>
+<span class="normal">1338</span>
+<span class="normal">1339</span>
+<span class="normal">1340</span>
+<span class="normal">1341</span>
+<span class="normal">1342</span>
+<span class="normal">1343</span>
+<span class="normal">1344</span>
+<span class="normal">1345</span>
+<span class="normal">1346</span>
+<span class="normal">1347</span>
+<span class="normal">1348</span>
+<span class="normal">1349</span>
+<span class="normal">1350</span>
+<span class="normal">1351</span>
+<span class="normal">1352</span>
+<span class="normal">1353</span>
+<span class="normal">1354</span>
+<span class="normal">1355</span>
+<span class="normal">1356</span>
+<span class="normal">1357</span>
+<span class="normal">1358</span>
+<span class="normal">1359</span>
+<span class="normal">1360</span>
+<span class="normal">1361</span>
+<span class="normal">1362</span>
+<span class="normal">1363</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ObjectTransformer</span><span class="p">(</span><span class="n">Transformer</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A Transformer that works on in-memory dict objects.</span>
@@ -3260,7 +3274,9 @@ set as <code>self.specification</code>.</p>
             <span class="n">source_obj_typed</span> <span class="o">=</span> <span class="n">source_obj</span>
             <span class="n">source_obj</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="n">source_obj</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source_obj</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unexpected: </span><span class="si">{</span><span class="n">source_obj</span><span class="si">}</span><span class="s2"> for type </span><span class="si">{</span><span class="n">source_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1"># A scalar for a class with an identifier is a reference to an object, kept as is.</span>
+            <span class="k">if</span> <span class="n">source_type</span> <span class="ow">in</span> <span class="n">sv</span><span class="o">.</span><span class="n">all_classes</span><span class="p">()</span> <span class="ow">and</span> <span class="n">sv</span><span class="o">.</span><span class="n">get_identifier_slot</span><span class="p">(</span><span class="n">source_type</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expected an object for </span><span class="si">{</span><span class="n">source_type</span><span class="si">}</span><span class="s2">, which has no identifier, got: </span><span class="si">{</span><span class="n">source_obj</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">source_obj</span>
         <span class="n">class_deriv</span> <span class="o">=</span> <span class="n">class_derivation</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_class_derivation</span><span class="p">(</span><span class="n">source_type</span><span class="p">)</span>
 
@@ -3526,6 +3542,9 @@ set as <code>self.specification</code>.</p>
 <span class="sd">        :param functions: Extra functions injected into the evaluator</span>
 <span class="sd">            (e.g. ``slot`` for referencing previously derived target slots).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">unrestricted_eval</span> <span class="ow">and</span> <span class="n">_is_statement_block</span><span class="p">(</span><span class="n">expr</span><span class="p">):</span>
+            <span class="n">ctxt_obj</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">bindings</span><span class="o">.</span><span class="n">get_ctxt_obj_and_dict</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unrestricted_eval</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">ctxt_obj</span><span class="p">,</span> <span class="n">functions</span><span class="o">=</span><span class="n">functions</span><span class="p">,</span> <span class="n">raise_undefined</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">eval_expr_with_mapping</span><span class="p">(</span>
                 <span class="n">expr</span><span class="p">,</span>
@@ -3545,6 +3564,7 @@ set as <code>self.specification</code>.</p>
         <span class="n">expr</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">src</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
         <span class="n">functions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">raise_undefined</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate *expr* with the unrestricted asteval interpreter.</span>
 
@@ -3555,12 +3575,20 @@ set as <code>self.specification</code>.</p>
 <span class="sd">        :param expr: The expression string to evaluate.</span>
 <span class="sd">        :param src: Object exposed to the expression as ``src``.</span>
 <span class="sd">        :param functions: Extra functions injected into the interpreter.</span>
+<span class="sd">        :param raise_undefined: Raise when the expression uses an undefined name, such as a</span>
+<span class="sd">            ``{slot}`` reference, which asteval can&#39;t resolve. Other errors, such as iterating</span>
+<span class="sd">            a missing value, still yield ``None``.</span>
+<span class="sd">        :raises ValueError: If ``raise_undefined`` and the expression uses an undefined name.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">usersyms</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;src&quot;</span><span class="p">:</span> <span class="n">src</span><span class="p">,</span> <span class="s2">&quot;target&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;uuid5&quot;</span><span class="p">:</span> <span class="n">_uuid5</span><span class="p">}</span>
         <span class="k">if</span> <span class="n">functions</span><span class="p">:</span>
             <span class="n">usersyms</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">functions</span><span class="p">)</span>
         <span class="n">aeval</span> <span class="o">=</span> <span class="n">Interpreter</span><span class="p">(</span><span class="n">usersyms</span><span class="o">=</span><span class="n">usersyms</span><span class="p">)</span>
         <span class="n">aeval</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">raise_undefined</span> <span class="ow">and</span> <span class="n">aeval</span><span class="o">.</span><span class="n">error</span> <span class="ow">and</span> <span class="n">aeval</span><span class="o">.</span><span class="n">error</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">exc</span> <span class="ow">is</span> <span class="ne">NameError</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">detail</span> <span class="o">=</span> <span class="n">aeval</span><span class="o">.</span><span class="n">error</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_error</span><span class="p">()</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Unrestricted expression uses an undefined name: </span><span class="si">{</span><span class="n">detail</span><span class="si">}</span><span class="s2">. Statements read slots as src.&lt;slot&gt;.&quot;</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">aeval</span><span class="o">.</span><span class="n">symtable</span><span class="p">[</span><span class="s2">&quot;target&quot;</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_apply_mappings</span><span class="p">(</span>
@@ -4274,14 +4302,14 @@ precedence; built-in functions are precedence-checked at load time via
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/linkml_map/transformer/object_transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">491</span>
-<span class="normal">492</span>
-<span class="normal">493</span>
-<span class="normal">494</span>
-<span class="normal">495</span>
-<span class="normal">496</span>
-<span class="normal">497</span>
-<span class="normal">498</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">check_identifiers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">511</span>
+<span class="normal">512</span>
+<span class="normal">513</span>
+<span class="normal">514</span>
+<span class="normal">515</span>
+<span class="normal">516</span>
+<span class="normal">517</span>
+<span class="normal">518</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">check_identifiers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Fail before any output if a class derivation would emit records without their identifier.</span>
 
 <span class="sd">    :raises ValueError: Listing every problem from :meth:`missing_identifiers`.</span>
@@ -4313,23 +4341,23 @@ precedence; built-in functions are precedence-checked at load time via
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/linkml_map/transformer/object_transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">309</span>
-<span class="normal">310</span>
-<span class="normal">311</span>
-<span class="normal">312</span>
-<span class="normal">313</span>
-<span class="normal">314</span>
-<span class="normal">315</span>
-<span class="normal">316</span>
-<span class="normal">317</span>
-<span class="normal">318</span>
-<span class="normal">319</span>
-<span class="normal">320</span>
-<span class="normal">321</span>
-<span class="normal">322</span>
-<span class="normal">323</span>
-<span class="normal">324</span>
-<span class="normal">325</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">327</span>
+<span class="normal">328</span>
+<span class="normal">329</span>
+<span class="normal">330</span>
+<span class="normal">331</span>
+<span class="normal">332</span>
+<span class="normal">333</span>
+<span class="normal">334</span>
+<span class="normal">335</span>
+<span class="normal">336</span>
+<span class="normal">337</span>
+<span class="normal">338</span>
+<span class="normal">339</span>
+<span class="normal">340</span>
+<span class="normal">341</span>
+<span class="normal">342</span>
+<span class="normal">343</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create an index over a container object.</span>
 
@@ -4376,25 +4404,7 @@ calls can reference them) but excluded from the returned dict.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/linkml_map/transformer/object_transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">360</span>
-<span class="normal">361</span>
-<span class="normal">362</span>
-<span class="normal">363</span>
-<span class="normal">364</span>
-<span class="normal">365</span>
-<span class="normal">366</span>
-<span class="normal">367</span>
-<span class="normal">368</span>
-<span class="normal">369</span>
-<span class="normal">370</span>
-<span class="normal">371</span>
-<span class="normal">372</span>
-<span class="normal">373</span>
-<span class="normal">374</span>
-<span class="normal">375</span>
-<span class="normal">376</span>
-<span class="normal">377</span>
-<span class="normal">378</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">378</span>
 <span class="normal">379</span>
 <span class="normal">380</span>
 <span class="normal">381</span>
@@ -4448,7 +4458,27 @@ calls can reference them) but excluded from the returned dict.</p>
 <span class="normal">429</span>
 <span class="normal">430</span>
 <span class="normal">431</span>
-<span class="normal">432</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">map_object</span><span class="p">(</span>
+<span class="normal">432</span>
+<span class="normal">433</span>
+<span class="normal">434</span>
+<span class="normal">435</span>
+<span class="normal">436</span>
+<span class="normal">437</span>
+<span class="normal">438</span>
+<span class="normal">439</span>
+<span class="normal">440</span>
+<span class="normal">441</span>
+<span class="normal">442</span>
+<span class="normal">443</span>
+<span class="normal">444</span>
+<span class="normal">445</span>
+<span class="normal">446</span>
+<span class="normal">447</span>
+<span class="normal">448</span>
+<span class="normal">449</span>
+<span class="normal">450</span>
+<span class="normal">451</span>
+<span class="normal">452</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">map_object</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">source_obj</span><span class="p">:</span> <span class="n">OBJECT_TYPE</span><span class="p">,</span>
     <span class="n">source_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -4493,7 +4523,9 @@ calls can reference them) but excluded from the returned dict.</p>
         <span class="n">source_obj_typed</span> <span class="o">=</span> <span class="n">source_obj</span>
         <span class="n">source_obj</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="n">source_obj</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source_obj</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unexpected: </span><span class="si">{</span><span class="n">source_obj</span><span class="si">}</span><span class="s2"> for type </span><span class="si">{</span><span class="n">source_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># A scalar for a class with an identifier is a reference to an object, kept as is.</span>
+        <span class="k">if</span> <span class="n">source_type</span> <span class="ow">in</span> <span class="n">sv</span><span class="o">.</span><span class="n">all_classes</span><span class="p">()</span> <span class="ow">and</span> <span class="n">sv</span><span class="o">.</span><span class="n">get_identifier_slot</span><span class="p">(</span><span class="n">source_type</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expected an object for </span><span class="si">{</span><span class="n">source_type</span><span class="si">}</span><span class="s2">, which has no identifier, got: </span><span class="si">{</span><span class="n">source_obj</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">source_obj</span>
     <span class="n">class_deriv</span> <span class="o">=</span> <span class="n">class_derivation</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_class_derivation</span><span class="p">(</span><span class="n">source_type</span><span class="p">)</span>
 
@@ -4546,20 +4578,20 @@ identifier slot must be derived explicitly or minted (<code>mint_ids: true</code
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/linkml_map/transformer/object_transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">476</span>
-<span class="normal">477</span>
-<span class="normal">478</span>
-<span class="normal">479</span>
-<span class="normal">480</span>
-<span class="normal">481</span>
-<span class="normal">482</span>
-<span class="normal">483</span>
-<span class="normal">484</span>
-<span class="normal">485</span>
-<span class="normal">486</span>
-<span class="normal">487</span>
-<span class="normal">488</span>
-<span class="normal">489</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">missing_identifiers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">496</span>
+<span class="normal">497</span>
+<span class="normal">498</span>
+<span class="normal">499</span>
+<span class="normal">500</span>
+<span class="normal">501</span>
+<span class="normal">502</span>
+<span class="normal">503</span>
+<span class="normal">504</span>
+<span class="normal">505</span>
+<span class="normal">506</span>
+<span class="normal">507</span>
+<span class="normal">508</span>
+<span class="normal">509</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">missing_identifiers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Describe every class derivation that would emit records without their identifier.</span>
 
 <span class="sd">    Checks the whole specification, nested class derivations included: each target</span>
@@ -4603,39 +4635,7 @@ returns the source value unchanged without trying further enums.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/linkml_map/transformer/object_transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1283</span>
-<span class="normal">1284</span>
-<span class="normal">1285</span>
-<span class="normal">1286</span>
-<span class="normal">1287</span>
-<span class="normal">1288</span>
-<span class="normal">1289</span>
-<span class="normal">1290</span>
-<span class="normal">1291</span>
-<span class="normal">1292</span>
-<span class="normal">1293</span>
-<span class="normal">1294</span>
-<span class="normal">1295</span>
-<span class="normal">1296</span>
-<span class="normal">1297</span>
-<span class="normal">1298</span>
-<span class="normal">1299</span>
-<span class="normal">1300</span>
-<span class="normal">1301</span>
-<span class="normal">1302</span>
-<span class="normal">1303</span>
-<span class="normal">1304</span>
-<span class="normal">1305</span>
-<span class="normal">1306</span>
-<span class="normal">1307</span>
-<span class="normal">1308</span>
-<span class="normal">1309</span>
-<span class="normal">1310</span>
-<span class="normal">1311</span>
-<span class="normal">1312</span>
-<span class="normal">1313</span>
-<span class="normal">1314</span>
-<span class="normal">1315</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1315</span>
 <span class="normal">1316</span>
 <span class="normal">1317</span>
 <span class="normal">1318</span>
@@ -4651,7 +4651,39 @@ returns the source value unchanged without trying further enums.</p>
 <span class="normal">1328</span>
 <span class="normal">1329</span>
 <span class="normal">1330</span>
-<span class="normal">1331</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">transform_enum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_value</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">enum_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">source_obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">1331</span>
+<span class="normal">1332</span>
+<span class="normal">1333</span>
+<span class="normal">1334</span>
+<span class="normal">1335</span>
+<span class="normal">1336</span>
+<span class="normal">1337</span>
+<span class="normal">1338</span>
+<span class="normal">1339</span>
+<span class="normal">1340</span>
+<span class="normal">1341</span>
+<span class="normal">1342</span>
+<span class="normal">1343</span>
+<span class="normal">1344</span>
+<span class="normal">1345</span>
+<span class="normal">1346</span>
+<span class="normal">1347</span>
+<span class="normal">1348</span>
+<span class="normal">1349</span>
+<span class="normal">1350</span>
+<span class="normal">1351</span>
+<span class="normal">1352</span>
+<span class="normal">1353</span>
+<span class="normal">1354</span>
+<span class="normal">1355</span>
+<span class="normal">1356</span>
+<span class="normal">1357</span>
+<span class="normal">1358</span>
+<span class="normal">1359</span>
+<span class="normal">1360</span>
+<span class="normal">1361</span>
+<span class="normal">1362</span>
+<span class="normal">1363</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">transform_enum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_value</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">enum_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">source_obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Transform a source enum value through one or more enum derivations.</span>
 
 <span class="sd">    Iterates *enum_names* in order. For each enum derivation, tries</span>
@@ -4728,35 +4760,35 @@ returns the source value unchanged without trying further enums.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/linkml_map/transformer/object_transformer.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1253</span>
-<span class="normal">1254</span>
-<span class="normal">1255</span>
-<span class="normal">1256</span>
-<span class="normal">1257</span>
-<span class="normal">1258</span>
-<span class="normal">1259</span>
-<span class="normal">1260</span>
-<span class="normal">1261</span>
-<span class="normal">1262</span>
-<span class="normal">1263</span>
-<span class="normal">1264</span>
-<span class="normal">1265</span>
-<span class="normal">1266</span>
-<span class="normal">1267</span>
-<span class="normal">1268</span>
-<span class="normal">1269</span>
-<span class="normal">1270</span>
-<span class="normal">1271</span>
-<span class="normal">1272</span>
-<span class="normal">1273</span>
-<span class="normal">1274</span>
-<span class="normal">1275</span>
-<span class="normal">1276</span>
-<span class="normal">1277</span>
-<span class="normal">1278</span>
-<span class="normal">1279</span>
-<span class="normal">1280</span>
-<span class="normal">1281</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">transform_object</span><span class="p">(</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1285</span>
+<span class="normal">1286</span>
+<span class="normal">1287</span>
+<span class="normal">1288</span>
+<span class="normal">1289</span>
+<span class="normal">1290</span>
+<span class="normal">1291</span>
+<span class="normal">1292</span>
+<span class="normal">1293</span>
+<span class="normal">1294</span>
+<span class="normal">1295</span>
+<span class="normal">1296</span>
+<span class="normal">1297</span>
+<span class="normal">1298</span>
+<span class="normal">1299</span>
+<span class="normal">1300</span>
+<span class="normal">1301</span>
+<span class="normal">1302</span>
+<span class="normal">1303</span>
+<span class="normal">1304</span>
+<span class="normal">1305</span>
+<span class="normal">1306</span>
+<span class="normal">1307</span>
+<span class="normal">1308</span>
+<span class="normal">1309</span>
+<span class="normal">1310</span>
+<span class="normal">1311</span>
+<span class="normal">1312</span>
+<span class="normal">1313</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">transform_object</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">source_obj</span><span class="p">:</span> <span class="n">YAMLRoot</span> <span class="o">|</span> <span class="n">BaseModel</span><span class="p">,</span>
     <span class="n">target_class</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">YAMLRoot</span><span class="p">]</span> <span class="o">|</span> <span class="nb">type</span><span class="p">[</span><span class="n">BaseModel</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
