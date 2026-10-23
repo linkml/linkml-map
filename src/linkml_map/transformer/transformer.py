@@ -484,7 +484,8 @@ class Transformer(ABC):
     ) -> None:
         """Add an explicit ``AliasedClass`` join for *table* on *class_deriv*.
 
-        No-op when the join is already declared/synthesized. When no join key can
+        No-op when the join is already declared or synthesized, on *class_deriv* or
+        on one of its ``is_a``/``mixins`` ancestors. When no join key can
         be inferred, behavior depends on *required*:
 
         - ``required=True`` (an expression ``{table.col}`` reference): fail loud.
@@ -498,6 +499,9 @@ class Transformer(ABC):
         :raises ValueError: if *required* and *table* cannot be keyed.
         """
         if class_deriv.joins and table in class_deriv.joins:
+            return
+        # A join an is_a/mixins ancestor declares is merged in at transform time.
+        if any(a.joins and table in a.joins for a in self._class_derivation_ancestors(class_deriv).values()):
             return
         join_key = infer_join_key(sv, parent_source, table)
         if join_key is None:
