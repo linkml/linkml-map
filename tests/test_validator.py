@@ -1921,3 +1921,48 @@ def test_semantics_conflicting_range_strict_error():
     """Under strict, a conflicting range is an error."""
     msgs = _range_override_msgs({"amount": {"value": "1.5", "range": "string"}}, strict=True)
     assert [m.severity for m in msgs] == ["error"]
+
+
+def _dotted_spec(slot_derivation: dict, joins: dict | None = None) -> dict:
+    cd = {"populated_from": "Measurement", "slot_derivations": {"value": slot_derivation}}
+    if joins is not None:
+        cd["joins"] = joins
+    return normalize_spec_dict({"class_derivations": {"Outer": cd}})
+
+
+@pytest.mark.parametrize(
+    ("slot_derivation", "joins"),
+    [
+        ({"populated_from": "Reading.score"}, {"Reading": {"join_on": "subject_id"}}),
+        ({"populated_from": "Reading.score"}, None),
+        ({"expr": "{Reading.score}"}, None),
+        ({"populated_from": "method.label"}, None),
+    ],
+    ids=["explicit-join", "implicit-join", "implicit-join-expr", "path-through-source-slot"],
+)
+def test_dotted_reference_to_joined_class_or_slot_passes(slot_derivation: dict, joins: dict | None):
+    """A dotted reference through a joined class, or a source slot, is not reported as missing."""
+    msgs = validate_spec_semantics(_dotted_spec(slot_derivation, joins), source_schemaview=SchemaView(JOINABLE_SCHEMA))
+    assert [m.message for m in msgs if m.severity in ("error", "warning")] == []
+
+
+@pytest.mark.parametrize(
+    "joins", [{"Reading": {"join_on": "subject_id"}}, None], ids=["explicit-join", "implicit-join"]
+)
+def test_dotted_populated_from_checks_joined_slot(joins: dict | None):
+    """``populated_from: Reading.bogus`` names the joined class the slot is missing from."""
+    spec = _dotted_spec({"populated_from": "Reading.bogus"}, joins)
+    msgs = validate_spec_semantics(spec, source_schemaview=SchemaView(JOINABLE_SCHEMA))
+    assert [m.message for m in _errors(msgs)] == [
+        "Source slot 'Reading.bogus' (populated_from): 'bogus' is not a slot on joined class 'Reading'"
+    ]
+
+
+def test_dotted_populated_from_unknown_base_still_errors():
+    """A dotted reference whose first segment is neither a source slot nor a class is still reported."""
+    msgs = validate_spec_semantics(
+        _dotted_spec({"populated_from": "Nowhere.score"}), source_schemaview=SchemaView(JOINABLE_SCHEMA)
+    )
+    assert [m.message for m in _errors(msgs)] == [
+        "Source slot 'Nowhere.score' (populated_from) not found on source class"
+    ]

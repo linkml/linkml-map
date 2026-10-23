@@ -516,3 +516,12 @@ class TestSchemaAwareDataLoader:
         loader = DataLoader(tmp_path, schemaview=sv)
         row = next(loader["Record"])
         _assert_schema_aware_row(row)
+
+
+def test_single_file_identifier_overrides_stem(sample_tsv_file: Path) -> None:
+    """A single file can be named for the class its rows belong to, instead of its stem."""
+    loader = DataLoader(sample_tsv_file, identifier="Individual")
+    assert "Individual" in loader
+    assert sample_tsv_file.stem not in loader
+    assert list(loader["Individual"]) == list(DataLoader(sample_tsv_file))
+    assert [identifier for identifier, _ in loader.iter_sources()] == ["Individual"]

@@ -30,8 +30,9 @@ def expected_person() -> dict:
         (PERSONINFO_TR, PERSONINFO_SRC_SCHEMA),
         (lambda: yaml.safe_load(PERSONINFO_TR.read_text()), lambda: SchemaView(str(PERSONINFO_SRC_SCHEMA))),
         (lambda: load_specification(PERSONINFO_TR), lambda: SchemaView(str(PERSONINFO_SRC_SCHEMA))),
+        (PERSONINFO_TR, lambda: SchemaView(str(PERSONINFO_SRC_SCHEMA)).schema),
     ],
-    ids=["str", "path", "dict-schemaview", "spec-schemaview"],
+    ids=["str", "path", "dict-schemaview", "spec-schemaview", "path-schemadefinition"],
 )
 def test_constructor_input_forms_map_alike(spec, schema, expected_person):
     """Every input form maps a person the same as a transformer set up field by field."""

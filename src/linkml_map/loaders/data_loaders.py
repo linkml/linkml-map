@@ -232,6 +232,7 @@ class DataLoader:
         default_format: FileFormat | None = None,
         skip_empty_rows: bool = True,
         schemaview: SchemaView | None = None,
+        identifier: str | None = None,
     ) -> None:
         """
         Initialize the data loader.
@@ -241,6 +242,8 @@ class DataLoader:
         :param skip_empty_rows: Skip empty rows in tabular files (default: True)
         :param schemaview: Source schema (enables schema-aware type coercion for TSV/CSV).
             The target class is derived from each file's identifier.
+        :param identifier: Single-file mode only: the source class the file's rows
+            belong to. Defaults to the file stem.
         :raises FileNotFoundError: If the path does not exist
         """
         self.base_path = Path(base_path)
@@ -250,6 +253,7 @@ class DataLoader:
         self.default_format = default_format
         self.skip_empty_rows = skip_empty_rows
         self.schemaview = schemaview
+        self.identifier = identifier or self.base_path.stem
 
     def _schema_loader_kwargs(self, identifier: str) -> dict[str, Any]:
         """
@@ -278,14 +282,13 @@ class DataLoader:
         Iterate over all data sources, yielding (identifier, rows) pairs.
 
         This provides a unified interface for both single-file and directory modes.
-        For single files, the identifier is the file stem.
+        For single files, the identifier is ``identifier``, or the file stem.
         For directories, each file's stem is used as its identifier.
 
         :yield: Tuples of (identifier, row_iterator)
         """
         if self.is_single_file:
-            identifier = self.base_path.stem
-            yield identifier, iter(self)
+            yield self.identifier, iter(self)
         else:
             for identifier in self.get_available_identifiers():
                 yield identifier, self[identifier]
@@ -330,23 +333,23 @@ class DataLoader:
     def __contains__(self, identifier: str) -> bool:
         """Check if a data file exists for the given identifier."""
         if self.is_single_file:
-            return identifier == self.base_path.stem
+            return identifier == self.identifier
         return self._find_file(identifier) is not None
 
     def __getitem__(self, identifier: str) -> Iterator[dict[str, Any]]:
         """
         Load instances from the data file corresponding to the identifier.
 
-        For single-file mode, the identifier must match the file stem.
+        For single-file mode, the identifier must match ``self.identifier``.
 
         :param identifier: The populated_from identifier to load
         :return: Iterator over data instances
         :raises FileNotFoundError: If no matching file is found
         """
         if self.is_single_file:
-            if identifier == self.base_path.stem:
+            if identifier == self.identifier:
                 return iter(self)
-            msg = f"Single-file loader has no data for identifier '{identifier}' (file stem is '{self.base_path.stem}')"
+            msg = f"Single-file loader has no data for identifier '{identifier}' (the file holds '{self.identifier}')"
             raise FileNotFoundError(msg)
 
         file_path = self._find_file(identifier)
@@ -373,8 +376,7 @@ class DataLoader:
         file_format = FileFormat.from_extension(self.base_path)
         if file_format in (FileFormat.TSV, FileFormat.CSV):
             loader_kwargs["skip_empty_rows"] = self.skip_empty_rows
-            # Single-file mode: the file stem names the source class.
-            loader_kwargs.update(self._schema_loader_kwargs(self.base_path.stem))
+            loader_kwargs.update(self._schema_loader_kwargs(self.identifier))
 
         loader = get_file_loader(self.base_path, **loader_kwargs)
         yield from loader.iter_instances()
