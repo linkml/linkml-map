@@ -720,6 +720,8 @@ def _validate_class_derivation(
             s.name for s in induced_source_slots if not s.multivalued and _slot_is_string_typed(source_sv, s.range)
         }
 
+    _check_join_keys(cd, resolved_source_class, source_sv, cd_path, messages, source_all_classes)
+
     # Validate slot_derivations (may be list or dict after normalization)
     slot_derivation_dicts = iter_derivation_dicts(cd.get("slot_derivations", []))
 
@@ -928,6 +930,78 @@ def _build_joined_class_map(
     return result
 
 
+def _check_join_keys(
+    cd: dict[str, Any],
+    primary_class: str | None,
+    source_sv: SchemaView | None,
+    cd_path: str,
+    messages: list[ValidationMessage],
+    source_all_classes: set[str],
+) -> None:
+    """Check that each entry of a class derivation's ``joins:`` has keys that resolve.
+
+    An entry needs ``join_on``, or both ``source_key`` and ``lookup_key``; without
+    them the runtime raises. A key that isn't a slot on its class passes that check
+    but silently resolves every joined value to null, so it is reported too:
+    ``source_key`` against the primary class, ``lookup_key`` against the joined class,
+    and ``join_on`` against both.
+
+    :param primary_class: The class the derivation reads rows from, or ``None`` if unresolved.
+    """
+    joins = cd.get("joins") or {}
+    if not isinstance(joins, dict):
+        return
+    for alias, spec in joins.items():
+        spec_dict = spec if isinstance(spec, dict) else {}
+        join_path = f"{cd_path}.joins[{alias}]"
+        join_on = spec_dict.get("join_on")
+        source_key = spec_dict.get("source_key")
+        lookup_key = spec_dict.get("lookup_key")
+        if not join_on and not (source_key and lookup_key):
+            messages.append(
+                ValidationMessage(
+                    severity="warning",
+                    path=join_path,
+                    message=(
+                        f"Join spec for '{alias}' is missing keys: "
+                        f"must specify 'join_on' or both 'source_key' and "
+                        f"'lookup_key'. Runtime will raise ValueError."
+                    ),
+                )
+            )
+            continue
+        joined_class = spec_dict.get("class_named") or alias
+        if source_sv is None or primary_class not in source_all_classes or joined_class not in source_all_classes:
+            continue
+        primary_slots = {s.name for s in source_sv.class_induced_slots(primary_class)}
+        joined_slots = {s.name for s in source_sv.class_induced_slots(joined_class)}
+        if join_on:
+            key_checks = [
+                ("join_on", join_on, primary_slots, primary_class),
+                ("join_on", join_on, joined_slots, joined_class),
+            ]
+        else:
+            key_checks = [
+                ("source_key", source_key, primary_slots, primary_class),
+                ("lookup_key", lookup_key, joined_slots, joined_class),
+            ]
+        for key_label, key_value, slot_set, class_name in key_checks:
+            if key_value in slot_set:
+                continue
+            messages.append(
+                ValidationMessage(
+                    severity="warning",
+                    path=join_path,
+                    message=(
+                        f"Join spec for '{alias}': "
+                        f"'{key_label}={key_value}' is not a slot on source class "
+                        f"'{class_name}'. Runtime will silently resolve cross-table "
+                        f"values to null."
+                    ),
+                )
+            )
+
+
 def _check_cross_table_join(
     nested_cd: dict[str, Any],
     parent_cd: dict[str, Any],
@@ -941,7 +1015,8 @@ def _check_cross_table_join(
     Closes #211 at validate-spec time. Mirrors the runtime synthesis logic
     in :class:`~linkml_map.transformer.transformer.Transformer`:
 
-    - Explicit ``joins:`` covers the nested source → verify its keys.
+    - Explicit ``joins:`` covers the nested source → nothing to predict; its keys
+      are checked by :func:`_check_join_keys`.
     - No explicit join, :func:`~linkml_map.utils.join_utils.resolve_join`
       returns a key → ``info`` (will auto-synthesize at runtime).
     - No explicit join, :func:`~linkml_map.utils.join_utils.resolve_join`
@@ -960,58 +1035,8 @@ def _check_cross_table_join(
 
     parent_joins = parent_cd.get("joins") or {}
     if isinstance(parent_joins, dict) and nested_source in parent_joins:
-        # Explicit join is present — verify the spec carries enough keys to
-        # actually resolve a row, mirroring the runtime check in
-        # ``_resolve_joined_row``. A structurally-valid-but-empty entry like
-        # ``joins: {Reading: {}}`` would otherwise pass validation but blow
-        # up at transform time with ``ValueError: Join spec ... must
-        # specify 'join_on' or both 'source_key' and 'lookup_key'``.
-        spec = parent_joins[nested_source]
-        spec_dict = spec if isinstance(spec, dict) else {}
-        join_on = spec_dict.get("join_on")
-        source_key = spec_dict.get("source_key")
-        lookup_key = spec_dict.get("lookup_key")
-        if not join_on and not (source_key and lookup_key):
-            messages.append(
-                ValidationMessage(
-                    severity="warning",
-                    path=nested_path,
-                    message=(
-                        f"Join spec for '{nested_source}' is missing keys: "
-                        f"must specify 'join_on' or both 'source_key' and "
-                        f"'lookup_key'. Runtime will raise ValueError."
-                    ),
-                )
-            )
-        elif source_sv is not None and parent_source in source_all_classes and nested_source in source_all_classes:
-            # Keys are declared — verify they exist on the respective source
-            # classes. A typo'd key passes the structural check but produces
-            # silent nulls at runtime: ``source_obj.get(missing_key)`` returns
-            # None, the join match fails, cross-table values resolve to null.
-            parent_slots = {s.name for s in source_sv.class_induced_slots(parent_source)}
-            nested_slots = {s.name for s in source_sv.class_induced_slots(nested_source)}
-            if join_on:
-                key_checks = [(join_on, parent_slots, parent_source), (join_on, nested_slots, nested_source)]
-                key_label = "join_on"
-            else:
-                key_checks = [(source_key, parent_slots, parent_source), (lookup_key, nested_slots, nested_source)]
-            for i, (key_value, slot_set, class_name) in enumerate(key_checks):
-                if key_value in slot_set:
-                    continue
-                if not join_on:
-                    key_label = "source_key" if i == 0 else "lookup_key"
-                messages.append(
-                    ValidationMessage(
-                        severity="warning",
-                        path=nested_path,
-                        message=(
-                            f"Join spec for '{nested_source}': "
-                            f"'{key_label}={key_value}' is not a slot on source class "
-                            f"'{class_name}'. Runtime will silently resolve cross-table "
-                            f"values to null."
-                        ),
-                    )
-                )
+        # An explicit join covers the nested source; its keys are checked with the
+        # parent's other joins in _check_join_keys.
         return
 
     if source_sv is None:

@@ -1966,3 +1966,44 @@ def test_dotted_populated_from_unknown_base_still_errors():
     assert [m.message for m in _errors(msgs)] == [
         "Source slot 'Nowhere.score' (populated_from) not found on source class"
     ]
+
+
+@pytest.mark.parametrize(
+    ("join", "expected"),
+    [
+        ({"join_on": "subjet_id"}, [("join_on=subjet_id", "Measurement"), ("join_on=subjet_id", "Reading")]),
+        ({"source_key": "subjet_id", "lookup_key": "subject_id"}, [("source_key=subjet_id", "Measurement")]),
+        ({"source_key": "subject_id", "lookup_key": "subjet_id"}, [("lookup_key=subjet_id", "Reading")]),
+        ({"join_on": "subject_id"}, []),
+    ],
+    ids=["join_on-typo", "source_key-typo", "lookup_key-typo", "valid"],
+)
+def test_top_level_join_keys_checked(join: dict, expected: list[tuple[str, str]]):
+    """A derivation's own joins: entry has its keys checked, not only joins a nested derivation uses (#381)."""
+    spec = _dotted_spec({"populated_from": "Reading.score"}, joins={"Reading": join})
+    msgs = validate_spec_semantics(spec, source_schemaview=SchemaView(JOINABLE_SCHEMA))
+    found = [
+        (m.message.split("'")[3], m.message.split("source class '")[1].split("'")[0])
+        for m in _warnings(msgs)
+        if "is not a slot on source class" in m.message
+    ]
+    assert found == expected
+
+
+def test_top_level_join_keys_checked_against_class_named():
+    """With ``class_named``, lookup_key is checked against that class, not the alias."""
+    spec = _dotted_spec(
+        {"expr": "{r.score}"}, joins={"r": {"class_named": "Reading", "source_key": "subject_id", "lookup_key": "nope"}}
+    )
+    msgs = validate_spec_semantics(spec, source_schemaview=SchemaView(JOINABLE_SCHEMA))
+    assert [m.message for m in _warnings(msgs)] == [
+        "Join spec for 'r': 'lookup_key=nope' is not a slot on source class 'Reading'. "
+        "Runtime will silently resolve cross-table values to null."
+    ]
+
+
+def test_top_level_join_missing_keys_warns():
+    """A top-level joins: entry with no usable keys is reported, as nested ones are."""
+    spec = _dotted_spec({"populated_from": "Reading.score"}, joins={"Reading": {"source_key": "subject_id"}})
+    msgs = validate_spec_semantics(spec, source_schemaview=SchemaView(JOINABLE_SCHEMA))
+    assert len([m for m in _warnings(msgs) if "missing keys" in m.message]) == 1
