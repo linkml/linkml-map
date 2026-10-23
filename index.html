@@ -40,15 +40,9 @@
         var pageToc = [
           {title: "LinkML-Map", url: "#_top", children: [
               {title: "Architecture", url: "#architecture" },
-              {title: "Quick Start", url: "#quick-start" },
-              {title: "Basic idea", url: "#basic-idea" },
-              {title: "Transform your own data", url: "#transform-your-own-data" },
               {title: "Details", url: "#details" },
-              {title: "Working with Auto-Generated Schemas", url: "#working-with-auto-generated-schemas" },
-              {title: "Identifiers", url: "#identifiers" },
               {title: "Data Model", url: "#data-model" },
               {title: "Conformance Suite", url: "#conformance-suite" },
-              {title: "Running the code", url: "#running-the-code" },
           ]},
         ];
 
@@ -117,15 +111,23 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
   <ul class="wm-toctree">
         <li class="wm-toc-li wm-toc-lev1 "><a href="" class="wm-article-link wm-toc-text">Index</a>
 </li>
+        <li class="wm-toc-li wm-toc-lev1 "><a href="quickstart/" class="wm-article-link wm-toc-text">Quick Start</a>
+</li>
+        <li class="wm-toc-li wm-toc-lev1 "><a href="examples/Tutorial/" class="wm-article-link wm-toc-text">Python Tutorial</a>
+</li>
+        <li class="wm-toc-li wm-toc-lev1 "><a href="writing-specs/" class="wm-article-link wm-toc-text">Writing Specifications</a>
+</li>
+        <li class="wm-toc-li wm-toc-lev1 "><a href="cli/" class="wm-article-link wm-toc-text">Command-Line Reference</a>
+</li>
         <li class="wm-toc-li wm-toc-lev1 wm-toc-opener"><span class="wm-toc-text">Examples</span>
 </li>
 <li class="wm-toc-li-nested collapse">
   <ul class="wm-toctree">
-      <li class="wm-toc-li wm-toc-lev2 "><a href="examples/Tutorial/" class="wm-article-link wm-toc-text">Tutorial</a>
-</li>
-      <li class="wm-toc-li wm-toc-lev2 "><a href="examples/Tutorial-SQLCompiler/" class="wm-article-link wm-toc-text">Compilation to SQL</a>
-</li>
       <li class="wm-toc-li wm-toc-lev2 "><a href="examples/MetamodelMapping/" class="wm-article-link wm-toc-text">Metamodel Mapping</a>
+</li>
+      <li class="wm-toc-li wm-toc-lev2 "><a href="examples/denormalizing/" class="wm-article-link wm-toc-text">Deriving a Denormalized Schema</a>
+</li>
+      <li class="wm-toc-li wm-toc-lev2 "><a href="examples/biolink-subsetting/" class="wm-article-link wm-toc-text">Biolink Model Subsetting</a>
 </li>
   </ul>
 </li>
@@ -184,12 +186,12 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
   <div class="row wm-article-nav-buttons" role="navigation" aria-label="navigation">
     
     <div class="wm-article-nav pull-right">
-      <a href="examples/Tutorial/" class="btn btn-xs btn-default pull-right">
+      <a href="quickstart/" class="btn btn-xs btn-default pull-right">
         Next
         <i class="fa fa-chevron-right" aria-hidden="true"></i>
       </a>
-      <a href="examples/Tutorial/" class="btn btn-xs btn-link">
-        Tutorial
+      <a href="quickstart/" class="btn btn-xs btn-link">
+        Quick Start
       </a>
     </div>
     
@@ -205,16 +207,17 @@ is executed or what format the data lives in.</p>
 <p>Features:</p>
 <ul>
 <li>YAML-based lightweight transformation syntax</li>
-<li>Python library for executing mappings on data files</li>
-<li>Streaming support for large tabular datasets (TSV/CSV)</li>
-<li>Multiple text serialization formats (YAML, JSON, JSONL, TSV, CSV)</li>
+<li>A CLI and Python library for executing mappings on data files</li>
+<li>Validation of a specification against its source and target schemas before it runs (<code>validate-spec</code>)</li>
+<li>Output typed to the target schema, when one is given: values are coerced to the target slot's range and enum values resolved to permissible values</li>
+<li>Streaming support for large tabular datasets (TSV/CSV), with joins across tables</li>
+<li>Text (YAML, JSON, JSONL, TSV, CSV) and columnar (Parquet, DuckDB) output</li>
 <li>Derivation of target (implicit) schemas, allowing easy customization of data models (<em>profiling</em>)</li>
 <li>Simple YAML dictionaries for simple mappings</li>
 <li>Automatic unit conversion</li>
 <li>Use of subset of Python to specify complex mappings</li>
 <li>Visualizations of mappings</li>
-<li>Mappings are reversible (provided all expressions used are reversible)</li>
-<li>Compatibility with SSSOM</li>
+<li>Inversion of mappings built from renames, unit conversions and stringification (expressions can't be inverted)</li>
 </ul>
 <h2 id="architecture">Architecture</h2>
 <p>The TransformationSpecification acts as a declarative intermediate representation that can be
@@ -222,17 +225,14 @@ interpreted by different execution backends:</p>
 <ul>
 <li><strong>ObjectTransformer</strong> (Python) — interprets the spec row-by-row, supports the full feature set
   including Python expressions, unit conversion, and cross-class lookups.</li>
-<li><strong>SQLCompiler / DuckDBTransformer</strong> (SQL) — compiles the spec to SQL for set-based execution.
-  This backend is <strong>experimental</strong>, and the subset it supports is narrow: <code>expr</code>, <code>value</code>,
-  <code>case()</code>, unit conversion and value mappings are <strong>dropped silently</strong> rather than raising,
-  so a spec using any of them compiles to SQL that quietly omits those slots. Use the
-  ObjectTransformer unless you have verified your spec compiles faithfully. The
-  <a href="examples/Tutorial-SQLCompiler/">SQL Compilation tutorial</a> shows the shape it does handle.</li>
+<li><strong>SQLCompiler / DuckDBTransformer</strong> (SQL) — an <strong>experimental stub</strong> that handles only plain
+  <code>populated_from</code> renames. Any other slot derivation compiles to SQL that refers to a column
+  that doesn't exist. Use the ObjectTransformer.</li>
 </ul>
 <p>Transformed data serializes to text (YAML, JSON, JSONL, TSV, CSV) or to a columnar
 artifact (Parquet, DuckDB). The columnar formats preserve nested structure that the
 flat text formats cannot: a nested object becomes a <code>STRUCT</code> column rather than being
-flattened away. See <a href="#columnar-output">Columnar Output</a>.</p>
+flattened away. See <a href="cli/#columnar-output">Columnar Output</a>.</p>
 <p>This documentation is available at:</p>
 <ul>
 <li><a href="https://linkml.io/linkml-map/">linkml.io/linkml-map/</a></li>
@@ -240,135 +240,6 @@ flattened away. See <a href="#columnar-output">Columnar Output</a>.</p>
 <p>Status:</p>
 <p>The transformation data model is not yet fully stable, and may be subject to change.
 Not all parts of the model are implemented in the reference Python framework.</p>
-<h2 id="quick-start">Quick Start</h2>
-<h3 id="install">Install</h3>
-<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>linkml-map
-</code></pre></div>
-<p>Or with <code>uv</code> for project-managed environments:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>add<span class="w"> </span>linkml-map
-</code></pre></div>
-<p>Verify the install:</p>
-<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>--help
-</code></pre></div>
-<p>When using <code>uv</code>, prefix CLI invocations with <code>uv run</code> to use the project environment (e.g. <code>uv run linkml-map --help</code>).</p>
-<h3 id="run-the-included-example">Run the included example</h3>
-<p>The repository includes a <code>personinfo_basic</code> example that transforms <code>Person</code> records into <code>Agent</code> records. Clone the repo to get the example files:</p>
-<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/linkml/linkml-map.git
-<span class="nb">cd</span><span class="w"> </span>linkml-map/tests/input/examples/personinfo_basic
-linkml-map<span class="w"> </span>map-data<span class="w"> </span>--unrestricted-eval<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-T<span class="w"> </span>transform/personinfo-to-agent.transform.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-s<span class="w"> </span>source/personinfo.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>data/Container-001.yaml
-</code></pre></div>
-<p>This produces:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">agents</span><span class="p">:</span>
-<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">P:001</span>
-<span class="w">  </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fred bloggs</span>
-<span class="w">  </span><span class="nt">age</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">33 years</span>
-<span class="w">  </span><span class="nt">primary_email</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fred.bloggs@example.com</span>
-<span class="w">  </span><span class="nt">driving_since</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2014-03-31</span>
-<span class="w">  </span><span class="nt">first_known_event</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1990-01-01</span>
-<span class="w">  </span><span class="nt">current_address</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">address_of</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">foo</span>
-<span class="w">    </span><span class="nt">street</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1 oak street</span>
-<span class="w">    </span><span class="nt">city</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">oaktown</span>
-<span class="w">  </span><span class="nt">has_familial_relationships</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SIBLING_OF</span>
-<span class="w">    </span><span class="nt">related_to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">P:002</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CHILD_OF</span>
-<span class="w">    </span><span class="nt">related_to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">P:003</span>
-<span class="nn">...</span>
-</code></pre></div>
-<p>This example uses Python-rich expressions (filtering over multivalued slots) which require <code>--unrestricted-eval</code>. Most transformation specifications use simpler expressions and don't need this flag.</p>
-<h2 id="basic-idea">Basic idea</h2>
-<p>Given the LinkML schema</p>
-<div class="highlight"><pre><span></span><code><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/examples/personinfo</span>
-<span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">personinfo</span>
-<span class="nt">prefixes</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">linkml</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/</span>
-<span class="w">  </span><span class="nt">personinfo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/linkml/examples/personinfo</span>
-<span class="nt">imports</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">linkml:types</span>
-<span class="nt">default_range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<span class="nt">default_prefix</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">personinfo</span>
-
-<span class="nt">classes</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">Person</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">attributes</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">id</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">given_name</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">family_name</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">aliases</span><span class="p">:</span>
-<span class="w">        </span><span class="nt">multivalued</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<span class="w">      </span><span class="nt">height_in_cm</span><span class="p">:</span>
-<span class="w">        </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">float</span>
-<span class="w">        </span><span class="nt">unit</span><span class="p">:</span>
-<span class="w">          </span><span class="nt">ucum_code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cm</span>
-<span class="w">      </span><span class="nt">age_in_years</span><span class="p">:</span>
-<span class="w">        </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">integer</span>
-</code></pre></div>
-<p>and an object that conforms to it, e.g.:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">given_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Jane</span>
-<span class="nt">family_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Doe</span>
-<span class="nt">height_in_cm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">172.0</span>
-<span class="nt">age_in_years</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">33</span>
-<span class="nt">aliases</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">Janey</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">Janie</span><span class="p p-Indicator">]</span>
-</code></pre></div>
-<p>Define a mapping in YAML:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">class_derivations</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">Individual</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Person</span>
-<span class="w">    </span><span class="nt">slot_derivations</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">name</span><span class="p">:</span>
-<span class="w">        </span><span class="nt">expr</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{given_name}</span><span class="nv"> </span><span class="s">+</span><span class="nv"> </span><span class="s">&#39;</span><span class="nv"> </span><span class="s">&#39;</span><span class="nv"> </span><span class="s">+</span><span class="nv"> </span><span class="s">{family_name}&quot;</span>
-<span class="w">        </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Concatenating given and family names</span>
-<span class="w">          </span><span class="l l-Scalar l-Scalar-Plain">note this is a bad assumption for names in general,</span>
-<span class="w">          </span><span class="l l-Scalar l-Scalar-Plain">this is just for demonstration</span>
-<span class="w">      </span><span class="nt">height_in_meters</span><span class="p">:</span>
-<span class="w">        </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">height_in_cm</span>
-<span class="w">        </span><span class="nt">unit_conversion</span><span class="p">:</span>
-<span class="w">          </span><span class="nt">target_unit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">m</span>
-<span class="w">      </span><span class="nt">aliases</span><span class="p">:</span>
-<span class="w">        </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aliases</span>
-<span class="w">        </span><span class="nt">stringification</span><span class="p">:</span>
-<span class="w">          </span><span class="nt">delimiter</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;|&#39;</span>
-</code></pre></div>
-<p>The schema mapping (aka <a href="schema/TransformationSpecification/">TransformationSpecification</a>) specifies how to transform the data model.</p>
-<p>The schema mapping is a collection of one or more <a href="schema/ClassDerivation/">ClassDerivation</a> objects,
-which themselves consist of one or more <a href="schema/SlotDerivation/">SlotDerivation</a> objects.</p>
-<p>A single specification can contain derivations for multiple target classes, and multiple
-derivations can target the same class (their slot derivations are merged).</p>
-<p>Run the transformation:</p>
-<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>map-data<span class="w"> </span>-T<span class="w"> </span>tr.yaml<span class="w"> </span>-s<span class="w"> </span>schema.yaml<span class="w"> </span>my-data.yaml
-</code></pre></div>
-<p>Giving:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Jane Doe</span>
-<span class="nt">height_in_meters</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.72</span>
-<span class="nt">aliases</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Janey|Janie</span>
-</code></pre></div>
-<h2 id="transform-your-own-data">Transform your own data</h2>
-<p>You need three things:</p>
-<ol>
-<li><strong>A source schema</strong> — a LinkML schema describing your input data</li>
-<li><strong>A transformation specification</strong> — the YAML file describing how source slots map to target slots</li>
-<li><strong>Your data</strong> — files in YAML, JSON, JSONL, TSV, or CSV that conform to the source schema</li>
-</ol>
-<p>Validate the spec first, then run the transformation:</p>
-<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>-p<span class="w"> </span>output
-
-linkml-map<span class="w"> </span>validate-spec<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--source-schema<span class="w"> </span>source.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--target-schema<span class="w"> </span>target.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>transform.yaml
-
-linkml-map<span class="w"> </span>map-data<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-T<span class="w"> </span>transform.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-s<span class="w"> </span>source.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--target-schema<span class="w"> </span>target.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-o<span class="w"> </span>output/result.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>data.yaml
-</code></pre></div>
-<p>For large datasets, add <code>--chunk-size N</code> for streaming output. See <a href="#running-the-code">Running the code</a> for the full set of CLI options per subcommand (including directory-mode input, tabular formats, and multi-format output), and the <a href="examples/Tutorial/">Tutorial Notebook</a> for a deeper walk-through of the transformation language itself.</p>
 <h2 id="details">Details</h2>
 <p>This repo contains both:</p>
 <ul>
@@ -390,108 +261,6 @@ can be interpreted in Python (full feature support) or compiled to SQL
 <li>Specifying mappings between different serializations of a model (e.g. OO to Relational)</li>
 <li>Mapping between normalized/non-redundant forms and denormalized/query-optimized forms</li>
 </ul>
-<h2 id="working-with-auto-generated-schemas">Working with Auto-Generated Schemas</h2>
-<p>When working with schemas auto-generated from tabular data (e.g., via <a href="https://github.com/linkml/schema-automator">schema-automator</a>),
-foreign key relationships may not be defined. The <code>source_schema_patches</code> feature allows you to augment the source schema
-with additional type information needed for cross-table lookups.</p>
-<h3 id="cross-class-slot-lookups">Cross-Class Slot Lookups</h3>
-<p>Use dot notation in <code>populated_from</code> to traverse foreign key relationships:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">class_derivations</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">FlatPerson</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Person</span>
-<span class="w">    </span><span class="nt">slot_derivations</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">id</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">name</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">org_name</span><span class="p">:</span>
-<span class="w">        </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">org_id.name</span><span class="w">  </span><span class="c1"># Get &#39;name&#39; from the Organization referenced by org_id</span>
-</code></pre></div>
-<p>This requires:
-1. The source schema defines <code>org_id</code> with <code>range: Organization</code>
-2. The transformer has an <code>ObjectIndex</code> created via <code>transformer.index(container_data, "Container")</code></p>
-<h3 id="inlined-nested-data">Inlined Nested Data</h3>
-<p>The same dot notation also traverses <em>inlined</em> nested objects (tree-shaped sources such
-as XML, JSON Schema, OWL, or EML), walking directly into the nested structure:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">class_derivations</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">SchemaDefinition</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">EMLDocument</span>
-<span class="w">    </span><span class="nt">slot_derivations</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">title</span><span class="p">:</span>
-<span class="w">        </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dataset.title</span><span class="w">  </span><span class="c1"># &#39;title&#39; inside the inlined &#39;dataset&#39; object</span>
-</code></pre></div>
-<p>A segment is treated as inline traversal when the source slot is declared <code>inlined</code> /
-<code>inlined_as_list</code>, or when the value is a nested object at runtime. No <code>ObjectIndex</code> is
-needed — the nested data is already present. Mapping each item of a multivalued inline
-list through a sibling class derivation is not yet supported
-(<a href="https://github.com/linkml/linkml-map/issues/265">#265</a>); such a path raises an error
-naming the multivalued segment.</p>
-<h3 id="schema-patches-for-auto-generated-schemas">Schema Patches for Auto-Generated Schemas</h3>
-<p>If your source schema doesn't define FK relationships (common with auto-generated schemas),
-use <code>source_schema_patches</code> to add them:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">source_schema_patches</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">classes</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">Person</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">attributes</span><span class="p">:</span>
-<span class="w">        </span><span class="nt">org_id</span><span class="p">:</span>
-<span class="w">          </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Organization</span><span class="w">  </span><span class="c1"># Add FK relationship</span>
-
-<span class="nt">class_derivations</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">FlatPerson</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Person</span>
-<span class="w">    </span><span class="nt">slot_derivations</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">org_name</span><span class="p">:</span>
-<span class="w">        </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">org_id.name</span><span class="w">  </span><span class="c1"># Now works with the patched schema</span>
-</code></pre></div>
-<p>The patches use standard LinkML schema YAML structure and are applied before transformation runs.
-This keeps your auto-generated schemas reproducible while adding semantic information discovered during transform design.</p>
-<h2 id="identifiers">Identifiers</h2>
-<p>When the target schema gives a class an identifier slot (<code>identifier: true</code>), every record
-of that class needs a value for it. A class derivation provides one in one of two ways:</p>
-<ul>
-<li><strong>Derive it</strong> like any other slot. Use this when other records refer to the id — a
-  natural key that a referring spec can recompute, e.g.
-  <code>uuid5("https://example.org/Visit", str({participant}) + ":" + str({visit}))</code>.</li>
-<li><strong>Mint it</strong> with <code>mint_ids: true</code>. The id becomes a UUID5 hash of the record's own
-  content. Use this for records nothing refers to.</li>
-</ul>
-<p>If a derivation does neither, linkml-map refuses to produce output and names the class
-derivation. With <code>--continue-on-error</code>, it reports the problem once, writes the records
-without ids, and exits non-zero. Without a target schema there is no identifier to check.</p>
-<h3 id="turning-minting-on">Turning minting on</h3>
-<p>Minting is off unless asked for. It can be turned on, or off again, at three levels;
-the most specific setting wins:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">mint_ids</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">              </span><span class="c1"># 1. the whole specification (also the default)</span>
-
-<span class="nt">class_defaults</span><span class="p">:</span><span class="w">              </span><span class="c1"># 2. every derivation of a target class</span>
-<span class="w">  </span><span class="nt">MeasurementObservation</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">mint_ids</span><span class="p">:</span><span class="w"> </span><span class="nv">true</span><span class="p p-Indicator">}</span>
-<span class="w">  </span><span class="nt">Quantity</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">mint_ids</span><span class="p">:</span><span class="w"> </span><span class="nv">true</span><span class="p p-Indicator">}</span>
-
-<span class="nt">class_derivations</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">MeasurementObservation</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lab_results</span>
-<span class="w">    </span><span class="nt">mint_ids</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">          </span><span class="c1"># 3. this derivation only</span>
-<span class="w">    </span><span class="nt">slot_derivations</span><span class="p">:</span>
-<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">...</span>
-</code></pre></div>
-<p>Abstract and mixin target classes are skipped, since they have no records of their own.
-An <code>id</code> derived by an ancestor derivation (<code>is_a</code>) counts as derived.</p>
-<p>When specifications are merged from several files, <code>mint_ids</code> and <code>class_defaults</code> must
-agree across them: conflicting values are an error rather than being decided by file
-order. A single file per directory holding these settings applies to everything merged
-with it.</p>
-<h3 id="what-a-minted-id-is">What a minted id is</h3>
-<div class="highlight"><pre><span></span><code>id = uuid5(uuid5(NAMESPACE_URL, &quot;&lt;target schema id&gt;/&lt;TargetClass&gt;&quot;), canonical(record))
-</code></pre></div>
-<p>The record is hashed as emitted — after derivation, without hidden slots or the id itself.
-Its canonical form sorts keys; drops nulls, empty lists, and empty objects; sorts list
-items unless the target slot is <code>list_elements_ordered</code>; writes every number in one
-fixed-point form (so <code>5</code>, <code>5.0</code>, and <code>5.00</code> agree, and floats are rounded to 15
-significant digits first); and includes nested objects with their own minted ids.</p>
-<p>The same record always gets the same id, whatever the row order, chunking, or parallelism,
-and identical records get identical ids, so duplicates are easy to find. But these are
-<strong>content hashes, not stable identifiers</strong>: changing any emitted value — or adding a slot
-that has a value — changes the id. Don't mint ids for classes other records refer to; give
-those <code>mint_ids: false</code> so a forgotten derivation is caught. The background is in
-<a href="https://github.com/linkml/linkml-map/issues/342">#342</a>.</p>
 <h2 id="data-model">Data Model</h2>
 <p>The data model for transformations mirrors the data model for schemas:</p>
 <ul>
@@ -509,122 +278,6 @@ those <code>mint_ids: false</code> so a forgotten derivation is caught. The back
 <ul>
 <li><a href="specification/compliance/">Compliance Suite</a></li>
 </ul>
-<h2 id="running-the-code">Running the code</h2>
-<p>The <code>linkml-map</code> CLI has the following subcommands:</p>
-<ul>
-<li><code>map-data</code> — transform data from a source schema using a transformation specification</li>
-<li><code>derive-schema</code> — derive a target schema from a source schema and a transformation specification</li>
-<li><code>invert</code> — invert a transformation specification (when expressions are reversible)</li>
-<li><code>compile</code> — compile a transformation specification to another representation</li>
-<li><code>validate-spec</code> — structurally validate transformation specification files</li>
-</ul>
-<p>Run any subcommand with <code>--help</code> for full options.</p>
-<h3 id="map-data">map-data</h3>
-<p>Transforms (maps) data from a source schema to a target schema. This could range from a simple data dictionary mapping
-through to a complex mapping.</p>
-<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>tests/input/examples/personinfo_basic
-linkml-map<span class="w"> </span>map-data<span class="w"> </span>--unrestricted-eval<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-T<span class="w"> </span>transform/personinfo-to-agent.transform.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-s<span class="w"> </span>source/personinfo.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>data/Container-001.yaml
-</code></pre></div>
-<h4 id="tabular-data-support-tsvcsv">Tabular Data Support (TSV/CSV)</h4>
-<p>The <code>map-data</code> command supports tabular data files (TSV and CSV) as input, enabling transformations
-on large datasets with streaming output.</p>
-<p><strong>Single TSV/CSV file:</strong></p>
-<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>map-data<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-T<span class="w"> </span>transform.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-s<span class="w"> </span>source_schema.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--source-type<span class="w"> </span>Person<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>people.tsv
-</code></pre></div>
-<p><strong>Directory of data files:</strong></p>
-<p>When transforming data from multiple source types, organize your data in a directory with files
-named after the source type (e.g., <code>Person.tsv</code>, <code>Organization.csv</code>):</p>
-<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>map-data<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-T<span class="w"> </span>transform.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-s<span class="w"> </span>source_schema.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-f<span class="w"> </span>jsonl<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-o<span class="w"> </span>output.jsonl<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>./data/
-</code></pre></div>
-<p><strong>Output formats:</strong></p>
-<p>The <code>-f/--output-format</code> option supports:
-- <code>yaml</code> - YAML format (default)
-- <code>json</code> - JSON array
-- <code>jsonl</code> - JSON Lines (one object per line)
-- <code>tsv</code> - Tab-separated values
-- <code>csv</code> - Comma-separated values
-- <code>parquet</code> - Apache Parquet, with nested fields preserved as columns
-- <code>duckdb</code> - a DuckDB database file, one table per run</p>
-<p>Output format can also be inferred from the output file extension.</p>
-<p><strong>Streaming for large files:</strong></p>
-<p>For large datasets, use <code>--chunk-size</code> to control memory usage:</p>
-<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>map-data<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-T<span class="w"> </span>transform.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-s<span class="w"> </span>schema.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--source-type<span class="w"> </span>Person<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--chunk-size<span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-f<span class="w"> </span>jsonl<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>large_dataset.tsv
-</code></pre></div>
-<h4 id="multi-format-output">Multi-Format Output</h4>
-<p>Use <code>-O</code>/<code>--additional-output</code> to write multiple output formats simultaneously
-from a single transformation pass:</p>
-<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>map-data<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-T<span class="w"> </span>transform.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-s<span class="w"> </span>schema.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-f<span class="w"> </span>jsonl<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-o<span class="w"> </span>output.jsonl<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-O<span class="w"> </span>output.tsv<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-O<span class="w"> </span>output.json<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>people.tsv
-</code></pre></div>
-<p>The primary output uses <code>-f</code>/<code>-o</code> as usual. Each <code>-O</code> flag adds an additional
-output file whose format is inferred from the file extension (<code>.json</code>, <code>.jsonl</code>,
-<code>.yaml</code>, <code>.yml</code>, <code>.tsv</code>, <code>.csv</code>, <code>.parquet</code>, <code>.duckdb</code>). All outputs are written
-in a single streaming pass.</p>
-<h4 id="columnar-output">Columnar Output</h4>
-<p><code>parquet</code> and <code>duckdb</code> write a columnar artifact rather than text. Unlike <code>tsv</code>
-and <code>csv</code>, which flatten to one row of scalars, these keep nested structure: a
-nested object becomes a <code>STRUCT</code> column and a list of them a <code>STRUCT[]</code>, so a
-consumer reads a nested field with a column access instead of a join.</p>
-<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>map-data<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-T<span class="w"> </span>transform.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-s<span class="w"> </span>schema.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--source-type<span class="w"> </span>Person<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-o<span class="w"> </span>agents.parquet<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>data/Person.tsv
-</code></pre></div>
-<p>DuckDB output writes one table per run, named by <code>--table-name</code> and defaulting
-to the output file's stem. Pointing several runs at the same <code>.duckdb</code> path
-builds up a database covering multiple target classes:</p>
-<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>map-data<span class="w"> </span>-T<span class="w"> </span>transform.yaml<span class="w"> </span>-s<span class="w"> </span>schema.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--source-type<span class="w"> </span>Person<span class="w"> </span>--table-name<span class="w"> </span>person<span class="w"> </span>-o<span class="w"> </span>study.duckdb<span class="w"> </span>data/Person.tsv
-linkml-map<span class="w"> </span>map-data<span class="w"> </span>-T<span class="w"> </span>transform.yaml<span class="w"> </span>-s<span class="w"> </span>schema.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--source-type<span class="w"> </span>Measurement<span class="w"> </span>--table-name<span class="w"> </span>measurement<span class="w"> </span>-o<span class="w"> </span>study.duckdb<span class="w"> </span>data/Measurement.tsv
-</code></pre></div>
-<p>Both formats also work as <code>-O</code> targets alongside a text primary output. Neither
-adds a dependency: <code>duckdb</code> is already required by the join engine.</p>
-<h3 id="derive-schema">derive-schema</h3>
-<p>Derives a target schema (the "profile") implied by the transformation specification.</p>
-<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>tests/input/examples/personinfo_basic
-linkml-map<span class="w"> </span>derive-schema<span class="w"> </span>-T<span class="w"> </span>transform/personinfo-to-agent.transform.yaml<span class="w"> </span>source/personinfo.yaml
-</code></pre></div>
-<h3 id="validate-spec">validate-spec</h3>
-<p>Structurally validates a transformation specification against source and target schemas. Reports unresolved class/slot references, deprecated fields, and other issues.</p>
-<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>validate-spec<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--source-schema<span class="w"> </span>source/personinfo.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--target-schema<span class="w"> </span>target/agent.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>transform/personinfo-to-agent.transform.yaml
-</code></pre></div>
-<p>Use <code>--strict</code> to treat warnings as errors. Supports validating multiple files or directories of specs in a single call.</p>
-<h3 id="compile">compile</h3>
-<p>Compiles a transformation specification to another representation.</p>
-<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>compile<span class="w"> </span>--target<span class="w"> </span>python<span class="w"> </span>-T<span class="w"> </span>transform.yaml<span class="w"> </span>-s<span class="w"> </span>source.yaml
-linkml-map<span class="w"> </span>compile<span class="w"> </span>--target<span class="w"> </span>markdown<span class="w"> </span>-T<span class="w"> </span>transform.yaml<span class="w"> </span>-s<span class="w"> </span>source.yaml
-</code></pre></div>
-<p>Currently supported <code>--target</code> values are <code>python</code> (default) and <code>markdown</code>. A SQL compilation backend (<code>SQLCompiler</code> / <code>DuckDBTransformer</code>) exists for programmatic use but is not yet exposed through the <code>compile</code> subcommand.</p>
 
   <br>
     
@@ -637,12 +290,12 @@ linkml-map<span class="w"> </span>compile<span class="w"> </span>--target<span c
   <div class="row wm-article-nav-buttons" role="navigation" aria-label="navigation">
     
     <div class="wm-article-nav pull-right">
-      <a href="examples/Tutorial/" class="btn btn-xs btn-default pull-right">
+      <a href="quickstart/" class="btn btn-xs btn-default pull-right">
         Next
         <i class="fa fa-chevron-right" aria-hidden="true"></i>
       </a>
-      <a href="examples/Tutorial/" class="btn btn-xs btn-link">
-        Tutorial
+      <a href="quickstart/" class="btn btn-xs btn-link">
+        Quick Start
       </a>
     </div>
     
@@ -663,5 +316,5 @@ Edit on GitHub</a>
 </html>
 <!--
 MkDocs version : 1.6.1
-Build Date UTC : 2026-10-23 14:58:31.113298+00:00
+Build Date UTC : 2026-10-23 16:03:28.278249+00:00
 -->

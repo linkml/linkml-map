@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    
+    <link rel="canonical" href="https://linkml.github.io/linkml-map/writing-specs/">
+    <link rel="shortcut icon" href="../img/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <title>Writing Specifications - LinkML-Map</title>
+    <link href="../css/bootstrap-3.3.7.min.css" rel="stylesheet">
+    <link href="../css/font-awesome-4.7.0.css" rel="stylesheet">
+    <link href="../css/base.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/highlight.css">
+    <link href="../assets/_mkdocstrings.css" rel="stylesheet">
+    <link href="../css/ansi-colours.css" rel="stylesheet">
+    <link href="../css/jupyter-cells.css" rel="stylesheet">
+    <link href="../css/pandas-dataframe.css" rel="stylesheet">
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+
+    <script src="../js/jquery-3.2.1.min.js"></script>
+    <script src="../js/bootstrap-3.3.7.min.js"></script>
+    <script src="../js/highlight.pack.js"></script>
+    
+    <base target="_top">
+    <script>
+      var base_url = '..';
+      var is_top_frame = false;
+        
+        var pageToc = [
+          {title: "Writing Specifications", url: "#_top", children: [
+              {title: "Typing Output to the Target Schema", url: "#typing-output-to-the-target-schema" },
+              {title: "Joining Tables", url: "#joining-tables" },
+              {title: "Working with Auto-Generated Schemas", url: "#working-with-auto-generated-schemas" },
+              {title: "Identifiers", url: "#identifiers" },
+          ]},
+        ];
+
+    </script>
+    <script src="../js/base.js"></script> 
+</head>
+
+<body>
+<script>
+if (is_top_frame) { $('body').addClass('wm-top-page'); }
+</script>
+
+
+
+<div class="container-fluid wm-page-content">
+  <a name="_top"></a>
+    
+
+    
+    
+      
+    
+
+  <div class="row wm-article-nav-buttons" role="navigation" aria-label="navigation">
+    
+    <div class="wm-article-nav pull-right">
+      <a href="../cli/" class="btn btn-xs btn-default pull-right">
+        Next
+        <i class="fa fa-chevron-right" aria-hidden="true"></i>
+      </a>
+      <a href="../cli/" class="btn btn-xs btn-link">
+        Command-Line Reference
+      </a>
+    </div>
+    
+    <div class="wm-article-nav">
+      <a href="../examples/Tutorial/" class="btn btn-xs btn-default pull-left">
+        <i class="fa fa-chevron-left" aria-hidden="true"></i>
+        Previous</a><a href="../examples/Tutorial/" class="btn btn-xs btn-link">
+        Python Tutorial
+      </a>
+    </div>
+    
+  </div>
+
+    
+
+    <h1 id="writing-specifications">Writing Specifications</h1>
+<h2 id="typing-output-to-the-target-schema">Typing Output to the Target Schema</h2>
+<p>Given a target schema (<code>--target-schema</code>, or <code>target_schemaview</code> from Python), each value is
+converted to the target slot's range before it is written. This applies whether the value
+comes from <code>populated_from</code>, <code>expr:</code> or <code>value:</code>.</p>
+<p>With this target schema:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">classes</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">Person</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">attributes</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">id</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">identifier</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">      </span><span class="nt">sex</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SexEnum</span>
+<span class="w">      </span><span class="nt">weight_kg</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">decimal</span>
+<span class="w">      </span><span class="nt">smoker</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">boolean</span>
+<span class="nt">enums</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">SexEnum</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">permissible_values</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">FEMALE</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">meaning</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">OMOP:8532</span>
+<span class="w">        </span><span class="nt">aliases</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">female</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">F</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">MALE</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">meaning</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">OMOP:8507</span>
+<span class="w">        </span><span class="nt">aliases</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">male</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">M</span><span class="p p-Indicator">]</span>
+</code></pre></div>
+<p>a spec that only renames columns:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">class_derivations</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">Person</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Row</span>
+<span class="w">    </span><span class="nt">slot_derivations</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">id</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">sex</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">weight_kg</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">weight</span>
+<span class="w">      </span><span class="nt">smoker</span><span class="p">:</span>
+</code></pre></div>
+<p>turns this TSV, where every value is a string:</p>
+<div class="highlight"><pre><span></span><code>id  sex        weight  smoker
+P1  female     70.50   false
+P2  OMOP:8507  81      true
+P3  unknown    65.2    false
+</code></pre></div>
+<p>into:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;P1&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;sex&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;FEMALE&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;weight_kg&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">70.50</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;smoker&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">}</span>
+<span class="p">{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;P2&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;sex&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;MALE&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;weight_kg&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">81</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;smoker&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">}</span>
+<span class="p">{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;P3&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;sex&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;unknown&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;weight_kg&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">65.2</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;smoker&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">}</span>
+</code></pre></div>
+<p>with the warning <code>'unknown' is not a permissible value of enum SexEnum</code>.</p>
+<p><strong>Datatypes.</strong> Values are converted when the target range is <code>integer</code>, <code>float</code>, <code>decimal</code>,
+<code>boolean</code> or <code>string</code>, or a type derived from one of them. Other types, such as dates and
+URIs, pass through as they are. A value that
+can't be parsed, such as <code>no</code> for a boolean, fails the row at mapping time rather than
+producing output that fails validation later. <code>decimal</code> values are kept exact, trailing
+zeros included, in every output format.</p>
+<p><strong>Enums.</strong> A value is matched against the enum's permissible values by key, then <code>meaning</code>
+(CURIEs are expanded, so <code>OMOP:8507</code> matches its full URI), then <code>title</code>, then <code>aliases</code>,
+and written as the permissible value's key. The first of those that matches decides; a
+value matching two permissible values the same way is an error, as is a value matching
+none. Without <code>--strict</code> both are warnings and the value passes through unchanged; with
+it, the row fails. Enums defined by a query (<code>reachable_from</code>, <code>matches</code>, <code>concepts</code>,
+<code>include</code>, <code>minus</code>, <code>inherits</code>) or with no permissible values aren't resolved.</p>
+<p><strong>Overriding the target.</strong> A <code>range:</code> on a slot derivation takes precedence over the target
+schema. <code>validate-spec</code> warns when that override means values won't be coerced or resolved
+to the target slot's range, such as <code>range: string</code> on an enum slot.</p>
+<h2 id="joining-tables">Joining Tables</h2>
+<p>When the source is a directory of tables, a class derivation can read slots from a second
+table. Name the table and the columns that link it:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">class_derivations</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">Observation</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Visit</span>
+<span class="w">    </span><span class="nt">joins</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">Participant</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">source_key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">participant</span><span class="w">      </span><span class="c1"># column in Visit</span>
+<span class="w">        </span><span class="nt">lookup_key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">participant_id</span><span class="w">   </span><span class="c1"># column in Participant</span>
+<span class="w">    </span><span class="nt">slot_derivations</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">id</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">visit_id</span>
+<span class="w">      </span><span class="nt">weight</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">weight_kg</span>
+<span class="w">      </span><span class="nt">sex</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Participant.sex</span>
+<span class="w">      </span><span class="nt">born</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">expr</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{Participant.birth_year}&quot;</span>
+</code></pre></div>
+<p>Use <code>join_on: &lt;column&gt;</code> instead when both tables name the key column the same. If they do,
+the <code>joins:</code> block can be left out entirely: a reference like <code>{Participant.sex}</code> is joined
+on the column the two tables share.</p>
+<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>map-data<span class="w"> </span>-T<span class="w"> </span>spec.yaml<span class="w"> </span>-s<span class="w"> </span>source.yaml<span class="w"> </span>--source-type<span class="w"> </span>Visit<span class="w"> </span>-f<span class="w"> </span>jsonl<span class="w"> </span>data/
+</code></pre></div>
+<p>with <code>data/Visit.tsv</code> and <code>data/Participant.tsv</code> gives:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;V1&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;weight&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">70.5</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;sex&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;F&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;born&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1980</span><span class="p">}</span>
+<span class="p">{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;V2&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;weight&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">81</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;sex&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;M&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;born&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1975</span><span class="p">}</span>
+<span class="p">{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;V3&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;weight&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">65</span><span class="p">}</span>
+</code></pre></div>
+<p>A row with no match in the joined table, like <code>V3</code>, gets no values from it.</p>
+<h2 id="working-with-auto-generated-schemas">Working with Auto-Generated Schemas</h2>
+<p>When working with schemas auto-generated from tabular data (e.g., via <a href="https://github.com/linkml/schema-automator">schema-automator</a>),
+foreign key relationships may not be defined. The <code>source_schema_patches</code> feature allows you to augment the source schema
+with additional type information needed for cross-table lookups.</p>
+<h3 id="cross-class-slot-lookups">Cross-Class Slot Lookups</h3>
+<p>Use dot notation in <code>populated_from</code> to traverse foreign key relationships:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">class_derivations</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">FlatPerson</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Person</span>
+<span class="w">    </span><span class="nt">slot_derivations</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">id</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">name</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">org_name</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">org_id.name</span><span class="w">  </span><span class="c1"># Get &#39;name&#39; from the Organization referenced by org_id</span>
+</code></pre></div>
+<p>This requires:
+1. The source schema defines <code>org_id</code> with <code>range: Organization</code>
+2. The referenced objects are indexed. <code>map-data</code> indexes its YAML or JSON input for you; from
+   Python, call <code>transformer.index(container_data, "Container")</code> before mapping. For tables,
+   use <a href="#joining-tables">joins</a> instead.</p>
+<h3 id="inlined-nested-data">Inlined Nested Data</h3>
+<p>The same dot notation also traverses <em>inlined</em> nested objects (tree-shaped sources such
+as XML, JSON Schema, OWL, or EML), walking directly into the nested structure:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">class_derivations</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">SchemaDefinition</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">EMLDocument</span>
+<span class="w">    </span><span class="nt">slot_derivations</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">title</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dataset.title</span><span class="w">  </span><span class="c1"># &#39;title&#39; inside the inlined &#39;dataset&#39; object</span>
+</code></pre></div>
+<p>A segment is treated as inline traversal when the source slot is declared <code>inlined</code> /
+<code>inlined_as_list</code>, or when the value is a nested object at runtime. No <code>ObjectIndex</code> is
+needed — the nested data is already present. Mapping each item of a multivalued inline
+list through a sibling class derivation is not yet supported
+(<a href="https://github.com/linkml/linkml-map/issues/265">#265</a>); such a path raises an error
+naming the multivalued segment.</p>
+<h3 id="schema-patches-for-auto-generated-schemas">Schema Patches for Auto-Generated Schemas</h3>
+<p>If your source schema doesn't define FK relationships (common with auto-generated schemas),
+use <code>source_schema_patches</code> to add them:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">source_schema_patches</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">classes</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">Person</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">attributes</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">org_id</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Organization</span><span class="w">  </span><span class="c1"># Add FK relationship</span>
+
+<span class="nt">class_derivations</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">FlatPerson</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Person</span>
+<span class="w">    </span><span class="nt">slot_derivations</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">org_name</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">org_id.name</span><span class="w">  </span><span class="c1"># Now works with the patched schema</span>
+</code></pre></div>
+<p>The patches use standard LinkML schema YAML structure and are applied before transformation runs.
+This keeps your auto-generated schemas reproducible while adding semantic information discovered during transform design.</p>
+<h2 id="identifiers">Identifiers</h2>
+<p>When the target schema gives a class an identifier slot (<code>identifier: true</code>), every record
+of that class needs a value for it. A class derivation provides one in one of two ways:</p>
+<ul>
+<li><strong>Derive it</strong> like any other slot. Use this when other records refer to the id — a
+  natural key that a referring spec can recompute, e.g.
+  <code>uuid5("https://example.org/Visit", str({participant}) + ":" + str({visit}))</code>.</li>
+<li><strong>Mint it</strong> with <code>mint_ids: true</code>. The id becomes a UUID5 hash of the record's own
+  content. Use this for records nothing refers to.</li>
+</ul>
+<p>If a derivation does neither, linkml-map refuses to produce output and names the class
+derivation. With <code>--continue-on-error</code>, it reports the problem once, writes the records
+without ids, and exits non-zero. Without a target schema there is no identifier to check.</p>
+<h3 id="turning-minting-on">Turning minting on</h3>
+<p>Minting is off unless asked for. It can be turned on, or off again, at three levels;
+the most specific setting wins:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">mint_ids</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">              </span><span class="c1"># 1. the whole specification (also the default)</span>
+
+<span class="nt">class_defaults</span><span class="p">:</span><span class="w">              </span><span class="c1"># 2. every derivation of a target class</span>
+<span class="w">  </span><span class="nt">MeasurementObservation</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">mint_ids</span><span class="p">:</span><span class="w"> </span><span class="nv">true</span><span class="p p-Indicator">}</span>
+<span class="w">  </span><span class="nt">Quantity</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">mint_ids</span><span class="p">:</span><span class="w"> </span><span class="nv">true</span><span class="p p-Indicator">}</span>
+
+<span class="nt">class_derivations</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">MeasurementObservation</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">populated_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lab_results</span>
+<span class="w">    </span><span class="nt">mint_ids</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">          </span><span class="c1"># 3. this derivation only</span>
+<span class="w">    </span><span class="nt">slot_derivations</span><span class="p">:</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+</code></pre></div>
+<p>Abstract and mixin target classes are skipped, since they have no records of their own.
+An <code>id</code> derived by an ancestor derivation (<code>is_a</code>) counts as derived.</p>
+<p>When specifications are merged from several files, <code>mint_ids</code> and <code>class_defaults</code> must
+agree across them: conflicting values are an error rather than being decided by file
+order. A single file per directory holding these settings applies to everything merged
+with it.</p>
+<h3 id="what-a-minted-id-is">What a minted id is</h3>
+<div class="highlight"><pre><span></span><code>id = uuid5(uuid5(NAMESPACE_URL, &quot;&lt;target schema id&gt;/&lt;TargetClass&gt;&quot;), canonical(record))
+</code></pre></div>
+<p>The record is hashed as emitted — after derivation, without hidden slots or the id itself.
+Its canonical form sorts keys; drops nulls, empty lists, and empty objects; sorts list
+items unless the target slot is <code>list_elements_ordered</code>; writes every number in one
+fixed-point form (so <code>5</code>, <code>5.0</code>, and <code>5.00</code> agree, and floats are rounded to 15
+significant digits first); and includes nested objects with their own minted ids.</p>
+<p>The same record always gets the same id, whatever the row order, chunking, or parallelism,
+and identical records get identical ids, so duplicates are easy to find. But these are
+<strong>content hashes, not stable identifiers</strong>: changing any emitted value — or adding a slot
+that has a value — changes the id. Don't mint ids for classes other records refer to; give
+those <code>mint_ids: false</code> so a forgotten derivation is caught. The background is in
+<a href="https://github.com/linkml/linkml-map/issues/342">#342</a>.</p>
+
+  <br>
+    
+
+    
+    
+      
+    
+
+  <div class="row wm-article-nav-buttons" role="navigation" aria-label="navigation">
+    
+    <div class="wm-article-nav pull-right">
+      <a href="../cli/" class="btn btn-xs btn-default pull-right">
+        Next
+        <i class="fa fa-chevron-right" aria-hidden="true"></i>
+      </a>
+      <a href="../cli/" class="btn btn-xs btn-link">
+        Command-Line Reference
+      </a>
+    </div>
+    
+    <div class="wm-article-nav">
+      <a href="../examples/Tutorial/" class="btn btn-xs btn-default pull-left">
+        <i class="fa fa-chevron-left" aria-hidden="true"></i>
+        Previous</a><a href="../examples/Tutorial/" class="btn btn-xs btn-link">
+        Python Tutorial
+      </a>
+    </div>
+    
+  </div>
+
+    <br>
+</div>
+
+<footer class="container-fluid wm-page-content">
+      <p>
+        <a href="https://github.com/linkml/linkml-map/edit/master/docs/writing-specs.md"><i class="fa fa-github"></i>
+Edit on GitHub</a>
+      </p>
+  <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a> using <a href="https://github.com/gristlabs/mkdocs-windmill">Windmill</a> theme by Grist Labs.</p>
+</footer>
+
+</body>
+</html>

@@ -11,7 +11,7 @@
     <link rel="canonical" href="https://linkml.github.io/linkml-map/examples/Tutorial/">
     <link rel="shortcut icon" href="../../img/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-    <title>Tutorial - LinkML-Map</title>
+    <title>Python Tutorial - LinkML-Map</title>
     <link href="../../css/bootstrap-3.3.7.min.css" rel="stylesheet">
     <link href="../../css/font-awesome-4.7.0.css" rel="stylesheet">
     <link href="../../css/base.css" rel="stylesheet">
@@ -36,18 +36,15 @@
       var is_top_frame = false;
         
         var pageToc = [
-          {title: "LinkML-Map tutorial", url: "#_top", children: [
+          {title: "LinkML-Map tutorial: using it from Python", url: "#_top", children: [
               {title: "Creating an example schema", url: "#creating-an-example-schema" },
-              {title: "Creating a Transformer Session object", url: "#creating-a-transformer-session-object" },
-              {title: "Visualizing transformer specifications", url: "#visualizing-transformer-specifications" },
+              {title: "Creating a transformer", url: "#creating-a-transformer" },
               {title: "Transforming objects", url: "#transforming-objects" },
-              {title: "Deriving target schemas", url: "#deriving-target-schemas" },
-              {title: "Using Expressions", url: "#using-expressions" },
-              {title: "Unit conversions", url: "#unit-conversions" },
-              {title: "Adding target_unit to transformer specification", url: "#adding-target_unit-to-transformer-specification" },
-              {title: "Units in derived schema", url: "#units-in-derived-schema" },
-              {title: "Tabular serialization", url: "#tabular-serialization" },
-              {title: "Reverse transform", url: "#reverse-transform" },
+              {title: "Using expressions", url: "#using-expressions" },
+              {title: "Typing output to a target schema", url: "#typing-output-to-a-target-schema" },
+              {title: "Unit conversions and flattening", url: "#unit-conversions-and-flattening" },
+              {title: "Under the hood: working with the specification", url: "#under-the-hood-working-with-the-specification" },
+              {title: "Next steps", url: "#next-steps" },
           ]},
         ];
 
@@ -74,20 +71,20 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
   <div class="row wm-article-nav-buttons" role="navigation" aria-label="navigation">
     
     <div class="wm-article-nav pull-right">
-      <a href="../Tutorial-SQLCompiler/" class="btn btn-xs btn-default pull-right">
+      <a href="../../writing-specs/" class="btn btn-xs btn-default pull-right">
         Next
         <i class="fa fa-chevron-right" aria-hidden="true"></i>
       </a>
-      <a href="../Tutorial-SQLCompiler/" class="btn btn-xs btn-link">
-        Compilation to SQL
+      <a href="../../writing-specs/" class="btn btn-xs btn-link">
+        Writing Specifications
       </a>
     </div>
     
     <div class="wm-article-nav">
-      <a href="../.." class="btn btn-xs btn-default pull-left">
+      <a href="../../quickstart/" class="btn btn-xs btn-default pull-left">
         <i class="fa fa-chevron-left" aria-hidden="true"></i>
-        Previous</a><a href="../.." class="btn btn-xs btn-link">
-        Index
+        Previous</a><a href="../../quickstart/" class="btn btn-xs btn-link">
+        Quick Start
       </a>
     </div>
     
@@ -128,10 +125,11 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
 <div class="cell border-box-sizing text_cell rendered">
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="linkml-map-tutorial">LinkML-Map tutorial</h1>
-<p>This tutorial walks through basic programmatic use of the LinkML-Map framework.
-This is intended for Python developers - note that many of the operations here can also be performed
-at the command line.</p>
+<h1 id="linkml-map-tutorial-using-it-from-python">LinkML-Map tutorial: using it from Python</h1>
+<p>This tutorial walks through using LinkML-Map from Python. For most jobs the command line is
+enough (see the <a href="../../quickstart/">Quick Start</a>); use the Python API when a mapping is one step
+inside a larger program, or when you want to work with a specification itself.</p>
+<p>Every operation here has a command-line equivalent, noted as we go.</p>
 </div>
 </div>
 </div>
@@ -139,6 +137,11 @@ at the command line.</p>
 <div class="input">
 
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">linkml_runtime</span><span class="w"> </span><span class="kn">import</span> <span class="n">SchemaView</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">linkml_runtime.linkml_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">SlotDefinition</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">linkml_runtime.utils.schema_builder</span><span class="w"> </span><span class="kn">import</span> <span class="n">SchemaBuilder</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map</span><span class="w"> </span><span class="kn">import</span> <span class="n">ObjectTransformer</span>
 </code></pre></div>
 
 </div>
@@ -147,62 +150,88 @@ at the command line.</p>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="creating-an-example-schema">Creating an example schema</h2>
-<p>We will use a LinkML SchemaBuilder object to progressively build up a schema, adding
-additional features as we go.</p>
-<p>We'll start with a simple <code>Person</code> schema, with a few single valued scalar slots:</p>
+<p>We will use a LinkML SchemaBuilder object to build a source schema. We'll start with a simple
+<code>Person</code> schema, with a few single valued scalar slots:</p>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">linkml_runtime.utils.schema_builder</span><span class="w"> </span><span class="kn">import</span> <span class="n">SchemaBuilder</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">linkml_runtime.linkml_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">SlotDefinition</span>
-
-<span class="n">sb</span> <span class="o">=</span> <span class="n">SchemaBuilder</span><span class="p">()</span>
-<span class="n">sb</span><span class="o">.</span><span class="n">add_class</span><span class="p">(</span><span class="s2">&quot;Person&quot;</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="p">[</span><span class="n">SlotDefinition</span><span class="p">(</span><span class="s2">&quot;family_name&quot;</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">),</span> 
-                              <span class="n">SlotDefinition</span><span class="p">(</span><span class="s2">&quot;given_name&quot;</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">),</span>
-                              <span class="n">SlotDefinition</span><span class="p">(</span><span class="s2">&quot;age_in_years&quot;</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="s2">&quot;integer&quot;</span><span class="p">),</span>
-                              <span class="n">SlotDefinition</span><span class="p">(</span><span class="s2">&quot;height_in_cm&quot;</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">),</span>
-                              <span class="p">])</span>
+<div class="highlight"><pre><span></span><code><span class="n">sb</span> <span class="o">=</span> <span class="n">SchemaBuilder</span><span class="p">()</span>
+<span class="n">sb</span><span class="o">.</span><span class="n">add_class</span><span class="p">(</span>
+    <span class="s2">&quot;Person&quot;</span><span class="p">,</span>
+    <span class="n">slots</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">SlotDefinition</span><span class="p">(</span><span class="s2">&quot;family_name&quot;</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">),</span>
+        <span class="n">SlotDefinition</span><span class="p">(</span><span class="s2">&quot;given_name&quot;</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">),</span>
+        <span class="n">SlotDefinition</span><span class="p">(</span><span class="s2">&quot;age_in_years&quot;</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="s2">&quot;integer&quot;</span><span class="p">),</span>
+        <span class="n">SlotDefinition</span><span class="p">(</span><span class="s2">&quot;height_in_cm&quot;</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">),</span>
+    <span class="p">],</span>
+<span class="p">)</span>
 <span class="n">sb</span><span class="o">.</span><span class="n">add_defaults</span><span class="p">()</span>
+<span class="n">source</span> <span class="o">=</span> <span class="n">SchemaView</span><span class="p">(</span><span class="n">sb</span><span class="o">.</span><span class="n">schema</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">sb</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
 </code></pre></div>
 
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+<code>name: test-schema
+id: http://example.org/test-schema
+imports:
+- linkml:types
+prefixes:
+  linkml: https://w3id.org/linkml/
+  test_schema: http://example.org/test-schema/
+default_prefix: test_schema
+default_range: string
+slots:
+  family_name:
+    range: string
+  given_name:
+    range: string
+  age_in_years:
+    range: integer
+  height_in_cm:
+    range: float
+classes:
+  Person:
+    slots:
+    - family_name
+    - given_name
+    - age_in_years
+    - height_in_cm
+
+</code>
+</pre>
+</div>
+</div>
+</div>
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered">
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="creating-a-transformer-session-object">Creating a Transformer Session object</h2>
-<p>We will use a <code>Session</code> object which conveniently wraps a number of different capabilities;
-the first of these capabilities is to map (transform) data objects from one schema to another
-(implicit) schema using a <em>transformer specification</em>).</p>
-<p>Our initial transformer specification will be a trivial isomorphic one that:</p>
+<h2 id="creating-a-transformer">Creating a transformer</h2>
+<p>A transformer pairs a <em>transformation specification</em> with the source schema it maps from. Our
+first specification is a trivial one that:</p>
 <ul>
 <li>maps the <code>Person</code> class to an <code>Individual</code> class</li>
-<li>passes through <code>name</code> fields as-is</li>
-<li>renames measurement fields (<code>age_in_years</code> and <code>height_in_cm</code> to <code>age</code> and <code>height</code>)</li>
+<li>passes through the name fields as-is</li>
+<li>renames the measurement fields (<code>age_in_years</code> and <code>height_in_cm</code> to <code>age</code> and <code>height</code>)</li>
 </ul>
+<p><code>ObjectTransformer</code> takes the specification as a YAML file path, a dict, or a loaded
+specification, and the source schema as a path or a <code>SchemaView</code>. Here we use a dict:</p>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.session</span><span class="w"> </span><span class="kn">import</span> <span class="n">Session</span>
-
-<span class="n">session</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span>
-<span class="n">session</span><span class="o">.</span><span class="n">set_source_schema</span><span class="p">(</span><span class="n">sb</span><span class="o">.</span><span class="n">as_dict</span><span class="p">())</span>
-</code></pre></div>
-
-</div>
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-
-<div class="highlight"><pre><span></span><code><span class="c1"># Transformer specification (in YAML)</span>
-<span class="n">session</span><span class="o">.</span><span class="n">set_object_transformer</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="n">spec</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">class_derivations:</span>
 <span class="s2">  Individual:</span>
 <span class="s2">    populated_from: Person</span>
@@ -216,148 +245,31 @@ the first of these capabilities is to map (transform) data objects from one sche
 <span class="s2">      height:</span>
 <span class="s2">        populated_from: height_in_cm</span>
 <span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+
+<span class="n">tr</span> <span class="o">=</span> <span class="n">ObjectTransformer</span><span class="p">(</span><span class="n">specification</span><span class="o">=</span><span class="n">spec</span><span class="p">,</span> <span class="n">source_schemaview</span><span class="o">=</span><span class="n">source</span><span class="p">)</span>
 </code></pre></div>
 
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="visualizing-transformer-specifications">Visualizing transformer specifications</h2>
-<p>We can visualize the transformer specification using graphviz:</p>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-
-<div class="highlight"><pre><span></span><code><span class="n">session</span><span class="o">.</span><span class="n">graphviz</span><span class="p">()</span>
-</code></pre></div>
-
-</div>
-<div class="output_wrapper">
-<div class="output">
-<div class="output_area">
-<div class="output_svg output_subarea output_execute_result">
-
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-
-
-
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
- "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-
-
-
-
-<!-- Generated by graphviz version 5.0.1 (20220820.1526)
- -->
-
-
-
-<!-- Pages: 1 -->
-
-
-<svg height="121pt" viewbox="0.00 0.00 324.00 121.00" width="324pt" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g class="graph" id="graph0" transform="scale(1 1) rotate(0) translate(4 117)">
-<polygon fill="white" points="-4,4 -4,-117 320,-117 320,4 -4,4" stroke="none"></polygon>
-
-<!-- sourcePerson -->
-
-
-<g class="node" id="node1">
-<title>sourcePerson</title>
-<polygon fill="none" points="8.5,-87.5 8.5,-108.5 135.5,-108.5 135.5,-87.5 8.5,-87.5" stroke="black"></polygon>
-<text font-family="Times,serif" font-size="14.00" font-weight="bold" text-anchor="start" x="52" y="-95.3">Person</text>
-<polyline fill="none" points="8.5,-87.5 8.5,-66.5 135.5,-66.5 135.5,-87.5" stroke="black"></polyline>
-<text font-family="Times,serif" font-size="14.00" text-anchor="start" x="14.5" y="-73.3">family_name : string</text>
-<polyline fill="none" points="8.5,-66.5 8.5,-45.5 135.5,-45.5 135.5,-66.5" stroke="black"></polyline>
-<text font-family="Times,serif" font-size="14.00" text-anchor="start" x="17.5" y="-52.3">given_name : string</text>
-<polyline fill="none" points="8.5,-45.5 8.5,-24.5 135.5,-24.5 135.5,-45.5" stroke="black"></polyline>
-<text font-family="Times,serif" font-size="14.00" text-anchor="start" x="11.5" y="-31.3">age_in_years : integer</text>
-<polyline fill="none" points="8.5,-24.5 8.5,-3.5 135.5,-3.5 135.5,-24.5" stroke="black"></polyline>
-<text font-family="Times,serif" font-size="14.00" text-anchor="start" x="16" y="-10.3">height_in_cm : float</text>
-</g>
-
-<!-- targetIndividual -->
-
-
-<g class="node" id="node2">
-<title>targetIndividual</title>
-<polygon fill="none" points="187.5,-87.5 187.5,-108.5 308.5,-108.5 308.5,-87.5 187.5,-87.5" stroke="black"></polygon>
-<text font-family="Times,serif" font-size="14.00" font-weight="bold" text-anchor="start" x="217.5" y="-95.3">Individual</text>
-<polyline fill="none" points="187.5,-87.5 187.5,-66.5 308.5,-66.5 308.5,-87.5" stroke="black"></polyline>
-<text font-family="Times,serif" font-size="14.00" text-anchor="start" x="190.5" y="-73.3">family_name : string</text>
-<polyline fill="none" points="187.5,-66.5 187.5,-45.5 308.5,-45.5 308.5,-66.5" stroke="black"></polyline>
-<text font-family="Times,serif" font-size="14.00" text-anchor="start" x="193.5" y="-52.3">given_name : string</text>
-<polyline fill="none" points="187.5,-45.5 187.5,-24.5 308.5,-24.5 308.5,-45.5" stroke="black"></polyline>
-<text font-family="Times,serif" font-size="14.00" text-anchor="start" x="214" y="-31.3">age : integer</text>
-<polyline fill="none" points="187.5,-24.5 187.5,-3.5 308.5,-3.5 308.5,-24.5" stroke="black"></polyline>
-<text font-family="Times,serif" font-size="14.00" text-anchor="start" x="213" y="-10.3">height : float</text>
-</g>
-
-<!-- sourcePerson&#45;&gt;targetIndividual -->
-
-
-<g class="edge" id="edge1">
-<title>sourcePerson:family_name-&gt;targetIndividual:family_name</title>
-<path d="M136.5,-77.5C154.9,-77.5 161.88,-77.5 176.35,-77.5" fill="none" stroke="black"></path>
-<polygon fill="black" points="176.5,-81 186.5,-77.5 176.5,-74 176.5,-81" stroke="black"></polygon>
-</g>
-
-<!-- sourcePerson&#45;&gt;targetIndividual -->
-
-
-<g class="edge" id="edge2">
-<title>sourcePerson:given_name-&gt;targetIndividual:given_name</title>
-<path d="M136.5,-55.5C154.9,-55.5 161.88,-55.5 176.35,-55.5" fill="none" stroke="black"></path>
-<polygon fill="black" points="176.5,-59 186.5,-55.5 176.5,-52 176.5,-59" stroke="black"></polygon>
-</g>
-
-<!-- sourcePerson&#45;&gt;targetIndividual -->
-
-
-<g class="edge" id="edge3">
-<title>sourcePerson:age_in_years-&gt;targetIndividual:age</title>
-<path d="M136.5,-34.5C154.9,-34.5 161.88,-34.5 176.35,-34.5" fill="none" stroke="black"></path>
-<polygon fill="black" points="176.5,-38 186.5,-34.5 176.5,-31 176.5,-38" stroke="black"></polygon>
-</g>
-
-<!-- sourcePerson&#45;&gt;targetIndividual -->
-
-
-<g class="edge" id="edge4">
-<title>sourcePerson:height_in_cm-&gt;targetIndividual:height</title>
-<path d="M136.5,-13.5C154.9,-13.5 161.88,-13.5 176.35,-13.5" fill="none" stroke="black"></path>
-<polygon fill="black" points="176.5,-17 186.5,-13.5 176.5,-10 176.5,-17" stroke="black"></polygon>
-</g>
-</g>
-</svg>
-</div>
-</div>
-</div>
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered">
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="transforming-objects">Transforming objects</h2>
-<p>We'll next make a simple <code>Person</code> object. Note that for simplicity we are specifying this
-using a Python dictionary. The framework also works with objects instantiating either
-Pydantic or Dataclasses classes (use the <code>transform_object</code> method instead of <code>transform</code>).</p>
+<p>Next we make a <code>Person</code> object as a Python dictionary, and map it. <code>source_type</code> names the
+source class the object belongs to:</p>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
-<div class="highlight"><pre><span></span><code><span class="n">obj</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;given_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Jane&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;family_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Doe&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;age_in_years&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span>
-        <span class="s2">&quot;height_in_cm&quot;</span><span class="p">:</span> <span class="mf">180.0</span><span class="p">,</span>
-    <span class="p">}</span>
-<span class="n">session</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">person</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;given_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Jane&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;family_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Doe&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;age_in_years&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span>
+    <span class="s2">&quot;height_in_cm&quot;</span><span class="p">:</span> <span class="mf">180.0</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">tr</span><span class="o">.</span><span class="n">map_object</span><span class="p">(</span><span class="n">person</span><span class="p">,</span> <span class="n">source_type</span><span class="o">=</span><span class="s2">&quot;Person&quot;</span><span class="p">)</span>
 </code></pre></div>
 
 </div>
@@ -376,22 +288,258 @@ Pydantic or Dataclasses classes (use the <code>transform_object</code> method in
 <div class="cell border-box-sizing text_cell rendered">
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>This does what we expect - it renames the two fields, but leaves all values intact.</p>
-<p>Note that because we use using dictionaries here, the renaming of the class has no effect,
-as this is implicit with JSON/dictionaries.</p>
-<p>TODO: docs on type designator fields</p>
-<p>For command line users, the same thing can be achieved with the <code>map-data</code> command.</p>
+<p>This does what we expect: it renames the two fields and leaves all values intact.</p>
+<p>From the command line, with the specification and schema in files:</p>
+<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>map-data<span class="w"> </span>-T<span class="w"> </span>spec.yaml<span class="w"> </span>-s<span class="w"> </span>schema.yaml<span class="w"> </span>--source-type<span class="w"> </span>Person<span class="w"> </span>person.yaml
+</code></pre></div>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered">
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="deriving-target-schemas">Deriving target schemas</h2>
-<p>LinkML-Transformer is intended as a <em>declarative</em> framework, in contrast to writing Python
-transformation code. This allows tools to introspect mappings and perform other kinds of inference.
-An example of this is <em>deriving the (implicit) target schema</em></p>
-<p>Here we use the <code>target_schema</code> method on the session object to derive the target schema:</p>
+<h2 id="using-expressions">Using expressions</h2>
+<p>In addition to renaming fields, we can derive field values by evaluating <em>expressions</em>.
+Expressions use a safe subset of Python, with <code>{slot}</code> referring to a slot on the source object.
+If a specification needs full Python, pass <code>unrestricted_eval=True</code> (<code>--unrestricted-eval</code> on
+the command line), but only for specifications you trust.</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="n">spec</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">class_derivations:</span>
+<span class="s2">  Individual:</span>
+<span class="s2">    populated_from: Person</span>
+<span class="s2">    slot_derivations:</span>
+<span class="s2">      name:</span>
+<span class="s2">        expr: &quot;</span><span class="si">{given_name}</span><span class="s2"> + &#39; &#39; + </span><span class="si">{family_name}</span><span class="s2">&quot;</span>
+<span class="s2">      age_in_months:</span>
+<span class="s2">        expr: &quot;</span><span class="si">{age_in_years}</span><span class="s2"> * 12&quot;</span>
+<span class="s2">      height_in_meters:</span>
+<span class="s2">        expr: &quot;</span><span class="si">{height_in_cm}</span><span class="s2"> / 100&quot;</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+
+<span class="n">tr</span> <span class="o">=</span> <span class="n">ObjectTransformer</span><span class="p">(</span><span class="n">specification</span><span class="o">=</span><span class="n">spec</span><span class="p">,</span> <span class="n">source_schemaview</span><span class="o">=</span><span class="n">source</span><span class="p">)</span>
+<span class="n">tr</span><span class="o">.</span><span class="n">map_object</span><span class="p">(</span><span class="n">person</span><span class="p">,</span> <span class="n">source_type</span><span class="o">=</span><span class="s2">&quot;Person&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_text output_subarea output_execute_result">
+<pre>
+<code>{'name': 'Jane Doe', 'age_in_months': 504, 'height_in_meters': 1.8}</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="typing-output-to-a-target-schema">Typing output to a target schema</h2>
+<p>Given a target schema, each value is converted to the target slot's range: strings are parsed to
+numbers and booleans, and a value for an enum slot is matched against the enum's permissible
+values (by key, <code>meaning</code>, <code>title</code> or alias) and written as the permissible value's key.</p>
+<p>Our target schema types <code>age</code> as an integer and adds a <code>status</code> enum:</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="n">target</span> <span class="o">=</span> <span class="n">SchemaView</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">id: https://example.org/individual</span>
+<span class="s2">name: individual</span>
+<span class="s2">prefixes:</span>
+<span class="s2">  linkml: https://w3id.org/linkml/</span>
+<span class="s2">imports:</span>
+<span class="s2">  - linkml:types</span>
+<span class="s2">default_range: string</span>
+<span class="s2">classes:</span>
+<span class="s2">  Individual:</span>
+<span class="s2">    attributes:</span>
+<span class="s2">      name:</span>
+<span class="s2">      age:</span>
+<span class="s2">        range: integer</span>
+<span class="s2">      status:</span>
+<span class="s2">        range: StatusEnum</span>
+<span class="s2">enums:</span>
+<span class="s2">  StatusEnum:</span>
+<span class="s2">    permissible_values:</span>
+<span class="s2">      ADULT:</span>
+<span class="s2">        aliases: [adult]</span>
+<span class="s2">      MINOR:</span>
+<span class="s2">        aliases: [minor, child]</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+
+<span class="n">spec</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">class_derivations:</span>
+<span class="s2">  Individual:</span>
+<span class="s2">    populated_from: Person</span>
+<span class="s2">    slot_derivations:</span>
+<span class="s2">      name:</span>
+<span class="s2">        expr: &quot;</span><span class="si">{given_name}</span><span class="s2"> + &#39; &#39; + </span><span class="si">{family_name}</span><span class="s2">&quot;</span>
+<span class="s2">      age:</span>
+<span class="s2">        populated_from: age_in_years</span>
+<span class="s2">      status:</span>
+<span class="s2">        expr: &quot;&#39;adult&#39; if </span><span class="si">{age_in_years}</span><span class="s2"> &amp;gt;= 18 else &#39;child&#39;&quot;</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+
+<span class="n">tr</span> <span class="o">=</span> <span class="n">ObjectTransformer</span><span class="p">(</span><span class="n">specification</span><span class="o">=</span><span class="n">spec</span><span class="p">,</span> <span class="n">source_schemaview</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">target_schemaview</span><span class="o">=</span><span class="n">target</span><span class="p">)</span>
+<span class="n">tr</span><span class="o">.</span><span class="n">map_object</span><span class="p">({</span><span class="s2">&quot;given_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Jane&quot;</span><span class="p">,</span> <span class="s2">&quot;family_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Doe&quot;</span><span class="p">,</span> <span class="s2">&quot;age_in_years&quot;</span><span class="p">:</span> <span class="s2">&quot;42&quot;</span><span class="p">},</span> <span class="n">source_type</span><span class="o">=</span><span class="s2">&quot;Person&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_text output_subarea output_execute_result">
+<pre>
+<code>{'name': 'Jane Doe', 'age': 42, 'status': 'ADULT'}</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>The age arrived as the string <code>"42"</code>, as it would from a TSV, and came out as an integer.
+The expression produced <code>'adult'</code>, which matched the <code>ADULT</code> permissible value by its alias.</p>
+<p>A value that matches no permissible value passes through with a warning. With <code>strict=True</code>
+(<code>--strict</code> on the command line) it fails the record instead, which is what you want for real
+data:</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.transformer.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TransformationError</span>
+
+<span class="n">spec</span><span class="p">[</span><span class="s2">&quot;class_derivations&quot;</span><span class="p">][</span><span class="s2">&quot;Individual&quot;</span><span class="p">][</span><span class="s2">&quot;slot_derivations&quot;</span><span class="p">][</span><span class="s2">&quot;status&quot;</span><span class="p">][</span><span class="s2">&quot;expr&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">&quot;&#39;grown up&#39; if </span><span class="si">{age_in_years}</span><span class="s2"> &amp;gt;= 18 else &#39;child&#39;&quot;</span>
+<span class="p">)</span>
+<span class="n">tr</span> <span class="o">=</span> <span class="n">ObjectTransformer</span><span class="p">(</span><span class="n">specification</span><span class="o">=</span><span class="n">spec</span><span class="p">,</span> <span class="n">source_schemaview</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">target_schemaview</span><span class="o">=</span><span class="n">target</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">tr</span><span class="o">.</span><span class="n">map_object</span><span class="p">(</span><span class="n">person</span><span class="p">,</span> <span class="n">source_type</span><span class="o">=</span><span class="s2">&quot;Person&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">TransformationError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+</code></pre></div>
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+<code>'grown up' is not a permissible value of enum StatusEnum; class_derivation=Individual (from Person); slot_derivation=status
+</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Most mistakes like this one can be caught before any data is mapped, with
+<code>linkml-map validate-spec</code>; see the <a href="../../cli/#validate-spec">Command-Line Reference</a>.</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="unit-conversions-and-flattening">Unit conversions and flattening</h2>
+<p>The LinkML specification allows schemas to declare the units of slots. Let's add a UCUM code to
+<code>height_in_cm</code>, and a multivalued <code>aliases</code> slot:</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">linkml_runtime.linkml_model.units</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnitOfMeasure</span>
+
+<span class="n">sb</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">slots</span><span class="p">[</span><span class="s2">&quot;height_in_cm&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">UnitOfMeasure</span><span class="p">(</span><span class="n">ucum_code</span><span class="o">=</span><span class="s2">&quot;cm&quot;</span><span class="p">)</span>
+<span class="n">sb</span><span class="o">.</span><span class="n">add_slot</span><span class="p">(</span><span class="s2">&quot;aliases&quot;</span><span class="p">,</span> <span class="n">multivalued</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="n">replace_if_present</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">sb</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">classes</span><span class="p">[</span><span class="s2">&quot;Person&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;aliases&quot;</span><span class="p">)</span>
+<span class="n">source</span> <span class="o">=</span> <span class="n">SchemaView</span><span class="p">(</span><span class="n">sb</span><span class="o">.</span><span class="n">schema</span><span class="p">)</span>
+</code></pre></div>
+
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Now the specification can ask for a <code>target_unit</code> instead of writing the arithmetic, and
+can flatten <code>aliases</code> into a single delimited string, as a TSV would need:</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="highlight"><pre><span></span><code><span class="n">spec</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">class_derivations:</span>
+<span class="s2">  Individual:</span>
+<span class="s2">    populated_from: Person</span>
+<span class="s2">    slot_derivations:</span>
+<span class="s2">      family_name:</span>
+<span class="s2">        populated_from: family_name</span>
+<span class="s2">      given_name:</span>
+<span class="s2">        populated_from: given_name</span>
+<span class="s2">      height_in_meters:</span>
+<span class="s2">        populated_from: height_in_cm</span>
+<span class="s2">        unit_conversion:</span>
+<span class="s2">          target_unit: m</span>
+<span class="s2">      aliases:</span>
+<span class="s2">        populated_from: aliases</span>
+<span class="s2">        stringification:</span>
+<span class="s2">          delimiter: &#39;|&#39;</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+
+<span class="n">tr</span> <span class="o">=</span> <span class="n">ObjectTransformer</span><span class="p">(</span><span class="n">specification</span><span class="o">=</span><span class="n">spec</span><span class="p">,</span> <span class="n">source_schemaview</span><span class="o">=</span><span class="n">source</span><span class="p">)</span>
+<span class="n">person</span><span class="p">[</span><span class="s2">&quot;aliases&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Janie&quot;</span><span class="p">,</span> <span class="s2">&quot;Janey&quot;</span><span class="p">]</span>
+<span class="n">flat</span> <span class="o">=</span> <span class="n">tr</span><span class="o">.</span><span class="n">map_object</span><span class="p">(</span><span class="n">person</span><span class="p">,</span> <span class="n">source_type</span><span class="o">=</span><span class="s2">&quot;Person&quot;</span><span class="p">)</span>
+<span class="n">flat</span>
+</code></pre></div>
+
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_text output_subarea output_execute_result">
+<pre>
+<code>{'family_name': 'Doe',
+ 'given_name': 'Jane',
+ 'height_in_meters': 1.8,
+ 'aliases': 'Janie|Janey'}</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="under-the-hood-working-with-the-specification">Under the hood: working with the specification</h2>
+<p>A specification is data, not code, so tools can inspect it and reason about it. The classes
+below do that; they are what the <code>derive-schema</code>, <code>invert</code> and <code>compile</code> commands use, and you
+can call them directly.</p>
+<h3 id="deriving-the-target-schema">Deriving the target schema</h3>
+<p><code>SchemaMapper</code> works out the target schema a specification implies for its source schema.
+Note that it has inferred the unit of <code>height_in_meters</code>:</p>
 </div>
 </div>
 </div>
@@ -400,7 +548,10 @@ An example of this is <em>deriving the (implicit) target schema</em></p>
 
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">linkml_runtime.dumpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">yaml_dumper</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="n">yaml_dumper</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">target_schema</span><span class="p">))</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.inference.schema_mapper</span><span class="w"> </span><span class="kn">import</span> <span class="n">SchemaMapper</span>
+
+<span class="n">target_schema</span> <span class="o">=</span> <span class="n">SchemaMapper</span><span class="p">(</span><span class="n">source_schemaview</span><span class="o">=</span><span class="n">source</span><span class="p">)</span><span class="o">.</span><span class="n">derive_schema</span><span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">specification</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">yaml_dumper</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">target_schema</span><span class="p">))</span>
 </code></pre></div>
 
 </div>
@@ -436,16 +587,20 @@ classes:
         domain_of:
         - Person
         range: string
-      age:
-        name: age
-        domain_of:
-        - Person
-        range: integer
-      height:
-        name: height
+      height_in_meters:
+        name: height_in_meters
         domain_of:
         - Person
         range: float
+        unit:
+          ucum_code: m
+      aliases:
+        name: aliases
+        domain_of:
+        - Person
+        range: string
+        multivalued: false
+
 </code>
 </pre>
 </div>
@@ -456,58 +611,56 @@ classes:
 <div class="cell border-box-sizing text_cell rendered">
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>As expected, this is isomorphic to the original (source) schema, with fields and classes renamed.</p>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="using-expressions">Using Expressions</h2>
-<p>In addition to renaming fields, we can derive field values via evaluation of function <em>expressions</em>.</p>
-<p>You are encouraged to follow the subset of Python defined by the LinkML expression language. This provides
-both safety, and declarativity. However, if you need
-to, you can include arbitrary Python code, provided you configure the session to allow this.</p>
-<p>We'll keep the original schema, and will provide a new Transformer specification, 
-giving an example of both string manipulation functions and arithmetic functions; the latter
-perform unit conversions (later on we will see more flexible and declarative ways to perform unit conversions).</p>
+<h3 id="reversing-a-transformation">Reversing a transformation</h3>
+<p>A specification built from renames, unit conversions and stringification can be <em>inverted</em>
+into one that maps the other way. (Expressions can't be inverted.) The inverse specification's
+source schema is the derived target schema:</p>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
-<div class="highlight"><pre><span></span><code><span class="n">session</span><span class="o">.</span><span class="n">set_object_transformer</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">class_derivations:</span>
-<span class="s2">  Individual:</span>
-<span class="s2">    populated_from: Person</span>
-<span class="s2">    slot_derivations:</span>
-<span class="s2">      name:</span>
-<span class="s2">        expr: &quot;</span><span class="si">{given_name}</span><span class="s2"> + &#39; &#39; + </span><span class="si">{family_name}</span><span class="s2">&quot;</span>
-<span class="s2">        description: Concatenating given and family names</span>
-<span class="s2">          note this is a bad assumption for names in general,</span>
-<span class="s2">          this is just for demonstration</span>
-<span class="s2">      age_in_months:</span>
-<span class="s2">        expr: age_in_years * 12</span>
-<span class="s2">      height_in_meters:</span>
-<span class="s2">        expr: height_in_cm / 100</span>
-<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.inference.inverter</span><span class="w"> </span><span class="kn">import</span> <span class="n">TransformationSpecificationInverter</span>
+
+<span class="n">inverse</span> <span class="o">=</span> <span class="n">TransformationSpecificationInverter</span><span class="p">(</span><span class="n">source_schemaview</span><span class="o">=</span><span class="n">source</span><span class="p">)</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">specification</span><span class="p">)</span>
+<span class="n">reverse</span> <span class="o">=</span> <span class="n">ObjectTransformer</span><span class="p">(</span><span class="n">specification</span><span class="o">=</span><span class="n">inverse</span><span class="p">,</span> <span class="n">source_schemaview</span><span class="o">=</span><span class="n">SchemaView</span><span class="p">(</span><span class="n">yaml_dumper</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">target_schema</span><span class="p">)))</span>
+<span class="n">reverse</span><span class="o">.</span><span class="n">map_object</span><span class="p">(</span><span class="n">flat</span><span class="p">,</span> <span class="n">source_type</span><span class="o">=</span><span class="s2">&quot;Individual&quot;</span><span class="p">)</span>
 </code></pre></div>
 
 </div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="output_text output_subarea output_execute_result">
+<pre>
+<code>{'family_name': 'Doe',
+ 'given_name': 'Jane',
+ 'height_in_cm': 180.0,
+ 'aliases': ['Janie', 'Janey']}</code>
+</pre>
+</div>
+</div>
+</div>
+</div>
 </div>
 <div class="cell border-box-sizing text_cell rendered">
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>Note that when we visualize this specification, dotted lines are shown indicating a relationship
-between source and target that is different from direct copy:</p>
+<p>The flattened record maps back to the original: the height is back in centimeters and
+the aliases are a list again.</p>
+<h3 id="visualizing-a-specification">Visualizing a specification</h3>
+<p><code>GraphvizCompiler</code> draws the source and target classes and the slots mapped between them.
+Rendering it needs the <a href="https://graphviz.org/download/">Graphviz</a> program installed.</p>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
-<div class="highlight"><pre><span></span><code><span class="n">session</span><span class="o">.</span><span class="n">graphviz</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.compiler.graphviz_compiler</span><span class="w"> </span><span class="kn">import</span> <span class="n">GraphvizCompiler</span>
+
+<span class="n">GraphvizCompiler</span><span class="p">(</span><span class="n">source_schemaview</span><span class="o">=</span><span class="n">source</span><span class="p">)</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">specification</span><span class="p">)</span><span class="o">.</span><span class="n">digraph</span>
 </code></pre></div>
 
 </div>
@@ -526,33 +679,36 @@ between source and target that is different from direct copy:</p>
 
 
 
-<!-- Generated by graphviz version 5.0.1 (20220820.1526)
+<!-- Generated by graphviz version 2.43.0 (0)
  -->
 
 
 
-<!-- Pages: 1 -->
+<!-- Title: %3 Pages: 1 -->
 
 
-<svg height="122pt" viewbox="0.00 0.00 346.00 121.50" width="346pt" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g class="graph" id="graph0" transform="scale(1 1) rotate(0) translate(4 117.5)">
-<polygon fill="white" points="-4,4 -4,-117.5 342,-117.5 342,4 -4,4" stroke="none"></polygon>
+<svg height="142pt" viewbox="0.00 0.00 414.00 142.00" width="414pt" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g class="graph" id="graph0" transform="scale(1 1) rotate(0) translate(4 138)">
+<title>%3</title>
+<polygon fill="white" points="-4,4 -4,-138 410,-138 410,4 -4,4" stroke="transparent"></polygon>
 
 <!-- sourcePerson -->
 
 
 <g class="node" id="node1">
 <title>sourcePerson</title>
-<polygon fill="none" points="8.5,-88 8.5,-109 135.5,-109 135.5,-88 8.5,-88" stroke="black"></polygon>
-<text font-family="Times,serif" font-size="14.00" font-weight="bold" text-anchor="start" x="52" y="-95.8">Person</text>
-<polyline fill="none" points="8.5,-88 8.5,-67 135.5,-67 135.5,-88" stroke="black"></polyline>
-<text font-family="Times,serif" font-size="14.00" text-anchor="start" x="14.5" y="-73.8">family_name : string</text>
-<polyline fill="none" points="8.5,-67 8.5,-46 135.5,-46 135.5,-67" stroke="black"></polyline>
-<text font-family="Times,serif" font-size="14.00" text-anchor="start" x="17.5" y="-52.8">given_name : string</text>
-<polyline fill="none" points="8.5,-46 8.5,-25 135.5,-25 135.5,-46" stroke="black"></polyline>
-<text font-family="Times,serif" font-size="14.00" text-anchor="start" x="11.5" y="-31.8">age_in_years : integer</text>
-<polyline fill="none" points="8.5,-25 8.5,-4 135.5,-4 135.5,-25" stroke="black"></polyline>
-<text font-family="Times,serif" font-size="14.00" text-anchor="start" x="16" y="-10.8">height_in_cm : float</text>
+<polygon fill="none" points="8.5,-109 8.5,-130 171.5,-130 171.5,-109 8.5,-109" stroke="black"></polygon>
+<text font-family="Times,serif" font-size="14.00" font-weight="bold" text-anchor="start" x="62.5" y="-116.8">Person</text>
+<polyline fill="none" points="8.5,-109 8.5,-88 171.5,-88 171.5,-109 " stroke="black"></polyline>
+<text font-family="Times,serif" font-size="14.00" text-anchor="start" x="16.5" y="-94.8">family_name : string</text>
+<polyline fill="none" points="8.5,-88 8.5,-67 171.5,-67 171.5,-88 " stroke="black"></polyline>
+<text font-family="Times,serif" font-size="14.00" text-anchor="start" x="19" y="-73.8">given_name : string</text>
+<polyline fill="none" points="8.5,-67 8.5,-46 171.5,-46 171.5,-67 " stroke="black"></polyline>
+<text font-family="Times,serif" font-size="14.00" text-anchor="start" x="11.5" y="-52.8">age_in_years : integer</text>
+<polyline fill="none" points="8.5,-46 8.5,-25 171.5,-25 171.5,-46 " stroke="black"></polyline>
+<text font-family="Times,serif" font-size="14.00" text-anchor="start" x="20.5" y="-31.8">height_in_cm : float</text>
+<polyline fill="none" points="8.5,-25 8.5,-4 171.5,-4 171.5,-25 " stroke="black"></polyline>
+<text font-family="Times,serif" font-size="14.00" text-anchor="start" x="37" y="-10.8">aliases : string</text>
 </g>
 
 <!-- targetIndividual -->
@@ -560,50 +716,52 @@ between source and target that is different from direct copy:</p>
 
 <g class="node" id="node2">
 <title>targetIndividual</title>
-<polygon fill="none" points="187.5,-67 187.5,-88 330.5,-88 330.5,-67 187.5,-67" stroke="black"></polygon>
-<text font-family="Times,serif" font-size="14.00" font-weight="bold" text-anchor="start" x="228.5" y="-74.8">Individual</text>
-<polyline fill="none" points="187.5,-67 187.5,-46 330.5,-46 330.5,-67" stroke="black"></polyline>
-<text font-family="Times,serif" font-size="14.00" text-anchor="start" x="222.5" y="-52.8">name : string</text>
-<polyline fill="none" points="187.5,-46 187.5,-25 330.5,-25 330.5,-46" stroke="black"></polyline>
-<text font-family="Times,serif" font-size="14.00" text-anchor="start" x="196" y="-31.8">age_in_months : string</text>
-<polyline fill="none" points="187.5,-25 187.5,-4 330.5,-4 330.5,-25" stroke="black"></polyline>
-<text font-family="Times,serif" font-size="14.00" text-anchor="start" x="190.5" y="-10.8">height_in_meters : string</text>
+<polygon fill="none" points="223.5,-98 223.5,-119 398.5,-119 398.5,-98 223.5,-98" stroke="black"></polygon>
+<text font-family="Times,serif" font-size="14.00" font-weight="bold" text-anchor="start" x="270.5" y="-105.8">Individual</text>
+<polyline fill="none" points="223.5,-98 223.5,-77 398.5,-77 398.5,-98 " stroke="black"></polyline>
+<text font-family="Times,serif" font-size="14.00" text-anchor="start" x="237.5" y="-83.8">family_name : string</text>
+<polyline fill="none" points="223.5,-77 223.5,-56 398.5,-56 398.5,-77 " stroke="black"></polyline>
+<text font-family="Times,serif" font-size="14.00" text-anchor="start" x="240" y="-62.8">given_name : string</text>
+<polyline fill="none" points="223.5,-56 223.5,-35 398.5,-35 398.5,-56 " stroke="black"></polyline>
+<text font-family="Times,serif" font-size="14.00" text-anchor="start" x="226.5" y="-41.8">height_in_meters : float</text>
+<polyline fill="none" points="223.5,-35 223.5,-14 398.5,-14 398.5,-35 " stroke="black"></polyline>
+<text font-family="Times,serif" font-size="14.00" text-anchor="start" x="258" y="-20.8">aliases : string</text>
 </g>
 
 <!-- sourcePerson&#45;&gt;targetIndividual -->
 
 
 <g class="edge" id="edge1">
-<title>sourcePerson:given_name-&gt;targetIndividual:name</title>
-<path d="M136.5,-56C154.91,-56 161.87,-56.69 176.35,-56.92" fill="none" stroke="black" stroke-dasharray="5,2"></path>
-<polygon fill="black" points="176.47,-60.42 186.5,-57 176.53,-53.42 176.47,-60.42" stroke="black"></polygon>
+<title>sourcePerson:family_name-&gt;targetIndividual:family_name</title>
+<path d="M172.5,-99C191.34,-99 197.66,-91.46 212.2,-88.86" fill="none" stroke="black"></path>
+<polygon fill="black" points="212.83,-92.32 222.5,-88 212.24,-85.35 212.83,-92.32" stroke="black"></polygon>
 </g>
 
 <!-- sourcePerson&#45;&gt;targetIndividual -->
 
 
 <g class="edge" id="edge2">
-<title>sourcePerson:family_name-&gt;targetIndividual:name</title>
-<path d="M136.5,-78C156.65,-78 161.21,-63.33 176.24,-58.51" fill="none" stroke="black" stroke-dasharray="5,2"></path>
-<polygon fill="black" points="177.12,-61.92 186.5,-57 176.1,-54.99 177.12,-61.92" stroke="black"></polygon>
+<title>sourcePerson:given_name-&gt;targetIndividual:given_name</title>
+<path d="M172.5,-78C191.43,-78 197.62,-69.77 212.17,-66.94" fill="none" stroke="black"></path>
+<polygon fill="black" points="212.86,-70.39 222.5,-66 212.22,-63.42 212.86,-70.39" stroke="black"></polygon>
 </g>
 
 <!-- sourcePerson&#45;&gt;targetIndividual -->
 
 
 <g class="edge" id="edge3">
-<title>sourcePerson:age_in_years-&gt;targetIndividual:age_in_months</title>
-<path d="M136.5,-35C154.9,-35 161.88,-35 176.35,-35" fill="none" stroke="black" stroke-dasharray="5,2"></path>
-<polygon fill="black" points="176.5,-38.5 186.5,-35 176.5,-31.5 176.5,-38.5" stroke="black"></polygon>
+<title>sourcePerson:height_in_cm-&gt;targetIndividual:height_in_meters</title>
+<path d="M172.5,-35C191.27,-35 197.7,-41.86 212.23,-44.22" fill="none" stroke="black"></path>
+<polygon fill="black" points="212.26,-47.73 222.5,-45 212.8,-40.75 212.26,-47.73" stroke="black"></polygon>
 </g>
 
 <!-- sourcePerson&#45;&gt;targetIndividual -->
 
 
 <g class="edge" id="edge4">
-<title>sourcePerson:height_in_cm-&gt;targetIndividual:height_in_meters</title>
-<path d="M136.5,-14C154.9,-14 161.88,-14 176.35,-14" fill="none" stroke="black" stroke-dasharray="5,2"></path>
-<polygon fill="black" points="176.5,-17.5 186.5,-14 176.5,-10.5 176.5,-17.5" stroke="black"></polygon>
+<title>sourcePerson:aliases-&gt;targetIndividual:aliases</title>
+<path d="M172.5,-14C191.27,-14 197.7,-20.86 212.23,-23.22" fill="none" stroke="black"></path>
+<polygon fill="black" points="212.26,-26.73 222.5,-24 212.8,-19.75 212.26,-26.73" stroke="black"></polygon>
 </g>
 </g>
 </svg>
@@ -615,384 +773,13 @@ between source and target that is different from direct copy:</p>
 <div class="cell border-box-sizing text_cell rendered">
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>Now we'll transform the same object as before, and see the results:</p>
+<h2 id="next-steps">Next steps</h2>
+<ul>
+<li><a href="../../writing-specs/">Writing Specifications</a>: joins, identifiers, and more on target-schema typing</li>
+<li><a href="../../cli/">Command-Line Reference</a>: every subcommand and option</li>
+<li>The API reference, for the classes used here</li>
+</ul>
 </div>
-</div>
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-
-<div class="highlight"><pre><span></span><code><span class="n">session</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
-</code></pre></div>
-
-</div>
-<div class="output_wrapper">
-<div class="output">
-<div class="output_area">
-<div class="output_text output_subarea output_execute_result">
-<pre>
-<code>{'name': 'Jane Doe', 'age_in_months': 504, 'height_in_meters': 1.8}</code>
-</pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>As expected, we concatenated the name fields, and converted the age and height fields to different units.</p>
-<p>Let's take a look at the derived schema for this new transformation:</p>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-
-<div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="n">yaml_dumper</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">target_schema</span><span class="p">))</span>
-</code></pre></div>
-
-</div>
-<div class="output_wrapper">
-<div class="output">
-<div class="output_area">
-<div class="output_subarea output_stream output_stdout output_text">
-<pre>
-<code>name: test-schema-derived
-id: http://example.org/test-schema-derived
-imports:
-- linkml:types
-prefixes:
-  linkml:
-    prefix_prefix: linkml
-    prefix_reference: https://w3id.org/linkml/
-  test_schema:
-    prefix_prefix: test_schema
-    prefix_reference: http://example.org/test-schema/
-default_prefix: http://example.org/test-schema-derived/
-default_range: string
-classes:
-  Individual:
-    name: Individual
-    attributes:
-      name:
-        name: name
-      age_in_months:
-        name: age_in_months
-      height_in_meters:
-        name: height_in_meters
-</code>
-</pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>Note that at this time, deriving ranges using expressions is not supported, so the two measurement fields
-are erroneously typed as having the <code>default_range</code> of <code>string</code>. However, in principle, if you use the
-linkml subset of Python it should be possible to infer the range of the derived field, and this may be added
-in future versions. Currently the tool chain is at an early stage of development.</p>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="unit-conversions">Unit conversions</h2>
-<p>Next we will look at a different way of doing unit conversions. The LinkML specification allows
-schemas to explicitly declare the units of slots, so let's modify our schema to do this, adding
-a UCUM code for our <code>height_in_cm</code> slot:</p>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">linkml_runtime.linkml_model.units</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnitOfMeasure</span>
-<span class="n">sb</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">slots</span><span class="p">[</span><span class="s1">&#39;height_in_cm&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">UnitOfMeasure</span><span class="p">(</span><span class="n">ucum_code</span><span class="o">=</span><span class="s1">&#39;cm&#39;</span><span class="p">)</span>
-<span class="n">session</span><span class="o">.</span><span class="n">set_source_schema</span><span class="p">(</span><span class="n">sb</span><span class="o">.</span><span class="n">as_dict</span><span class="p">())</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">sb</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
-</code></pre></div>
-
-</div>
-<div class="output_wrapper">
-<div class="output">
-<div class="output_area">
-<div class="output_subarea output_stream output_stdout output_text">
-<pre>
-<code>name: test-schema
-id: http://example.org/test-schema
-imports:
-- linkml:types
-prefixes:
-  linkml: https://w3id.org/linkml/
-  test_schema: http://example.org/test-schema/
-default_prefix: test_schema
-default_range: string
-slots:
-  family_name:
-    range: string
-  given_name:
-    range: string
-  age_in_years:
-    range: integer
-  height_in_cm:
-    range: float
-    unit:
-      ucum_code: cm
-classes:
-  Person:
-    slots:
-    - family_name
-    - given_name
-    - age_in_years
-    - height_in_cm
-</code>
-</pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="adding-target_unit-to-transformer-specification">Adding target_unit to transformer specification</h2>
-<p>We will create a new transformer specification, focusing on the <code>height_in_cm</code> field. We will
-transform this into a <code>height_in_meters</code> field, and will use the <code>target_unit</code> field to specify
-the target unit.</p>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-
-<div class="highlight"><pre><span></span><code><span class="n">session</span><span class="o">.</span><span class="n">set_object_transformer</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">class_derivations:</span>
-<span class="s2">  Individual:</span>
-<span class="s2">    populated_from: Person</span>
-<span class="s2">    slot_derivations:</span>
-<span class="s2">      name:</span>
-<span class="s2">        expr: &quot;</span><span class="si">{given_name}</span><span class="s2"> + &#39; &#39; + </span><span class="si">{family_name}</span><span class="s2">&quot;</span>
-<span class="s2">      height_in_meters:</span>
-<span class="s2">        populated_from: height_in_cm</span>
-<span class="s2">        unit_conversion:</span>
-<span class="s2">          target_unit: m</span>
-<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
-</code></pre></div>
-
-</div>
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-
-<div class="highlight"><pre><span></span><code><span class="n">session</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
-</code></pre></div>
-
-</div>
-<div class="output_wrapper">
-<div class="output">
-<div class="output_area">
-<div class="output_text output_subarea output_execute_result">
-<pre>
-<code>{'name': 'Jane Doe', 'height_in_meters': 1.8}</code>
-</pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="units-in-derived-schema">Units in derived schema</h2>
-<p>Next we'll look at the derived target schema, and as expected we see that it has inferred
-the target unit for the <code>height_in_meters</code> field:</p>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-
-<div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="n">yaml_dumper</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">target_schema</span><span class="p">))</span>
-</code></pre></div>
-
-</div>
-<div class="output_wrapper">
-<div class="output">
-<div class="output_area">
-<div class="output_subarea output_stream output_stdout output_text">
-<pre>
-<code>name: test-schema-derived
-id: http://example.org/test-schema-derived
-imports:
-- linkml:types
-prefixes:
-  linkml:
-    prefix_prefix: linkml
-    prefix_reference: https://w3id.org/linkml/
-  test_schema:
-    prefix_prefix: test_schema
-    prefix_reference: http://example.org/test-schema/
-default_prefix: http://example.org/test-schema-derived/
-default_range: string
-classes:
-  Individual:
-    name: Individual
-    attributes:
-      name:
-        name: name
-      height_in_meters:
-        name: height_in_meters
-        domain_of:
-        - Person
-        range: float
-        unit:
-          ucum_code: m
-</code>
-</pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="tabular-serialization">Tabular serialization</h2>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-
-<div class="highlight"><pre><span></span><code><span class="n">slot</span> <span class="o">=</span> <span class="n">sb</span><span class="o">.</span><span class="n">add_slot</span><span class="p">(</span><span class="s2">&quot;aliases&quot;</span><span class="p">,</span> <span class="n">multivalued</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="n">replace_if_present</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</code></pre></div>
-
-</div>
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-
-<div class="highlight"><pre><span></span><code><span class="n">sb</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">classes</span><span class="p">[</span><span class="s1">&#39;Person&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">slot</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-</code></pre></div>
-
-</div>
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-
-<div class="highlight"><pre><span></span><code><span class="n">session</span><span class="o">.</span><span class="n">set_source_schema</span><span class="p">(</span><span class="n">sb</span><span class="o">.</span><span class="n">as_dict</span><span class="p">())</span>
-</code></pre></div>
-
-</div>
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-
-<div class="highlight"><pre><span></span><code><span class="n">session</span><span class="o">.</span><span class="n">set_object_transformer</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">class_derivations:</span>
-<span class="s2">  Individual:</span>
-<span class="s2">    populated_from: Person</span>
-<span class="s2">    slot_derivations:</span>
-<span class="s2">      family_name:</span>
-<span class="s2">        populated_from: family_name</span>
-<span class="s2">      given_name:</span>
-<span class="s2">        populated_from: given_name</span>
-<span class="s2">      age:</span>
-<span class="s2">        populated_from: age_in_years</span>
-<span class="s2">      height:</span>
-<span class="s2">        populated_from: height_in_cm</span>
-<span class="s2">      aliases:</span>
-<span class="s2">        populated_from: aliases</span>
-<span class="s2">        stringification:</span>
-<span class="s2">          delimiter: &#39;|&#39;</span>
-<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>    
-</code></pre></div>
-
-</div>
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-
-<div class="highlight"><pre><span></span><code><span class="n">obj</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;given_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Jane&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;family_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Doe&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;age_in_years&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span>
-        <span class="s2">&quot;height_in_cm&quot;</span><span class="p">:</span> <span class="mf">180.0</span><span class="p">,</span>
-        <span class="s2">&quot;aliases&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Jane&quot;</span><span class="p">,</span> <span class="s2">&quot;Janie&quot;</span><span class="p">,</span> <span class="s2">&quot;Janey&quot;</span><span class="p">]</span>
-    <span class="p">}</span>
-<span class="n">flattened</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
-<span class="n">flattened</span>
-</code></pre></div>
-
-</div>
-<div class="output_wrapper">
-<div class="output">
-<div class="output_area">
-<div class="output_text output_subarea output_execute_result">
-<pre>
-<code>{'family_name': 'Doe',
- 'given_name': 'Jane',
- 'age': 42,
- 'height': 180.0,
- 'aliases': 'Jane|Janie|Janey'}</code>
-</pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>this can easily be serialized to a CSV/TSV</p>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="reverse-transform">Reverse transform</h2>
-<p>If a transform does not contain one-way functions,
-it can be <em>reversed</em>.</p>
-<p>In this case, reversing the transform allows us to map
-from the tabular form back to the richer original representation.</p>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-
-<div class="highlight"><pre><span></span><code><span class="n">session</span><span class="o">.</span><span class="n">reverse_transform</span><span class="p">(</span><span class="n">flattened</span><span class="p">)</span>
-</code></pre></div>
-
-</div>
-<div class="output_wrapper">
-<div class="output">
-<div class="output_area">
-<div class="output_text output_subarea output_execute_result">
-<pre>
-<code>{'family_name': 'Doe',
- 'given_name': 'Jane',
- 'age_in_years': 42,
- 'height_in_cm': 180.0,
- 'aliases': ['Jane', 'Janie', 'Janey']}</code>
-</pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-
-<div class="highlight"><pre><span></span><code>
-</code></pre></div>
-
 </div>
 </div>
 
@@ -1007,20 +794,20 @@ from the tabular form back to the richer original representation.</p>
   <div class="row wm-article-nav-buttons" role="navigation" aria-label="navigation">
     
     <div class="wm-article-nav pull-right">
-      <a href="../Tutorial-SQLCompiler/" class="btn btn-xs btn-default pull-right">
+      <a href="../../writing-specs/" class="btn btn-xs btn-default pull-right">
         Next
         <i class="fa fa-chevron-right" aria-hidden="true"></i>
       </a>
-      <a href="../Tutorial-SQLCompiler/" class="btn btn-xs btn-link">
-        Compilation to SQL
+      <a href="../../writing-specs/" class="btn btn-xs btn-link">
+        Writing Specifications
       </a>
     </div>
     
     <div class="wm-article-nav">
-      <a href="../.." class="btn btn-xs btn-default pull-left">
+      <a href="../../quickstart/" class="btn btn-xs btn-default pull-left">
         <i class="fa fa-chevron-left" aria-hidden="true"></i>
-        Previous</a><a href="../.." class="btn btn-xs btn-link">
-        Index
+        Previous</a><a href="../../quickstart/" class="btn btn-xs btn-link">
+        Quick Start
       </a>
     </div>
     

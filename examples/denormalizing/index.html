@@ -11,7 +11,7 @@
     <link rel="canonical" href="https://linkml.github.io/linkml-map/examples/denormalizing/">
     <link rel="shortcut icon" href="../../img/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-    <title>Denormalizing - LinkML-Map</title>
+    <title>Deriving a Denormalized Schema - LinkML-Map</title>
     <link href="../../css/bootstrap-3.3.7.min.css" rel="stylesheet">
     <link href="../../css/font-awesome-4.7.0.css" rel="stylesheet">
     <link href="../../css/base.css" rel="stylesheet">
@@ -36,6 +36,8 @@
       var is_top_frame = false;
         
         var pageToc = [
+          {title: "Deriving a denormalized schema", url: "#_top", children: [
+          ]},
         ];
 
     </script>
@@ -52,6 +54,33 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
 <div class="container-fluid wm-page-content">
   <a name="_top"></a>
     
+
+    
+    
+      
+    
+
+  <div class="row wm-article-nav-buttons" role="navigation" aria-label="navigation">
+    
+    <div class="wm-article-nav pull-right">
+      <a href="../biolink-subsetting/" class="btn btn-xs btn-default pull-right">
+        Next
+        <i class="fa fa-chevron-right" aria-hidden="true"></i>
+      </a>
+      <a href="../biolink-subsetting/" class="btn btn-xs btn-link">
+        Biolink Model Subsetting
+      </a>
+    </div>
+    
+    <div class="wm-article-nav">
+      <a href="../MetamodelMapping/" class="btn btn-xs btn-default pull-left">
+        <i class="fa fa-chevron-left" aria-hidden="true"></i>
+        Previous</a><a href="../MetamodelMapping/" class="btn btn-xs btn-link">
+        Metamodel Mapping
+      </a>
+    </div>
+    
+  </div>
 
     
 
@@ -85,6 +114,17 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
   document.addEventListener('DOMContentLoaded', addWidgetsRenderer);
 }());
 </script>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="deriving-a-denormalized-schema">Deriving a denormalized schema</h1>
+<p>A specification that flattens a normalized model into a denormalized one also implies the
+denormalized <em>schema</em>. <code>SchemaMapper</code> derives it from the source schema and the specification,
+as <code>linkml-map derive-schema</code> does on the command line.</p>
+<p>This uses the <code>flattening</code> example from the repository's <code>tests/input/examples</code>.</p>
+</div>
+</div>
+</div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -93,11 +133,10 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
 <span class="kn">from</span><span class="w"> </span><span class="nn">linkml_runtime.dumpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">yaml_dumper</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">linkml_runtime.utils.schemaview</span><span class="w"> </span><span class="kn">import</span> <span class="n">SchemaView</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_specification</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.inference.schema_mapper</span><span class="w"> </span><span class="kn">import</span> <span class="n">SchemaMapper</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.session</span><span class="w"> </span><span class="kn">import</span> <span class="n">Session</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">linkml_map.utils.loaders</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_specification</span>
 
-<span class="n">REPO_ROOT</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span>
+<span class="n">EXAMPLE</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;tests/input/examples/flattening&quot;</span>
 </code></pre></div>
 
 </div>
@@ -105,35 +144,20 @@ if (is_top_frame) { $('body').addClass('wm-top-page'); }
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
-<div class="highlight"><pre><span></span><code><span class="n">input_schema</span> <span class="o">=</span> <span class="n">REPO_ROOT</span> <span class="o">/</span> <span class="s2">&quot;tests/input/examples/flattening/source/normalized.yaml&quot;</span>
-<span class="n">output_schema</span> <span class="o">=</span> <span class="n">REPO_ROOT</span> <span class="o">/</span> <span class="s2">&quot;tests/input/examples/flattening/target/denormalized.yaml&quot;</span>
-<span class="n">transformation_specification_file</span> <span class="o">=</span> <span class="n">REPO_ROOT</span> <span class="o">/</span> <span class="s2">&quot;tests/input/examples/flattening/transform/denormalize.transform.yaml&quot;</span>
-<span class="c1"># Initialize Session and SchemaBuilder</span>
-<span class="n">session</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><code><span class="n">source</span> <span class="o">=</span> <span class="n">SchemaView</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">EXAMPLE</span> <span class="o">/</span> <span class="s2">&quot;source/normalized.yaml&quot;</span><span class="p">))</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">load_specification</span><span class="p">(</span><span class="n">EXAMPLE</span> <span class="o">/</span> <span class="s2">&quot;transform/denormalize.transform.yaml&quot;</span><span class="p">)</span>
 
-<span class="n">source_schema_view</span> <span class="o">=</span> <span class="n">SchemaView</span><span class="p">(</span><span class="n">input_schema</span><span class="p">)</span>
-<span class="n">target_schema_view</span> <span class="o">=</span> <span class="n">SchemaView</span><span class="p">(</span><span class="n">output_schema</span><span class="p">)</span>
-<span class="c1"># Set the source schema in the session</span>
-<span class="n">session</span><span class="o">.</span><span class="n">set_source_schema</span><span class="p">(</span><span class="n">source_schema_view</span><span class="p">)</span>
-
-<span class="n">tr_spec</span> <span class="o">=</span> <span class="n">load_specification</span><span class="p">(</span><span class="n">transformation_specification_file</span><span class="p">)</span>
-<span class="n">mapper</span> <span class="o">=</span> <span class="n">SchemaMapper</span><span class="p">()</span>
-<span class="n">mapper</span><span class="o">.</span><span class="n">source_schemaview</span> <span class="o">=</span> <span class="n">source_schema_view</span>
-
-<span class="n">target_schema_obj</span> <span class="o">=</span> <span class="n">mapper</span><span class="o">.</span><span class="n">derive_schema</span><span class="p">(</span>
-    <span class="n">specification</span><span class="o">=</span><span class="n">tr_spec</span><span class="p">,</span>
+<span class="n">target_schema</span> <span class="o">=</span> <span class="n">SchemaMapper</span><span class="p">(</span><span class="n">source_schemaview</span><span class="o">=</span><span class="n">source</span><span class="p">)</span><span class="o">.</span><span class="n">derive_schema</span><span class="p">(</span>
+    <span class="n">specification</span><span class="o">=</span><span class="n">spec</span><span class="p">,</span>
     <span class="n">target_schema_id</span><span class="o">=</span><span class="s2">&quot;denormalized-view&quot;</span><span class="p">,</span>
     <span class="n">target_schema_name</span><span class="o">=</span><span class="s2">&quot;DenormalizedView&quot;</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="n">derived</span> <span class="o">=</span> <span class="n">SchemaView</span><span class="p">(</span><span class="n">yaml_dumper</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">target_schema</span><span class="p">))</span>
 
-<span class="n">yaml_dumper</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">target_schema_obj</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="s2">&quot;denormalized_view.yaml&quot;</span><span class="p">))</span>
-
-<span class="n">transformed_sv</span> <span class="o">=</span> <span class="n">SchemaView</span><span class="p">(</span><span class="s2">&quot;denormalized_view.yaml&quot;</span><span class="p">)</span>
-
-<span class="k">for</span> <span class="n">class_name</span> <span class="ow">in</span> <span class="n">transformed_sv</span><span class="o">.</span><span class="n">all_classes</span><span class="p">():</span>
+<span class="k">for</span> <span class="n">class_name</span> <span class="ow">in</span> <span class="n">derived</span><span class="o">.</span><span class="n">all_classes</span><span class="p">():</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">class_name</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">()</span>
-<span class="k">for</span> <span class="n">slot_name</span> <span class="ow">in</span> <span class="n">transformed_sv</span><span class="o">.</span><span class="n">all_slots</span><span class="p">():</span>
+<span class="k">for</span> <span class="n">slot_name</span> <span class="ow">in</span> <span class="n">derived</span><span class="o">.</span><span class="n">all_slots</span><span class="p">():</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">slot_name</span><span class="p">)</span>
 </code></pre></div>
 
@@ -159,17 +183,36 @@ predicate_id
 </div>
 </div>
 </div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-
-<div class="highlight"><pre><span></span><code>
-</code></pre></div>
-
-</div>
-</div>
 
   <br>
     
+
+    
+    
+      
+    
+
+  <div class="row wm-article-nav-buttons" role="navigation" aria-label="navigation">
+    
+    <div class="wm-article-nav pull-right">
+      <a href="../biolink-subsetting/" class="btn btn-xs btn-default pull-right">
+        Next
+        <i class="fa fa-chevron-right" aria-hidden="true"></i>
+      </a>
+      <a href="../biolink-subsetting/" class="btn btn-xs btn-link">
+        Biolink Model Subsetting
+      </a>
+    </div>
+    
+    <div class="wm-article-nav">
+      <a href="../MetamodelMapping/" class="btn btn-xs btn-default pull-left">
+        <i class="fa fa-chevron-left" aria-hidden="true"></i>
+        Previous</a><a href="../MetamodelMapping/" class="btn btn-xs btn-link">
+        Metamodel Mapping
+      </a>
+    </div>
+    
+  </div>
 
     <br>
 </div>

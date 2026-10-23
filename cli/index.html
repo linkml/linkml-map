@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    
+    <link rel="canonical" href="https://linkml.github.io/linkml-map/cli/">
+    <link rel="shortcut icon" href="../img/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <title>Command-Line Reference - LinkML-Map</title>
+    <link href="../css/bootstrap-3.3.7.min.css" rel="stylesheet">
+    <link href="../css/font-awesome-4.7.0.css" rel="stylesheet">
+    <link href="../css/base.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/highlight.css">
+    <link href="../assets/_mkdocstrings.css" rel="stylesheet">
+    <link href="../css/ansi-colours.css" rel="stylesheet">
+    <link href="../css/jupyter-cells.css" rel="stylesheet">
+    <link href="../css/pandas-dataframe.css" rel="stylesheet">
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+
+    <script src="../js/jquery-3.2.1.min.js"></script>
+    <script src="../js/bootstrap-3.3.7.min.js"></script>
+    <script src="../js/highlight.pack.js"></script>
+    
+    <base target="_top">
+    <script>
+      var base_url = '..';
+      var is_top_frame = false;
+        
+        var pageToc = [
+          {title: "Command-Line Reference", url: "#_top", children: [
+              {title: "map-data", url: "#map-data" },
+              {title: "derive-schema", url: "#derive-schema" },
+              {title: "validate-spec", url: "#validate-spec" },
+              {title: "compile", url: "#compile" },
+          ]},
+        ];
+
+    </script>
+    <script src="../js/base.js"></script> 
+</head>
+
+<body>
+<script>
+if (is_top_frame) { $('body').addClass('wm-top-page'); }
+</script>
+
+
+
+<div class="container-fluid wm-page-content">
+  <a name="_top"></a>
+    
+
+    
+    
+      
+    
+
+  <div class="row wm-article-nav-buttons" role="navigation" aria-label="navigation">
+    
+    <div class="wm-article-nav pull-right">
+      <a href="../examples/MetamodelMapping/" class="btn btn-xs btn-default pull-right">
+        Next
+        <i class="fa fa-chevron-right" aria-hidden="true"></i>
+      </a>
+      <a href="../examples/MetamodelMapping/" class="btn btn-xs btn-link">
+        Metamodel Mapping
+      </a>
+    </div>
+    
+    <div class="wm-article-nav">
+      <a href="../writing-specs/" class="btn btn-xs btn-default pull-left">
+        <i class="fa fa-chevron-left" aria-hidden="true"></i>
+        Previous</a><a href="../writing-specs/" class="btn btn-xs btn-link">
+        Writing Specifications
+      </a>
+    </div>
+    
+  </div>
+
+    
+
+    <h1 id="command-line-reference">Command-Line Reference</h1>
+<p>The <code>linkml-map</code> CLI has the following subcommands:</p>
+<ul>
+<li><code>map-data</code> — transform data from a source schema using a transformation specification</li>
+<li><code>derive-schema</code> — derive a target schema from a source schema and a transformation specification</li>
+<li><code>invert</code> — invert a transformation specification (renames, unit conversions and stringification; expressions can't be inverted)</li>
+<li><code>compile</code> — compile a transformation specification to another representation</li>
+<li><code>validate-spec</code> — check transformation specification files against their source and target schemas</li>
+</ul>
+<p>Run any subcommand with <code>--help</code> for full options.</p>
+<h2 id="map-data">map-data</h2>
+<p>Transforms (maps) data from a source schema to a target schema. This could range from a simple data dictionary mapping
+through to a complex mapping.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>tests/input/examples/personinfo_basic
+linkml-map<span class="w"> </span>map-data<span class="w"> </span>--unrestricted-eval<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-T<span class="w"> </span>transform/personinfo-to-agent.transform.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-s<span class="w"> </span>source/personinfo.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>data/Container-001.yaml
+</code></pre></div>
+<p>Options that change what a run does:</p>
+<ul>
+<li><code>-T</code> can be repeated, and can name a directory. All the specs found are merged into one
+  before the run; <code>--emit-spec FILE</code> writes the merged result. <code>--entity NAME</code> runs only the
+  class derivations for one target class.</li>
+<li><code>--target-schema</code> types the output to the target schema. Values are coerced to each target
+  slot's range, enum values are resolved to permissible values, and every class with an
+  identifier slot must derive or mint its id (see <a href="../writing-specs/#identifiers">Identifiers</a>).
+  Without it, only a <code>range:</code> written in the spec coerces values.</li>
+<li><code>--strict</code> turns a name in an expression that isn't a source slot, or an enum value that
+  matches no permissible value (or more than one), into an error instead of a warning.
+  Recommended for real data.</li>
+<li><code>--continue-on-error</code> reports every failing row at the end instead of stopping at the
+  first, and exits non-zero if any failed.</li>
+<li><code>--unrestricted-eval</code> allows full Python in expressions. Leave it off unless a spec needs it.</li>
+<li><code>-F FILE</code> adds the <code>@safe_function</code> functions in a Python file to the expression namespace.</li>
+</ul>
+<p>Before mapping, <code>map-data</code> runs the <code>validate-spec</code> checks and prints any problems as
+warnings; they don't stop the run.</p>
+<h3 id="tabular-data-support-tsvcsv">Tabular Data Support (TSV/CSV)</h3>
+<p>The <code>map-data</code> command supports tabular data files (TSV and CSV) as input, enabling transformations
+on large datasets with streaming output.</p>
+<p><strong>Single TSV/CSV file:</strong></p>
+<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>map-data<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-T<span class="w"> </span>transform.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-s<span class="w"> </span>source_schema.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--source-type<span class="w"> </span>Person<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>people.tsv
+</code></pre></div>
+<p><strong>Directory of data files:</strong></p>
+<p>When transforming data from multiple source types, organize your data in a directory with files
+named after the source type (e.g., <code>Person.tsv</code>, <code>Organization.csv</code>):</p>
+<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>map-data<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-T<span class="w"> </span>transform.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-s<span class="w"> </span>source_schema.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-f<span class="w"> </span>jsonl<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span>output.jsonl<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>./data/
+</code></pre></div>
+<p><strong>Output formats:</strong></p>
+<p>The <code>-f/--output-format</code> option supports:
+- <code>yaml</code> - YAML format (default)
+- <code>json</code> - JSON array
+- <code>jsonl</code> - JSON Lines (one object per line)
+- <code>tsv</code> - Tab-separated values
+- <code>csv</code> - Comma-separated values
+- <code>parquet</code> - Apache Parquet, with nested fields preserved as columns
+- <code>duckdb</code> - a DuckDB database file, one table per run</p>
+<p>Output format can also be inferred from the output file extension.</p>
+<p><strong>Streaming for large files:</strong></p>
+<p>For large datasets, use <code>--chunk-size</code> to control memory usage:</p>
+<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>map-data<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-T<span class="w"> </span>transform.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-s<span class="w"> </span>schema.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--source-type<span class="w"> </span>Person<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--chunk-size<span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-f<span class="w"> </span>jsonl<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>large_dataset.tsv
+</code></pre></div>
+<h3 id="multi-format-output">Multi-Format Output</h3>
+<p>Use <code>-O</code>/<code>--additional-output</code> to write multiple output formats simultaneously
+from a single transformation pass:</p>
+<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>map-data<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-T<span class="w"> </span>transform.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-s<span class="w"> </span>schema.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-f<span class="w"> </span>jsonl<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span>output.jsonl<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-O<span class="w"> </span>output.tsv<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-O<span class="w"> </span>output.json<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>people.tsv
+</code></pre></div>
+<p>The primary output uses <code>-f</code>/<code>-o</code> as usual. Each <code>-O</code> flag adds an additional
+output file whose format is inferred from the file extension (<code>.json</code>, <code>.jsonl</code>,
+<code>.yaml</code>, <code>.yml</code>, <code>.tsv</code>, <code>.csv</code>, <code>.parquet</code>, <code>.duckdb</code>). All outputs are written
+in a single streaming pass.</p>
+<h3 id="columnar-output">Columnar Output</h3>
+<p><code>parquet</code> and <code>duckdb</code> write a columnar artifact rather than text. Unlike <code>tsv</code>
+and <code>csv</code>, which flatten to one row of scalars, these keep nested structure: a
+nested object becomes a <code>STRUCT</code> column and a list of them a <code>STRUCT[]</code>, so a
+consumer reads a nested field with a column access instead of a join.</p>
+<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>map-data<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-T<span class="w"> </span>transform.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-s<span class="w"> </span>schema.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--source-type<span class="w"> </span>Person<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span>agents.parquet<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>data/Person.tsv
+</code></pre></div>
+<p>DuckDB output writes one table per run, named by <code>--table-name</code> and defaulting
+to the output file's stem. Pointing several runs at the same <code>.duckdb</code> path
+builds up a database covering multiple target classes:</p>
+<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>map-data<span class="w"> </span>-T<span class="w"> </span>transform.yaml<span class="w"> </span>-s<span class="w"> </span>schema.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--source-type<span class="w"> </span>Person<span class="w"> </span>--table-name<span class="w"> </span>person<span class="w"> </span>-o<span class="w"> </span>study.duckdb<span class="w"> </span>data/Person.tsv
+linkml-map<span class="w"> </span>map-data<span class="w"> </span>-T<span class="w"> </span>transform.yaml<span class="w"> </span>-s<span class="w"> </span>schema.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--source-type<span class="w"> </span>Measurement<span class="w"> </span>--table-name<span class="w"> </span>measurement<span class="w"> </span>-o<span class="w"> </span>study.duckdb<span class="w"> </span>data/Measurement.tsv
+</code></pre></div>
+<p>Both formats also work as <code>-O</code> targets alongside a text primary output. Neither
+adds a dependency: <code>duckdb</code> is already required by the join engine.</p>
+<h2 id="derive-schema">derive-schema</h2>
+<p>Derives a target schema (the "profile") implied by the transformation specification.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>tests/input/examples/personinfo_basic
+linkml-map<span class="w"> </span>derive-schema<span class="w"> </span>-T<span class="w"> </span>transform/personinfo-to-agent.transform.yaml<span class="w"> </span>source/personinfo.yaml
+</code></pre></div>
+<h2 id="validate-spec">validate-spec</h2>
+<p>Checks a transformation specification before it runs. It reports:</p>
+<ul>
+<li>spec structure that doesn't match the transformation data model, and deprecated fields</li>
+<li>class, slot and <code>populated_from</code> references, and names used in expressions, that don't
+  resolve against the source schema</li>
+<li>target classes and slots that don't exist in the target schema</li>
+<li><code>joins</code> and <code>is_a</code> references that don't resolve</li>
+<li>arithmetic on slots that hold strings</li>
+<li><code>value:</code> literals and <code>value_mappings</code> targets that aren't permissible values of the
+  target slot's enum</li>
+<li>a spec <code>range:</code> that overrides the target slot's range so that values won't be coerced
+  or resolved to it</li>
+</ul>
+<p>The source and target schemas come from <code>--source-schema</code> and <code>--target-schema</code>, or from
+the spec's own <code>source_schema</code> and <code>target_schema</code> fields when they are paths or URLs.</p>
+<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>validate-spec<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--source-schema<span class="w"> </span>source/personinfo.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--target-schema<span class="w"> </span>target/agent.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>transform/personinfo-to-agent.transform.yaml
+</code></pre></div>
+<p>Use <code>--strict</code> to treat warnings as errors. Supports validating multiple files or directories of specs in a single call; add <code>--merge</code> to validate them as one merged spec, as <code>map-data</code> would run them.</p>
+<h2 id="compile">compile</h2>
+<p>Compiles a transformation specification to another representation.</p>
+<div class="highlight"><pre><span></span><code>linkml-map<span class="w"> </span>compile<span class="w"> </span>--target<span class="w"> </span>python<span class="w"> </span>-T<span class="w"> </span>transform.yaml<span class="w"> </span>-s<span class="w"> </span>source.yaml
+linkml-map<span class="w"> </span>compile<span class="w"> </span>--target<span class="w"> </span>markdown<span class="w"> </span>-T<span class="w"> </span>transform.yaml<span class="w"> </span>-s<span class="w"> </span>source.yaml
+</code></pre></div>
+<p>Currently supported <code>--target</code> values are <code>python</code> (default) and <code>markdown</code>. A SQL compilation backend (<code>SQLCompiler</code> / <code>DuckDBTransformer</code>) exists for programmatic use but is not yet exposed through the <code>compile</code> subcommand.</p>
+
+  <br>
+    
+
+    
+    
+      
+    
+
+  <div class="row wm-article-nav-buttons" role="navigation" aria-label="navigation">
+    
+    <div class="wm-article-nav pull-right">
+      <a href="../examples/MetamodelMapping/" class="btn btn-xs btn-default pull-right">
+        Next
+        <i class="fa fa-chevron-right" aria-hidden="true"></i>
+      </a>
+      <a href="../examples/MetamodelMapping/" class="btn btn-xs btn-link">
+        Metamodel Mapping
+      </a>
+    </div>
+    
+    <div class="wm-article-nav">
+      <a href="../writing-specs/" class="btn btn-xs btn-default pull-left">
+        <i class="fa fa-chevron-left" aria-hidden="true"></i>
+        Previous</a><a href="../writing-specs/" class="btn btn-xs btn-link">
+        Writing Specifications
+      </a>
+    </div>
+    
+  </div>
+
+    <br>
+</div>
+
+<footer class="container-fluid wm-page-content">
+      <p>
+        <a href="https://github.com/linkml/linkml-map/edit/master/docs/cli.md"><i class="fa fa-github"></i>
+Edit on GitHub</a>
+      </p>
+  <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a> using <a href="https://github.com/gristlabs/mkdocs-windmill">Windmill</a> theme by Grist Labs.</p>
+</footer>
+
+</body>
+</html>
