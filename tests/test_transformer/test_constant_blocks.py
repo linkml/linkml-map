@@ -109,19 +109,44 @@ def test_constant_block_does_not_hide_missing_input(tmp_path):
 @pytest.mark.parametrize(
     "class_derivations",
     [
-        pytest.param({"Study": {"slot_derivations": {"name": None}}}, id="bare-slot"),
-        pytest.param({"Study": {"slot_derivations": {"name": {"expr": "name"}}}}, id="expr"),
-        pytest.param({"Study": STUDY}, id="named-after-source-class"),
+        pytest.param({"ResearchStudy": {"slot_derivations": {"name": None}}}, id="bare-slot"),
+        pytest.param({"ResearchStudy": {"slot_derivations": {"name": {"expr": "name"}}}}, id="expr"),
         pytest.param(
-            {"Base": {"slot_derivations": {"name": None}}, "Study": {"is_a": "Base", **STUDY}},
+            {
+                "Base": {"slot_derivations": {"name": None}},
+                "ResearchStudy": {"is_a": "Base", "slot_derivations": {"id": {"value": "phs000810"}}},
+            },
             id="inherits-row-slot",
+        ),
+        pytest.param(
+            {
+                "ResearchStudy": {
+                    "slot_derivations": {
+                        "id": {"value": "phs000810"},
+                        "project": {
+                            "class_derivations": [{"name": "Project", "slot_derivations": {"code": {"expr": "name"}}}]
+                        },
+                    }
+                }
+            },
+            id="nested-row-slot",
         ),
     ],
 )
-def test_blocks_that_read_a_row_emit_per_row(class_derivations, data_dir):
-    """A block that reads anything from a row, or is named after a source class, maps every row of its table."""
+def test_block_that_reads_a_row_is_not_emitted_once(class_derivations, data_dir):
+    """A block that reads anything from a row still needs a table; with none under its name it is skipped."""
+    assert _stream({**class_derivations, "Participant": PARTICIPANT}, data_dir) == [
+        {"pid": "P1"},
+        {"pid": "P2"},
+        {"pid": "P3"},
+    ]
+
+
+def test_block_named_after_source_class_maps_every_row(data_dir):
+    """Inference gives a block named after a source class that table, so constants repeat per row."""
     (data_dir / "Study.tsv").write_text("name\nX\nY\n")
-    results = _stream({**class_derivations, "Participant": PARTICIPANT}, data_dir)
+    results = _stream({"Study": STUDY, "Participant": PARTICIPANT}, data_dir)
+    assert results[:2] == [{"id": "phs000810", "name": "HCHS"}] * 2
     assert len(results) == 2 + 3
 
 
