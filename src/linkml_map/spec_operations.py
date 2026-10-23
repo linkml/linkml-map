@@ -7,17 +7,18 @@ the target schema it implies, the inverse specification, or a diagram. None of t
 """
 
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from graphviz import Digraph
 from linkml_runtime import SchemaView
 from linkml_runtime.linkml_model import SchemaDefinition
 
-from linkml_map.compiler.graphviz_compiler import GraphvizCompiler
 from linkml_map.datamodel.transformer_model import TransformationSpecification
 from linkml_map.inference.inverter import TransformationSpecificationInverter
 from linkml_map.inference.schema_mapper import SchemaMapper
 from linkml_map.utils.loaders import load_specification
+
+if TYPE_CHECKING:
+    from graphviz import Digraph
 
 SpecificationInput = TransformationSpecification | dict[str, Any] | Path | str
 SchemaInput = SchemaView | SchemaDefinition | Path | str
@@ -61,7 +62,7 @@ def invert(
     return inverter.invert(load_specification(specification))
 
 
-def graphviz(specification: SpecificationInput, source_schema: SchemaInput) -> Digraph:
+def graphviz(specification: SpecificationInput, source_schema: SchemaInput) -> "Digraph":
     """
     Draw the specification as a diagram of source and target classes and the slots mapped between them.
 
@@ -69,5 +70,7 @@ def graphviz(specification: SpecificationInput, source_schema: SchemaInput) -> D
     :param source_schema: The schema the specification maps from, as a path or SchemaView.
     :return: A graphviz Digraph; render it with ``.render()`` or display it in a notebook.
     """
+    from linkml_map.compiler.graphviz_compiler import GraphvizCompiler
+
     compiler = GraphvizCompiler(source_schemaview=_schemaview(source_schema))
     return compiler.compile(load_specification(specification)).digraph
