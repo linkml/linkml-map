@@ -9,16 +9,17 @@ is executed or what format the data lives in.
 Features:
 
 - YAML-based lightweight transformation syntax
-- Python library for executing mappings on data files
-- Streaming support for large tabular datasets (TSV/CSV)
-- Multiple text serialization formats (YAML, JSON, JSONL, TSV, CSV)
+- A CLI and Python library for executing mappings on data files
+- Validation of a specification against its source and target schemas before it runs (`validate-spec`)
+- Output typed to the target schema, when one is given: values are coerced to the target slot's range and enum values resolved to permissible values
+- Streaming support for large tabular datasets (TSV/CSV), with joins across tables
+- Text (YAML, JSON, JSONL, TSV, CSV) and columnar (Parquet, DuckDB) output
 - Derivation of target (implicit) schemas, allowing easy customization of data models (*profiling*)
 - Simple YAML dictionaries for simple mappings
 - Automatic unit conversion
 - Use of subset of Python to specify complex mappings
 - Visualizations of mappings
-- Mappings are reversible (provided all expressions used are reversible)
-- Compatibility with SSSOM
+- Inversion of mappings built from renames, unit conversions and stringification (expressions can't be inverted)
 
 ## Architecture
 

@@ -131,7 +131,7 @@ derivations can target the same class (their slot derivations are merged).
 Run the transformation:
 
 ```bash
-linkml-map map-data -T tr.yaml -s schema.yaml my-data.yaml
+linkml-map map-data -T tr.yaml -s schema.yaml --source-type Person my-data.yaml
 ```
 
 Giving:

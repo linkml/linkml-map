@@ -4,9 +4,9 @@ The `linkml-map` CLI has the following subcommands:
 
 - `map-data` — transform data from a source schema using a transformation specification
 - `derive-schema` — derive a target schema from a source schema and a transformation specification
-- `invert` — invert a transformation specification (when expressions are reversible)
+- `invert` — invert a transformation specification (renames, unit conversions and stringification; expressions can't be inverted)
 - `compile` — compile a transformation specification to another representation
-- `validate-spec` — structurally validate transformation specification files
+- `validate-spec` — check transformation specification files against their source and target schemas
 
 Run any subcommand with `--help` for full options.
 
@@ -22,6 +22,26 @@ linkml-map map-data --unrestricted-eval \
   -s source/personinfo.yaml \
   data/Container-001.yaml
 ```
+
+Options that change what a run does:
+
+- `-T` can be repeated, and can name a directory. All the specs found are merged into one
+  before the run; `--emit-spec FILE` writes the merged result. `--entity NAME` runs only the
+  class derivations for one target class.
+- `--target-schema` types the output to the target schema. Values are coerced to each target
+  slot's range, enum values are resolved to permissible values, and every class with an
+  identifier slot must derive or mint its id (see [Identifiers](writing-specs.md#identifiers)).
+  Without it, only a `range:` written in the spec coerces values.
+- `--strict` turns a name in an expression that isn't a source slot, or an enum value that
+  matches no permissible value (or more than one), into an error instead of a warning.
+  Recommended for real data.
+- `--continue-on-error` reports every failing row at the end instead of stopping at the
+  first, and exits non-zero if any failed.
+- `--unrestricted-eval` allows full Python in expressions. Leave it off unless a spec needs it.
+- `-F FILE` adds the `@safe_function` functions in a Python file to the expression namespace.
+
+Before mapping, `map-data` runs the `validate-spec` checks and prints any problems as
+warnings; they don't stop the run.
 
 ### Tabular Data Support (TSV/CSV)
 
@@ -141,7 +161,21 @@ linkml-map derive-schema -T transform/personinfo-to-agent.transform.yaml source/
 
 ## validate-spec
 
-Structurally validates a transformation specification against source and target schemas. Reports unresolved class/slot references, deprecated fields, and other issues.
+Checks a transformation specification before it runs. It reports:
+
+- spec structure that doesn't match the transformation data model, and deprecated fields
+- class, slot and `populated_from` references, and names used in expressions, that don't
+  resolve against the source schema
+- target classes and slots that don't exist in the target schema
+- `joins` and `is_a` references that don't resolve
+- arithmetic on slots that hold strings
+- `value:` literals and `value_mappings` targets that aren't permissible values of the
+  target slot's enum
+- a spec `range:` that overrides the target slot's range so that values won't be coerced
+  or resolved to it
+
+The source and target schemas come from `--source-schema` and `--target-schema`, or from
+the spec's own `source_schema` and `target_schema` fields when they are paths or URLs.
 
 ```bash
 linkml-map validate-spec \
@@ -150,7 +184,7 @@ linkml-map validate-spec \
   transform/personinfo-to-agent.transform.yaml
 ```
 
-Use `--strict` to treat warnings as errors. Supports validating multiple files or directories of specs in a single call.
+Use `--strict` to treat warnings as errors. Supports validating multiple files or directories of specs in a single call; add `--merge` to validate them as one merged spec, as `map-data` would run them.
 
 ## compile
 

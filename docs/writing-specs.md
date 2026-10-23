@@ -1,5 +1,130 @@
 # Writing Specifications
 
+## Typing Output to the Target Schema
+
+Given a target schema (`--target-schema`, or `target_schemaview` from Python), each value is
+converted to the target slot's range before it is written. This applies whether the value
+comes from `populated_from`, `expr:` or `value:`.
+
+With this target schema:
+
+```yaml
+classes:
+  Person:
+    attributes:
+      id:
+        identifier: true
+      sex:
+        range: SexEnum
+      weight_kg:
+        range: decimal
+      smoker:
+        range: boolean
+enums:
+  SexEnum:
+    permissible_values:
+      FEMALE:
+        meaning: OMOP:8532
+        aliases: [female, F]
+      MALE:
+        meaning: OMOP:8507
+        aliases: [male, M]
+```
+
+a spec that only renames columns:
+
+```yaml
+class_derivations:
+  Person:
+    populated_from: Row
+    slot_derivations:
+      id:
+      sex:
+      weight_kg:
+        populated_from: weight
+      smoker:
+```
+
+turns this TSV, where every value is a string:
+
+```
+id  sex        weight  smoker
+P1  female     70.50   false
+P2  OMOP:8507  81      true
+P3  unknown    65.2    false
+```
+
+into:
+
+```json
+{"id": "P1", "sex": "FEMALE", "weight_kg": 70.50, "smoker": false}
+{"id": "P2", "sex": "MALE", "weight_kg": 81, "smoker": true}
+{"id": "P3", "sex": "unknown", "weight_kg": 65.2, "smoker": false}
+```
+
+with the warning `'unknown' is not a permissible value of enum SexEnum`.
+
+**Datatypes.** Values are converted when the target range is `integer`, `float`, `decimal`,
+`boolean` or `string`, or a type derived from one of them. Other types, such as dates and
+URIs, pass through as they are. A value that
+can't be parsed, such as `no` for a boolean, fails the row at mapping time rather than
+producing output that fails validation later. `decimal` values are kept exact, trailing
+zeros included, in every output format.
+
+**Enums.** A value is matched against the enum's permissible values by key, then `meaning`
+(CURIEs are expanded, so `OMOP:8507` matches its full URI), then `title`, then `aliases`,
+and written as the permissible value's key. The first of those that matches decides; a
+value matching two permissible values the same way is an error, as is a value matching
+none. Without `--strict` both are warnings and the value passes through unchanged; with
+it, the row fails. Enums defined by a query (`reachable_from`, `matches`, `concepts`,
+`include`, `minus`, `inherits`) or with no permissible values aren't resolved.
+
+**Overriding the target.** A `range:` on a slot derivation takes precedence over the target
+schema. `validate-spec` warns when that override means values won't be coerced or resolved
+to the target slot's range, such as `range: string` on an enum slot.
+
+## Joining Tables
+
+When the source is a directory of tables, a class derivation can read slots from a second
+table. Name the table and the columns that link it:
+
+```yaml
+class_derivations:
+  Observation:
+    populated_from: Visit
+    joins:
+      Participant:
+        source_key: participant      # column in Visit
+        lookup_key: participant_id   # column in Participant
+    slot_derivations:
+      id:
+        populated_from: visit_id
+      weight:
+        populated_from: weight_kg
+      sex:
+        populated_from: Participant.sex
+      born:
+        expr: "{Participant.birth_year}"
+```
+
+Use `join_on: <column>` instead when both tables name the key column the same. If they do,
+the `joins:` block can be left out entirely: a reference like `{Participant.sex}` is joined
+on the column the two tables share.
+
+```bash
+linkml-map map-data -T spec.yaml -s source.yaml --source-type Visit -f jsonl data/
+```
+
+with `data/Visit.tsv` and `data/Participant.tsv` gives:
+
+```json
+{"id": "V1", "weight": 70.5, "sex": "F", "born": 1980}
+{"id": "V2", "weight": 81, "sex": "M", "born": 1975}
+{"id": "V3"}
+```
+
+A row with no match in the joined table, like `V3`, gets no values from it.
+
 ## Working with Auto-Generated Schemas
 
 When working with schemas auto-generated from tabular data (e.g., via [schema-automator](https://github.com/linkml/schema-automator)),
@@ -23,7 +148,9 @@ class_derivations:
 
 This requires:
 1. The source schema defines `org_id` with `range: Organization`
-2. The transformer has an `ObjectIndex` created via `transformer.index(container_data, "Container")`
+2. The referenced objects are indexed. `map-data` indexes its YAML or JSON input for you; from
+   Python, call `transformer.index(container_data, "Container")` before mapping. For tables,
+   use [joins](#joining-tables) instead.
 
 ### Inlined Nested Data
 
