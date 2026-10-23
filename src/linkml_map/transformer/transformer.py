@@ -141,17 +141,20 @@ class Transformer(ABC):
        requires ``source_schemaview`` to be set.
     """
 
-    specification: TransformationSpecification = None
+    specification: TransformationSpecification | dict[str, Any] | str | Path | None = None
     """A specification of how to generate target objects from source objects.
 
     The constructor also accepts a YAML file path or a dict, which it loads as
-    ``load_transformer_specification`` and ``create_transformer_specification`` do.
+    ``load_transformer_specification`` and ``create_transformer_specification`` do,
+    without modifying the dict. After construction it is always a loaded
+    ``TransformationSpecification`` or ``None``.
     """
 
-    source_schemaview: SchemaView = None
+    source_schemaview: SchemaView | str | Path | None = None
     """A view over the schema describing the input/source object.
 
-    The constructor also accepts a schema file path.
+    The constructor also accepts a schema file path. After construction it is
+    always a ``SchemaView`` or ``None``.
     """
 
     _derived_specification: TransformationSpecification = None
@@ -160,10 +163,11 @@ class Transformer(ABC):
     _source_schema_patched: bool = field(default=False)
     """Flag to track if source schema patches have been applied."""
 
-    target_schemaview: SchemaView | None = None
+    target_schemaview: SchemaView | str | Path | None = None
     """A view over the schema describing the output/target object.
 
-    The constructor also accepts a schema file path.
+    The constructor also accepts a schema file path. After construction it is
+    always a ``SchemaView`` or ``None``.
     """
 
     unrestricted_eval: bool = field(default=False)
@@ -210,7 +214,7 @@ class Transformer(ABC):
         if isinstance(self.specification, (str, Path)):
             self.load_transformer_specification(self.specification)
         elif isinstance(self.specification, dict):
-            self.create_transformer_specification(self.specification)
+            self.create_transformer_specification(deepcopy(self.specification))
         if isinstance(self.source_schemaview, (str, Path)):
             self.load_source_schema(self.source_schemaview)
         if isinstance(self.target_schemaview, (str, Path)):

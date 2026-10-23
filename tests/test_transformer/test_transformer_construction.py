@@ -63,3 +63,11 @@ def test_constructor_keeps_spec_messages():
     with pytest.warns(DeprecationWarning, match="derived_from"):
         tr = ObjectTransformer(specification=spec)
     assert [m.category for m in tr.spec_messages] == ["deprecated"]
+
+
+def test_constructor_leaves_caller_dict_unchanged():
+    """Normalization works on a copy, so the caller's dict can be reused."""
+    spec = yaml.safe_load(PERSONINFO_TR.read_text())
+    original = yaml.safe_load(PERSONINFO_TR.read_text())
+    ObjectTransformer(specification=spec)
+    assert spec == original
