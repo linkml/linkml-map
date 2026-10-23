@@ -662,16 +662,15 @@ def test_normalize_leaves_range_unset_for_literal_value() -> None:
 
 
 def test_derive_from_expr_unrestricted_fallback() -> None:
-    """The asteval fallback path is used when unrestricted_eval=True and simpleeval rejects the expression."""
+    """A statement is evaluated by asteval when unrestricted_eval=True, reaching the source object as ``src``."""
     source_schema: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_SRC_SCHEMA)))
     target_schema: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TGT_SCHEMA)))
     transform_spec: dict[str, Any] = yaml.safe_load(open(str(PERSONINFO_TR)))
 
-    # Assignment syntax is rejected by simpleeval but handled by asteval
     transform_spec.setdefault("class_derivations", {}).setdefault("Agent", {}).setdefault("slot_derivations", {})[
         "label"
     ] = {
-        "expr": "target = name",
+        "expr": "target = src.name",
     }
 
     obj_tr = ObjectTransformer(unrestricted_eval=True)

@@ -688,7 +688,7 @@ class ObjectTransformer(Transformer):
         """
         if self.unrestricted_eval and _is_statement_block(expr):
             ctxt_obj, _ = bindings.get_ctxt_obj_and_dict()
-            return self._unrestricted_eval(expr, ctxt_obj, functions=functions)
+            return self._unrestricted_eval(expr, ctxt_obj, functions=functions, raise_undefined=True)
         try:
             return eval_expr_with_mapping(
                 expr,
@@ -708,6 +708,7 @@ class ObjectTransformer(Transformer):
         expr: str,
         src: Any,
         functions: dict[str, Any] | None = None,
+        raise_undefined: bool = False,
     ) -> Any:
         """Evaluate *expr* with the unrestricted asteval interpreter.
 
@@ -718,12 +719,20 @@ class ObjectTransformer(Transformer):
         :param expr: The expression string to evaluate.
         :param src: Object exposed to the expression as ``src``.
         :param functions: Extra functions injected into the interpreter.
+        :param raise_undefined: Raise when the expression uses an undefined name, such as a
+            ``{slot}`` reference, which asteval can't resolve. Other errors, such as iterating
+            a missing value, still yield ``None``.
+        :raises ValueError: If ``raise_undefined`` and the expression uses an undefined name.
         """
         usersyms = {"src": src, "target": None, "uuid5": _uuid5}
         if functions:
             usersyms.update(functions)
         aeval = Interpreter(usersyms=usersyms)
         aeval(expr)
+        if raise_undefined and aeval.error and aeval.error[0].exc is NameError:
+            _, detail = aeval.error[0].get_error()
+            msg = f"Unrestricted expression uses an undefined name: {detail}. Statements read slots as src.<slot>."
+            raise ValueError(msg)
         return aeval.symtable["target"]
 
     def _apply_mappings(

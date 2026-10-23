@@ -8,6 +8,7 @@ import yaml
 from linkml_runtime import SchemaView
 
 from linkml_map import ObjectTransformer
+from linkml_map.transformer.errors import TransformationError
 
 SOURCE = """\
 id: https://example.org/people
@@ -96,3 +97,44 @@ def test_statement_expression_skips_restricted_evaluator(mapped):
     """A statement block goes straight to the unrestricted evaluator, so simpleeval never warns about it."""
     _, _, python_warnings = mapped
     assert python_warnings == []
+
+
+AGE_SCHEMA = """\
+id: https://example.org/p
+name: p
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+classes:
+  Person:
+    attributes:
+      age:
+        range: integer
+      events:
+        range: integer
+        multivalued: true
+"""
+
+
+def _eval_statement(expr: str, person: dict) -> object:
+    spec = {"class_derivations": {"P": {"populated_from": "Person", "slot_derivations": {"v": {"expr": expr}}}}}
+    tr = ObjectTransformer(specification=spec, source_schemaview=SchemaView(AGE_SCHEMA), unrestricted_eval=True)
+    return tr.map_object(person, source_type="Person").get("v")
+
+
+def test_statement_block_runs_every_statement():
+    """All statements run; the restricted evaluator used to run only the first and return 20."""
+    assert _eval_statement("x = src.age * 2\ntarget = x + 1", {"age": 10}) == 21
+
+
+@pytest.mark.parametrize("expr", ["x = {age} * 2\ntarget = x + 1", "target = {age} * 2", "target = age * 2"])
+def test_statement_block_undefined_name_raises(expr: str):
+    """A ``{slot}`` or bare slot name in a statement block is undefined there, and fails instead of yielding None."""
+    with pytest.raises(TransformationError, match=r"(?s)undefined name.*src\.<slot>"):
+        _eval_statement(expr, {"age": 10})
+
+
+def test_statement_block_missing_data_yields_none():
+    """Iterating a missing value is a data gap, not a spec error: the result is None, as before."""
+    assert _eval_statement("target = [e for e in src.events][0]", {"age": 10}) is None
