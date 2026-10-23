@@ -2007,3 +2007,26 @@ def test_top_level_join_missing_keys_warns():
     spec = _dotted_spec({"populated_from": "Reading.score"}, joins={"Reading": {"source_key": "subject_id"}})
     msgs = validate_spec_semantics(spec, source_schemaview=SchemaView(JOINABLE_SCHEMA))
     assert len([m for m in _warnings(msgs) if "missing keys" in m.message]) == 1
+
+
+@pytest.mark.parametrize(
+    ("range_name", "expected"),
+    [
+        ("integr", ["range 'integr' is not a type, class or enum in the source or target schema"]),
+        ("integer", []),
+        ("Reading", []),
+        ("Outer", []),
+    ],
+    ids=["typo", "builtin-type", "source-class", "spec-derivation"],
+)
+def test_slot_range_must_name_something(range_name: str, expected: list[str]):
+    """A slot derivation's range must name a type, class or enum, or one of the spec's derivations."""
+    spec = _dotted_spec({"populated_from": "method", "range": range_name})
+    msgs = validate_spec_semantics(spec, source_schemaview=SchemaView(JOINABLE_SCHEMA))
+    assert [m.message for m in msgs if m.category == "unknown-range"] == expected
+
+
+def test_slot_range_unknown_is_error_when_strict():
+    spec = _dotted_spec({"populated_from": "method", "range": "integr"})
+    msgs = validate_spec_semantics(spec, source_schemaview=SchemaView(JOINABLE_SCHEMA), strict=True)
+    assert [m.severity for m in msgs if m.category == "unknown-range"] == ["error"]

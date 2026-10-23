@@ -138,3 +138,16 @@ def test_statement_block_undefined_name_raises(expr: str):
 def test_statement_block_missing_data_yields_none():
     """Iterating a missing value is a data gap, not a spec error: the result is None, as before."""
     assert _eval_statement("target = [e for e in src.events][0]", {"age": 10}) is None
+
+
+def test_scalar_for_class_without_identifier_warns(caplog: pytest.LogCaptureFixture):
+    """A string where an Address object belongs can't be a reference, since Address has no identifier."""
+    tr = ObjectTransformer(
+        specification=yaml.safe_load(SPEC), source_schemaview=SchemaView(SOURCE), unrestricted_eval=True
+    )
+    with caplog.at_level(logging.WARNING):
+        out = tr.map_object({"id": "P1", "address": "12 Oak St", "events": []}, source_type="Person")
+    assert out["address"] == "12 Oak St"
+    assert [r.getMessage() for r in caplog.records] == [
+        "Expected an object for Address, which has no identifier, got: '12 Oak St'"
+    ]

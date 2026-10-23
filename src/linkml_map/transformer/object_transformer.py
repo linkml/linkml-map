@@ -420,7 +420,9 @@ class ObjectTransformer(Transformer):
             source_obj_typed = source_obj
             source_obj = vars(source_obj)
         if not isinstance(source_obj, dict):
-            # A scalar for a class is a reference to an object (its identifier), kept as is.
+            # A scalar for a class with an identifier is a reference to an object, kept as is.
+            if source_type in sv.all_classes() and sv.get_identifier_slot(source_type) is None:
+                logger.warning(f"Expected an object for {source_type}, which has no identifier, got: {source_obj!r}")
             return source_obj
         class_deriv = class_derivation or self._get_class_derivation(source_type)
 
