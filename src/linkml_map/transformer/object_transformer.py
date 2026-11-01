@@ -412,6 +412,9 @@ class ObjectTransformer(Transformer):
                     return self.compress_uri(source_obj)
             return source_obj
         if source_type in sv.all_enums():
+            if not self._enum_derivations_for(source_type):
+                # Without a derivation the caller resolves the raw value against the target enum.
+                return source_obj
             return self.transform_enum(source_obj, [source_type], source_obj)
 
         source_obj_typed = None

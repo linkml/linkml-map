@@ -632,13 +632,16 @@ class Transformer(ABC):
             ancestors.update(self._class_derivation_ancestors(parent_cd))
         return ancestors
 
-    def _get_enum_derivation(self, target_enum_name: str) -> EnumDerivation:
+    def _enum_derivations_for(self, enum_name: str) -> list[EnumDerivation]:
         spec = self.derived_specification
-        matching_tgt_enum_derivs = [
+        return [
             deriv
             for deriv in spec.enum_derivations.values()
-            if deriv.populated_from == target_enum_name or (not deriv.populated_from and target_enum_name == deriv.name)
+            if deriv.populated_from == enum_name or (not deriv.populated_from and enum_name == deriv.name)
         ]
+
+    def _get_enum_derivation(self, target_enum_name: str) -> EnumDerivation:
+        matching_tgt_enum_derivs = self._enum_derivations_for(target_enum_name)
         logger.debug(f"Target enum derivations={matching_tgt_enum_derivs}")
         if len(matching_tgt_enum_derivs) != 1:
             msg = f"Could not find what to derive from a source {target_enum_name}"
