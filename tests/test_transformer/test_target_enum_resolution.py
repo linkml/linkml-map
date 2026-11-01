@@ -244,6 +244,72 @@ def test_spec_range_overrides_target_enum(scaffold):
     assert tr.map_object(scaffold["input_data"], source_type="Person")["sex"] == "female"
 
 
+def test_source_enum_without_derivation_resolves_against_target_enum():
+    """An enum-ranged source slot with no enum derivation resolves like a string source (#391)."""
+    target = """
+id: https://example.org/tgt
+name: tgt
+imports: [linkml:types]
+default_range: string
+enums:
+  SexEnum:
+    permissible_values:
+      male:
+        aliases: [M]
+      female:
+        aliases: [F]
+classes:
+  TargetClass:
+    attributes:
+      id:
+        identifier: true
+      target_sex:
+        range: SexEnum
+"""
+    source = """
+id: https://example.org/src-enum
+name: src-enum
+imports: [linkml:types]
+default_range: string
+enums:
+  SourceSexEnum:
+    permissible_values:
+      M:
+      F:
+classes:
+  SourceClass:
+    attributes:
+      id:
+        identifier: true
+      source_sex:
+        range: SourceSexEnum
+"""
+    tr = ObjectTransformer()
+    tr.source_schemaview = SchemaView(source)
+    tr.target_schemaview = SchemaView(target)
+    tr.create_transformer_specification(
+        {
+            "class_derivations": {
+                "TargetClass": {
+                    "populated_from": "SourceClass",
+                    "slot_derivations": {
+                        "id": {"populated_from": "id"},
+                        "target_sex": {"populated_from": "source_sex"},
+                    },
+                }
+            }
+        }
+    )
+    assert tr.map_object({"id": "P:001", "source_sex": "M"}, source_type="SourceClass") == {
+        "id": "P:001",
+        "target_sex": "male",
+    }
+    assert tr.map_object({"id": "P:001", "source_sex": "F"}, source_type="SourceClass") == {
+        "id": "P:001",
+        "target_sex": "female",
+    }
+
+
 @pytest.mark.parametrize(
     "enum_yaml",
     [
