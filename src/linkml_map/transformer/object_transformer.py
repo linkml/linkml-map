@@ -1149,7 +1149,9 @@ class ObjectTransformer(Transformer):
                 class_derivation=cls_derivation,
             )
             # An object with every slot None has no content; leave it out as None slot values are.
-            if isinstance(nested_result, dict) and all(v is None for v in nested_result.values()):
+            # A minted id hashes that content rather than adding to it, so it doesn't count.
+            minted_id = self._underived_identifier(cls_derivation)
+            if isinstance(nested_result, dict) and all(v is None for k, v in nested_result.items() if k != minted_id):
                 logger.debug("Nested %r derived no values; emitting no object", cls_derivation.name)
                 continue
             derived_objs.append(nested_result)

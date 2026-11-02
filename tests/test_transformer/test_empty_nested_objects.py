@@ -149,3 +149,31 @@ def test_streaming_paths(class_derivations, tmp_path):
     (tmp_path / "deaths.tsv").write_text(_tsv(deaths, ["death_pid", "code1", "code2"]))
     tr = _transformer(class_derivations)
     assert list(transform_spec(tr, DataLoader(tmp_path, schemaview=tr.source_schemaview))) == EXPECTED
+
+
+MINTED_TARGET = TARGET.replace(
+    "  Arm:\n",
+    "  Death:\n    attributes:\n      id:\n        identifier: true\n      cause:\n  Arm:\n",
+).replace("      arm:\n", "      death:\n        range: Death\n        inlined: true\n      arm:\n")
+
+
+def test_minted_id_does_not_keep_an_empty_object():
+    """A content-hash id is minted from the slots, so an object with no other content is still dropped."""
+    death = {
+        "Death": {"mint_ids": True, "slot_derivations": {"cause": {"expr": "case(({code1} is not None, {code1}))"}}}
+    }
+    spec = {
+        "Person": {
+            "populated_from": "people",
+            "slot_derivations": {"id": {"populated_from": "pid"}, "death": {"class_derivations": [death]}},
+        }
+    }
+    tr = ObjectTransformer(
+        specification=yaml.safe_load(yaml.dump({"class_derivations": spec})),
+        source_schemaview=SchemaView(SOURCE),
+        target_schemaview=SchemaView(MINTED_TARGET),
+    )
+    with_cause, without = (tr.map_object(row, source_type="people") for row in (ROWS[0], ROWS[2]))
+    assert with_cause["death"]["cause"] == "410"
+    assert with_cause["death"]["id"]
+    assert without["death"] is None
