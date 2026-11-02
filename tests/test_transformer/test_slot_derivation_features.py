@@ -755,12 +755,15 @@ def test_missing_values_applies_within_nested_class_derivation(scaffold):
       Location:
         slots:
           - zip
+          - country
     slots:
       location:
         range: Location
         inlined: true
       zip:
         range: integer
+      country:
+        range: string
 """,
     )
     apply_transform_patch(
@@ -776,6 +779,8 @@ def test_missing_values_applies_within_nested_class_derivation(scaffold):
                     zip:
                       populated_from: zip
                       missing_values: [99999]
+                    country:
+                      value: US
 """,
     )
 

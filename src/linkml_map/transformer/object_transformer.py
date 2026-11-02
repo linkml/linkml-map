@@ -1080,6 +1080,9 @@ class ObjectTransformer(Transformer):
         synthesized during normalization), this method resolves the joined row
         and merges it with the parent row before passing it to ``map_object``.
 
+        A nested object whose slots all come out None is omitted. With no objects
+        left, a single-valued slot is None and a multivalued slot is ``[]``.
+
         :param slot_derivation: The slot derivation that declares nested class_derivations.
         :param source_obj: The current (parent) source row.
         :param target_type: Target class name for cardinality decisions.
@@ -1145,6 +1148,12 @@ class ObjectTransformer(Transformer):
                 target_type=cls_derivation.name,
                 class_derivation=cls_derivation,
             )
+            # An object with every slot None has no content; leave it out as None slot values are.
+            # A minted id hashes that content rather than adding to it, so it doesn't count.
+            minted_id = self._underived_identifier(cls_derivation)
+            if isinstance(nested_result, dict) and all(v is None for k, v in nested_result.items() if k != minted_id):
+                logger.debug("Nested %r derived no values; emitting no object", cls_derivation.name)
+                continue
             derived_objs.append(nested_result)
 
         # If the slot is multivalued, we assign the whole list
