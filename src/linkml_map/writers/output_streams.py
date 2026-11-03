@@ -223,8 +223,10 @@ class YAMLStreamWriter(StreamWriter):
                 yield "\n".join(lines[1:]) + "\n"
         else:
             for obj in chunk:
+                if not self._first_chunk:
+                    yield "---\n"
                 yield dump_yaml(_strip_nulls(obj))
-                yield "---\n"
+                self._first_chunk = False
 
     def finalize(self) -> Iterator[str]:
         """
