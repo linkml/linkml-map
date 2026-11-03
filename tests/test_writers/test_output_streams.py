@@ -253,6 +253,15 @@ def test_yaml_stream_writer_basic_output():
     assert "name: Alice" in result
 
 
+@pytest.mark.parametrize(
+    "chunks", [[SAMPLE_DATA], [[], SAMPLE_DATA[:1], SAMPLE_DATA[1:]]], ids=["one-chunk", "chunked"]
+)
+def test_yaml_stream_writer_separates_documents_without_an_empty_one(chunks):
+    """Each record is one YAML document, with no empty document after the last (#400)."""
+    result = "".join(YAMLStreamWriter().process(iter(chunks)))
+    assert list(yaml.safe_load_all(result)) == SAMPLE_DATA
+
+
 def test_yaml_stream_writer_with_key_name():
     writer = YAMLStreamWriter(key_name="people")
     result = "".join(writer.process(iter([SAMPLE_DATA[:1]])))
