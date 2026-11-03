@@ -145,6 +145,39 @@ def setup_multivalued_resolves_each_element(scaffold):
     scaffold["expected"]["sexes"] = ["OMOP:8532", "OMOP:8507", "OMOP:8532"]
 
 
+@add_to_test_setup
+def setup_source_enum_without_enum_derivation(scaffold):
+    """An enum-ranged source slot with no enum derivation resolves like a string source (#391)."""
+    _add_sex_enum(scaffold, "sex_from_code")
+    apply_schema_patch(
+        scaffold["source_schema"],
+        """
+    enums:
+      SourceSexEnum:
+        permissible_values:
+          F:
+          M:
+    classes:
+      Person:
+        attributes:
+          sex_code:
+            range: SourceSexEnum
+""",
+    )
+    apply_transform_patch(
+        scaffold["transform_spec"],
+        """
+    class_derivations:
+      Agent:
+        slot_derivations:
+          sex_from_code:
+            populated_from: sex_code
+""",
+    )
+    scaffold["input_data"]["sex_code"] = "M"
+    scaffold["expected"]["sex_from_code"] = "OMOP:8507"
+
+
 @pytest.mark.parametrize("setup_func", ENUM_SETUPS, ids=setup_ids(ENUM_SETUPS))
 def test_unit(scaffold, setup_func):
     """Apply a setup function, run transformer, and assert expected output."""
