@@ -977,7 +977,7 @@ class ObjectTransformer(Transformer):
         joined_class = context.class_deriv.joins[table_name].class_named or table_name
         source_class_slot = None
         if joined_class in context.sv.all_classes():
-            if field_path in context.sv.class_induced_slots(joined_class):
+            if field_path in context.sv.class_slots(joined_class):
                 source_class_slot = context.sv.induced_slot(field_path, joined_class)
         return v, source_class_slot
 
