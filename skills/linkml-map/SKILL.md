@@ -32,7 +32,7 @@ Fix problems in the spec, never by editing the output.
 linkml-map validate-spec --strict --source-schema source.yaml --target-schema target.yaml spec.yaml
 
 linkml-map map-data --strict -T spec.yaml -s source.yaml --target-schema target.yaml \
-  --source-type visits -f json -o out.json data/
+  -f json -o out.json data/
 
 linkml validate -s target.yaml -C Visit out.json
 ```
@@ -44,7 +44,8 @@ linkml validate -s target.yaml -C Visit out.json
   or alias comes out as the permissible value's key.
 - `--strict` turns unknown names in expressions and unmatched enum values into errors instead
   of warnings. Add `--continue-on-error` to see every failing row instead of only the first.
-- `--source-type` names the source class or table that the run starts from.
+- Leave out `--source-type` for a directory: each derivation reads the table it is
+  `populated_from`. Pass it only for a single input file.
 
 ## Anatomy of a spec
 
