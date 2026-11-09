@@ -50,8 +50,8 @@ SPEC = textwrap.dedent("""\
 """)
 
 
-def _transformer() -> ObjectTransformer:
-    tr = ObjectTransformer()
+def _transformer(strict: bool = False) -> ObjectTransformer:
+    tr = ObjectTransformer(strict=strict)
     tr.source_schemaview = SchemaView(SOURCE_SCHEMA)
     tr.create_transformer_specification(yaml.safe_load(SPEC))
     return tr
@@ -84,10 +84,26 @@ def test_decimal_range_coerces_each_item() -> None:
 
 
 @pytest.mark.parametrize("source", ["abc", "NaN", "Infinity", True])
-def test_decimal_range_rejects_non_numbers(source: str | bool) -> None:
-    """A value with no exact decimal reading fails loudly instead of passing through."""
+def test_decimal_range_rejects_non_numbers_in_strict_mode(source: str | bool) -> None:
+    """In strict mode, a value with no exact decimal reading fails loudly."""
     with pytest.raises(TransformationError, match="to decimal"):
-        _transformer().map_object({"id": "r1", "value": source}, "Row")
+        _transformer(strict=True).map_object({"id": "r1", "value": source}, "Row")
+
+
+@pytest.mark.parametrize("source", ["M", ".", "NaN"])
+def test_decimal_range_passes_non_numbers_through_with_a_warning(source: str, caplog: pytest.LogCaptureFixture) -> None:
+    """Otherwise it passes through unconverted, for output validation to report."""
+    out = _transformer().map_object({"id": "r1", "value": source}, "Row")
+    assert out["value_decimal"] == source
+    assert "to decimal" in caplog.text
+
+
+@pytest.mark.parametrize("strict", [False, True])
+@pytest.mark.parametrize("source", ["", "  "])
+def test_decimal_range_reads_an_empty_cell_as_missing(source: str, strict: bool) -> None:
+    """An empty cell is a missing value, in either mode."""
+    out = _transformer(strict=strict).map_object({"id": "r1", "value": source}, "Row")
+    assert out.get("value_decimal") is None
 
 
 def test_map_data_writes_exact_json_numbers(tmp_path: Path) -> None:

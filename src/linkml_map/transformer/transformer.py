@@ -200,6 +200,7 @@ class Transformer(ABC):
     _target_enum_cache: dict[tuple[str, str, str | None], EnumIndex | None] = field(default_factory=dict, repr=False)
 
     _warned_unresolved_enum_values: set[tuple[str, str]] = field(default_factory=set, repr=False)
+    _warned_uncoercible_values: set[tuple[str, str]] = field(default_factory=set, repr=False)
     """``(enum, value)`` pairs already warned about in non-strict mode, so each logs once."""
 
     spec_messages: list[Any] = field(default_factory=list)
@@ -701,28 +702,43 @@ class Transformer(ABC):
         return coercible_datatype(sv, sv.induced_slot(slot_name, class_name).range)
 
     def _coerce_datatype(self, v: Any, target_range: str | None) -> Any:
+        """Convert *v* to the built-in datatype *target_range* names.
+
+        An empty string becomes ``None`` for every non-string type. A value that does
+        not convert raises in strict mode and otherwise passes through with a warning,
+        so output validation reports it instead of the whole transformation failing.
+        """
         if target_range is None:
             return v
         if isinstance(v, list):
             return [self._coerce_datatype(v1, target_range) for v1 in v]
         if isinstance(v, dict):
             return {k: self._coerce_datatype(v1, target_range) for k, v1 in v.items()}
-        if target_range == "decimal":
-            return _to_decimal(v)
-        if target_range == "boolean":
-            return _to_bool(v)
         cmap = {
+            "decimal": _to_decimal,
+            "boolean": _to_bool,
             "integer": int,
             "float": float,
             "string": str,
         }
-        cls = cmap.get(target_range)
-        if not cls:
+        convert = cmap.get(target_range)
+        if not convert:
             # A class, an enum, or a type with no conversion (e.g. date): pass through.
             return v
-        if isinstance(v, cls):
+        if target_range == "string":
+            return v if isinstance(v, str) else str(v)
+        if isinstance(v, str) and not v.strip():
+            # An empty cell is a missing value, not one that failed to convert.
+            return None
+        try:
+            return convert(v)
+        except ValueError as err:
+            if self.strict:
+                raise
+            if (target_range, repr(v)) not in self._warned_uncoercible_values:
+                self._warned_uncoercible_values.add((target_range, repr(v)))
+                logger.warning(f"{err}; passing it through unconverted")
             return v
-        return cls(v)
 
     def _target_enum_index(self, class_name: str, slot_derivation: SlotDerivation) -> EnumIndex | None:
         """Return the index of the target enum a slot's values must resolve to.

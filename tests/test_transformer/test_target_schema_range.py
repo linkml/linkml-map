@@ -118,8 +118,8 @@ ROW = {
 }
 
 
-def _transformer(*, with_target: bool = True) -> ObjectTransformer:
-    tr = ObjectTransformer()
+def _transformer(*, with_target: bool = True, strict: bool = False) -> ObjectTransformer:
+    tr = ObjectTransformer(strict=strict)
     tr.source_schemaview = SchemaView(SOURCE_SCHEMA)
     if with_target:
         tr.target_schemaview = SchemaView(TARGET_SCHEMA)
@@ -171,10 +171,25 @@ def test_boolean_strings_are_parsed(source: str | bool | int, expected: bool) ->
     assert out["flag"] is expected
 
 
-def test_unparseable_boolean_fails() -> None:
-    """A string that is not a boolean fails loudly instead of becoming ``True``."""
+def test_unparseable_boolean_fails_in_strict_mode() -> None:
+    """In strict mode, a string that is not a boolean fails loudly instead of becoming ``True``."""
     with pytest.raises(TransformationError, match="to boolean"):
-        _transformer().map_object({"id": "r1", "flag": "maybe"}, "Row")
+        _transformer(strict=True).map_object({"id": "r1", "flag": "maybe"}, "Row")
+
+
+def test_unparseable_values_pass_through_with_a_warning(caplog: pytest.LogCaptureFixture) -> None:
+    """Otherwise they pass through unconverted, for output validation to report."""
+    out = _transformer().map_object({"id": "r1", "flag": "maybe", "count": "M", "amount": "."}, "Row")
+    assert (out["flag"], out["count"], out["amount"]) == ("maybe", "M", ".")
+    assert "to boolean" in caplog.text
+    assert "to decimal" in caplog.text
+    assert "invalid literal for int()" in caplog.text
+
+
+def test_empty_cells_are_missing() -> None:
+    """An empty cell becomes ``None`` for every non-string datatype."""
+    out = _transformer(strict=True).map_object({"id": "r1", "flag": "", "count": " ", "amount": ""}, "Row")
+    assert [out.get(k) for k in ("flag", "count", "amount")] == [None, None, None]
 
 
 def test_map_data_coerces_tsv_with_target_schema(tmp_path: Path) -> None:
