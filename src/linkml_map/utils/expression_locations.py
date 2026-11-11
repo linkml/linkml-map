@@ -18,8 +18,9 @@ from collections.abc import Iterable, Iterator
 from typing import Any
 
 #: Fields whose value *is* an expression string (model range: ``string``).
-#: Present on SlotDerivation, EnumDerivation, and PermissibleValueDerivation.
-SELF_EXPR_FIELDS: tuple[str, ...] = ("expr",)
+#: ``expr`` is on SlotDerivation, EnumDerivation, and PermissibleValueDerivation;
+#: ``filter_rows`` is on ClassDerivation.
+SELF_EXPR_FIELDS: tuple[str, ...] = ("expr", "filter_rows")
 
 #: ``KeyVal`` mapping fields (inherited from ElementDerivation) and where the
 #: expression(s) live within each entry:

@@ -443,6 +443,8 @@ class ObjectTransformer(Transformer):
         tgt_attrs = {}
         bindings = Bindings.from_context(self, context)
         expr_functions = {**self.extension_functions, "slot": lambda name: tgt_attrs.get(name)}
+        if class_deriv.filter_rows and not self._row_passes_filter(class_deriv, bindings, expr_functions):
+            return None
         for slot_deriv in class_deriv.slot_derivations.values():
             with self._slot_error_context(slot_deriv, context):
                 tgt_attrs[str(slot_deriv.name)] = self._derive_slot(
@@ -453,6 +455,18 @@ class ObjectTransformer(Transformer):
             if slot_deriv.hide:
                 tgt_attrs.pop(str(slot_deriv.name), None)
         return self._with_synthesized_id(tgt_attrs, class_deriv)
+
+    def _row_passes_filter(self, class_deriv: ClassDerivation, bindings: Bindings, functions: dict[str, Any]) -> bool:
+        """Whether the source row satisfies *class_deriv*'s ``filter_rows``."""
+        try:
+            return bool(self._eval_expr(class_deriv.filter_rows, bindings, functions=functions))
+        except TransformationError:
+            raise
+        except Exception as err:
+            raise TransformationError(
+                message=f"Error evaluating filter_rows {class_deriv.filter_rows!r}: {err}",
+                class_derivation_name=class_deriv.name,
+            ) from err
 
     def _with_synthesized_id(self, record: dict[str, Any], class_deriv: ClassDerivation) -> dict[str, Any]:
         """Prepend a content-hash id when the target identifier is minted rather than derived.
@@ -1151,6 +1165,9 @@ class ObjectTransformer(Transformer):
                 target_type=cls_derivation.name,
                 class_derivation=cls_derivation,
             )
+            if nested_result is None:
+                logger.debug("Row failed the filter for nested %r; emitting no object", cls_derivation.name)
+                continue
             # An object with every slot None has no content; leave it out as None slot values are.
             # A minted id hashes that content rather than adding to it, so it doesn't count.
             minted_id = self._underived_identifier(cls_derivation)

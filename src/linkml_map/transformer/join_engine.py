@@ -280,7 +280,7 @@ def transform_block_via_join(
                 rows_by_table[table] = {k: _parse_numeric(v) for k, v in struct.items()} if struct else struct
             merged = MergedRow(primary_row, rows_by_table=rows_by_table)
             try:
-                yield transformer.map_object(
+                obj = transformer.map_object(
                     merged,
                     source_type=source_type or primary,
                     target_type=class_deriv.name,
@@ -292,4 +292,7 @@ def transform_block_via_join(
                 err.row_index = row_idx
                 err.class_derivation_name = err.class_derivation_name or class_deriv.name
                 on_error(err)
+                obj = None
+            if obj is not None:
+                yield obj
             row_idx += 1

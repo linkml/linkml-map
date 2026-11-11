@@ -75,6 +75,8 @@ URI: [linkmlmap:class/ClassDerivation](https://w3id.org/linkml/transformer/class
     
 
         
+      ClassDerivation : filter_rows
+        
       ClassDerivation : implements
         
       ClassDerivation : is_a
@@ -197,6 +199,7 @@ URI: [linkmlmap:class/ClassDerivation](https://w3id.org/linkml/transformer/class
 | [joins](../slots/joins.md) | * <br/> [AliasedClass](../classes/AliasedClass.md) | Additional classes to be joined to derive instances of the target class | direct |
 | [slot_derivations](../slots/slot_derivations.md) | * <br/> [SlotDerivation](../classes/SlotDerivation.md) | Instructions on how to derive the slots of this target class from source data | direct |
 | [target_definition](../slots/target_definition.md) | 0..1 <br/> [Any](../classes/Any.md) | LinkML class definition object for this slot | direct |
+| [filter_rows](../slots/filter_rows.md) | 0..1 <br/> [String](../types/String.md) | An expression evaluated on each source row, using the LinkML expression langu... | direct |
 | [pivot_operation](../slots/pivot_operation.md) | 0..1 <br/> [PivotOperation](../classes/PivotOperation.md) | Configuration for pivot (unmelt) operations at class level | direct |
 | [mint_ids](../slots/mint_ids.md) | 0..1 <br/> [Boolean](../types/Boolean.md) | Overrides the specification's mint_ids, and the target class's entry in class... | direct |
 | [name](../slots/name.md) | 1 <br/> [String](../types/String.md) | Name of the element in the target schema | [ElementDerivation](../classes/ElementDerivation.md) |
@@ -335,6 +338,18 @@ attributes:
     - ClassDerivation
     - SlotDerivation
     range: Any
+  filter_rows:
+    name: filter_rows
+    description: 'An expression evaluated on each source row, using the LinkML expression
+      language. A row for which it is not true yields no object: no record at the
+      top level, and no nested object under a slot.'
+    examples:
+    - value: '{visit_code} == 3'
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    domain_of:
+    - ClassDerivation
+    range: string
   pivot_operation:
     name: pivot_operation
     description: Configuration for pivot (unmelt) operations at class level
@@ -434,6 +449,19 @@ attributes:
     - ClassDerivation
     - SlotDerivation
     range: Any
+  filter_rows:
+    name: filter_rows
+    description: 'An expression evaluated on each source row, using the LinkML expression
+      language. A row for which it is not true yields no object: no record at the
+      top level, and no nested object under a slot.'
+    examples:
+    - value: '{visit_code} == 3'
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    owner: ClassDerivation
+    domain_of:
+    - ClassDerivation
+    range: string
   pivot_operation:
     name: pivot_operation
     description: Configuration for pivot (unmelt) operations at class level
