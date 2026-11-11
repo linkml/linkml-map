@@ -615,12 +615,16 @@ class ObjectTransformer(Transformer):
                 (v, source_class_slot) = self._resolve_fk_or_literal(populated_from, slot_derivation, context)
 
             v = self._nullify_missing_values(v, slot_derivation)
+            missing = v is None
 
             if (slot_derivation.value_mappings or slot_derivation.expression_mappings) and v is not None:
                 v = self._apply_mappings(slot_derivation, v, bindings, functions=expr_functions)
 
             if slot_derivation.offset and v is not None:
                 v = self._apply_offset(v, slot_derivation, context.source_obj)
+
+            if missing:
+                v = slot_derivation.value_if_missing
 
             logger.debug(
                 f"Pop slot {slot_derivation.name} => {v} using {slot_derivation.populated_from} // {context.source_obj}"
@@ -751,7 +755,7 @@ class ObjectTransformer(Transformer):
 
         Checks ``value_mappings`` first (literal result). On miss, falls through
         to ``expression_mappings`` (evaluated against *bindings*). Returns
-        ``None`` if neither table contains the key.
+        ``value_if_unmapped`` (``None`` unless set) if neither table contains the key.
         """
         str_v = str(v)
         vm_hit = slot_derivation.value_mappings.get(str_v) if slot_derivation.value_mappings else None
@@ -761,7 +765,7 @@ class ObjectTransformer(Transformer):
             em_hit = slot_derivation.expression_mappings.get(str_v)
             if em_hit is not None:
                 return self._eval_expr(em_hit.value, bindings, functions=functions)
-        return None
+        return slot_derivation.value_if_unmapped
 
     def _perform_fk_resolution(
         self,

@@ -59,6 +59,8 @@ URI: [linkml:Any](https://w3id.org/linkml/Any)
 | [ObjectDerivation](../classes/ObjectDerivation.md) | [overrides](../slots/overrides.md) | range | [Any](../classes/Any.md) |
 | [SlotDerivation](../classes/SlotDerivation.md) | [value](../slots/value.md) | range | [Any](../classes/Any.md) |
 | [SlotDerivation](../classes/SlotDerivation.md) | [missing_values](../slots/missing_values.md) | range | [Any](../classes/Any.md) |
+| [SlotDerivation](../classes/SlotDerivation.md) | [value_if_missing](../slots/value_if_missing.md) | range | [Any](../classes/Any.md) |
+| [SlotDerivation](../classes/SlotDerivation.md) | [value_if_unmapped](../slots/value_if_unmapped.md) | range | [Any](../classes/Any.md) |
 | [SlotDerivation](../classes/SlotDerivation.md) | [target_definition](../slots/target_definition.md) | range | [Any](../classes/Any.md) |
 | [SlotDerivation](../classes/SlotDerivation.md) | [overrides](../slots/overrides.md) | range | [Any](../classes/Any.md) |
 | [EnumDerivation](../classes/EnumDerivation.md) | [overrides](../slots/overrides.md) | range | [Any](../classes/Any.md) |

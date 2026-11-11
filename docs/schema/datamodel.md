@@ -158,6 +158,8 @@ Name: linkml-map
 | [unmelt_to_slots](slots/unmelt_to_slots.md) | For an unmelt operation, the target wide-format slots to populate from the lo... |
 | [url](slots/url.md) | URL or web address of the organization |
 | [value](slots/value.md) | A constant value to assign to the target slot |
+| [value_if_missing](slots/value_if_missing.md) | The value to emit when the populated_from source value is missing: an empty c... |
+| [value_if_unmapped](slots/value_if_unmapped.md) | The value to emit when a present source value matches no key in value_mapping... |
 | [value_mappings](slots/value_mappings.md) | A mapping table that is applied directly to mappings, in order of precedence |
 | [value_slot](slots/value_slot.md) | Slot to use for the value column in the melted/long representation |
 | [variable_slot](slots/variable_slot.md) | Slot to use for the variable column in the melted/long representation |
