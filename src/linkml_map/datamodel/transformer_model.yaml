@@ -464,6 +464,18 @@ classes:
           Source values to treat as missing and emit as null instead of the literal
           value — e.g. sentinel codes like -9, 99, or 999 meaning "not collected".
           Accepts a single value or a list.
+      value_if_missing:
+        range: Any
+        description: >-
+          The value to emit when the populated_from source value is missing: an
+          empty cell, an absent column, or a code nulled by missing_values. It is
+          a target value, so value_mappings and offset don't apply to it.
+      value_if_unmapped:
+        range: Any
+        description: >-
+          The value to emit when a present source value matches no key in
+          value_mappings or expression_mappings. Without it, such a value comes
+          out null.
       range:
         description: >-
           The range (value type) to assign to the derived target slot,

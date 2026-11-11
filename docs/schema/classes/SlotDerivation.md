@@ -262,6 +262,28 @@ URI: [linkmlmap:class/SlotDerivation](https://w3id.org/linkml/transformer/class/
     
 
         
+      SlotDerivation : value_if_missing
+        
+          
+    
+        
+        
+        SlotDerivation --> "0..1" Any : value_if_missing
+        click Any href "../../classes/Any/"
+    
+
+        
+      SlotDerivation : value_if_unmapped
+        
+          
+    
+        
+        
+        SlotDerivation --> "0..1" Any : value_if_unmapped
+        click Any href "../../classes/Any/"
+    
+
+        
       SlotDerivation : value_mappings
         
           
@@ -299,6 +321,8 @@ URI: [linkmlmap:class/SlotDerivation](https://w3id.org/linkml/transformer/class/
 | [expr](../slots/expr.md) | 0..1 <br/> [String](../types/String.md) | An expression to be evaluated on the source object to derive the target slot | direct |
 | [value](../slots/value.md) | 0..1 <br/> [Any](../classes/Any.md) | A constant value to assign to the target slot | direct |
 | [missing_values](../slots/missing_values.md) | * <br/> [Any](../classes/Any.md) | Source values to treat as missing and emit as null instead of the literal val... | direct |
+| [value_if_missing](../slots/value_if_missing.md) | 0..1 <br/> [Any](../classes/Any.md) | The value to emit when the populated_from source value is missing: an empty c... | direct |
+| [value_if_unmapped](../slots/value_if_unmapped.md) | 0..1 <br/> [Any](../classes/Any.md) | The value to emit when a present source value matches no key in value_mapping... | direct |
 | [range](../slots/range.md) | 0..1 <br/> [String](../types/String.md) | The range (value type) to assign to the derived target slot, overriding the r... | direct |
 | [unit_conversion](../slots/unit_conversion.md) | 0..1 <br/> [UnitConversionConfiguration](../classes/UnitConversionConfiguration.md) | Configuration for converting the source value's unit of measure when deriving... | direct |
 | [inverse_of](../slots/inverse_of.md) | 0..1 <br/> [Inverse](../classes/Inverse.md) | Used to specify a class-slot tuple that is the inverse of the derived/target ... | direct |
@@ -497,6 +521,25 @@ attributes:
     - SlotDerivation
     range: Any
     multivalued: true
+  value_if_missing:
+    name: value_if_missing
+    description: 'The value to emit when the populated_from source value is missing:
+      an empty cell, an absent column, or a code nulled by missing_values. It is a
+      target value, so value_mappings and offset don''t apply to it.'
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    domain_of:
+    - SlotDerivation
+    range: Any
+  value_if_unmapped:
+    name: value_if_unmapped
+    description: The value to emit when a present source value matches no key in value_mappings
+      or expression_mappings. Without it, such a value comes out null.
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    domain_of:
+    - SlotDerivation
+    range: Any
   range:
     name: range
     description: The range (value type) to assign to the derived target slot, overriding
@@ -748,6 +791,27 @@ attributes:
     - SlotDerivation
     range: Any
     multivalued: true
+  value_if_missing:
+    name: value_if_missing
+    description: 'The value to emit when the populated_from source value is missing:
+      an empty cell, an absent column, or a code nulled by missing_values. It is a
+      target value, so value_mappings and offset don''t apply to it.'
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    owner: SlotDerivation
+    domain_of:
+    - SlotDerivation
+    range: Any
+  value_if_unmapped:
+    name: value_if_unmapped
+    description: The value to emit when a present source value matches no key in value_mappings
+      or expression_mappings. Without it, such a value comes out null.
+    from_schema: https://w3id.org/linkml/transformer
+    rank: 1000
+    owner: SlotDerivation
+    domain_of:
+    - SlotDerivation
+    range: Any
   range:
     name: range
     description: The range (value type) to assign to the derived target slot, overriding
