@@ -125,6 +125,33 @@ with `data/Visit.tsv` and `data/Participant.tsv` gives:
 
 A row with no match in the joined table, like `V3`, gets no values from it.
 
+## Filtering Rows
+
+A class derivation maps every row of its table. When it applies to only some rows — one
+exam of a table that holds several, say — give it `filter_rows`, an expression that must be
+true for the row to produce a record:
+
+```yaml
+class_derivations:
+  Visit:
+    populated_from: exams
+    filter_rows: "{exam} == 1"
+    slot_derivations:
+      id:
+        expr: "{pid} + ':exam1'"
+      label:
+        value: EXAM 1
+```
+
+A row that fails the filter yields nothing. Without it, every other row would
+still yield a `Visit` labelled `EXAM 1`, and an `expr` like
+`case(({exam} == 1, ...), (True, None))` only leaves those records without an id. A filter
+that comes out None, as on an empty cell, rejects the row too.
+
+A filter can read joined tables like any expression (`{people.cohort} == "original"`).
+On a nested class derivation it decides whether the row contributes that object: a
+rejected row adds nothing to a multivalued slot and leaves a single-valued one empty.
+
 ## Working with Auto-Generated Schemas
 
 When working with schemas auto-generated from tabular data (e.g., via [schema-automator](https://github.com/linkml/schema-automator)),

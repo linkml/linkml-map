@@ -740,6 +740,17 @@ def _validate_class_derivation(
     # targets that #212's normalization will synthesize joins for.
     joined_class_slots = _build_joined_class_map(cd, source_sv, slot_derivation_dicts, source_all_classes)
 
+    if cd.get("filter_rows"):
+        _check_expr(
+            cd["filter_rows"],
+            f"{cd_path}.filter_rows",
+            source_class_slots,
+            source_string_scalar_slots,
+            joined_class_slots,
+            strict,
+            messages,
+        )
+
     for sd in slot_derivation_dicts:
         sd_name = sd.get("name", "?")
         sd_path = f"{cd_path}.slot_derivations[{sd_name}]"
@@ -930,14 +941,16 @@ def _build_joined_class_map(
         source_slots = set()
         if parent_source in source_all_classes:
             source_slots = {s.name for s in source_sv.class_induced_slots(parent_source)}
+        bases = set(extract_expr_attribute_references(cd["filter_rows"])) if cd.get("filter_rows") else set()
         for sd in slot_derivation_dicts:
-            bases = set(extract_expr_attribute_references(sd["expr"])) if sd.get("expr") else set()
+            if sd.get("expr"):
+                bases.update(extract_expr_attribute_references(sd["expr"]))
             populated_from = sd.get("populated_from")
             if populated_from and "." in populated_from:
                 bases.add(populated_from.split(".", 1)[0])
-            for base in bases - source_slots - set(result) - {parent_source}:
-                if base in source_all_classes:
-                    result[base] = (base, {s.name for s in source_sv.class_induced_slots(base)})
+        for base in bases - source_slots - set(result) - {parent_source}:
+            if base in source_all_classes:
+                result[base] = (base, {s.name for s in source_sv.class_induced_slots(base)})
 
     return result
 
@@ -1206,7 +1219,25 @@ def _validate_slot_derivation(
             )
 
     expr = sd.get("expr")
-    if expr is None or source_class_slots is None:
+    if expr is not None:
+        _check_expr(expr, sd_path, source_class_slots, source_string_scalar_slots, joined_class_slots, strict, messages)
+
+
+def _check_expr(
+    expr: str,
+    path: str,
+    source_class_slots: set[str] | None,
+    source_string_scalar_slots: set[str] | None,
+    joined_class_slots: dict[str, tuple[str, set[str] | None]],
+    strict: bool,
+    messages: list[ValidationMessage],
+) -> None:
+    """Check the names an expression reads against the source and joined classes.
+
+    Shared by a slot derivation's ``expr`` and a class derivation's ``filter_rows``.
+    See :func:`_validate_slot_derivation` for the parameters.
+    """
+    if source_class_slots is None:
         return
 
     joined_aliases = set(joined_class_slots.keys())
@@ -1223,7 +1254,7 @@ def _validate_slot_derivation(
             messages.append(
                 ValidationMessage(
                     severity="error" if strict else "warning",
-                    path=sd_path,
+                    path=path,
                     message=f"Expression references '{ref}' which is not a slot on the source class",
                 )
             )
@@ -1237,7 +1268,7 @@ def _validate_slot_derivation(
             messages.append(
                 ValidationMessage(
                     severity="error" if strict else "warning",
-                    path=sd_path,
+                    path=path,
                     message=(
                         f"Expression uses '{slot}' in arithmetic, but it is declared with a "
                         f"non-numeric range on the source class; its value is coerced to a number "
@@ -1268,7 +1299,7 @@ def _validate_slot_derivation(
                 messages.append(
                     ValidationMessage(
                         severity="error" if strict else "warning",
-                        path=sd_path,
+                        path=path,
                         message=(
                             f"Expression references '{base}.{attr}' but '{attr}' is not a slot on {class_descriptor}"
                         ),

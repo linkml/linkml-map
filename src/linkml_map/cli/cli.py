@@ -406,7 +406,9 @@ def _map_data_single(
         click.echo("\n1 transformation error:", err=True)
         click.echo(f"  - {err}", err=True)
         raise SystemExit(1) from err
-    if output_format in COLUMNAR_FORMATS:
+    if tr_obj is None:
+        click.echo("The input object fails filter_rows; nothing to write.", err=True)
+    elif output_format in COLUMNAR_FORMATS:
         _dump_columnar(tr_obj, output_format, output, table_name)
     else:
         dump_output(tr_obj, output_format, output)
