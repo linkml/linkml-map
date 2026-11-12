@@ -2,12 +2,15 @@
 
 import pytest
 import yaml
+from click.testing import CliRunner
 from linkml_runtime import SchemaView
 
 from linkml_map import ObjectTransformer
+from linkml_map.cli.cli import main
 from linkml_map.loaders.data_loaders import DataLoader
 from linkml_map.transformer.engine import transform_spec
 from linkml_map.transformer.errors import TransformationError
+from linkml_map.validator import validate_spec_semantics
 
 SOURCE = """\
 id: https://example.org/s
@@ -135,3 +138,49 @@ def test_filter_error_reaches_on_error(data_dir):
     assert results == []
     assert errors
     assert all(isinstance(e, TransformationError) and e.class_derivation_name == "Visit" for e in errors)
+
+
+@pytest.mark.parametrize(
+    ("filter_rows", "expected"),
+    [
+        ("{exam} == 1", []),
+        ('{people.cohort} == "original"', []),
+        ("{exma} == 1", ["Expression references 'exma' which is not a slot on the source class"]),
+        ('{people.cohrt} == "original"', ["'cohrt' is not a slot on joined class 'people'"]),
+    ],
+)
+def test_validate_spec_checks_filter_names(filter_rows, expected):
+    """A misspelled name in a filter is caught before the run, not left to reject every row."""
+    spec = {"class_derivations": {"Visit": _visit(filter_rows=filter_rows)}}
+    messages = validate_spec_semantics(spec, source_schemaview=SchemaView(SOURCE), strict=True)
+    errors = [m for m in messages if m.severity == "error"]
+    assert [m.path for m in errors] == ["class_derivations[Visit].filter_rows"] * len(expected)
+    assert all(e in m.message for e, m in zip(expected, errors))
+
+
+def test_map_data_single_object_failing_the_filter_writes_nothing(tmp_path):
+    """A single input object the filter rejects reports that, rather than crashing."""
+    (tmp_path / "source.yaml").write_text(SOURCE)
+    (tmp_path / "spec.yaml").write_text(yaml.dump({"class_derivations": {"Visit": _visit(filter_rows="{exam} == 1")}}))
+    (tmp_path / "p2.json").write_text('{"pid": "P2", "exam": 2}')
+    output = tmp_path / "out.json"
+    result = CliRunner().invoke(
+        main,
+        [
+            "map-data",
+            "-T",
+            str(tmp_path / "spec.yaml"),
+            "-s",
+            str(tmp_path / "source.yaml"),
+            "--source-type",
+            "exams",
+            "-f",
+            "json",
+            "-o",
+            str(output),
+            str(tmp_path / "p2.json"),
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    assert "fails filter_rows" in result.output
+    assert not output.exists()
