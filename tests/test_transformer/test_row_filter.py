@@ -186,15 +186,24 @@ def test_map_data_single_object_failing_the_filter_writes_nothing(tmp_path):
     assert not output.exists()
 
 
-@pytest.mark.parametrize("filter_rows", ["{exam} == 1", '{people.cohort} == "offspring"'])
-def test_map_data_reports_rows_each_filter_kept(data_dir, filter_rows):
-    """The run ends with how many rows each filter kept, so a filter that drops too much shows."""
+@pytest.mark.parametrize(
+    ("filter_rows", "kept_none"),
+    [
+        ("{exam} == 1", False),
+        ('{people.cohort} == "offspring"', False),
+        ("{exam} == 9", True),
+        ('{people.cohort} == "unknown"', True),
+    ],
+)
+def test_map_data_warns_when_a_filter_keeps_no_rows(data_dir, filter_rows, kept_none, caplog):
+    """A filter that keeps none of its rows is worth a look; one that keeps some says nothing."""
     (data_dir / "source.yaml").write_text(SOURCE)
     (data_dir / "spec.yaml").write_text(yaml.dump({"class_derivations": {"Visit": _visit(filter_rows=filter_rows)}}))
     result = CliRunner().invoke(
         main,
         [
             "map-data",
+            "--strict",
             "-T",
             str(data_dir / "spec.yaml"),
             "-s",
@@ -205,4 +214,4 @@ def test_map_data_reports_rows_each_filter_kept(data_dir, filter_rows):
         ],
     )
     assert result.exit_code == 0, result.output
-    assert f"Visit [{filter_rows}]: filter_rows kept 2 of 4 rows" in result.output
+    assert ("kept none of 4 rows" in caplog.text) is kept_none

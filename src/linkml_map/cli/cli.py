@@ -548,7 +548,8 @@ def _map_data_streaming(
     MultiStreamWriter(all_outputs).write_all(chunks)
 
     for (cd_name, filter_rows), (seen, kept) in tr.filter_counts.items():
-        click.echo(f"{cd_name} [{filter_rows}]: filter_rows kept {kept} of {seen} rows", err=True)
+        if seen and not kept:
+            logger.warning(f"{cd_name}: filter_rows {filter_rows!r} kept none of {seen} rows")
 
     # Errors were already printed as they occurred; a mid-stream crash would
     # have propagated before reaching here. Reached only on clean completion.

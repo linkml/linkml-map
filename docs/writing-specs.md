@@ -152,9 +152,9 @@ on it (`{exam} >= 1`) comes out None and rejects the row, but `==` and `!=` comp
 any other value, so `{exam} != 2` keeps rows where `exam` is empty. To drop them, guard for
 None: `{exam} is not None and {exam} != 2`.
 
-At the end of a run, `map-data` reports how many rows each filter kept
-(`Visit [{exam} == 1]: filter_rows kept 6 of 128 rows`), so a filter that drops more, or
-less, than you meant shows up.
+If a filter keeps none of the rows it saw, `map-data` logs a warning when the run ends. That
+can be right, as on a file holding a subset of a study, so it never fails the run, even
+under `--strict`.
 
 A filter can read joined tables like any expression (`{people.cohort} == "original"`).
 On a nested class derivation it decides whether the row contributes that object: a
