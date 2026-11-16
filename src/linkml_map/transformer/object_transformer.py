@@ -443,8 +443,12 @@ class ObjectTransformer(Transformer):
         tgt_attrs = {}
         bindings = Bindings.from_context(self, context)
         expr_functions = {**self.extension_functions, "slot": lambda name: tgt_attrs.get(name)}
-        if class_deriv.filter_rows and not self._row_passes_filter(class_deriv, bindings, expr_functions):
-            return None
+        if class_deriv.filter_rows:
+            counts = self.filter_counts.setdefault((class_deriv.name, class_deriv.filter_rows), [0, 0])
+            counts[0] += 1
+            if not self._row_passes_filter(class_deriv, bindings, expr_functions):
+                return None
+            counts[1] += 1
         for slot_deriv in class_deriv.slot_derivations.values():
             with self._slot_error_context(slot_deriv, context):
                 tgt_attrs[str(slot_deriv.name)] = self._derive_slot(

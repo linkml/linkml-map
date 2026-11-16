@@ -145,8 +145,16 @@ class_derivations:
 
 A row that fails the filter yields nothing. Without it, every other row would
 still yield a `Visit` labelled `EXAM 1`, and an `expr` like
-`case(({exam} == 1, ...), (True, None))` only leaves those records without an id. A filter
-that comes out None, as on an empty cell, rejects the row too.
+`case(({exam} == 1, ...), (True, None))` only leaves those records without an id.
+
+An empty cell is None in the filter, the same as in any expression. An ordering comparison
+on it (`{exam} >= 1`) comes out None and rejects the row, but `==` and `!=` compare it like
+any other value, so `{exam} != 2` keeps rows where `exam` is empty. To drop them, guard for
+None: `{exam} is not None and {exam} != 2`.
+
+At the end of a run, `map-data` reports how many rows each filter kept
+(`Visit [{exam} == 1]: filter_rows kept 6 of 128 rows`), so a filter that drops more, or
+less, than you meant shows up.
 
 A filter can read joined tables like any expression (`{people.cohort} == "original"`).
 On a nested class derivation it decides whether the row contributes that object: a

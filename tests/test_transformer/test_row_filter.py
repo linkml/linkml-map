@@ -184,3 +184,25 @@ def test_map_data_single_object_failing_the_filter_writes_nothing(tmp_path):
     assert result.exit_code == 0, result.output
     assert "fails filter_rows" in result.output
     assert not output.exists()
+
+
+@pytest.mark.parametrize("filter_rows", ["{exam} == 1", '{people.cohort} == "offspring"'])
+def test_map_data_reports_rows_each_filter_kept(data_dir, filter_rows):
+    """The run ends with how many rows each filter kept, so a filter that drops too much shows."""
+    (data_dir / "source.yaml").write_text(SOURCE)
+    (data_dir / "spec.yaml").write_text(yaml.dump({"class_derivations": {"Visit": _visit(filter_rows=filter_rows)}}))
+    result = CliRunner().invoke(
+        main,
+        [
+            "map-data",
+            "-T",
+            str(data_dir / "spec.yaml"),
+            "-s",
+            str(data_dir / "source.yaml"),
+            "-f",
+            "json",
+            str(data_dir),
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    assert f"Visit [{filter_rows}]: filter_rows kept 2 of 4 rows" in result.output

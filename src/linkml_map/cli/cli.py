@@ -547,6 +547,9 @@ def _map_data_streaming(
     all_outputs = [(make_stream_writer(fmt, table_name=table_name), primary_target), *extra_outputs]
     MultiStreamWriter(all_outputs).write_all(chunks)
 
+    for (cd_name, filter_rows), (seen, kept) in tr.filter_counts.items():
+        click.echo(f"{cd_name} [{filter_rows}]: filter_rows kept {kept} of {seen} rows", err=True)
+
     # Errors were already printed as they occurred; a mid-stream crash would
     # have propagated before reaching here. Reached only on clean completion.
     if error_count:
