@@ -87,6 +87,7 @@ Name: linkml-map
 | [expression_mappings](slots/expression_mappings.md) | A mapping table where the values are expressions evaluated against source bin... |
 | [expression_to_expression_mappings](slots/expression_to_expression_mappings.md) | A mapping table in which the keys and values are expressions |
 | [expression_to_value_mappings](slots/expression_to_value_mappings.md) | A mapping table in which the keys are boolean expressions and the values are ... |
+| [filter_rows](slots/filter_rows.md) | An expression evaluated on each source row, using the LinkML expression langu... |
 | [hide](slots/hide.md) | True if this is suppressed |
 | [id](slots/id.md) | Unique identifier for this transformation specification |
 | [id_slots](slots/id_slots.md) | Slots that identify the entity (not pivoted) |

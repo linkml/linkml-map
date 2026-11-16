@@ -202,6 +202,9 @@ class Transformer(ABC):
     _warned_unresolved_enum_values: set[tuple[str, str]] = field(default_factory=set, repr=False)
     """``(enum, value)`` pairs already warned about in non-strict mode, so each logs once."""
 
+    filter_counts: dict[tuple[str, str], list[int]] = field(default_factory=dict, repr=False)
+    """``[seen, kept]`` source rows per ``(class derivation, filter_rows)``, for the run summary."""
+
     spec_messages: list[Any] = field(default_factory=list)
     """Scan messages captured at spec-load time.
 

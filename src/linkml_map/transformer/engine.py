@@ -59,7 +59,7 @@ def _reads_no_input(class_deriv: ClassDerivation) -> bool:
     Expects ``is_a``/``mixins`` already merged. A slot counts as constant only when it
     sets ``value:`` or holds nested class derivations that are constant themselves.
     """
-    if class_deriv.populated_from or class_deriv.joins or class_deriv.copy_directives:
+    if class_deriv.populated_from or class_deriv.joins or class_deriv.copy_directives or class_deriv.filter_rows:
         return False
     slots = class_deriv.slot_derivations.values()
     return bool(slots) and all(_is_constant_slot(sd) for sd in slots)
@@ -84,13 +84,16 @@ def _map_rows(
     """Map each row through *class_deriv*, routing row errors to *on_error* when given."""
     for row_idx, row in enumerate(rows):
         try:
-            yield transformer.map_object(row, source_type=source_type, class_derivation=class_deriv)
+            obj = transformer.map_object(row, source_type=source_type, class_derivation=class_deriv)
         except TransformationError as err:
             if on_error is None:
                 raise
             err.row_index = row_idx
             err.class_derivation_name = err.class_derivation_name or class_deriv.name
             on_error(err)
+            continue
+        if obj is not None:
+            yield obj
 
 
 def transform_spec(

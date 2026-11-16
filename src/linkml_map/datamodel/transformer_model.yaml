@@ -350,6 +350,14 @@ classes:
           LinkML class definition object for this slot.
         comments:
           - currently defined as Any to avoid coupling with metamodel
+      filter_rows:
+        range: string
+        description: >-
+          An expression evaluated on each source row, using the LinkML expression
+          language. A row for which it is not true yields no object: no record at
+          the top level, and no nested object under a slot.
+        examples:
+          - value: "{visit_code} == 3"
       pivot_operation:
         range: PivotOperation
         description: Configuration for pivot (unmelt) operations at class level

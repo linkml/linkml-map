@@ -406,7 +406,9 @@ def _map_data_single(
         click.echo("\n1 transformation error:", err=True)
         click.echo(f"  - {err}", err=True)
         raise SystemExit(1) from err
-    if output_format in COLUMNAR_FORMATS:
+    if tr_obj is None:
+        click.echo("The input object fails filter_rows; nothing to write.", err=True)
+    elif output_format in COLUMNAR_FORMATS:
         _dump_columnar(tr_obj, output_format, output, table_name)
     else:
         dump_output(tr_obj, output_format, output)
@@ -544,6 +546,10 @@ def _map_data_streaming(
     primary_target = Path(output) if output else sys.stdout
     all_outputs = [(make_stream_writer(fmt, table_name=table_name), primary_target), *extra_outputs]
     MultiStreamWriter(all_outputs).write_all(chunks)
+
+    for (cd_name, filter_rows), (seen, kept) in tr.filter_counts.items():
+        if seen and not kept:
+            logger.warning(f"{cd_name}: filter_rows {filter_rows!r} kept none of {seen} rows")
 
     # Errors were already printed as they occurred; a mid-stream crash would
     # have propagated before reaching here. Reached only on clean completion.
